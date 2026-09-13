@@ -88,6 +88,7 @@ Singleton {
     readonly property alias fontMono: config.fontMono
     readonly property alias notificationTimeout: config.notificationTimeout
     readonly property alias compositor: config.compositor
+    readonly property alias keyboard: config.keyboard
     readonly property alias displays: config.displays
     readonly property alias keys: config.keys
     readonly property alias launcherPrefixes: config.launcherPrefixes
@@ -281,7 +282,7 @@ Singleton {
     // Reset. The recorder and capture entries are last-used state.
     readonly property var machineKeys: [
         "displays", "lidPolicy",
-        "userName", "userAvatar", "language", "weatherPlace", "githubUser",
+        "userName", "userAvatar", "language", "keyboard", "weatherPlace", "githubUser",
         "doNotDisturb", "nightLight", "nightTemperature",
         "recorderAudio", "recorderShape", "captureShape", "captureKind"
     ]
@@ -535,6 +536,10 @@ Singleton {
         // option path. Absent keys are left to the Lua config. The option
         // whitelist lives in `compositor.py`.
         property var compositor: ({})
+
+        // The keyboard's own options (`input:kb_*`), kept apart from
+        // `compositor` because the keyboard is the machine's, not the desk's.
+        property var keyboard: ({})
 
         // ── DISPLAYS ────────────────────────────────────────────────────
         //

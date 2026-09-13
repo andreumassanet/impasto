@@ -55,7 +55,7 @@ SettingsSection {
         CompositorService.value("input:kb_options", "")
 
     readonly property int layoutCount:
-        CompositorService.value("input:kb_layout", "es")
+        CompositorService.value("input:kb_layout", "us")
             .split(",").filter(entry => entry.trim() !== "").length
 
 
@@ -74,7 +74,7 @@ SettingsSection {
         }
 
         LayoutPicker {
-            current: CompositorService.value("input:kb_layout", "es")
+            current: CompositorService.value("input:kb_layout", "us")
             onChanged: value => CompositorService.remember("input:kb_layout", value)
         }
 

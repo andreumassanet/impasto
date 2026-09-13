@@ -77,6 +77,16 @@ Singleton {
 
     onStoreChanged: root.pushSoon.restart()
 
+    // The keyboard's options are a machine setting, so a profile switch keeps
+    // them; they are pushed after the profile's store and win over it.
+    readonly property var keyboardOptions: [
+        "input:kb_layout", "input:kb_variant", "input:kb_model",
+        "input:kb_options", "input:kb_rules"
+    ]
+    readonly property var keyboard: SettingsService.keyboard
+
+    onKeyboardChanged: root.pushSoon.restart()
+
     // Sliders report every step; debounce so a drag is one push.
     readonly property Timer pushSoon: Timer {
         interval: 120
@@ -84,7 +94,7 @@ Singleton {
     }
 
     function applyStore(): void {
-        const kept = root.store ?? ({})
+        const kept = Object.assign({}, root.store ?? ({}), root.keyboard ?? ({}))
         if (Object.keys(kept).length === 0) {
             root.load()
             return
@@ -100,9 +110,10 @@ Singleton {
     // Controls only write the store; the push follows from the store change,
     // so live changes and reloads share one path.
     function remember(option: string, value: var): void {
-        const next = Object.assign({}, root.store ?? ({}))
+        const key = root.keyboardOptions.indexOf(option) >= 0 ? "keyboard" : "compositor"
+        const next = Object.assign({}, (key === "keyboard" ? root.keyboard : root.store) ?? ({}))
         next[option] = String(value)
-        SettingsService.set("compositor", next)
+        SettingsService.set(key, next)
     }
 
     // Emptying the store doesn't undo what Hyprland already holds, so the
