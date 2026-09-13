@@ -27,10 +27,10 @@ import "../components"
 // bottom holds every module; drag a widget to move it, pull its corner to
 // resize it, click it for its inspector.
 //
-// It takes the keyboard only while a photo's caption is typed in the
-// inspector, on demand and under a focus grab, as the bar holds it. Arranging
-// ends with Done or a right-click, never with Escape. The right-click menu is
-// a surface of its own, so opening it never raises the widgets.
+// Arranging holds the keyboard, on demand and under a focus grab as the bar
+// holds it, and ends with Escape, a right-click or a click on any other
+// surface. The right-click menu is a surface of its own, so opening it never
+// raises the widgets.
 PanelWindow {
     id: root
 
@@ -50,16 +50,16 @@ PanelWindow {
     // Raised above the windows while arranging, and only then.
     WlrLayershell.layer: root.editing ? WlrLayer.Top : WlrLayer.Bottom
 
-    // The grab keeps the keyboard here while the pointer is elsewhere, and a
-    // click on any other surface clears it; the compositor hands the keyboard
-    // back when it ends.
-    WlrLayershell.keyboardFocus: DesktopService.typing
+    // While arranging. The grab keeps the keyboard here while the pointer is
+    // elsewhere, and a click on any surface but this one and the edges' clears
+    // it, which ends the mode; the compositor hands the keyboard back.
+    WlrLayershell.keyboardFocus: root.editing
         ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
 
     HyprlandFocusGrab {
-        active: DesktopService.typing
-        windows: [root]
-        onCleared: DesktopService.typing = false
+        active: root.editing
+        windows: DeckService.surface ? [root, DeckService.surface] : [root]
+        onCleared: DesktopService.edit(false)
     }
 
     // The whole screen, ignoring exclusive zones, so a widget dragged into the
@@ -85,11 +85,15 @@ PanelWindow {
 
     // Not `id: board`: the widgets take a `board` property, and an id with the
     // same name as a property in scope resolves to the property, handing each
-    // widget itself.
-    Item {
+    // widget itself. A scope, so Escape reaches it and a caption field inside
+    // keeps its own.
+    FocusScope {
         id: surface
 
         anchors.fill: parent
+        focus: true
+
+        Keys.onEscapePressed: DesktopService.edit(false)
         anchors.topMargin: DesktopService.insets.top
         anchors.leftMargin: DesktopService.insets.left
         anchors.rightMargin: DesktopService.insets.right
@@ -162,12 +166,14 @@ PanelWindow {
                     landing.showing = false
                     return
                 }
-                const size = DesktopService.sizeFor(landing.spot.family)
+                const shape = DesktopService.family(landing.spot.family)
+                const x = DesktopService.offsetX(landing.spot.col)
+                const y = DesktopService.offsetY(landing.spot.row)
                 slide.enabled = landing.showing
-                landing.x = DesktopService.offsetOf(landing.spot.col)
-                landing.y = DesktopService.offsetOf(landing.spot.row)
-                landing.width = size.width
-                landing.height = size.height
+                landing.x = x
+                landing.y = y
+                landing.width = DesktopService.offsetX(landing.spot.col + shape.cols) - Theme.desktopGutter - x
+                landing.height = DesktopService.offsetY(landing.spot.row + shape.rows) - Theme.desktopGutter - y
                 slide.enabled = true
                 landing.showing = true
             }
@@ -189,12 +195,11 @@ PanelWindow {
             }
         }
 
-        // The tray, only while arranging. Above the widgets but below the one
-        // being dragged, so a widget dropped onto it is seen arriving.
+        // The card of every module, only while arranging. Above the widgets but
+        // below the one being dragged, so a widget dropped onto it is seen
+        // arriving. It fills the board and places its card itself.
         Loader {
-            anchors.horizontalCenter: parent.horizontalCenter
-            anchors.bottom: parent.bottom
-            anchors.bottomMargin: Theme.desktopGutter
+            anchors.fill: parent
             z: 1
             active: root.editing
             sourceComponent: Tray { board: surface }
@@ -408,12 +413,16 @@ PanelWindow {
                 model: DesktopService.columns * DesktopService.rows
 
                 Rectangle {
-                    required property int index
+                    id: square
 
-                    x: DesktopService.offsetOf(index % DesktopService.columns)
-                    y: DesktopService.offsetOf(Math.floor(index / DesktopService.columns))
-                    width: Theme.desktopCell
-                    height: Theme.desktopCell
+                    required property int index
+                    readonly property int col: square.index % DesktopService.columns
+                    readonly property int row: Math.floor(square.index / DesktopService.columns)
+
+                    x: DesktopService.offsetX(square.col)
+                    y: DesktopService.offsetY(square.row)
+                    width: DesktopService.offsetX(square.col + 1) - Theme.desktopGutter - square.x
+                    height: DesktopService.offsetY(square.row + 1) - Theme.desktopGutter - square.y
                     radius: Theme.radiusSmall
                     color: "transparent"
                     border.color: Theme.hairline

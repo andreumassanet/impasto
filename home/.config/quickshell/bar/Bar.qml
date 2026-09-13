@@ -161,7 +161,7 @@ PanelWindow {
     // Input region: the bar's band, plus the island's shape (the band's, in
     // one capsule) with 12 px below it so the bottom edge still counts. The
     // whole screen only while the control centre is being arranged, since
-    // tiles are dragged out of the tray below the island. Outside clicks are
+    // blocks are dragged out of the tray card, which moves. Outside clicks are
     // left to the focus grab, so windows under an open panel stay usable.
     readonly property real shapeLeft: root.unified
         ? Math.min(root.bandX, root.islandLeft) : root.islandLeft
@@ -424,8 +424,9 @@ PanelWindow {
         Behavior on border.color { ColorAnimation { duration: Theme.durationMedium } }
     }
 
-    // The control centre's tray while its grid is being arranged. On this
-    // surface so tiles can be dragged from it onto the island.
+    // The control centre's tray card while its grid is being arranged. On this
+    // surface so blocks can be dragged from it onto the island; it fills the
+    // surface, starts under the island and moves by its head.
     Item {
         id: overlay
 
@@ -433,10 +434,12 @@ PanelWindow {
         z: 3
 
         Loader {
-            anchors.horizontalCenter: parent.horizontalCenter
-            y: root.islandTopMargin + island.height + Theme.desktopGutter
+            anchors.fill: parent
             active: ControlsService.editing
-            sourceComponent: ControlsTray { host: overlay }
+            sourceComponent: ControlsTray {
+                host: overlay
+                homeTop: root.islandTopMargin + island.height + Theme.desktopGutter
+            }
         }
     }
 

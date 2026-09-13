@@ -109,10 +109,13 @@ QtObject {
     // ── DESKTOP GRID ────────────────────────────────────────────────────────
     //
     // Widgets span whole cells. The gutter matches Hyprland's `gaps_out`.
-    // A 4 × 2 widget is 398 × 190, which fits the largest island detail
-    // (380 × 172) with one gutter around it; a larger detail needs a larger
-    // cell.
+    // A square is at least `desktopCell` and grows up to `desktopCellLargest`
+    // so the board's margin is the same on all four sides
+    // (`DesktopService.gridFor`). At the least, a 4 × 2 widget is 398 × 190,
+    // which fits the largest island detail (380 × 172) with one gutter around
+    // it; a larger detail needs a larger cell.
     readonly property int desktopCell: 86
+    readonly property int desktopCellLargest: 108
     readonly property int desktopGutter: 18
     readonly property int desktopStride: root.desktopCell + root.desktopGutter
 

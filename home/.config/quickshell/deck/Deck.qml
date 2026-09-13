@@ -35,6 +35,14 @@ PanelWindow {
 
     readonly property bool editing: DesktopService.editing
 
+    // Published for the desktop's focus grab, so a press on a tab while
+    // arranging does not end the mode.
+    Component.onCompleted: DeckService.surface = root
+    Component.onDestruction: {
+        if (DeckService.surface === root)
+            DeckService.surface = null
+    }
+
     // Reset any press in progress when the mode changes; a region left expanded
     // would swallow every click.
     onEditingChanged: {
@@ -721,8 +729,8 @@ PanelWindow {
         board.dropIndex = -1
         const size = DesktopService.sizeFor("2x2")
         const spot = DesktopService.nearestFree(
-            DesktopService.cellOf(point.x - size.width / 2),
-            DesktopService.cellOf(point.y - size.height / 2), "2x2", "")
+            DesktopService.cellX(point.x - size.width / 2),
+            DesktopService.cellY(point.y - size.height / 2), "2x2", "")
         DesktopService.landing = spot ? { col: spot.col, row: spot.row, family: "2x2" } : null
     }
 
@@ -748,8 +756,8 @@ PanelWindow {
         }
         const size = DesktopService.sizeFor("2x2")
         DesktopService.noteToGrid(key,
-            DesktopService.cellOf(point.x - size.width / 2),
-            DesktopService.cellOf(point.y - size.height / 2))
+            DesktopService.cellX(point.x - size.width / 2),
+            DesktopService.cellY(point.y - size.height / 2))
     }
 
     function openNote(key: string): void {

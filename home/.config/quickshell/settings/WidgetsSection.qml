@@ -111,7 +111,7 @@ SettingsSection {
         SettingGroup {
             title: Tr.t("The desktop")
             note: Tr.t("Widgets are arranged directly on the wallpaper.")
-            hint: Tr.t("Arranging brings the widgets in front of the windows, with a tray of every module under them. Drag a tile onto the grid, pull a widget's corner to change its shape, click it for a look of its own, and drop it back on the tray to take it off. The right button on any widget opens the same mode from the picture. This window closes meanwhile.")
+            hint: Tr.t("Arranging brings the widgets in front of the windows, with a card of every module, moved by the space between them. Drag one onto the grid, pull a widget's corner to change its shape, click it for a look of its own, and drop it back on the card to take it off. Escape or the right button ends it, and the right button on any widget opens the same mode from the picture. This window closes meanwhile.")
 
             SettingRow {
                 label: Tr.t("Arrange the desktop")

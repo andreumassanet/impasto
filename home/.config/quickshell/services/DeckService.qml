@@ -186,4 +186,7 @@ Singleton {
     // Edge that would receive the widget or tray tile currently being dragged
     // from the desktop, or "". Set by the desktop, drawn by the deck.
     property string receiving: ""
+
+    // The edges' window, published by `Deck` for the desktop's focus grab.
+    property var surface: null
 }

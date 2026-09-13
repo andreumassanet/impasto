@@ -347,7 +347,7 @@ Singleton {
     //
     //   id     settings key, and what `BlockFace` draws
     //   name   display name
-    //   icon   glyph on its tray tile
+    //   icon   glyph in the tray's list
     //   sizes  columns × rows it has a face for, smallest first
     //
     // Cells are wider than tall, so 1×2 and 2×4 are the square sizes.
@@ -413,29 +413,6 @@ Singleton {
         const shape = root.parse(size)
         return `${shape.cols}×${shape.rows}`
     }
-
-    // Long side over short side, in pixels (1 = square).
-    function aspect(size: string): real {
-        const box = root.pixels(size)
-        return Math.max(box.width / box.height, box.height / box.width)
-    }
-
-    // The most square size a block offers; used for its tray preview.
-    function squarest(id: string): string {
-        const sizes = root.sizesFor(id)
-        let best = sizes[0] ?? "2x2"
-        for (const size of sizes) {
-            if (root.aspect(size) < root.aspect(best))
-                best = size
-        }
-        return best
-    }
-
-    // Tray order: by aspect (squares first, strips last), then catalogue order.
-    readonly property var trayOrder: root.catalogue
-        .map((entry, index) => ({ entry: entry, index: index, aspect: root.aspect(root.squarest(entry.id)) }))
-        .sort((left, right) => left.aspect !== right.aspect ? left.aspect - right.aspect : left.index - right.index)
-        .map(item => item.entry)
 
     // ── BOARD ───────────────────────────────────────────────────────────────
     //
@@ -777,6 +754,12 @@ Singleton {
     // animating, so its position is mapped at query time.
     property Item tray: null
 
+    // Where the tray card was moved to, until arranging ends, and its size in
+    // columns and rows, for the rest of the session; null until it is moved
+    // or resized.
+    property var galleryAt: null
+    property var gallerySize: null
+
     // `x`, `y` are in the board's coordinates.
     function overTray(x: real, y: real): bool {
         if (!root.tray || !root.board)
@@ -792,6 +775,7 @@ Singleton {
         if (!on) {
             root.dragging = ""
             root.landing = null
+            root.galleryAt = null
         }
     }
 }

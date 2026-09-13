@@ -101,7 +101,7 @@ SettingsSection {
     SettingGroup {
         title: Tr.t("The panel")
         note: Tr.t("A six by eight grid, arranged on the panel itself.")
-        hint: Tr.t("Edit shows the grid with a tray of blocks underneath: drag blocks onto cells, pull a corner or scroll to resize, and drop one on the tray to remove it. Right-click the panel to enter or leave this mode without opening settings, and click a toggles block to choose its switches.")
+        hint: Tr.t("Edit shows the grid with a card of every block, moved by the space between them: drag a block onto the cells, pull a corner or scroll to resize, and drop one on the card to remove it. Escape leaves this mode, the right button on the panel enters or leaves it without opening settings, and a click on a toggles block chooses its switches.")
 
         SettingRow {
             label: Tr.t("Arrange the control centre")

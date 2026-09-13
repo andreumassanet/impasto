@@ -307,8 +307,8 @@ QtObject {
             "The desktop": "El escritorio",
             "Widgets are arranged directly on the wallpaper.":
                 "Los widgets se colocan directamente sobre el fondo.",
-            "Arranging brings the widgets in front of the windows, with a tray of every module under them. Drag a tile onto the grid, pull a widget's corner to change its shape, click it for a look of its own, and drop it back on the tray to take it off. The right button on any widget opens the same mode from the picture. This window closes meanwhile.":
-                "Colocar trae los widgets por delante de las ventanas, con una bandeja de todos los módulos debajo. Arrastra una pieza a la cuadrícula, tira de la esquina de un widget para cambiarle la forma, haz clic en él para darle un aspecto propio y suéltalo sobre la bandeja para quitarlo. El botón derecho sobre cualquier widget abre el mismo modo desde la imagen. Esta ventana se cierra mientras tanto.",
+            "Arranging brings the widgets in front of the windows, with a card of every module, moved by the space between them. Drag one onto the grid, pull a widget's corner to change its shape, click it for a look of its own, and drop it back on the card to take it off. Escape or the right button ends it, and the right button on any widget opens the same mode from the picture. This window closes meanwhile.":
+                "Colocar trae los widgets por delante de las ventanas, con una tarjeta de todos los módulos que se mueve por el espacio entre ellos. Arrastra uno a la cuadrícula, tira de la esquina de un widget para cambiarle la forma, haz clic en él para darle un aspecto propio y suéltalo sobre la tarjeta para quitarlo. Esc o el botón derecho lo terminan, y el botón derecho sobre cualquier widget abre el mismo modo desde la imagen. Esta ventana se cierra mientras tanto.",
             "Arrange the desktop": "Colocar el escritorio",
             "Arrange widgets": "Colocar widgets",
             "on the wallpaper": "en el fondo",
@@ -349,8 +349,8 @@ QtObject {
             "The panel": "El panel",
             "A six by eight grid, arranged on the panel itself.":
                 "Una cuadrícula de seis por ocho, que se coloca en el propio panel.",
-            "Edit shows the grid with a tray of blocks underneath: drag blocks onto cells, pull a corner or scroll to resize, and drop one on the tray to remove it. Right-click the panel to enter or leave this mode without opening settings, and click a toggles block to choose its switches.":
-                "Editar muestra la cuadrícula con una bandeja de bloques debajo: arrastra bloques a las casillas, tira de una esquina o usa la rueda para cambiar el tamaño, y suelta uno en la bandeja para quitarlo. Con el botón derecho sobre el panel entras o sales del modo sin abrir los ajustes, y haciendo clic en un bloque de conmutadores eliges cuáles lleva.",
+            "Edit shows the grid with a card of every block, moved by the space between them: drag a block onto the cells, pull a corner or scroll to resize, and drop one on the card to remove it. Escape leaves this mode, the right button on the panel enters or leaves it without opening settings, and a click on a toggles block chooses its switches.":
+                "Editar muestra la cuadrícula con una tarjeta de todos los bloques, que se mueve por el espacio entre ellos: arrastra un bloque a las casillas, tira de una esquina o usa la rueda para cambiar el tamaño, y suelta uno en la tarjeta para quitarlo. Esc sale del modo, con el botón derecho sobre el panel entras o sales sin abrir los ajustes, y haciendo clic en un bloque de conmutadores eliges cuáles lleva.",
             "Arrange the control centre": "Colocar el centro de control",
             "Default layout": "Disposición inicial",
             "The top row": "La fila de arriba",

@@ -13,13 +13,12 @@ import "../../../theme"
 import "../../../services"
 import "../../../components"
 
-// The tray of blocks, hung under the island on the bar's surface while the
-// grid is being arranged. It lives on the bar's surface so a tile can be
-// dragged from here onto the grid within one window.
+// The card of blocks, on the bar's surface while the grid is being arranged,
+// so a block can be dragged from it onto the island within one window. It
+// starts under the island and moves by its head.
 //
-// Each tile is a live miniature of the block at its squarest size, scaled to
-// fit. Tiles are sorted by shape, squares first, and bottom-aligned so a row
-// of different shapes sits on one line. Each plate fits its tile.
+// Every block at the smallest size it offers, which is the size it is added
+// at, packed in the grid's own cells; it grows on the grid.
 EditTray {
     id: root
 
@@ -27,21 +26,44 @@ EditTray {
     // island.
     required property Item host
 
-    // The block being dragged out of the tray, or empty.
+    // Where the card starts: under the island, handed in by the bar.
+    property real homeTop: 0
+
+    // The block being dragged out of the card, or empty.
     property string pulling: ""
 
-    model: ControlsService.trayOrder
-    roomAcross: root.host.width - 2 * Theme.desktopGutter
+    entries: ControlsService.catalogue.map(entry => {
+        const shape = ControlsService.parse(root.smallest(entry.id))
+        return { id: entry.id, name: entry.name, cols: shape.cols, rows: shape.rows }
+    })
+    unitWidth: Theme.centreCellWidth
+    unitHeight: Theme.centreCellHeight
+    unitGap: Theme.centreGutter
+    // A block is drawn denser than a desktop widget, so it is shown larger
+    // than the desktop's three quarters: at nine tenths, six across and five
+    // down, the card opens at the desktop card's size.
+    startColumns: 6
+    startRows: 5
+    factor: 0.9
+    homeX: (root.width - root.card.width) / 2
+    homeY: root.homeTop
+    at: ControlsService.galleryAt
+    onMoved: (x, y) => ControlsService.galleryAt = { x: x, y: y }
+    size: ControlsService.gallerySize
+    onResized: (columns, rows) => ControlsService.gallerySize = { columns: columns, rows: rows }
     receiving: ControlsService.dragging !== "" && ControlsService.landing === null
-    onDone: ControlsService.edit(false)
+
+    function smallest(id: string): string {
+        return ControlsService.sizesFor(id)[0] ?? "2x2"
+    }
 
     // Published as an item rather than a rectangle so the service maps points
-    // into it on demand; the tray is created while the island may still be
-    // animating, and a rectangle measured then would stay wrong.
+    // into it on demand; the card moves, and the island may still be
+    // animating when it is made.
     Binding {
         target: ControlsService
         property: "tray"
-        value: root
+        value: root.card
     }
 
     Component.onDestruction: {
@@ -49,7 +71,7 @@ EditTray {
         ControlsService.landing = null
     }
 
-    // ── TILE ────────────────────────────────────────────────────────────────
+    // ── PIECE ───────────────────────────────────────────────────────────────
 
     delegate: Item {
         id: tile
@@ -57,57 +79,36 @@ EditTray {
         required property var modelData
 
         readonly property string blockId: tile.modelData.id
-        // Shown at its squarest; added at its smallest.
-        readonly property string size: ControlsService.squarest(tile.blockId)
+        readonly property string size: root.smallest(tile.blockId)
         readonly property var box: ControlsService.pixels(tile.size)
-        readonly property real factor:
-            Math.min(root.tile / tile.box.width, root.tile / tile.box.height)
+        readonly property real factor: tile.width / tile.box.width
         readonly property bool pulled: root.pulling === tile.blockId
 
-        width: root.tile
-        height: root.tile + 18
+        x: tile.modelData.x
+        y: tile.modelData.y
+        width: tile.modelData.width
+        height: tile.modelData.height
 
         Item {
-            width: root.tile
-            height: root.tile
+            width: tile.box.width
+            height: tile.box.height
+            scale: tile.factor
+            transformOrigin: Item.TopLeft
 
-            // Scaled about the bottom edge so every miniature sits on the same
-            // line.
-            Item {
-                anchors.bottom: parent.bottom
-                anchors.horizontalCenter: parent.horizontalCenter
-                width: tile.box.width
-                height: tile.box.height
-                scale: tile.factor
-                transformOrigin: Item.Bottom
-
-                Rectangle {
-                    anchors.fill: parent
-                    anchors.margins: -6
-                    radius: Theme.radiusLarge
-                    color: Theme.island
-                    border.color: tile.pulled ? Theme.accent : Theme.islandBorder
-                    border.width: tile.pulled ? 6 : 3
-                }
-
-                BlockFace {
-                    anchors.fill: parent
-                    blockId: tile.blockId
-                    size: tile.size
-                    enabled: false
-                }
+            Rectangle {
+                anchors.fill: parent
+                radius: Theme.radiusMedium
+                color: "transparent"
+                border.color: tile.pulled ? Theme.accent : "transparent"
+                border.width: 2 / tile.factor
             }
-        }
 
-        Text {
-            anchors.bottom: parent.bottom
-            width: parent.width
-            text: Tr.t(tile.modelData.name)
-            elide: Text.ElideRight
-            horizontalAlignment: Text.AlignHCenter
-            font.family: Theme.fontFamily
-            font.pixelSize: Theme.fontSizeLabel
-            color: Theme.textMuted
+            BlockFace {
+                anchors.fill: parent
+                blockId: tile.blockId
+                size: tile.size
+                enabled: false
+            }
         }
 
         HoverHandler {
@@ -131,10 +132,11 @@ EditTray {
                     return
                 }
                 const spot = ControlsService.landing
+                const blockId = root.pulling
                 root.pulling = ""
                 ControlsService.landing = null
                 if (spot)
-                    ControlsService.add(tile.blockId, spot.col, spot.row)
+                    ControlsService.add(blockId, spot.col, spot.row)
             }
 
             onCentroidChanged: {
@@ -147,7 +149,7 @@ EditTray {
     // ── GHOST ───────────────────────────────────────────────────────────────
     //
     // The dragged block at its landing size, over the island, with the landing
-    // cell highlighted on the grid. Hidden while the pointer is over the tray.
+    // cell highlighted on the grid. Hidden while the pointer is over the card.
     function aim(scene: point): void {
         const board = ControlsService.board
         const at = root.host.mapFromItem(null, scene.x, scene.y)
@@ -161,51 +163,39 @@ EditTray {
             return
         }
         const corner = board.mapFromItem(root.host, ghost.x, ghost.y)
-        const size = ControlsService.sizesFor(root.pulling)[0] ?? "2x2"
         const spot = ControlsService.nearestFree(
-            ControlsService.cellX(corner.x), ControlsService.cellY(corner.y), size, "")
+            ControlsService.cellX(corner.x), ControlsService.cellY(corner.y), ghost.size, "")
         ControlsService.landing = spot
-            ? { col: spot.col, row: spot.row, size: size } : null
+            ? { col: spot.col, row: spot.row, size: ghost.size } : null
     }
 
-    Rectangle {
+    Item {
         id: ghost
 
-        readonly property var entry: ControlsService.entry(root.pulling)
-        readonly property var size: ControlsService.pixels(
-            ControlsService.sizesFor(root.pulling)[0] ?? "2x2")
+        readonly property string size: root.smallest(root.pulling)
+        readonly property var box: ControlsService.pixels(ghost.size)
 
         parent: root.host
         z: 100
         visible: root.pulling !== ""
-        width: ghost.size.width
-        height: ghost.size.height
-        radius: Theme.radiusMedium
-        color: Theme.islandSurface
-        border.color: Theme.accent
-        border.width: 2
+        width: ghost.box.width
+        height: ghost.box.height
         opacity: 0.9
 
-        Row {
-            anchors.centerIn: parent
-            spacing: 8
+        Rectangle {
+            anchors.fill: parent
+            anchors.margins: -6
+            radius: Theme.radiusLarge
+            color: Theme.island
+            border.color: Theme.accent
+            border.width: 2
+        }
 
-            Text {
-                anchors.verticalCenter: parent.verticalCenter
-                text: ghost.entry ? ghost.entry.icon : ""
-                font.family: Theme.fontMono
-                font.pixelSize: 16
-                color: Theme.accent
-            }
-
-            Text {
-                anchors.verticalCenter: parent.verticalCenter
-                text: ghost.entry ? Tr.t(ghost.entry.name) : ""
-                font.family: Theme.fontFamily
-                font.pixelSize: Theme.fontSizeSmall
-                font.weight: Font.DemiBold
-                color: Theme.text
-            }
+        BlockFace {
+            anchors.fill: parent
+            blockId: root.pulling
+            size: ghost.size
+            enabled: false
         }
     }
 }

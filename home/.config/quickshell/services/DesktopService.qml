@@ -57,10 +57,7 @@ Singleton {
 
     function sizeFor(familyId: string): var {
         const shape = root.family(familyId)
-        return {
-            width: shape.cols * Theme.desktopCell + (shape.cols - 1) * Theme.desktopGutter,
-            height: shape.rows * Theme.desktopCell + (shape.rows - 1) * Theme.desktopGutter
-        }
+        return { width: root.span(shape.cols), height: root.span(shape.rows) }
     }
 
     // ── THEMES ──────────────────────────────────────────────────────────────
@@ -174,23 +171,68 @@ Singleton {
     property real boardWidth: 0
     property real boardHeight: 0
 
-    function fits(length: real): int {
-        return Math.max(1, Math.floor(
-            (length - Theme.desktopGutter) / Theme.desktopStride))
+    // The grid on a board: the stride between squares, how many fit each way
+    // and where the first one starts. The margin is the same on all four
+    // sides, which takes a stride that splits the difference between the
+    // board's sides into whole squares: the smallest such square no smaller
+    // than `desktopCell`, and on each side the count whose margin is nearest
+    // one street, never under half of one. A board too nearly square for that
+    // keeps `desktopCell`, centred, with even margins on opposite sides.
+    function gridFor(width: real, height: real): var {
+        const gutter = Theme.desktopGutter
+        if (width <= 0 || height <= 0)
+            return { stride: Theme.desktopStride, columns: 8, rows: 6, originX: gutter, originY: gutter }
+        const shortest = Math.min(width, height)
+        const difference = Math.abs(width - height)
+        const apart = Math.floor(difference / Theme.desktopStride)
+        const even = apart > 0 && difference / apart - gutter <= Theme.desktopCellLargest
+        const stride = even ? difference / apart : Theme.desktopStride
+        let across = Math.max(1, Math.round((shortest - gutter) / stride))
+        if (across > 1 && across * stride > shortest)
+            across -= 1
+        const count = length => even
+            ? across + Math.round((length - shortest) / stride)
+            : Math.max(1, Math.floor(length / stride))
+        const columns = count(width)
+        const rows = count(height)
+        return {
+            stride: stride,
+            columns: columns,
+            rows: rows,
+            originX: (width + gutter - columns * stride) / 2,
+            originY: (height + gutter - rows * stride) / 2
+        }
     }
 
-    readonly property int columns: root.boardWidth > 0 ? root.fits(root.boardWidth) : 8
-    readonly property int rows: root.boardHeight > 0 ? root.fits(root.boardHeight) : 6
+    readonly property var grid: root.gridFor(root.boardWidth, root.boardHeight)
+    readonly property real stride: root.grid.stride
+    readonly property int columns: root.grid.columns
+    readonly property int rows: root.grid.rows
+    readonly property real originX: root.grid.originX
+    readonly property real originY: root.grid.originY
 
-    // Cell origin. The board has a gutter at its edge too, matching the gap
-    // between widgets.
-    function offsetOf(cell: int): real {
-        return Theme.desktopGutter + cell * Theme.desktopStride
+    // Cell edges fall on whole pixels. The stride can be fractional, so a box
+    // is measured between two rounded edges and may be a pixel off `span`.
+    function offsetX(col: int): real {
+        return Math.round(root.originX + col * root.stride)
+    }
+
+    function offsetY(row: int): real {
+        return Math.round(root.originY + row * root.stride)
+    }
+
+    // Length of `count` squares and the streets between them.
+    function span(count: int): real {
+        return Math.round(count * root.stride - Theme.desktopGutter)
     }
 
     // Nearest cell to a position (rounded, not floored).
-    function cellOf(position: real): int {
-        return Math.round((position - Theme.desktopGutter) / Theme.desktopStride)
+    function cellX(x: real): int {
+        return Math.round((x - root.originX) / root.stride)
+    }
+
+    function cellY(y: real): int {
+        return Math.round((y - root.originY) / root.stride)
     }
 
     // ── ROWS ────────────────────────────────────────────────────────────────
@@ -304,8 +346,8 @@ Singleton {
     // ── GEOMETRY ────────────────────────────────────────────────────────────
     //
     // Shared by the widget and the surface's input mask. Computed rather than
-    // measured so the mask never lags a frame behind. Clamping happens here,
-    // not on save, so a layout made on a larger screen stays intact.
+    // measured so the mask never lags a frame behind. A square is drawn at its
+    // spot on this board (`spots`).
     function geometry(widget: var, boardWidth: real, boardHeight: real): var {
         if (root.isDeck(widget)) {
             const count = root.deckNotes(widget).length
@@ -313,20 +355,71 @@ Singleton {
                 DeckService.startOf(widget.edge, count, root.alongOf(widget), boardWidth, boardHeight),
                 boardWidth, boardHeight)
         }
-        const familyId = root.familyOf(widget)
-        const shape = root.family(familyId)
-        const size = root.sizeFor(familyId)
-        const lastColumn = Math.max(0, root.fits(boardWidth) - shape.cols)
-        const lastRow = Math.max(0, root.fits(boardHeight) - shape.rows)
+        const shape = root.family(root.familyOf(widget))
+        const spot = root.spotOf(widget)
+        const x = root.offsetX(spot.col)
+        const y = root.offsetY(spot.row)
         return {
-            x: root.offsetOf(Math.max(0, Math.min(lastColumn, widget.col ?? 0))),
-            y: root.offsetOf(Math.max(0, Math.min(lastRow, widget.row ?? 0))),
-            width: size.width,
-            height: size.height
+            x: x,
+            y: y,
+            width: root.offsetX(spot.col + shape.cols) - Theme.desktopGutter - x,
+            height: root.offsetY(spot.row + shape.rows) - Theme.desktopGutter - y
         }
     }
 
     // ── COLLISIONS ──────────────────────────────────────────────────────────
+    //
+    // Where each square is on this board: its own cell kept inside the board,
+    // or the nearest free one when another already holds it. The farthest
+    // right and down go first, so on a smaller board those against the edge
+    // keep it and push their neighbours inward, in order. Never written back,
+    // so a layout made on a larger screen stays intact.
+    readonly property var spots: {
+        const reach = widget => {
+            const shape = root.family(root.familyOf(widget))
+            return { right: (widget.col ?? 0) + shape.cols, bottom: (widget.row ?? 0) + shape.rows }
+        }
+        const order = root.squares.slice().sort((left, right) =>
+            reach(right).right - reach(left).right || reach(right).bottom - reach(left).bottom)
+        const taken = []
+        const spots = {}
+        for (const widget of order) {
+            const shape = root.family(root.familyOf(widget))
+            const home = root.clamped(widget, shape)
+            let spot = home
+            if (root.clashes(taken, home.col, home.row, shape)) {
+                let nearest = Infinity
+                for (let col = 0; col + shape.cols <= root.columns; col++) {
+                    for (let row = 0; row + shape.rows <= root.rows; row++) {
+                        const distance = (col - home.col) ** 2 + (row - home.row) ** 2
+                        if (distance < nearest && !root.clashes(taken, col, row, shape)) {
+                            nearest = distance
+                            spot = { col: col, row: row }
+                        }
+                    }
+                }
+            }
+            taken.push({ col: spot.col, row: spot.row, cols: shape.cols, rows: shape.rows })
+            spots[widget.key] = spot
+        }
+        return spots
+    }
+
+    function spotOf(widget: var): var {
+        return root.spots[widget.key] ?? root.clamped(widget, root.family(root.familyOf(widget)))
+    }
+
+    function clamped(widget: var, shape: var): var {
+        return {
+            col: Math.max(0, Math.min(root.columns - shape.cols, widget.col ?? 0)),
+            row: Math.max(0, Math.min(root.rows - shape.rows, widget.row ?? 0))
+        }
+    }
+
+    function clashes(taken: var, col: int, row: int, shape: var): bool {
+        return taken.some(other => col < other.col + other.cols && other.col < col + shape.cols
+            && row < other.row + other.rows && other.row < row + shape.rows)
+    }
 
     function overlaps(col: int, row: int, familyId: string, exceptKey: string): bool {
         const shape = root.family(familyId)
@@ -334,10 +427,9 @@ Singleton {
             if (other.key === exceptKey)
                 continue
             const theirs = root.family(root.familyOf(other))
-            const theirCol = other.col ?? 0
-            const theirRow = other.row ?? 0
-            if (col < theirCol + theirs.cols && theirCol < col + shape.cols
-                    && row < theirRow + theirs.rows && theirRow < row + shape.rows)
+            const spot = root.spotOf(other)
+            if (col < spot.col + theirs.cols && spot.col < col + shape.cols
+                    && row < spot.row + theirs.rows && spot.row < row + shape.rows)
                 return true
         }
         return false
@@ -639,7 +731,8 @@ Singleton {
             return
         if (root.familyOf(widget) === familyId)
             return
-        const spot = root.nearestFree(widget.col ?? 0, widget.row ?? 0, familyId, key)
+        const at = root.spotOf(widget)
+        const spot = root.nearestFree(at.col, at.row, familyId, key)
         if (!spot)
             return
         root.update(key, { family: familyId, col: spot.col, row: spot.row })
@@ -653,9 +746,10 @@ Singleton {
             return
         const families = root.familiesFor(widget.id, root.themeOf(widget))
         const at = families.indexOf(root.familyOf(widget))
+        const spot = root.spotOf(widget)
         for (let step = 1; step < families.length; step++) {
             const next = families[(at + delta * step + families.length * step) % families.length]
-            if (root.nearestFree(widget.col ?? 0, widget.row ?? 0, next, key)) {
+            if (root.nearestFree(spot.col, spot.row, next, key)) {
                 root.setFamily(key, next)
                 return
             }
@@ -854,8 +948,15 @@ Singleton {
     // Handled in `shell.qml`, which owns the settings window.
     signal settingsRequested()
 
-    // The tray's rectangle on the board; a widget dropped on it is removed.
+    // The tray card's rectangle on the board; a widget dropped on it is
+    // removed.
     property var trayBox: null
+
+    // Where the card was moved to, until arranging ends, and its size in
+    // columns and rows, for the rest of the session; null until it is moved
+    // or resized.
+    property var galleryAt: null
+    property var gallerySize: null
 
     function overTray(x: real, y: real): bool {
         const box = root.trayBox
@@ -872,6 +973,7 @@ Singleton {
             root.dragging = ""
             root.selected = ""
             root.landing = null
+            root.galleryAt = null
         }
     }
 

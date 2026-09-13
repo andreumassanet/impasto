@@ -226,7 +226,7 @@ Item {
                 return
             }
             DesktopService.place(root.key,
-                DesktopService.cellOf(root.x), DesktopService.cellOf(root.y))
+                DesktopService.cellX(root.x), DesktopService.cellY(root.y))
         }
     }
 
@@ -258,7 +258,7 @@ Item {
         }
         DeckService.receiving = ""
         const spot = DesktopService.nearestFree(
-            DesktopService.cellOf(root.x), DesktopService.cellOf(root.y),
+            DesktopService.cellX(root.x), DesktopService.cellY(root.y),
             root.family, root.key)
         DesktopService.landing = spot
             ? { col: spot.col, row: spot.row, family: root.family } : null
@@ -413,8 +413,8 @@ Item {
                     return
                 const pointer = root.board.mapFromItem(null,
                     resize.centroid.scenePosition.x, resize.centroid.scenePosition.y)
-                const cols = (pointer.x - root.box.x + Theme.desktopGutter) / Theme.desktopStride
-                const rows = (pointer.y - root.box.y + Theme.desktopGutter) / Theme.desktopStride
+                const cols = (pointer.x - root.box.x + Theme.desktopGutter) / DesktopService.stride
+                const rows = (pointer.y - root.box.y + Theme.desktopGutter) / DesktopService.stride
                 const next = DesktopService.familyNearest(
                     root.moduleId, cols, rows, DesktopService.themeOf(root.row))
                 if (next !== root.family)

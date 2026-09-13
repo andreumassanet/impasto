@@ -37,6 +37,18 @@ ColumnLayout {
 
     spacing: ControlsService.rowGap
 
+    // Escape leaves arranging first; otherwise it reaches the island, which
+    // closes.
+    Component.onCompleted: root.forceActiveFocus()
+
+    Keys.onEscapePressed: event => {
+        if (!root.editing) {
+            event.accepted = false
+            return
+        }
+        ControlsService.edit(false)
+    }
+
     // Closing the panel ends arranging too, so it never reopens still in that
     // mode, swallowing clicks.
     Component.onDestruction: {
