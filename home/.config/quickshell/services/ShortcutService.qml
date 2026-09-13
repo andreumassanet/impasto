@@ -14,8 +14,6 @@ import Quickshell
 import Quickshell.Hyprland
 import Quickshell.Io
 
-import "../theme"
-
 // Keys belong to the profile: the `keys` setting maps each bind description
 // in `hypr/keybinds.lua` to a combination, so switching profile switches the
 // compositor's binds as well as the shell's.
@@ -341,46 +339,49 @@ Singleton {
                 else
                     for (const key of row.keys)
                         caps.push(root.capOf(key))
-                return { action: many ? row.base : row.action, caps: caps }
+                return { action: many ? row.base : row.action, caps: caps, keys: row.keys }
             })
         }))
     }
 
-    // Columns filled in order up to an even share; groups are never split.
-    readonly property int sheetColumnCount: 3
-    readonly property int sheetColumnWidth: 368
-    readonly property int sheetGutter: 32
-    readonly property int sheetRowHeight: 28
-    readonly property int sheetHeadingHeight: 32
+    readonly property int sheetCount: root.sheet.reduce((sum, group) => sum + group.rows.length, 0)
 
-    function groupHeight(group: var): int {
-        return root.sheetHeadingHeight + group.rows.length * root.sheetRowHeight
+    // What a search term can start with: the words of the action and its
+    // group, the caps, and the xkb names behind them (Return for Enter, each
+    // digit of a folded run).
+    function sheetWords(group: var, row: var): var {
+        const words = `${group.name} ${row.action} ${row.caps.join(" ")} ${row.keys.join(" ")}`
+            .toLowerCase().split(/[^a-z0-9]+/)
+        for (const key of row.keys)
+            words.push(key.toLowerCase())
+        return words.filter(word => word !== "")
     }
 
-    readonly property var sheetColumns: {
-        const total = root.sheet.reduce((sum, group) => sum + root.groupHeight(group), 0)
-        const share = total / root.sheetColumnCount
-        const columns = [[]]
-        let filled = 0
+    // The sheet as one list, headings between groups, keeping the rows every
+    // term of `query` begins a word of. Terms split on spaces and on `+`.
+    function sheetFind(query: string): var {
+        const terms = query.toLowerCase().split(/[\s+]+/).filter(term => term !== "")
+        const out = []
         for (const group of root.sheet) {
-            const height = root.groupHeight(group)
-            if (filled > 0 && filled + height > share
-                    && columns.length < root.sheetColumnCount) {
-                columns.push([])
-                filled = 0
-            }
-            columns[columns.length - 1].push(group)
-            filled += height
+            const rows = group.rows.filter(row => {
+                const words = root.sheetWords(group, row)
+                return terms.every(term => words.some(word => word.startsWith(term)))
+            })
+            if (rows.length === 0)
+                continue
+            out.push({ heading: true, name: group.name })
+            for (const row of rows)
+                out.push({ heading: false, action: row.action, caps: row.caps })
         }
-        return columns
+        return out
     }
 
-    // Declared for the island, using the same arithmetic as the panel.
-    readonly property int sheetWidth: root.sheetColumnCount * root.sheetColumnWidth
-        + (root.sheetColumnCount - 1) * root.sheetGutter + 2 * Theme.panelPadding
-    readonly property int sheetHeight: Math.max(160, ...root.sheetColumns.map(column =>
-        column.reduce((sum, group) => sum + root.groupHeight(group), 0)))
-        + 2 * Theme.panelPadding
+    // Declared for the island: a field over a list that scrolls.
+    readonly property int sheetWidth: 620
+    readonly property int sheetHeight: 600
+    readonly property int sheetFieldHeight: 36
+    readonly property int sheetRowHeight: 36
+    readonly property int sheetHeadingHeight: 32
 
     // ── RELOAD ──────────────────────────────────────────────────────────────
 
