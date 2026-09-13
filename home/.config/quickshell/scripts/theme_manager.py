@@ -205,10 +205,11 @@ VSCODIUM_THEME_FILE = os.path.join(VSCODIUM_EXTENSION_DIR, "themes",
                                    "impasto-color-theme.json")
 
 # The theme's name in the picker and in `workbench.colorTheme`. The push never
-# selects it: VSCodium rewrites settings.json itself and the two would race.
+# selects it, so a theme picked by hand stays picked.
 VSCODIUM_LABEL = "Impasto"
 
-# Merged by `./setup vscodium`, never by the palette push.
+# Merged whole by `./setup vscodium`. The pushes only rewrite, in place, the
+# values that follow the palette and the font, and only where they are set.
 VSCODIUM_SETTINGS_FILE = os.path.join(XDG_CONFIG_HOME, "VSCodium", "User",
                                       "settings.json")
 
@@ -3013,40 +3014,195 @@ def shell_font():
     return font or DEFAULT_MONO
 
 
-def build_vscodium_settings(colors):
-    """The settings.json keys this repository manages.
+def jsonc_skip(text, index):
+    """The index past any whitespace and comments at `index`."""
+    while index < len(text):
+        if text[index].isspace():
+            index += 1
+        elif text.startswith("//", index):
+            newline = text.find("\n", index)
+            index = len(text) if newline < 0 else newline
+        elif text.startswith("/*", index):
+            close = text.find("*/", index + 2)
+            index = len(text) if close < 0 else close + 2
+        else:
+            break
+    return index
 
-    Only what cannot go in the theme: fonts, layout and extension options.
-    Applied by `./setup vscodium` with the editor closed, never by the palette
-    push.
+
+def jsonc_string_end(text, index):
+    """The index past the string whose opening quote is at `index`."""
+    index += 1
+    while index < len(text):
+        if text[index] == "\\":
+            index += 2
+            continue
+        if text[index] == '"':
+            return index + 1
+        index += 1
+    return len(text)
+
+
+def jsonc_value_end(text, index):
+    """The index past the value that starts at `index`."""
+    if text[index] == '"':
+        return jsonc_string_end(text, index)
+    if text[index] in "[{":
+        depth = 0
+        while index < len(text):
+            char = text[index]
+            if char == '"':
+                index = jsonc_string_end(text, index)
+                continue
+            if text.startswith(("//", "/*"), index):
+                index = jsonc_skip(text, index)
+                continue
+            if char in "[{":
+                depth += 1
+            elif char in "]}":
+                depth -= 1
+                if depth == 0:
+                    return index + 1
+            index += 1
+        return len(text)
+    end = index
+    while (end < len(text) and text[end] not in ",}\n"
+           and not text.startswith(("//", "/*"), end)):
+        end += 1
+    while end > index and text[end - 1].isspace():
+        end -= 1
+    return end
+
+
+def jsonc_members(text):
+    """{key: (start, end)} for the values of a JSONC object's top-level keys.
+
+    Comments are skipped rather than removed, so a value can be replaced in
+    place and everything around it kept. None when the text is not an
+    object this can read.
     """
+    index = jsonc_skip(text, 0)
+    if index >= len(text) or text[index] != "{":
+        return None
+    members = {}
+    index += 1
+    while True:
+        index = jsonc_skip(text, index)
+        if index >= len(text):
+            return None
+        if text[index] == "}":
+            return members
+        if text[index] == ",":
+            index += 1
+            continue
+        if text[index] != '"':
+            return None
+        end = jsonc_string_end(text, index)
+        try:
+            key = json.loads(text[index:end])
+        except ValueError:
+            return None
+        index = jsonc_skip(text, end)
+        if index >= len(text) or text[index] != ":":
+            return None
+        index = jsonc_skip(text, index + 1)
+        if index >= len(text):
+            return None
+        end = jsonc_value_end(text, index)
+        members[key] = (index, end)
+        index = end
+
+
+def update_vscodium_settings(values):
+    """Rewrite, in place, the values of those keys already in settings.json.
+
+    Nothing is added and nothing else changes, comments included, so a key
+    removed by hand stays removed. VSCodium does not write the file back as
+    it exits, so the editor may be open.
+    """
+    try:
+        with open(VSCODIUM_SETTINGS_FILE, encoding="utf-8") as handle:
+            text = handle.read()
+    except OSError:
+        return
+    members = jsonc_members(text)
+    if not members:
+        return
+
+    edits = []
+    for key, value in values.items():
+        if key not in members:
+            continue
+        start, end = members[key]
+        try:
+            if json.loads(strip_jsonc(text[start:end])) == value:
+                continue
+        except ValueError:
+            pass
+        edits.append((start, end, json.dumps(value, ensure_ascii=False)))
+    if not edits:
+        return
+
+    for start, end, value in sorted(edits, reverse=True):
+        text = text[:start] + value + text[end:]
+    temporary = VSCODIUM_SETTINGS_FILE + ".impasto"
+    try:
+        with open(temporary, "w", encoding="utf-8") as handle:
+            handle.write(text)
+        os.replace(temporary, VSCODIUM_SETTINGS_FILE)
+    except OSError as error:
+        sys.stderr.write(f"Cannot update VSCodium's settings: {error}\n")
+
+
+def vscodium_font_settings(families):
+    """The settings.json keys that follow the shell's monospace family."""
+    font = quoted_families(families)
+    return {
+        "editor.fontFamily": font,
+        "terminal.integrated.fontFamily": font,
+        "debug.console.fontFamily": font,
+    }
+
+
+def vscodium_palette_settings(colors):
+    """The settings.json keys that follow the palette: extension options
+    with no theme colour to carry them."""
     accent = colors.get("accent", "#0a84ff")
     ground = gtk_ground(colors.get("background", "#1e1e1e"), accent)
-    font = quoted_families(shell_font())
 
     def on(key):
-        return lift(colors[key], MIN_CONTRAST, ground)
+        return lift(colors.get(key, accent), MIN_CONTRAST, ground)
 
     # Indent guides use the bracket-pair colour order, at VSCODIUM_GUIDE alpha.
     guides = [on(key) + VSCODIUM_GUIDE
               for key in ("accent", "yellow", "blue", "green", "accentHover")]
+    return {
+        # Folder icons follow the accent.
+        "material-icon-theme.folders.color": accent,
+        "indentRainbow.colors": guides,
+        "indentRainbow.errorColor": on("red") + VSCODIUM_GUIDE,
+    }
 
+
+def build_vscodium_settings(colors):
+    """The settings.json keys this repository manages.
+
+    Only what cannot go in the theme: fonts, layout and extension options.
+    Merged by `./setup vscodium`; the pushes keep its font and palette keys
+    current after that.
+    """
     return {
         # ── theme and icons ──
         "workbench.colorTheme": VSCODIUM_LABEL,
         "workbench.iconTheme": "material-icon-theme",
         "workbench.productIconTheme": "fluent-icons",
-        # Folder icons follow the accent.
-        "material-icon-theme.folders.color": accent,
 
         # ── type ──
-        "editor.fontFamily": font,
+        **vscodium_font_settings(shell_font()),
         "editor.fontLigatures": True,
         "editor.fontSize": 14,
         "editor.lineHeight": 1.6,
-        "terminal.integrated.fontFamily": font,
         "terminal.integrated.fontSize": 13,
-        "debug.console.fontFamily": font,
         "scm.inputFontFamily": "editor",
 
         # ── window layout ──
@@ -3088,8 +3244,7 @@ def build_vscodium_settings(colors):
         "errorLens.gutterIconsEnabled": False,
         "indentRainbow.indicatorStyle": "light",
         "indentRainbow.lightIndicatorStyleLineWidth": 1,
-        "indentRainbow.colors": guides,
-        "indentRainbow.errorColor": on("red") + VSCODIUM_GUIDE,
+        **vscodium_palette_settings(colors),
     }
 
 
@@ -3486,6 +3641,8 @@ def push_terminal_font(family):
         handle.write("# bar are set in the same face.\n")
         handle.write(f"font_family {first}\n")
 
+    update_vscodium_settings(vscodium_font_settings(family))
+
     kitten = shutil.which("kitten")
     if not kitten:
         sys.stderr.write("kitten not found; the font applies to new terminals only\n")
@@ -3715,6 +3872,7 @@ def main():
         write_vesktop_css(colors)
         write_spicetify_colors(colors)
         write_vscodium_theme(colors)
+        update_vscodium_settings(vscodium_palette_settings(colors))
         write_zen_css(colors)
     elif action == "push-terminal-font" and argument:
         push_terminal_font(argument)

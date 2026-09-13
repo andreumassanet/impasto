@@ -651,8 +651,8 @@ verb_spotify() {
     say ok
 }
 
-# The palette push writes the colour theme. settings.json is merged here, with
-# the editor closed, because VSCodium rewrites it. Only the extensions the look
+# The palette push writes the colour theme and keeps the font and palette keys
+# current; this merges the rest of settings.json. Only the extensions the look
 # is made of, from Open VSX; --force makes a re-run upgrade them.
 VSCODIUM_EXTENSIONS=(
     pkief.material-icon-theme
@@ -664,9 +664,6 @@ VSCODIUM_EXTENSIONS=(
 verb_vscodium() {
     section vscodium
     command -v codium >/dev/null || refuse 'vscodium is not installed' || return
-    if pgrep -x codium >/dev/null; then
-        refuse 'close VSCodium first: it rewrites settings.json as it exits' || return
-    fi
     local e missed=0
     for e in "${VSCODIUM_EXTENSIONS[@]}"; do
         if act codium --install-extension "$e" --force >/dev/null 2>&1; then
