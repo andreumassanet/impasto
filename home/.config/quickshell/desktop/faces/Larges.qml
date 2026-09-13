@@ -38,7 +38,8 @@ Item {
         media: mediaLarge,
         claude: claudeLarge,
         notes: notesLarge,
-        tasks: tasksLarge
+        tasks: tasksLarge,
+        photo: photoLarge
     })
 
     Loader {
@@ -668,6 +669,13 @@ Item {
         id: notesLarge
 
         NoteFace { ink: root.ink; row: root.row; family: "4x4" }
+    }
+
+    // A picture of your own; see `PhotoFace`.
+    Component {
+        id: photoLarge
+
+        PhotoFace { ink: root.ink; row: root.row; family: "4x4" }
     }
 
     // The 2×2 with its middle filled in: the next six tasks, soonest first,

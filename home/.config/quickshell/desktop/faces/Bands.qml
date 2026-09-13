@@ -31,7 +31,8 @@ Item {
         clock: clockBand,
         weather: weatherBand,
         github: githubBand,
-        notes: notesBand
+        notes: notesBand,
+        photo: photoBand
     })
 
     Loader {
@@ -163,6 +164,13 @@ Item {
         id: notesBand
 
         NoteFace { ink: root.ink; row: root.row; family: "8x2" }
+    }
+
+    // A picture of your own, across the band; see `PhotoFace`.
+    Component {
+        id: photoBand
+
+        PhotoFace { ink: root.ink; row: root.row; family: "8x2" }
     }
 
     // The whole contribution year; see `GithubFace`.

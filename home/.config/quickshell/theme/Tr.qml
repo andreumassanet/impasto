@@ -253,6 +253,7 @@ QtObject {
             "Notes": "Notas",
             "Tasks": "Tareas",
             "Clock": "Reloj",
+            "Photo": "Foto",
 
             // ── BAR & ISLAND · WHAT A MODULE KNOWS ──────────────────────────
             "Seconds make the clock repaint sixty times as often.":
@@ -340,6 +341,12 @@ QtObject {
             "Which note": "Qué nota",
             "The newest": "La más reciente",
             "New note": "Nota nueva",
+            "Choose…": "Elegir…",
+            "Caption": "Pie de foto",
+            "Written under the picture": "Escrito bajo la foto",
+            "Wallpapers": "Fondos",
+            "Home": "Carpeta personal",
+            "No pictures here": "Aquí no hay fotos",
 
             // ── CONTROL CENTRE ──────────────────────────────────────────────
             "The panel": "El panel",

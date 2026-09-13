@@ -49,7 +49,8 @@ Item {
         clock: clockWide,
         calendar: calendarWide,
         notes: notesWide,
-        tasks: tasksWide
+        tasks: tasksWide,
+        photo: photoWide
     })
 
     Loader {
@@ -932,6 +933,13 @@ Item {
         id: notesWide
 
         NoteFace { ink: root.ink; row: root.row; family: "4x2" }
+    }
+
+    // A picture of your own; see `PhotoFace`.
+    Component {
+        id: photoWide
+
+        PhotoFace { ink: root.ink; row: root.row; family: "4x2" }
     }
 
     // Half a year of the contribution wall; see `GithubFace`.

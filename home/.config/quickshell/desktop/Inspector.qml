@@ -8,6 +8,7 @@
 // ╰──────────────────────────────────────────────────────────────────────────╯
 
 import QtQuick
+import Quickshell.Widgets
 
 import "../theme"
 import "../services"
@@ -34,6 +35,27 @@ Item {
     // a list of notes.
     readonly property bool deck: DesktopService.isDeck(root.row)
     readonly property bool onNote: root.moduleId === "notes"
+    readonly property bool onPhoto: root.moduleId === "photo"
+
+    // Notes and photos have no capsule to style and no opacity to set.
+    readonly property bool styled: !root.onNote && !root.onPhoto
+
+    // Only a print has a chin to write in.
+    readonly property bool captioned: root.onPhoto
+        && DesktopService.themeOf(root.row) === "analogue"
+        && DesktopService.familyOf(root.row) !== "8x2"
+
+    // The caption field lets go when the surface loses the keyboard.
+    Connections {
+        target: DesktopService
+
+        function onTypingChanged(): void {
+            if (!DesktopService.typing)
+                caption.focus = false
+        }
+    }
+
+    Component.onDestruction: DesktopService.typing = false
 
     readonly property int cardWidth: 312
     readonly property int pad: 14
@@ -517,6 +539,127 @@ Item {
                 }
             }
 
+            // ── PICTURE ─────────────────────────────────────────────────────
+            //
+            // For a photo: the picture, the picker (`Picker.qml`, in this
+            // card's place) and a way to empty it. The only place a picture
+            // is chosen.
+
+            Text {
+                visible: root.onPhoto
+                text: Tr.t("Picture")
+                font.family: Theme.fontFamily
+                font.pixelSize: Theme.fontSizeLabel
+                font.weight: Font.DemiBold
+                color: Theme.textMuted
+            }
+
+            Row {
+                visible: root.onPhoto
+                spacing: 10
+
+                ClippingRectangle {
+                    width: 48
+                    height: 48
+                    radius: width * Theme.pictureCorner
+                    color: Theme.islandSurface
+
+                    Image {
+                        id: thumbnail
+
+                        anchors.fill: parent
+                        source: root.onPhoto ? DesktopService.pictureOf(root.row) : ""
+                        fillMode: Image.PreserveAspectCrop
+                        asynchronous: true
+                        sourceSize.width: 96
+                        sourceSize.height: 96
+                    }
+
+                    Text {
+                        anchors.centerIn: parent
+                        visible: thumbnail.status !== Image.Ready
+                        text: "󰋩"
+                        font.family: Theme.fontMono
+                        font.pixelSize: 18
+                        color: Theme.textMuted
+                    }
+                }
+
+                PillButton {
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: Tr.t("Choose…")
+                    implicitHeight: 26
+                    onClicked: DesktopService.picking = root.key
+                }
+
+                IconButton {
+                    anchors.verticalCenter: parent.verticalCenter
+                    visible: root.onPhoto && DesktopService.pictureOf(root.row) !== ""
+                    icon: "󰅖"
+                    iconSize: 13
+                    onClicked: DesktopService.update(root.key, { picture: null })
+                }
+            }
+
+            // ── CAPTION ─────────────────────────────────────────────────────
+            //
+            // Written in the print's chin. Typing holds the keyboard until
+            // Enter, Escape or a click anywhere else.
+
+            Text {
+                visible: root.captioned
+                text: Tr.t("Caption")
+                font.family: Theme.fontFamily
+                font.pixelSize: Theme.fontSizeLabel
+                font.weight: Font.DemiBold
+                color: Theme.textMuted
+            }
+
+            Rectangle {
+                visible: root.captioned
+                width: parent.width
+                height: 34
+                radius: Theme.radiusSmall
+                color: Theme.islandSurface
+                border.color: caption.activeFocus ? Theme.accent : Theme.islandBorder
+                border.width: 1
+
+                Behavior on border.color { ColorAnimation { duration: Theme.durationFast } }
+
+                TextInput {
+                    id: caption
+
+                    anchors.fill: parent
+                    anchors.leftMargin: 10
+                    anchors.rightMargin: 10
+                    verticalAlignment: TextInput.AlignVCenter
+                    text: root.row && typeof root.row.caption === "string" ? root.row.caption : ""
+                    maximumLength: 40
+                    font.family: Theme.fontSignature
+                    font.pixelSize: 19
+                    color: Theme.text
+                    selectByMouse: true
+                    selectionColor: Theme.accent
+                    selectedTextColor: Theme.accentText
+                    clip: true
+
+                    onActiveFocusChanged: DesktopService.typing = caption.activeFocus
+                    onTextEdited: DesktopService.update(root.key, { caption: caption.text === "" ? null : caption.text })
+                    Keys.onReturnPressed: caption.focus = false
+                    Keys.onEnterPressed: caption.focus = false
+                    Keys.onEscapePressed: caption.focus = false
+
+                    Text {
+                        anchors.verticalCenter: parent.verticalCenter
+                        visible: caption.text === "" && !caption.activeFocus
+                        text: Tr.t("Written under the picture")
+                        font.family: Theme.fontFamily
+                        font.pixelSize: Theme.fontSizeSmall
+                        color: Theme.textMuted
+                    }
+                }
+            }
+
             // ── THEME ───────────────────────────────────────────────────────
             //
             // The default first (follows the settings), then each theme, drawn
@@ -587,10 +730,9 @@ Item {
             // The default first, then the four styles, each tile painted as the
             // widget would be.
 
-            // Not for notes: they have no capsule to style and no opacity to
-            // set.
+            // Not for notes or photos (`styled`).
             Text {
-                visible: root.moduleId !== "notes"
+                visible: root.styled
                 text: Tr.t("Style")
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.fontSizeLabel
@@ -599,7 +741,7 @@ Item {
             }
 
             Row {
-                visible: root.moduleId !== "notes"
+                visible: root.styled
                 spacing: 8
 
                 Repeater {
@@ -655,7 +797,7 @@ Item {
             }
 
             Text {
-                visible: root.moduleId !== "notes"
+                visible: root.styled
                 width: parent.width
                 text: {
                     const theme = DesktopService.themes.find(
@@ -676,7 +818,7 @@ Item {
             // ── OPACITY ─────────────────────────────────────────────────────
 
             Item {
-                visible: root.moduleId !== "notes"
+                visible: root.styled
                 width: parent.width
                 height: 40
 

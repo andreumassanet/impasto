@@ -49,7 +49,8 @@ Item {
         clock: clockSquare,
         calendar: calendarSquare,
         notes: notesSquare,
-        tasks: tasksSquare
+        tasks: tasksSquare,
+        photo: photoSquare
     })
 
     Loader {
@@ -501,6 +502,13 @@ Item {
         id: notesSquare
 
         NoteFace { ink: root.ink; row: root.row; family: "2x2" }
+    }
+
+    // A picture of your own, one face for all four families; see `PhotoFace`.
+    Component {
+        id: photoSquare
+
+        PhotoFace { ink: root.ink; row: root.row; family: "2x2" }
     }
 
     // The contribution wall, one face for all four families.

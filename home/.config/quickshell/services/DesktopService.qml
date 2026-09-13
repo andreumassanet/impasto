@@ -96,7 +96,7 @@ Singleton {
             updates: ["2x2", "4x2"],                pet: ["2x2", "4x2"],
             games: ["2x2", "4x2"],                  calendar: ["2x2", "4x2", "4x4"],
             notes: ["2x2", "4x2", "4x4", "8x2"],    tasks: ["2x2", "4x2", "4x4"],
-            clock: ["2x2", "4x2", "8x2"]
+            clock: ["2x2", "4x2", "8x2"],           photo: ["2x2", "4x2", "4x4", "8x2"]
         },
         analogue: {
             media: ["2x2", "4x2", "4x4"],           timer: ["2x2", "4x2"],
@@ -108,7 +108,7 @@ Singleton {
             updates: ["2x2", "4x2"],                pet: ["2x2", "4x2"],
             games: ["2x2", "4x2"],                  calendar: ["2x2", "4x2", "4x4"],
             notes: ["2x2", "4x2", "4x4", "8x2"],    tasks: ["2x2", "4x2", "4x4"],
-            clock: ["2x2", "4x2", "4x4", "8x2"]
+            clock: ["2x2", "4x2", "4x4", "8x2"],    photo: ["2x2", "4x2", "4x4", "8x2"]
         }
     })
 
@@ -708,8 +708,9 @@ Singleton {
     ]
 
     function styleOf(widget: var): string {
-        // Notes draw their own paper, so they are always bare.
-        if (widget && widget.id === "notes")
+        // Notes draw their own paper and photos are their picture, so both
+        // are always bare.
+        if (widget && (widget.id === "notes" || widget.id === "photo"))
             return "bare"
         const own = widget ? widget.style : ""
         return own && root.styles.some(style => style.id === own)
@@ -766,11 +767,64 @@ Singleton {
         return ink
     }
 
+    // ── PICTURES ────────────────────────────────────────────────────────────
+    //
+    // A photo widget's picture is a path on its row (`picture`), so it
+    // travels with the profile, and an Analogue print writes the row's
+    // `caption` under it. It is chosen on the desk, in the picker that takes
+    // the inspector's place (`Picker.qml`).
+
+    readonly property var pictureTypes: ["png", "jpg", "jpeg", "webp", "bmp"]
+
+    // The key whose picker is open, or "". It closes with the inspector.
+    property string picking: ""
+
+    // Takes a path or a file:// URL. Anything that is not a picture is
+    // refused.
+    function setPicture(key: string, url: var): bool {
+        const text = String(url)
+        const path = text.startsWith("file://") ? decodeURIComponent(text.slice(7)) : text
+        const dot = path.lastIndexOf(".")
+        if (dot < 0 || root.pictureTypes.indexOf(path.slice(dot + 1).toLowerCase()) < 0)
+            return false
+        root.update(key, { picture: path })
+        return true
+    }
+
+    // A path as a URL an Image or a folder listing loads, each segment
+    // escaped.
+    function urlOf(path: string): string {
+        return "file://" + path.split("/").map(encodeURIComponent).join("/")
+    }
+
+    function pictureOf(widget: var): string {
+        const path = widget && typeof widget.picture === "string" ? widget.picture : ""
+        return path === "" ? "" : root.urlOf(path)
+    }
+
+    // A row's picture in imv, the viewer yazi hands pictures to. A plain
+    // path: imv refuses a file:// URI without a word.
+    function openPicture(widget: var): void {
+        const path = widget && typeof widget.picture === "string" ? widget.picture : ""
+        if (path !== "")
+            Quickshell.execDetached(["imv", path])
+    }
+
     // ── EDITING ─────────────────────────────────────────────────────────────
     //
     // Deliberately not persisted across sessions.
 
     property bool editing: false
+
+    // True while the inspector's caption field is typed in. The surface holds
+    // the keyboard for that long and no longer (`Desktop.qml`).
+    property bool typing: false
+
+    onSelectedChanged: {
+        root.typing = false
+        if (root.selected !== root.picking)
+            root.picking = ""
+    }
 
     // Key of the widget being dragged (drawn on top), or "".
     property string dragging: ""
@@ -811,6 +865,8 @@ Singleton {
     function edit(on: bool): void {
         root.editing = on
         root.menu = null
+        root.typing = false
+        root.picking = ""
         if (!on) {
             root.dragging = ""
             root.selected = ""

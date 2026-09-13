@@ -81,7 +81,7 @@ fastfetch                    # the greeting, on `fa`
 btop                         # themed by the palette push
 cava                         # the same, and the bar's visualiser
 yazi                         # the file manager in the terminal
-imv                          # what yazi hands a picture to
+imv                          # what yazi and the photo widget hand a picture to
 mpv                          # what yazi hands a video or a song to
 asciiquarium
 

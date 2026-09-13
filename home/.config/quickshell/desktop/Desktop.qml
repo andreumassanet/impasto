@@ -9,6 +9,7 @@
 
 import QtQuick
 import Quickshell
+import Quickshell.Hyprland
 import Quickshell.Wayland
 
 import "../theme"
@@ -25,9 +26,9 @@ import "../components"
 // bottom holds every module; drag a widget to move it, pull its corner to
 // resize it, click it for its inspector.
 //
-// It never takes the keyboard: Hyprland only returns keyboard focus from a
-// layer surface on an absolute pointer warp, so holding it risks leaving the
-// session unable to type. Arranging ends with Done or a right-click.
+// It takes the keyboard only while a photo's caption is typed in the
+// inspector, on demand and under a focus grab, as the bar holds it. Arranging
+// ends with Done or a right-click, never with Escape.
 PanelWindow {
     id: root
 
@@ -46,7 +47,18 @@ PanelWindow {
 
     // Raised above the windows while arranging, or while a menu is open.
     WlrLayershell.layer: root.editing || root.menu !== null ? WlrLayer.Top : WlrLayer.Bottom
-    WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
+
+    // The grab keeps the keyboard here while the pointer is elsewhere, and a
+    // click on any other surface clears it; the compositor hands the keyboard
+    // back when it ends.
+    WlrLayershell.keyboardFocus: DesktopService.typing
+        ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
+
+    HyprlandFocusGrab {
+        active: DesktopService.typing
+        windows: [root]
+        onCleared: DesktopService.typing = false
+    }
 
     // The whole screen, ignoring exclusive zones, so a widget dragged into the
     // bar's area stays on this surface; the compositor sends away a pointer
@@ -191,8 +203,16 @@ PanelWindow {
         Loader {
             anchors.fill: parent
             z: 5
-            active: root.editing && DesktopService.selected !== ""
+            active: root.editing && DesktopService.selected !== "" && DesktopService.picking === ""
             sourceComponent: Inspector { board: surface }
+        }
+
+        // A photo's picker, in the inspector's place while it is open.
+        Loader {
+            anchors.fill: parent
+            z: 5
+            active: root.editing && DesktopService.picking !== ""
+            sourceComponent: Picker { board: surface }
         }
 
         // ── MENU ────────────────────────────────────────────────────────────

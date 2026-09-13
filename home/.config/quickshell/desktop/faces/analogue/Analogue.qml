@@ -22,6 +22,9 @@ Item {
     property string family: "2x2"
     property var ink: DesktopService.inkFor(null)
 
+    // The desktop row, for the one face that draws what the row names.
+    property var row: null
+
     readonly property var components: ({
         clock: clockFace,
         weather: weatherFace,
@@ -39,7 +42,8 @@ Item {
         network: networkFace,
         bluetooth: bluetoothFace,
         pet: creatureFace,
-        games: gamesFace
+        games: gamesFace,
+        photo: photoFace
     })
 
     Loader {
@@ -64,4 +68,5 @@ Item {
     Component { id: bluetoothFace;  BluetoothFace  { family: root.family; ink: root.ink } }
     Component { id: creatureFace;   CreatureFace   { family: root.family; ink: root.ink } }
     Component { id: gamesFace;      GamesFace      { family: root.family; ink: root.ink } }
+    Component { id: photoFace;      PhotoFace      { family: root.family; ink: root.ink; row: root.row } }
 }

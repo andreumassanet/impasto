@@ -26,8 +26,9 @@ Item {
     property string theme: DesktopService.themeOf(null)
     property var ink: DesktopService.inkFor(null)
 
-    // The desktop row, for faces that draw something the row names (a note).
-    // Null for tray tiles, which show the front of the deck.
+    // The desktop row, for faces that draw something the row names (a note,
+    // a picture). Null for tray tiles, which show the front of the deck or
+    // an empty frame.
     property var row: null
 
     readonly property bool analogue: root.theme === "analogue" && root.moduleId !== "notes"
@@ -49,7 +50,7 @@ Item {
 
     Component {
         id: analogue
-        Analogue { moduleId: root.moduleId; family: root.family; ink: root.ink }
+        Analogue { moduleId: root.moduleId; family: root.family; ink: root.ink; row: root.row }
     }
 
     Component {

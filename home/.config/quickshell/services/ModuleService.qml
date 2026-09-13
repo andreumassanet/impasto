@@ -55,6 +55,7 @@ Singleton {
         { id: "calendar",      name: "Calendar",      bar: true,  width: 340, height: 330 },
         { id: "notes",         name: "Notes",         bar: false, width: 356, height: 150 },
         { id: "tasks",         name: "Tasks",         bar: false, width: 356, height: 150 },
+        { id: "photo",         name: "Photo",         bar: false, width: 356, height: 150 },
         { id: "clock",         name: "Clock",         bar: false,
           width: SettingsService.clockShowsDate ? 240 : 150, height: Theme.capsuleHeight }
     ]
@@ -392,6 +393,9 @@ Singleton {
             return NotesService.ready
         case "tasks":
             return TasksService.ready
+        case "photo":
+            // An empty one asks for a picture.
+            return true
         }
         return false
     }
