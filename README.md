@@ -170,7 +170,8 @@ everything in `system/` into `/`, the two Hyprland plugins and the vector
 cursor, and sets up Thunar, VSCodium and Spotify — asking for your password
 through sudo for pacman, for the copy into `/`, and to let spicetify patch
 Spotify. A program that is open, or a Spotify you have never started, is
-skipped with the reason and set up by the next `update`.
+skipped with the reason and set up by the next `update`. After that they
+follow the wallpaper on their own; Spotify from its next start.
 
 | Flag | |
 |---|---|

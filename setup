@@ -57,7 +57,7 @@ Usage: ./setup <command> [options]
   plugins     build and enable the two Hyprland plugins with hyprpm
 
   cursors     fetch the vector cursor and build it in the chosen colour
-  spotify     re-apply the palette to Spotify (needs spicetify)
+  spotify     patch Spotify so it takes the palette (needs spicetify)
   vscodium    install the editor's extensions and merge its settings
   thunar      apply the file manager's settings and right-click menu
 
@@ -642,8 +642,10 @@ verb_spotify() {
             || refuse 'could not make /opt/spotify writable' || return
         say 'made /opt/spotify writable'
     fi
+    # The package manager updates spicetify, and the palette push runs
+    # `spicetify refresh`, which would otherwise ask GitHub each time.
     if ! applied spotify; then
-        act spicetify config current_theme impasto color_scheme base >/dev/null \
+        act spicetify config current_theme impasto color_scheme base check_spicetify_update 0 >/dev/null \
             || refuse 'spicetify could not select the theme' || return
     fi
     act spicetify apply >/dev/null 2>&1 || act spicetify backup apply || refuse 'spicetify failed' || return
