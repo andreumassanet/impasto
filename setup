@@ -454,12 +454,22 @@ verb_install() {
 
 verb_update() {
     section git
+    local before arg
+    before=$(version)
     if git -C "$REPO" rev-parse --abbrev-ref '@{upstream}' >/dev/null 2>&1; then
         act git -C "$REPO" pull --autostash --ff-only
     else
         say 'no upstream to pull from — installing what is here'
     fi
-    verb_install
+    if [[ $(version) != "$before" ]]; then say "version  $before → $(version)"; fi
+    # The pull may have changed this script, so the install runs from the
+    # new copy, with the same options.
+    local -a args=()
+    for arg in "${ARGS[@]}"; do
+        if [[ $arg == update ]]; then arg=install; fi
+        args+=("$arg")
+    done
+    IMPASTO_RELAUNCHED=1 exec "$REPO/setup" "${args[@]}"
 }
 
 # Removes every installed file that is unedited; edited files are listed and
@@ -653,6 +663,7 @@ verb_check() {
 # ── MAIN ────────────────────────────────────────────────────────────────────
 
 main() {
+    ARGS=("$@")
     local verb=
     while (( $# )); do
         case $1 in
@@ -675,7 +686,7 @@ main() {
         ''|yay|paru) ;;
         *) fail '--aur-helper takes yay or paru' ;;
     esac
-    if (( DRY )); then printf 'dry run — nothing on this machine is changed\n'; fi
+    if (( DRY )) && [[ -z ${IMPASTO_RELAUNCHED:-} ]]; then printf 'dry run — nothing on this machine is changed\n'; fi
 
     case $verb in
         install)   verb_install ;;
