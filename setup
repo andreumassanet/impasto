@@ -303,10 +303,16 @@ reload_shell() {
     if (( DRY )) || ! command -v qs >/dev/null; then return 0; fi
     for rel in "${!AFTER[@]}" "${!BEFORE[@]}"; do
         [[ $rel == .config/quickshell/* && ${AFTER[$rel]:-} != "${BEFORE[$rel]:-}" ]] || continue
-        # Silent when it reloads. A shell from before this target answers
-        # "Target not found" with a zero exit, and touching its entry file
-        # makes it reload on its own.
-        answer=$(qs ipc call shell reload 2>&1) || return 0
+        # Silent when it reloads. A shell still busy with the reload the copy
+        # started answers "Not ready", and is asked again until it takes it.
+        # A shell from before this target answers "Target not found" with a
+        # zero exit, and touching its entry file makes it reload on its own.
+        local tries
+        for (( tries = 0; tries < 40; tries++ )); do
+            answer=$(qs ipc call shell reload 2>&1) || return 0
+            [[ $answer == *'Not ready'* ]] || break
+            sleep 0.25
+        done
         if [[ -n $answer ]]; then touch "$HOME/.config/quickshell/shell.qml"; fi
         say 'reloaded the shell'
         return 0
