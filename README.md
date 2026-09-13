@@ -167,11 +167,13 @@ cd ~/impasto
 
 It installs the packages, oh-my-zsh, everything in `home/` into your home and
 everything in `system/` into `/`, the two Hyprland plugins and the vector
-cursor. It sets up Thunar, VSCodium, Vesktop and Spotify, asking for your
-password through sudo for pacman, for the copy into `/`, and to let spicetify
-patch Spotify. A program that is open, or a Spotify you have never started, is
-skipped with the reason and set up by the next `update`. After that they follow
-the wallpaper on their own; Spotify from its next start.
+cursor. It sets up Thunar, VSCodium, Vesktop and Spotify, dark GTK
+applications, and what opens which kind of file — leaving alone any your
+machine already has an answer for. It asks for your password through sudo for
+pacman, for the copy into `/`, and to let spicetify patch Spotify. A program
+that is open, or a Spotify you have never started, is skipped with the reason
+and set up by the next `update`. After that they follow the wallpaper on their
+own; Spotify from its next start.
 
 | Flag | |
 |---|---|
@@ -229,26 +231,6 @@ rather than failing.
 | 🎧 | Player | [Spotify](https://www.spotify.com) · [spicetify](https://spicetify.app) |
 | 🌐 | Browser | [Zen](https://zen-browser.app) |
 | 🔑 | Login screen | [SDDM](https://github.com/sddm/sddm) |
-
-</details>
-
-<details>
-<summary><b>Making the rest of the machine agree</b></summary>
-<br>
-
-What opens a file and how GTK applications look are the machine's settings, so
-they are commands, run once:
-
-```bash
-xdg-mime default imv.desktop image/jpeg image/png image/gif image/webp image/svg+xml
-xdg-mime default nvim.desktop text/plain application/json
-xdg-mime default thunar.desktop inode/directory
-xdg-mime default zen.desktop application/pdf text/html     # or whichever browser you use
-gsettings set org.gnome.desktop.interface color-scheme prefer-dark
-gsettings set org.gnome.desktop.interface icon-theme impasto
-```
-
-Zen needs nothing, and Qt and KDE windows need `qt6ct`.
 
 </details>
 

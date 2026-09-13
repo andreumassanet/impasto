@@ -56,6 +56,7 @@ Usage: ./setup <command> [options]
   system      copy system/ into / (asks for a password)
   plugins     build and enable the two Hyprland plugins with hyprpm
 
+  defaults    what opens which file, and dark GTK with the impasto icons
   cursors     fetch the vector cursor and build it in the chosen colour
   spotify     patch Spotify so it takes the palette (needs spicetify)
   vscodium    install the editor's extensions and merge its settings
@@ -567,8 +568,8 @@ verb_uninstall() {
 
 # ── EXTRAS ──────────────────────────────────────────────────────────────────
 #
-# What a copied file cannot hold: the cursor, Thunar, VSCodium, Vesktop and
-# Spotify.
+# What a copied file cannot hold: what opens which file, dark GTK, the cursor,
+# Thunar, VSCodium, Vesktop and Spotify.
 # `install` sets each up once per machine, and one that cannot run yet is
 # skipped with the reason and tried again by the next install or update.
 # After that only its own verb runs it, so a setting changed in one of those
@@ -595,11 +596,72 @@ stamp()   { if (( ! DRY )); then mkdir -p "$APPLIED"; touch "$APPLIED/$1"; fi; }
 # Spotify is patched again whenever an update of the player has put the
 # unpatched xpui.spa back.
 extras() {
+    applied defaults || soft defaults verb_defaults
     if [[ ! -d $CURSOR_SEED ]]; then soft cursors verb_cursors; fi
     applied thunar || soft thunar verb_thunar
     applied vscodium || soft vscodium verb_vscodium
     applied vesktop || soft vesktop verb_vesktop
     if ! applied spotify || [[ -f /opt/spotify/Apps/xpui.spa ]]; then soft spotify verb_spotify; fi
+}
+
+# What opens which file, and whether GTK applications are dark: machine state,
+# so nothing is carried. A line is skipped whole when ~/.config/mimeapps.list
+# already names a default for any of its types, so a browser or viewer
+# somebody chose stays chosen and is not split with ours.
+DEFAULT_APPS=(
+    'imv.desktop image/jpeg image/png image/gif image/webp image/svg+xml'
+    'nvim.desktop text/plain application/json'
+    'thunar.desktop inode/directory'
+    'zen.desktop text/html application/pdf x-scheme-handler/http x-scheme-handler/https'
+)
+
+# Whether mimeapps.list names a default for a type. `xdg-mime query` cannot
+# tell: outside a desktop environment it answers from the cache of every
+# installed application, chosen or not.
+chosen() {
+    local list=${XDG_CONFIG_HOME:-$HOME/.config}/mimeapps.list
+    [[ -f $list ]] || return 1
+    awk -v key="$1=" '/^\[/ { section = ($0 == "[Default Applications]") }
+        section && index($0, key) == 1 && length($0) > length(key) { found = 1 }
+        END { exit !found }' "$list"
+}
+
+# Whether a desktop entry is installed where xdg-open looks.
+has_entry() {
+    local dir IFS=:
+    for dir in ${XDG_DATA_HOME:-$HOME/.local/share}:${XDG_DATA_DIRS:-/usr/local/share:/usr/share}; do
+        if [[ -f $dir/applications/$1 ]]; then return 0; fi
+    done
+    return 1
+}
+
+verb_defaults() {
+    section defaults
+    command -v xdg-mime >/dev/null || refuse 'xdg-mime is not installed (package: xdg-utils)' || return
+    command -v gsettings >/dev/null || refuse 'gsettings is not installed (package: glib2)' || return
+    local line type taken
+    local -a words
+    for line in "${DEFAULT_APPS[@]}"; do
+        read -ra words <<< "$line"
+        if ! has_entry "${words[0]}"; then say "skipped  ${words[0]} — not installed"; continue; fi
+        taken=
+        for type in "${words[@]:1}"; do
+            if chosen "$type"; then taken=$type; break; fi
+        done
+        if [[ -n $taken ]]; then say "kept     what opens $taken, and the rest of its line"; continue; fi
+        act xdg-mime default "${words[0]}" "${words[@]:1}" || refuse 'xdg-mime failed' || return
+        say "${words[0]}  ${words[*]:1}"
+    done
+    act gsettings set org.gnome.desktop.interface color-scheme prefer-dark \
+        && act gsettings set org.gnome.desktop.interface icon-theme impasto \
+        || refuse 'gsettings failed' || return
+    # gsettings succeeds without saving anything when there is no session bus,
+    # so the value is read back.
+    if (( ! DRY )) && [[ $(gsettings get org.gnome.desktop.interface icon-theme) != "'impasto'" ]]; then
+        refuse 'the GTK settings did not persist: run it inside the session' || return
+    fi
+    say 'dark GTK, impasto icons'
+    stamp defaults
 }
 
 # Shake-to-find magnifies the pointer, so it has to be a vector cursor. Fetches
@@ -795,6 +857,7 @@ main() {
         sync)      if (( WATCH )); then verb_watch; else verb_sync; fi ;;
         system)    verb_system ;;
         plugins)   verb_plugins ;;
+        defaults)  verb_defaults ;;
         cursors)   verb_cursors ;;
         spotify)   verb_spotify ;;
         vscodium)  verb_vscodium ;;
