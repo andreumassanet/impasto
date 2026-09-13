@@ -44,7 +44,8 @@ Usage: ./setup <command> [options]
   install     everything, in order: packages, the user folders, oh-my-zsh,
               home/ into $HOME, system/ into /, the Hyprland plugins
   update      git pull, then install again with the same options
-  uninstall   remove every installed file that has not been edited since
+  uninstall   remove every installed file that has not been edited since,
+              and put back what was in the way when it was installed
 
   packages    install what packages/pacman.txt and packages/aur.txt list
   sync        copy home/ into $HOME — how a change in the repository lands
@@ -470,14 +471,48 @@ remove_tree() {
     say "removed ${#BEFORE[@]} files"
 }
 
+# Puts back what was moved aside, oldest backup first, wherever the path is
+# free again. Anything that cannot go back stays in the backups and is counted
+# in KEPT. A dry run removed nothing, so an unedited installed file counts as
+# free there.
+KEPT=0
+restore() {
+    local tree=$1 target=$2 shown=$3 dir f rel dst
+    for dir in "$STATE"/backups/*/"$tree"; do
+        [[ -d $dir ]] || continue
+        while IFS= read -r -d '' f; do
+            rel=${f#"$dir"/}
+            dst=$target/$rel
+            if [[ -e $dst || -L $dst ]]; then
+                if ! (( DRY )) || [[ -L $dst || ! -f $dst ]] \
+                    || [[ $(digest "$dst") != "${BEFORE[$rel]:-}" ]]; then
+                    KEPT=$((KEPT + 1))
+                    continue
+                fi
+            fi
+            if [[ -n $SUDO ]]; then
+                act $SUDO install -D -m "$(stat -c %a "$f")" "$f" "$dst"
+                act rm -f "$f"
+            else
+                act mkdir -p "$(dirname "$dst")"
+                act mv "$f" "$dst"
+            fi
+            say "restored $shown$rel"
+        done < <(find "$dir" \( -type f -o -type l \) -print0 | sort -z)
+    done
+}
+
 verb_uninstall() {
     SUDO=
     remove_tree home "$HOME" "$STATE/home.manifest" '~/'
+    restore home "$HOME" '~/'
     SUDO=sudo
     if [[ -w ${ROOT:-/} ]]; then SUDO=; fi
     remove_tree system "$ROOT" "$STATE/system.manifest" '/'
+    restore system "$ROOT" '/'
     SUDO=
-    say "whatever was in the way when setup first ran is in $STATE/backups"
+    if [[ -d $STATE/backups ]]; then act find "$STATE/backups" -depth -type d -empty -delete; fi
+    if (( KEPT )); then say "not put back, the path is taken: $KEPT, kept in $STATE/backups"; fi
 }
 
 

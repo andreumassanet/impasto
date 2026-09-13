@@ -178,7 +178,7 @@ password through sudo for pacman and for the copy into `/`.
 
 ```bash
 ./setup update       # git pull, then install again — the same flags
-./setup uninstall    # remove everything setup installed that you have not edited since
+./setup uninstall    # remove what it installed, and put back what it moved aside
 ./setup help         # every verb and flag
 ```
 
