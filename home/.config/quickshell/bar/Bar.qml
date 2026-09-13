@@ -195,12 +195,15 @@ PanelWindow {
     // open. The grab keeps the keyboard here when the pointer crosses a window
     // (with `follow_mouse`, on-demand focus alone loses it), and a click on any
     // other surface clears it, which closes the island. The compositor
-    // restores focus when the grab ends.
-    WlrLayershell.keyboardFocus: island.expanded
+    // restores focus when the grab ends. Both stand down while the capture
+    // surface is up, so an open panel waits under it instead of closing.
+    readonly property bool holdsKeyboard: island.expanded && !CaptureService.active
+
+    WlrLayershell.keyboardFocus: root.holdsKeyboard
         ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
 
     HyprlandFocusGrab {
-        active: island.expanded
+        active: root.holdsKeyboard
         windows: [root]
         onCleared: root.dismiss()
     }

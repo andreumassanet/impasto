@@ -348,23 +348,16 @@ ShellRoot {
     // ── CAPTURE ─────────────────────────────────────────────────────────────
     //
     // `capture` opens the surface in its last mode; the others preset a shape
-    // or destination and are unbound by default. The island closes first
-    // because the surface grabs the keyboard exclusively.
+    // or destination and are unbound by default. The photo is taken with
+    // whatever panel is open, so a panel can be captured.
     function capture(shape: string, to: string): void {
-        const wasOpen = root.island?.expanded ?? false
-        root.island?.close()
-        CaptureService.open(shape, "photo", to,
-                            wasOpen ? CaptureService.settle : 0)
+        CaptureService.open(shape, "photo", to, 0)
     }
 
     GlobalShortcut {
         name: "capture"
         description: "Open the capture surface"
-        onPressed: {
-            const wasOpen = root.island?.expanded ?? false
-            root.island?.close()
-            CaptureService.open("", "", "", wasOpen ? CaptureService.settle : 0)
-        }
+        onPressed: CaptureService.open("", "", "", 0)
     }
 
     GlobalShortcut {
