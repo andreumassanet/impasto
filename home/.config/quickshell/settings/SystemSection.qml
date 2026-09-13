@@ -68,35 +68,35 @@ SettingsSection {
 
         ProfilesPart {}
 
-        GroupHeading {
-            title: Tr.t("Starting over")
+        SettingGroup {
+            title: Tr.t("Reset")
             note: Tr.t("Only the profile in use. The others are left as they were.")
             hint: Tr.t("Reset returns every setting in this profile to its default, clears the compositor overrides and reloads Hyprland. Machine settings such as screens, name, picture and language are kept, and there is no undo.")
-        }
 
-        SettingRow {
-            label: Tr.t("Where the settings live")
+            SettingRow {
+                label: Tr.t("Where the settings live")
 
-            Text {
-                text: "~/.local/state/quickshell"
-                font.family: Theme.fontMono
-                font.pixelSize: Theme.fontSizeLabel
-                color: Theme.textMuted
+                Text {
+                    text: "~/.local/state/quickshell"
+                    font.family: Theme.fontMono
+                    font.pixelSize: Theme.fontSizeLabel
+                    color: Theme.textMuted
+                }
             }
-        }
 
-        SettingRow {
-            label: Tr.t("Reset this profile")
-            reading: Tr.t("Back to the defaults")
+            SettingRow {
+                label: Tr.t("Reset this profile")
+                reading: Tr.t("Back to the defaults")
 
-            PillButton {
-                text: Tr.t("Reset")
-                icon: "󰜉"
-                implicitWidth: 92
-                implicitHeight: 30
-                onClicked: {
-                    SettingsService.reset()
-                    CompositorService.restoreDefaults()
+                PillButton {
+                    text: Tr.t("Reset")
+                    icon: "󰜉"
+                    implicitWidth: 92
+                    implicitHeight: 30
+                    onClicked: {
+                        SettingsService.reset()
+                        CompositorService.restoreDefaults()
+                    }
                 }
             }
         }
@@ -110,53 +110,26 @@ SettingsSection {
         spacing: root.spacing
 
         // Strings missing from `Tr.qml` fall back to English.
-        GroupHeading {
-            leading: true
+        SettingGroup {
             title: Tr.t("This window")
             note: Tr.t("The language of this window.")
             hint: Tr.t("Only the settings window is translated, and anything without a translation appears in English. Files the shell writes, such as generated themes, are always in English.")
-        }
 
-        SettingRow {
-            label: Tr.t("Language")
-            reading: {
-                const entry = Tr.languages.find(row => row.id === SettingsService.language)
-                return entry ? entry.label : ""
-            }
+            SettingRow {
+                label: Tr.t("Language")
 
-            SegmentedControl {
-                options: Tr.languages
-                current: SettingsService.language
-                onSelected: id => SettingsService.set("language", id)
-            }
-        }
-
-        // The card has its own title, so no GroupHeading.
-        Rectangle {
-            Layout.fillWidth: true
-            implicitHeight: machine.implicitHeight + 28
-            radius: Theme.radiusMedium
-            color: Theme.islandSurface
-            border.color: Theme.islandBorder
-            border.width: 1
-
-            ColumnLayout {
-                id: machine
-
-                anchors.left: parent.left
-                anchors.right: parent.right
-                anchors.top: parent.top
-                anchors.margins: 14
-                spacing: 12
-
-                Text {
-                    text: Tr.t("This machine")
-                    font.family: Theme.fontFamily
-                    font.pixelSize: Theme.fontSizeSmall
-                    font.weight: Font.DemiBold
-                    color: Theme.text
+                SegmentedControl {
+                    options: Tr.languages
+                    current: SettingsService.language
+                    onSelected: id => SettingsService.set("language", id)
                 }
+            }
+        }
 
+        SettingGroup {
+            title: Tr.t("This machine")
+
+            SettingBlock {
                 RowLayout {
                     Layout.fillWidth: true
                     spacing: 14
@@ -202,7 +175,7 @@ SettingsSection {
         // Colophon: the palette board over the name in the signature face.
         Item {
             Layout.fillWidth: true
-            Layout.topMargin: 22
+            Layout.topMargin: 12
             Layout.bottomMargin: 8
             implicitHeight: colophon.implicitHeight
 

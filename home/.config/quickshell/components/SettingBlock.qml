@@ -1,7 +1,7 @@
 // ╭──────────────────────────────────────────────────────────────────────────╮
 // │                                                                          │
-// │   S E T T I N G S   H E R O                                              │
-// │   settings page heading                                                  │
+// │   S E T T I N G   B L O C K                                              │
+// │   settings · free content in a group                                     │
 // │                                                                          │
 // │   github.com/andreumassanet/impasto                                      │
 // │                                                                          │
@@ -12,30 +12,27 @@ import QtQuick.Layouts
 
 import "../theme"
 
-// Settings page header: mark and name, left-aligned, a step larger than the
-// group headings.
-RowLayout {
+// Anything in a `SettingGroup` that is not a row — a preview, a list, a
+// canvas — padded like a row and ruled off from the one above. Children lay
+// themselves out in a column and fill its width with `Layout.fillWidth`.
+Item {
     id: root
 
-    property string icon: ""
-    property string title: ""
+    property int padding: 14
 
-    spacing: 10
+    default property alias content: body.data
 
-    Text {
-        Layout.leftMargin: 4
-        text: root.icon
-        font.family: Theme.fontMono
-        font.pixelSize: 17
-        color: Theme.accent
-    }
+    Layout.fillWidth: true
+    implicitHeight: body.implicitHeight + 2 * root.padding
 
-    Text {
-        Layout.fillWidth: true
-        text: root.title
-        font.family: Theme.fontFamily
-        font.pixelSize: Theme.fontSizeLarge
-        font.weight: Font.DemiBold
-        color: Theme.text
+    SettingDivider {}
+
+    ColumnLayout {
+        id: body
+
+        x: root.padding
+        y: root.padding
+        width: root.width - 2 * root.padding
+        spacing: 10
     }
 }

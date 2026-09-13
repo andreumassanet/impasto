@@ -12,59 +12,46 @@ import QtQuick.Layouts
 
 import "../theme"
 
-// Section heading on a settings page: a mark, a name and a one-line `note`.
-// `hint` is a longer explanation behind the info glyph, toggled by click
-// rather than hover so the page does not shift under the pointer.
+// A settings group's name, in the sidebar's small capitals. `note` and `hint`
+// open together behind the info glyph, by click rather than hover so the page
+// does not shift under the pointer.
 ColumnLayout {
     id: root
 
-    property string icon: ""
     property string title: ""
-
-    // One line, always shown.
     property string note: ""
-
-    // Longer explanation, behind the info glyph.
     property string hint: ""
 
     property bool opened: false
 
-    // No top gap for the first heading on a page.
-    property bool leading: false
+    readonly property string told:
+        [root.note, root.hint].filter(text => text !== "").join(" ")
 
     Layout.fillWidth: true
-    Layout.topMargin: root.leading ? 0 : 14
-    spacing: 1
+    spacing: 4
 
     RowLayout {
         Layout.fillWidth: true
         Layout.leftMargin: 4
-        spacing: 9
-
-        Text {
-            visible: root.icon !== ""
-            text: root.icon
-            font.family: Theme.fontMono
-            font.pixelSize: 13
-            color: Theme.accent
-        }
+        spacing: 7
 
         Text {
             text: root.title
             font.family: Theme.fontFamily
-            font.pixelSize: Theme.fontSizeSmall
+            font.pixelSize: Theme.fontSizeLabel
             font.weight: Font.DemiBold
-            font.letterSpacing: 0.4
-            color: Theme.text
+            font.letterSpacing: 0.8
+            font.capitalization: Font.AllUppercase
+            color: Theme.textMuted
         }
 
         Text {
-            visible: root.hint !== ""
+            visible: root.told !== ""
             text: "󰋼"
             font.family: Theme.fontMono
-            font.pixelSize: 11
+            font.pixelSize: 10
             color: root.opened ? Theme.accent : Theme.textMuted
-            opacity: root.opened || hintMouse.containsMouse ? 1 : 0.6
+            opacity: root.opened || hintMouse.containsMouse ? 1 : 0.5
 
             Behavior on color { ColorAnimation { duration: Theme.durationFast } }
             Behavior on opacity { NumberAnimation { duration: Theme.durationFast } }
@@ -85,25 +72,13 @@ ColumnLayout {
     Text {
         Layout.fillWidth: true
         Layout.leftMargin: 4
-        visible: root.note !== ""
-        text: root.note
-        wrapMode: Text.WordWrap
-        font.family: Theme.fontFamily
-        font.pixelSize: Theme.fontSizeLabel
-        color: Theme.textMuted
-    }
-
-    Text {
-        Layout.fillWidth: true
-        Layout.leftMargin: 4
-        Layout.topMargin: root.opened ? 4 : 0
         Layout.rightMargin: 20
-        visible: root.opened && root.hint !== ""
-        text: root.hint
+        Layout.bottomMargin: 2
+        visible: root.opened && root.told !== ""
+        text: root.told
         wrapMode: Text.WordWrap
         font.family: Theme.fontFamily
         font.pixelSize: Theme.fontSizeLabel
         color: Theme.textMuted
-        opacity: 0.85
     }
 }

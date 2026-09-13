@@ -47,205 +47,190 @@ SettingsSection {
         visible: root.tab === "lock"
         spacing: root.spacing
 
-        GroupHeading {
-            leading: true
-            icon: "󰀄"
+        SettingGroup {
             title: Tr.t("You")
             note: Tr.t("Left empty, both come from your account, as on the login screen.")
             hint: Tr.t("The name defaults to the account's full name (set with chfn) and the picture to ~/.face or AccountsService. Click the picture or drop an image on the card to change it.")
-        }
 
-        // Click the picture to choose a file, or drop an image on the card.
-        Rectangle {
-            Layout.fillWidth: true
-            implicitHeight: 128
-            radius: Theme.radiusMedium
-            color: drop.containsDrag ? Theme.islandSurfaceHover : Theme.islandSurface
-            border.color: drop.containsDrag ? Theme.accent : Theme.islandBorder
-            border.width: 1
+            // Click the picture to choose a file, or drop an image on the row.
+            Item {
+                Layout.fillWidth: true
+                implicitHeight: 72
 
-            Behavior on color { ColorAnimation { duration: Theme.durationFast } }
-            Behavior on border.color { ColorAnimation { duration: Theme.durationFast } }
-
-            RowLayout {
-                anchors.fill: parent
-                anchors.leftMargin: 16
-                anchors.rightMargin: 16
-                spacing: 18
-
-                Item {
-                    Layout.preferredWidth: 84
-                    Layout.preferredHeight: 84
-                    Layout.alignment: Qt.AlignVCenter
-
-                    Avatar {
-                        anchors.fill: parent
-                        source: AccountService.avatar
-                        initials: AccountService.initials
-                    }
-
-                    // Camera overlay on hover.
-                    Rectangle {
-                        anchors.fill: parent
-                        radius: width / 2
-                        color: Theme.scrim
-                        opacity: faceMouse.containsMouse ? 1 : 0
-
-                        Behavior on opacity {
-                            NumberAnimation { duration: Theme.durationFast }
-                        }
-
-                        Text {
-                            anchors.centerIn: parent
-                            text: "󰄄"
-                            font.family: Theme.fontMono
-                            font.pixelSize: 22
-                            color: Theme.scrimText
-                        }
-                    }
-
-                    MouseArea {
-                        id: faceMouse
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: picker.open()
-                    }
+                Rectangle {
+                    anchors.fill: parent
+                    anchors.margins: 1
+                    radius: Theme.radiusMedium
+                    color: Theme.islandSurfaceHover
+                    border.color: Theme.accent
+                    border.width: 1
+                    visible: drop.containsDrag
                 }
 
-                ColumnLayout {
-                    Layout.fillWidth: true
-                    Layout.alignment: Qt.AlignVCenter
-                    spacing: 3
+                RowLayout {
+                    anchors.fill: parent
+                    anchors.leftMargin: 14
+                    anchors.rightMargin: 14
+                    spacing: 16
 
-                    Text {
-                        text: Tr.t("Picture")
-                        font.family: Theme.fontFamily
-                        font.pixelSize: Theme.fontSizeSmall
-                        font.weight: Font.DemiBold
-                        color: Theme.text
+                    Item {
+                        Layout.preferredWidth: 48
+                        Layout.preferredHeight: 48
+                        Layout.alignment: Qt.AlignVCenter
+
+                        Avatar {
+                            anchors.fill: parent
+                            source: AccountService.avatar
+                            initials: AccountService.initials
+                        }
+
+                        // Camera overlay on hover.
+                        Rectangle {
+                            anchors.fill: parent
+                            radius: width / 2
+                            color: Theme.scrim
+                            opacity: faceMouse.containsMouse ? 1 : 0
+
+                            Behavior on opacity {
+                                NumberAnimation { duration: Theme.durationFast }
+                            }
+
+                            Text {
+                                anchors.centerIn: parent
+                                text: "󰄄"
+                                font.family: Theme.fontMono
+                                font.pixelSize: 16
+                                color: Theme.scrimText
+                            }
+                        }
+
+                        MouseArea {
+                            id: faceMouse
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: picker.open()
+                        }
                     }
 
                     // The chosen path, the account's avatar, or a prompt.
-                    Text {
+                    SettingLabel {
                         Layout.fillWidth: true
-                        text: {
+                        Layout.alignment: Qt.AlignVCenter
+                        label: Tr.t("Picture")
+                        reading: {
                             if (SettingsService.userAvatar !== "")
                                 return SettingsService.userAvatar
                             if (AccountService.systemAvatar !== "")
                                 return `${AccountService.systemAvatar} ${Tr.t("— the account's own")}`
                             return Tr.t("Click it, or drop an image here")
                         }
-                        elide: Text.ElideMiddle
-                        font.family: SettingsService.userAvatar !== ""
-                            || AccountService.systemAvatar !== "" ? Theme.fontMono : Theme.fontFamily
-                        font.pixelSize: Theme.fontSizeLabel
-                        color: Theme.textMuted
+                    }
+
+                    PillButton {
+                        Layout.alignment: Qt.AlignVCenter
+                        text: Tr.t("Clear")
+                        icon: "󰜉"
+                        implicitWidth: 92
+                        implicitHeight: 30
+                        visible: SettingsService.userAvatar !== ""
+                        onClicked: SettingsService.set("userAvatar", "")
                     }
                 }
 
-                PillButton {
-                    Layout.alignment: Qt.AlignVCenter
-                    text: Tr.t("Clear")
-                    icon: "󰜉"
-                    implicitWidth: 92
-                    implicitHeight: 30
-                    visible: SettingsService.userAvatar !== ""
-                    onClicked: SettingsService.set("userAvatar", "")
+                DropArea {
+                    id: drop
+
+                    anchors.fill: parent
+                    // Stored as a path, not a file:// URL.
+                    onDropped: event => {
+                        if (event.urls.length === 0)
+                            return
+                        const url = String(event.urls[0])
+                        SettingsService.set("userAvatar",
+                            url.startsWith("file://") ? url.slice(7) : url)
+                    }
                 }
             }
 
-            DropArea {
-                id: drop
-
-                anchors.fill: parent
-                // Stored as a path, not a file:// URL.
-                onDropped: event => {
-                    if (event.urls.length === 0)
-                        return
-                    const url = String(event.urls[0])
-                    SettingsService.set("userAvatar",
-                        url.startsWith("file://") ? url.slice(7) : url)
-                }
+            SettingField {
+                label: Tr.t("Name")
+                placeholder: AccountService.systemName
+                value: SettingsService.userName
+                onEdited: text => SettingsService.set("userName", text)
             }
         }
 
-        SettingField {
-            label: Tr.t("Name")
-            placeholder: AccountService.systemName
-            value: SettingsService.userName
-            onEdited: text => SettingsService.set("userName", text)
-        }
-
-        GroupHeading {
-            icon: "󰌾"
-            title: Tr.t("The held screen")
+        SettingGroup {
+            title: Tr.t("Background")
             note: Tr.t("Just enough to make the text underneath unreadable.")
             hint: Tr.t("The preview uses the wallpaper, since the lock screen's own capture is taken when it locks. It applies the same blur with the capsule on top, so you can judge how it reads.")
-        }
 
-        SettingSlider {
-            label: Tr.t("Blur")
-            value: SettingsService.lockBlur
-            from: 8
-            to: 64
-            unit: " px"
-            onMoved: value => SettingsService.set("lockBlur", Math.round(value))
-        }
-
-        ClippingRectangle {
-            Layout.fillWidth: true
-            Layout.preferredHeight: 168
-            radius: Theme.radiusMedium
-            color: Theme.islandSurface
-            border.color: Theme.islandBorder
-            border.width: 1
-            contentUnderBorder: true
-
-            Image {
-                id: sample
-
-                anchors.fill: parent
-                source: WallpaperService.currentWallpaper
-                    ? `file://${WallpaperService.currentWallpaper}` : ""
-                fillMode: Image.PreserveAspectCrop
-                visible: false
-                asynchronous: true
+            SettingSlider {
+                label: Tr.t("Blur")
+                value: SettingsService.lockBlur
+                from: 8
+                to: 64
+                unit: " px"
+                onMoved: value => SettingsService.set("lockBlur", Math.round(value))
             }
 
-            MultiEffect {
-                anchors.fill: parent
-                source: sample
-                visible: sample.status === Image.Ready
-                blurEnabled: true
-                blur: 1
-                blurMax: SettingsService.lockBlur
-            }
+            SettingBlock {
+                ClippingRectangle {
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: 150
+                    radius: Theme.radiusSmall
+                    color: Theme.island
+                    border.color: Theme.islandBorder
+                    border.width: 1
+                    contentUnderBorder: true
 
-            Text {
-                anchors.centerIn: parent
-                visible: sample.status !== Image.Ready
-                text: Tr.t("No wallpaper to show")
-                font.family: Theme.fontFamily
-                font.pixelSize: Theme.fontSizeSmall
-                color: Theme.textMuted
-            }
+                    Image {
+                        id: sample
 
-            // A capsule on top, to judge legibility at this blur.
-            Rectangle {
-                anchors.horizontalCenter: parent.horizontalCenter
-                anchors.verticalCenter: parent.verticalCenter
-                width: 196
-                height: 38
-                radius: height / 2
-                color: Theme.island
+                        anchors.fill: parent
+                        source: WallpaperService.currentWallpaper
+                            ? `file://${WallpaperService.currentWallpaper}` : ""
+                        fillMode: Image.PreserveAspectCrop
+                        visible: false
+                        asynchronous: true
+                    }
 
-                Text {
-                    anchors.centerIn: parent
-                    text: Tr.t("Type to unlock")
-                    font.family: Theme.fontFamily
-                    font.pixelSize: Theme.fontSizeSmall
-                    color: Theme.textMuted
+                    MultiEffect {
+                        anchors.fill: parent
+                        source: sample
+                        visible: sample.status === Image.Ready
+                        blurEnabled: true
+                        blur: 1
+                        blurMax: SettingsService.lockBlur
+                    }
+
+                    Text {
+                        anchors.centerIn: parent
+                        visible: sample.status !== Image.Ready
+                        text: Tr.t("No wallpaper to show")
+                        font.family: Theme.fontFamily
+                        font.pixelSize: Theme.fontSizeSmall
+                        color: Theme.textMuted
+                    }
+
+                    // A capsule on top, to judge legibility at this blur.
+                    Rectangle {
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        anchors.verticalCenter: parent.verticalCenter
+                        width: 196
+                        height: 38
+                        radius: height / 2
+                        color: Theme.island
+
+                        Text {
+                            anchors.centerIn: parent
+                            text: Tr.t("Type to unlock")
+                            font.family: Theme.fontFamily
+                            font.pixelSize: Theme.fontSizeSmall
+                            color: Theme.textMuted
+                        }
+                    }
                 }
             }
         }
@@ -254,18 +239,11 @@ SettingsSection {
 
     // ── WHEN YOU LEAVE ──────────────────────────────────────────────────────
 
-    ColumnLayout {
-        Layout.fillWidth: true
+    SettingGroup {
         visible: root.tab === "idle"
-        spacing: root.spacing
-
-        GroupHeading {
-            leading: true
-            icon: "󰒲"
-            title: Tr.t("When you leave it alone")
-            note: Tr.t("All three are off by default.")
-            hint: Tr.t("The shell uses the compositor's idle notifications, and media that inhibits idle (mpv, browsers) holds all three off. Set screen off after the lock, since the lock captures the screen as it starts; suspend always locks first and is skipped if the lock does not come up.")
-        }
+        title: Tr.t("When you leave it alone")
+        note: Tr.t("All three are off by default.")
+        hint: Tr.t("The shell uses the compositor's idle notifications, and media that inhibits idle (mpv, browsers) holds all three off. Set screen off after the lock, since the lock captures the screen as it starts; suspend always locks first and is skipped if the lock does not come up.")
 
         SettingSlider {
             label: Tr.t("Lock after")

@@ -12,18 +12,22 @@ import QtQuick.Layouts
 
 import "../theme"
 
-// One setting: its name, its current value underneath, and a control.
-// Descriptions live on the group heading, not on each row.
+// One setting on one line: its name and what it says now on the left, its
+// control on the right. Sits in a `SettingGroup`'s card.
 //
 // A `locked` row is dimmed and its control disabled, but it stays in place
-// (and searchable); `reason` replaces the value line to say why.
-Rectangle {
+// (and searchable); `reason` replaces the reading to say why.
+Item {
     id: root
 
     property string label: ""
 
-    // Current value. One clause, no full stop.
+    // What the setting says right now. One clause, no full stop; empty when
+    // the control already shows it.
     property string reading: ""
+
+    // The reading is a problem rather than a state.
+    property bool alarm: false
 
     property bool locked: false
 
@@ -33,14 +37,12 @@ Rectangle {
     default property alias control: holder.data
 
     Layout.fillWidth: true
-    implicitHeight: Math.max(42, body.implicitHeight + 16)
-    radius: Theme.radiusMedium
-    color: Theme.islandSurface
-    border.color: Theme.islandBorder
-    border.width: 1
+    implicitHeight: Math.max(48, body.implicitHeight + 16)
     opacity: root.locked ? 0.55 : 1
 
     Behavior on opacity { NumberAnimation { duration: Theme.durationFast } }
+
+    SettingDivider {}
 
     RowLayout {
         id: body
@@ -48,45 +50,16 @@ Rectangle {
         anchors.fill: parent
         anchors.leftMargin: 14
         anchors.rightMargin: 14
-        spacing: 14
+        spacing: 16
 
-        ColumnLayout {
+        SettingLabel {
             Layout.fillWidth: true
             Layout.alignment: Qt.AlignVCenter
-            spacing: 1
-
-            Text {
-                Layout.fillWidth: true
-                text: root.label
-                elide: Text.ElideRight
-                font.family: Theme.fontFamily
-                font.pixelSize: Theme.fontSizeSmall
-                font.weight: Font.DemiBold
-                color: Theme.text
-            }
-
-            RowLayout {
-                Layout.fillWidth: true
-                visible: root.locked ? root.reason !== "" : root.reading !== ""
-                spacing: 5
-
-                Text {
-                    visible: root.locked
-                    text: "󰌾"
-                    font.family: Theme.fontMono
-                    font.pixelSize: 9
-                    color: Theme.textMuted
-                }
-
-                Text {
-                    Layout.fillWidth: true
-                    text: root.locked ? root.reason : root.reading
-                    elide: Text.ElideRight
-                    font.family: Theme.fontFamily
-                    font.pixelSize: Theme.fontSizeLabel
-                    color: Theme.textMuted
-                }
-            }
+            label: root.label
+            reading: root.reading
+            alarm: root.alarm
+            locked: root.locked
+            reason: root.reason
         }
 
         Item {

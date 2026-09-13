@@ -1,41 +1,21 @@
 // ╭──────────────────────────────────────────────────────────────────────────╮
 // │                                                                          │
-// │   S E T T I N G S   H E R O                                              │
-// │   settings page heading                                                  │
+// │   S E T T I N G   D I V I D E R                                          │
+// │   settings · the hairline between two rows                               │
 // │                                                                          │
 // │   github.com/andreumassanet/impasto                                      │
 // │                                                                          │
 // ╰──────────────────────────────────────────────────────────────────────────╯
 
 import QtQuick
-import QtQuick.Layouts
 
 import "../theme"
 
-// Settings page header: mark and name, left-aligned, a step larger than the
-// group headings.
-RowLayout {
-    id: root
-
-    property string icon: ""
-    property string title: ""
-
-    spacing: 10
-
-    Text {
-        Layout.leftMargin: 4
-        text: root.icon
-        font.family: Theme.fontMono
-        font.pixelSize: 17
-        color: Theme.accent
-    }
-
-    Text {
-        Layout.fillWidth: true
-        text: root.title
-        font.family: Theme.fontFamily
-        font.pixelSize: Theme.fontSizeLarge
-        font.weight: Font.DemiBold
-        color: Theme.text
-    }
+// Drawn by the lower of two rows in a `SettingGroup`, and only when there is
+// a row above it: the first visible row sits at the top of the card.
+Rectangle {
+    visible: parent !== null && parent.y > 0
+    width: parent ? parent.width : 0
+    height: 1
+    color: Theme.islandBorder
 }

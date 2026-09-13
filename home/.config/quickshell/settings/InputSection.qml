@@ -44,13 +44,6 @@ SettingsSection {
         { id: "#e93d82", label: Tr.t("Pink"),   swatch: "#e93d82" }
     ]
 
-    // The chosen colour's name, shown as the card's reading.
-    readonly property string cursorReading: {
-        const chosen = root.cursorColors.find(
-            entry => entry.id === SettingsService.cursorColor)
-        return chosen ? chosen.label : SettingsService.cursorColor
-    }
-
     readonly property string switchOption:
         CompositorService.value("input:kb_options", "")
 
@@ -66,45 +59,42 @@ SettingsSection {
         visible: root.tab === "keyboard"
         spacing: root.spacing
 
-        GroupHeading {
-            leading: true
-            icon: "󰌌"
+        SettingGroup {
             title: Tr.t("Layouts")
             note: Tr.t("Loaded in this order; the first is active at login.")
-        }
 
-        LayoutPicker {
-            current: CompositorService.value("input:kb_layout", "us")
-            onChanged: value => CompositorService.remember("input:kb_layout", value)
-        }
+            LayoutPicker {
+                current: CompositorService.value("input:kb_layout", "us")
+                onChanged: value => CompositorService.remember("input:kb_layout", value)
+            }
 
-        // Locked rather than hidden while only one layout is loaded.
-        SettingRow {
-            label: Tr.t("Switch between them")
-            locked: root.layoutCount <= 1
-            reason: Tr.t("Only one layout is loaded")
+            // Locked rather than hidden while only one layout is loaded.
+            SettingRow {
+                label: Tr.t("Switch between them")
+                locked: root.layoutCount <= 1
+                reason: Tr.t("Only one layout is loaded")
 
-            SegmentedControl {
-                options: CompositorService.layoutSwitches.map(
-                    entry => ({ id: entry.id, label: Tr.t(entry.label) }))
-                current: root.switchOption
-                onSelected: id => CompositorService.remember("input:kb_options", id)
+                SegmentedControl {
+                    options: CompositorService.layoutSwitches.map(
+                        entry => ({ id: entry.id, label: Tr.t(entry.label) }))
+                    current: root.switchOption
+                    onSelected: id => CompositorService.remember("input:kb_options", id)
+                }
             }
         }
 
-        GroupHeading {
-            icon: "󰔛"
+        SettingGroup {
             title: Tr.t("Typing")
             note: Tr.t("How fast a held key repeats, once it has started.")
-        }
 
-        SettingSlider {
-            label: Tr.t("Key repeat rate")
-            value: CompositorService.value("input:repeat_rate", 25)
-            from: 10
-            to: 60
-            unit: "/s"
-            onMoved: value => CompositorService.remember("input:repeat_rate", Math.round(value))
+            SettingSlider {
+                label: Tr.t("Key repeat rate")
+                value: CompositorService.value("input:repeat_rate", 25)
+                from: 10
+                to: 60
+                unit: "/s"
+                onMoved: value => CompositorService.remember("input:repeat_rate", Math.round(value))
+            }
         }
     }
 
@@ -116,69 +106,32 @@ SettingsSection {
         visible: root.tab === "pointer"
         spacing: root.spacing
 
-        GroupHeading {
-            leading: true
-            icon: "󰍽"
+        SettingGroup {
             title: Tr.t("Pointer")
             note: Tr.t("Zero is the device's native speed; either side adjusts libinput's acceleration.")
+
+            SettingSlider {
+                label: Tr.t("Sensitivity")
+                value: CompositorService.value("input:sensitivity", 0)
+                from: -1
+                to: 1
+                stepSize: 0.05
+                decimals: 2
+                onMoved: value => CompositorService.remember("input:sensitivity", value.toFixed(2))
+            }
         }
 
-        SettingSlider {
-            label: Tr.t("Sensitivity")
-            value: CompositorService.value("input:sensitivity", 0)
-            from: -1
-            to: 1
-            stepSize: 0.05
-            decimals: 2
-            onMoved: value => CompositorService.remember("input:sensitivity", value.toFixed(2))
-        }
-
-        GroupHeading {
-            icon: "󰒉"
+        SettingGroup {
             title: Tr.t("The cursor")
             note: Tr.t("One vector shape, sharp at any size — Palette follows the wallpaper.")
             hint: Tr.t("Colour and size are applied with hyprctl setcursor, so every application updates at once and Palette follows wallpaper changes. Shake to find briefly enlarges the pointer when you shake the mouse; it needs the hypr-dynamic-cursors plugin (./setup plugins).")
-        }
 
-        // Swatches rather than a `SettingRow`, with the chosen colour's name
-        // as the reading.
-        Rectangle {
-            Layout.fillWidth: true
-            implicitHeight: cursorBody.implicitHeight + 26
-            radius: Theme.radiusMedium
-            color: Theme.islandSurface
-            border.color: Theme.islandBorder
-            border.width: 1
-
-            ColumnLayout {
-                id: cursorBody
-
-                anchors.left: parent.left
-                anchors.right: parent.right
-                anchors.top: parent.top
-                anchors.margins: 14
-                spacing: 2
-
-                Text {
-                    text: Tr.t("Cursor colour")
-                    font.family: Theme.fontFamily
-                    font.pixelSize: Theme.fontSizeSmall
-                    font.weight: Font.DemiBold
-                    color: Theme.text
-                }
-
-                Text {
-                    Layout.fillWidth: true
-                    text: root.cursorReading
-                    elide: Text.ElideRight
-                    font.family: Theme.fontFamily
-                    font.pixelSize: Theme.fontSizeLabel
-                    color: Theme.textMuted
-                }
+            // Swatches, wrapping, rather than tiles; the chosen one is ringed.
+            SettingTiles {
+                label: Tr.t("Cursor colour")
 
                 Flow {
                     Layout.fillWidth: true
-                    Layout.topMargin: 10
                     spacing: 6
 
                     Repeater {
@@ -243,29 +196,29 @@ SettingsSection {
                     }
                 }
             }
-        }
 
-        SettingSlider {
-            label: Tr.t("Cursor size")
-            value: SettingsService.cursorSize
-            from: 16
-            to: 48
-            unit: " px"
-            reading: SettingsService.cursorSize === 24
-                ? Tr.t("24 px — the default")
-                : `${SettingsService.cursorSize} px`
-            onMoved: value => SettingsService.set("cursorSize", Math.round(value))
-        }
+            SettingSlider {
+                label: Tr.t("Cursor size")
+                value: SettingsService.cursorSize
+                from: 16
+                to: 48
+                unit: " px"
+                reading: SettingsService.cursorSize === 24
+                    ? Tr.t("24 px — the default")
+                    : `${SettingsService.cursorSize} px`
+                onMoved: value => SettingsService.set("cursorSize", Math.round(value))
+            }
 
-        // Locked, with the reason, when hypr-dynamic-cursors is not loaded.
-        SettingRow {
-            label: Tr.t("Shake to find")
-            locked: !CompositorService.shakeAvailable
-            reason: Tr.t("Needs the cursor plugin — run ./setup plugins")
+            // Locked, with the reason, when hypr-dynamic-cursors is not loaded.
+            SettingRow {
+                label: Tr.t("Shake to find")
+                locked: !CompositorService.shakeAvailable
+                reason: Tr.t("Needs the cursor plugin — run ./setup plugins")
 
-            ToggleSwitch {
-                checked: SettingsService.shakeToFind
-                onToggled: checked => SettingsService.set("shakeToFind", checked)
+                ToggleSwitch {
+                    checked: SettingsService.shakeToFind
+                    onToggled: checked => SettingsService.set("shakeToFind", checked)
+                }
             }
         }
     }

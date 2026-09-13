@@ -57,12 +57,10 @@ Rectangle {
         root.changed(next.join(","))
     }
 
+    // Sits in a `SettingGroup`'s card, padded like its rows.
     Layout.fillWidth: true
-    implicitHeight: body.implicitHeight + 24
-    radius: Theme.radiusMedium
-    color: Theme.islandSurface
-    border.color: Theme.islandBorder
-    border.width: 1
+    implicitHeight: body.implicitHeight + 28
+    color: "transparent"
 
     Behavior on implicitHeight {
         NumberAnimation { duration: Theme.durationFast; easing.type: Theme.easing }
@@ -74,7 +72,7 @@ Rectangle {
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.top: parent.top
-        anchors.margins: 12
+        anchors.margins: 14
         spacing: 10
 
         RowLayout {

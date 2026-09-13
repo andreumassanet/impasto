@@ -23,10 +23,8 @@ Rectangle {
 
     signal picked(string family)
 
-    radius: Theme.radiusMedium
-    color: Theme.islandSurface
-    border.color: Theme.islandBorder
-    border.width: 1
+    // Sits in a `SettingBlock`, on the group's card.
+    color: "transparent"
     clip: true
 
     // The stored value may be a comma-separated stack; the first entry is
@@ -64,6 +62,7 @@ Rectangle {
 
                 width: ListView.view.width
                 height: 30
+                radius: Theme.radiusSmall
                 color: row.active ? Theme.islandSurfaceHover
                     : (rowMouse.containsMouse ? Theme.islandBorder : "transparent")
 
@@ -115,6 +114,7 @@ Rectangle {
             Layout.fillWidth: true
             Layout.preferredHeight: root.warning === "" ? 0 : 24
             visible: root.warning !== ""
+            radius: Theme.radiusSmall
             color: Theme.islandSurfaceHover
 
             Text {

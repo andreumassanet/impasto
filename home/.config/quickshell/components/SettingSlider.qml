@@ -13,15 +13,16 @@ import QtQuick.Controls
 
 import "../theme"
 
-// A setting row with a continuous value (a height, a radius, a blur).
+// A setting row with a continuous value (a height, a radius, a blur): the
+// name on the left, the track and its figure on the same line at the right.
 //
-// Clicking the value turns it into a field for an exact number: Enter
+// Clicking the figure turns it into a field for an exact number: Enter
 // commits, Escape cancels, arrows step. The mouse wheel steps too, over the
 // track only, so scrolling the page never changes a value.
 //
 // The track is drawn here; the Controls slider on top is invisible and only
 // supplies the drag behaviour.
-Rectangle {
+Item {
     id: root
 
     property string label: ""
@@ -43,168 +44,33 @@ Rectangle {
     signal moved(real value)
 
     Layout.fillWidth: true
-    implicitHeight: body.implicitHeight + 26
-    radius: Theme.radiusMedium
-    color: Theme.islandSurface
-    border.color: Theme.islandBorder
-    border.width: 1
+    implicitHeight: Math.max(48, body.implicitHeight + 16)
     opacity: root.locked ? 0.55 : 1
 
     Behavior on opacity { NumberAnimation { duration: Theme.durationFast } }
 
-    ColumnLayout {
+    SettingDivider {}
+
+    RowLayout {
         id: body
 
-        anchors.left: parent.left
-        anchors.right: parent.right
-        anchors.verticalCenter: parent.verticalCenter
+        anchors.fill: parent
         anchors.leftMargin: 14
         anchors.rightMargin: 14
-        spacing: 4
+        spacing: 12
 
-        RowLayout {
+        SettingLabel {
             Layout.fillWidth: true
-            spacing: 8
-
-            Text {
-                text: root.label
-                font.family: Theme.fontFamily
-                font.pixelSize: Theme.fontSizeSmall
-                font.weight: Font.DemiBold
-                color: Theme.text
-            }
-
-
-            Item { Layout.fillWidth: true }
-
-            Item {
-                id: readingSlot
-
-                property bool editing: false
-
-                Layout.preferredWidth: readingSlot.editing ? 68 : readout.implicitWidth
-                Layout.preferredHeight: 22
-                enabled: !root.locked
-
-                // Clamped and snapped to the slider's steps.
-                function commit(entered: string): void {
-                    const parsed = parseFloat(entered.replace(",", "."))
-                    if (isNaN(parsed))
-                        return
-                    let wanted = Math.min(root.to, Math.max(root.from, parsed))
-                    if (root.stepSize > 0)
-                        wanted = root.from + Math.round(
-                            (wanted - root.from) / root.stepSize) * root.stepSize
-                    wanted = Math.min(root.to, Math.max(root.from, wanted))
-                    root.moved(wanted)
-                }
-
-                function nudge(direction: int): void {
-                    const wanted = Math.min(root.to, Math.max(root.from,
-                        root.value + direction * root.stepSize))
-                    root.moved(wanted)
-                    editor.text = wanted.toFixed(root.decimals)
-                }
-
-                Text {
-                    id: readout
-
-                    anchors.right: parent.right
-                    anchors.verticalCenter: parent.verticalCenter
-                    visible: !readingSlot.editing
-                    text: root.reading
-                    font.family: Theme.fontMono
-                    font.pixelSize: Theme.fontSizeSmall
-                    color: readingMouse.containsMouse ? Theme.text : Theme.textMuted
-
-                    Behavior on color { ColorAnimation { duration: Theme.durationFast } }
-                }
-
-                MouseArea {
-                    id: readingMouse
-
-                    anchors.fill: parent
-                    visible: !readingSlot.editing
-                    hoverEnabled: true
-                    cursorShape: Qt.IBeamCursor
-                    onClicked: {
-                        readingSlot.editing = true
-                        editor.text = root.value.toFixed(root.decimals)
-                        editor.forceActiveFocus()
-                        editor.selectAll()
-                    }
-                }
-
-                Rectangle {
-                    anchors.fill: parent
-                    visible: readingSlot.editing
-                    radius: Theme.radiusSmall - 2
-                    color: Theme.island
-                    border.color: Theme.accent
-                    border.width: 1
-
-                    TextInput {
-                        id: editor
-
-                        anchors.fill: parent
-                        anchors.leftMargin: 6
-                        anchors.rightMargin: 6
-                        horizontalAlignment: TextInput.AlignHCenter
-                        verticalAlignment: TextInput.AlignVCenter
-                        font.family: Theme.fontMono
-                        font.pixelSize: Theme.fontSizeSmall
-                        color: Theme.text
-                        selectByMouse: true
-                        selectionColor: Theme.accent
-                        selectedTextColor: Theme.accentText
-                        clip: true
-                        validator: RegularExpressionValidator {
-                            regularExpression: /-?[0-9]*[.,]?[0-9]*/
-                        }
-
-                        Keys.onEscapePressed: readingSlot.editing = false
-                        Keys.onUpPressed: readingSlot.nudge(1)
-                        Keys.onDownPressed: readingSlot.nudge(-1)
-
-                        // Enter or focus loss. Escape has already cleared
-                        // `editing`, so it does not commit.
-                        onEditingFinished: {
-                            if (!readingSlot.editing)
-                                return
-                            readingSlot.editing = false
-                            readingSlot.commit(editor.text)
-                        }
-                    }
-                }
-            }
-        }
-
-        RowLayout {
-            Layout.fillWidth: true
-            visible: root.locked && root.reason !== ""
-            spacing: 5
-
-            Text {
-                text: "󰌾"
-                font.family: Theme.fontMono
-                font.pixelSize: 9
-                color: Theme.textMuted
-            }
-
-            Text {
-                Layout.fillWidth: true
-                text: root.reason
-                elide: Text.ElideRight
-                font.family: Theme.fontFamily
-                font.pixelSize: Theme.fontSizeLabel
-                color: Theme.textMuted
-            }
+            Layout.alignment: Qt.AlignVCenter
+            label: root.label
+            locked: root.locked
+            reason: root.reason
         }
 
         Item {
-            Layout.fillWidth: true
-            Layout.topMargin: 6
-            implicitHeight: 16
+            Layout.preferredWidth: 240
+            Layout.preferredHeight: 16
+            Layout.alignment: Qt.AlignVCenter
             enabled: !root.locked
 
             Rectangle {
@@ -272,6 +138,109 @@ Rectangle {
                 value: root.value
                 when: !slider.pressed
                 restoreMode: Binding.RestoreBindingOrValue
+            }
+        }
+
+        Item {
+            id: readingSlot
+
+            property bool editing: false
+
+            Layout.preferredWidth: readingSlot.editing
+                ? 68 : Math.max(48, readout.implicitWidth)
+            Layout.preferredHeight: 22
+            Layout.alignment: Qt.AlignVCenter
+            enabled: !root.locked
+
+            // Clamped and snapped to the slider's steps.
+            function commit(entered: string): void {
+                const parsed = parseFloat(entered.replace(",", "."))
+                if (isNaN(parsed))
+                    return
+                let wanted = Math.min(root.to, Math.max(root.from, parsed))
+                if (root.stepSize > 0)
+                    wanted = root.from + Math.round(
+                        (wanted - root.from) / root.stepSize) * root.stepSize
+                wanted = Math.min(root.to, Math.max(root.from, wanted))
+                root.moved(wanted)
+            }
+
+            function nudge(direction: int): void {
+                const wanted = Math.min(root.to, Math.max(root.from,
+                    root.value + direction * root.stepSize))
+                root.moved(wanted)
+                editor.text = wanted.toFixed(root.decimals)
+            }
+
+            Text {
+                id: readout
+
+                anchors.right: parent.right
+                anchors.verticalCenter: parent.verticalCenter
+                visible: !readingSlot.editing
+                text: root.reading
+                font.family: Theme.fontMono
+                font.pixelSize: Theme.fontSizeSmall
+                color: readingMouse.containsMouse ? Theme.text : Theme.textMuted
+
+                Behavior on color { ColorAnimation { duration: Theme.durationFast } }
+            }
+
+            MouseArea {
+                id: readingMouse
+
+                anchors.fill: parent
+                visible: !readingSlot.editing
+                hoverEnabled: true
+                cursorShape: Qt.IBeamCursor
+                onClicked: {
+                    readingSlot.editing = true
+                    editor.text = root.value.toFixed(root.decimals)
+                    editor.forceActiveFocus()
+                    editor.selectAll()
+                }
+            }
+
+            Rectangle {
+                anchors.fill: parent
+                visible: readingSlot.editing
+                radius: Theme.radiusSmall - 2
+                color: Theme.island
+                border.color: Theme.accent
+                border.width: 1
+
+                TextInput {
+                    id: editor
+
+                    anchors.fill: parent
+                    anchors.leftMargin: 6
+                    anchors.rightMargin: 6
+                    horizontalAlignment: TextInput.AlignHCenter
+                    verticalAlignment: TextInput.AlignVCenter
+                    font.family: Theme.fontMono
+                    font.pixelSize: Theme.fontSizeSmall
+                    color: Theme.text
+                    selectByMouse: true
+                    selectionColor: Theme.accent
+                    selectedTextColor: Theme.accentText
+                    clip: true
+                    validator: RegularExpressionValidator {
+                        regularExpression: /-?[0-9]*[.,]?[0-9]*/
+                    }
+
+                    Keys.onEscapePressed: readingSlot.editing = false
+                    Keys.onUpPressed: readingSlot.nudge(1)
+                    Keys.onDownPressed: readingSlot.nudge(-1)
+
+                    // Enter or focus loss. Escape has already cleared
+                    // `editing`, so it does not commit.
+                    onEditingFinished: {
+                        if (!readingSlot.editing)
+                            return
+                        readingSlot.editing = false
+                        readingSlot.commit(editor.text)
+                    }
+                }
             }
         }
     }

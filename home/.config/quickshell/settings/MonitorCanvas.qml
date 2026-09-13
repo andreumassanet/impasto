@@ -134,10 +134,11 @@ Item {
         return places
     }
 
+    // A well in the group's card, like the other previews on these pages.
     Rectangle {
         anchors.fill: parent
-        radius: Theme.radiusMedium
-        color: Theme.islandSurface
+        radius: Theme.radiusSmall
+        color: Theme.island
         border.color: Theme.islandBorder
         border.width: 1
     }

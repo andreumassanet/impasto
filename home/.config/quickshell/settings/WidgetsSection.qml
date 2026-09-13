@@ -35,91 +35,68 @@ SettingsSection {
         spacing: root.spacing
         visible: root.tab === "modules"
 
-        // ── WEATHER ─────────────────────────────────────────────────────────
-
-        GroupHeading {
-            leading: true
-            title: Tr.t("Where the weather is measured")
-            hint: Tr.t("Left empty, wttr.in guesses from your connection's IP address, which can be far off. A city, postcode or airport code is more reliable, and the bar uses the same place.")
-        }
-
-        SettingField {
-            label: Tr.t("Location")
+        SettingGroup {
+            title: Tr.t("Weather")
             note: Tr.t("A city, a postcode or an airport code.")
-            placeholder: Tr.t("Wherever the request comes from")
-            value: SettingsService.weatherPlace
-            onEdited: value => SettingsService.set("weatherPlace", value.trim())
-        }
+            hint: Tr.t("Left empty, wttr.in guesses from your connection's IP address, which can be far off. A city, postcode or airport code is more reliable, and the bar uses the same place.")
 
-        // wttr.in answers an unknown place with prose and the widget keeps its
-        // last reading, so the error has to be shown here.
-        Text {
-            Layout.fillWidth: true
-            Layout.leftMargin: 4
-            visible: WeatherService.placeUnknown
-            text: Tr.t("No such place — the last reading is still showing.")
-            wrapMode: Text.WordWrap
-            font.family: Theme.fontFamily
-            font.pixelSize: Theme.fontSizeLabel
-            color: Theme.red
-        }
-
-        // ── GITHUB ──────────────────────────────────────────────────────────
-
-        GroupHeading {
-            title: Tr.t("Whose contributions")
-            hint: Tr.t("The graph is read from the public profile page, so no token or account is needed. It stays empty until you enter a username.")
-        }
-
-        SettingField {
-            label: Tr.t("GitHub username")
-            note: Tr.t("Whose public contribution graph to draw.")
-            placeholder: Tr.t("Nobody yet")
-            value: SettingsService.githubUser
-            onEdited: value => SettingsService.set(
-                "githubUser", value.trim().replace(/^@/, ""))
-        }
-
-        // An unknown user returns a page with no calendar and the widget keeps
-        // its last grid, so the error has to be shown here.
-        Text {
-            Layout.fillWidth: true
-            Layout.leftMargin: 4
-            visible: GithubService.userUnknown
-            text: Tr.t("No such profile — the last grid is still showing.")
-            wrapMode: Text.WordWrap
-            font.family: Theme.fontFamily
-            font.pixelSize: Theme.fontSizeLabel
-            color: Theme.red
-        }
-
-        // ── NOTES ───────────────────────────────────────────────────────────
-
-        GroupHeading {
-            title: Tr.t("How a note is written")
-            note: Tr.t("A note on the wallpaper is written the same way as one in the panel.")
-            hint: Tr.t("The notes stuck on the screen's edges leave when a window opens on the workspace and come back when the last one closes. Off, they stay over the windows.")
-        }
-
-        SettingRow {
-            label: Tr.t("Handwriting")
-            reading: SettingsService.notesHandwriting
-                ? Tr.t("The signature's script") : Tr.t("The interface face")
-
-            ToggleSwitch {
-                checked: SettingsService.notesHandwriting
-                onToggled: checked => SettingsService.set("notesHandwriting", checked)
+            // wttr.in answers an unknown place with prose and the widget
+            // keeps its last reading, so the error is shown here.
+            SettingField {
+                label: Tr.t("Location")
+                reading: WeatherService.placeUnknown
+                    ? Tr.t("No such place — the last reading is still showing") : ""
+                alarm: WeatherService.placeUnknown
+                placeholder: Tr.t("Wherever the request comes from")
+                value: SettingsService.weatherPlace
+                onEdited: value => SettingsService.set("weatherPlace", value.trim())
             }
         }
 
-        SettingRow {
-            label: Tr.t("Edges only on an empty workspace")
-            reading: SettingsService.deckOnEmpty
-                ? Tr.t("Gone while a window is open") : Tr.t("Over the windows")
+        SettingGroup {
+            title: "GitHub"
+            note: Tr.t("Whose public contribution graph to draw.")
+            hint: Tr.t("The graph is read from the public profile page, so no token or account is needed. It stays empty until you enter a username.")
 
-            ToggleSwitch {
-                checked: SettingsService.deckOnEmpty
-                onToggled: checked => SettingsService.set("deckOnEmpty", checked)
+            // An unknown user returns a page with no calendar and the widget
+            // keeps its last grid, so the error is shown here.
+            SettingField {
+                label: Tr.t("Username")
+                reading: GithubService.userUnknown
+                    ? Tr.t("No such profile — the last grid is still showing") : ""
+                alarm: GithubService.userUnknown
+                placeholder: Tr.t("Nobody yet")
+                value: SettingsService.githubUser
+                onEdited: value => SettingsService.set(
+                    "githubUser", value.trim().replace(/^@/, ""))
+            }
+        }
+
+        SettingGroup {
+            title: Tr.t("Notes")
+            note: Tr.t("A note on the wallpaper is written the same way as one in the panel.")
+            hint: Tr.t("The notes stuck on the screen's edges leave when a window opens on the workspace and come back when the last one closes. Off, they stay over the windows.")
+
+            SettingRow {
+                label: Tr.t("Handwriting")
+                reading: SettingsService.notesHandwriting
+                    ? Tr.t("The signature's script") : Tr.t("The interface face")
+
+                ToggleSwitch {
+                    checked: SettingsService.notesHandwriting
+                    onToggled: checked => SettingsService.set("notesHandwriting", checked)
+                }
+            }
+
+            SettingRow {
+                label: Tr.t("Edges only on an empty workspace")
+                reading: SettingsService.deckOnEmpty
+                    ? Tr.t("Gone while a window is open") : Tr.t("Over the windows")
+
+                ToggleSwitch {
+                    checked: SettingsService.deckOnEmpty
+                    onToggled: checked => SettingsService.set("deckOnEmpty", checked)
+                }
             }
         }
     }
@@ -131,100 +108,93 @@ SettingsSection {
         spacing: root.spacing
         visible: root.tab === "widgets"
 
-        GroupHeading {
-            leading: true
+        SettingGroup {
             title: Tr.t("The desktop")
             note: Tr.t("Widgets are arranged directly on the wallpaper.")
             hint: Tr.t("Arranging brings the widgets in front of the windows, with a tray of every module under them. Drag a tile onto the grid, pull a widget's corner to change its shape, click it for a look of its own, and drop it back on the tray to take it off. The right button on any widget opens the same mode from the picture. This window closes meanwhile.")
-        }
 
-        SettingRow {
-            label: Tr.t("Arrange the desktop")
-            reading: DesktopService.widgets.length > 0
-                ? `${DesktopService.widgets.length} ${Tr.t("on the wallpaper")}`
-                : Tr.t("Nothing on the wallpaper yet")
+            SettingRow {
+                label: Tr.t("Arrange the desktop")
+                reading: DesktopService.widgets.length > 0
+                    ? `${DesktopService.widgets.length} ${Tr.t("on the wallpaper")}`
+                    : Tr.t("Nothing on the wallpaper yet")
 
-            PillButton {
-                text: Tr.t("Edit")
-                implicitHeight: 30
-                onClicked: {
-                    DesktopService.edit(true)
-                    root.arranging()
+                PillButton {
+                    text: Tr.t("Edit")
+                    implicitHeight: 30
+                    onClicked: {
+                        DesktopService.edit(true)
+                        root.arranging()
+                    }
                 }
             }
         }
 
-        // ── HOW THEY LOOK ───────────────────────────────────────────────────
-
-        GroupHeading {
-            title: Tr.t("How they look")
+        SettingGroup {
+            title: Tr.t("Look")
             note: Tr.t("Every widget follows these unless it was given a look of its own.")
             hint: Tr.t("While arranging, click a widget to override these for it alone. Modern shows a figure with a caption and Analogue draws an object such as a dial or a gauge; the style and background set what sits behind it.")
-        }
 
-        SettingTiles {
-            label: Tr.t("Face")
-            reading: Tr.t((DesktopService.themes.find(
-                entry => entry.id === SettingsService.desktopTheme) ?? { label: "" }).label)
+            SettingTiles {
+                label: Tr.t("Face")
 
-            Repeater {
-                model: DesktopService.themes
+                Repeater {
+                    model: DesktopService.themes
 
-                PreviewTile {
-                    id: themeTile
+                    PreviewTile {
+                        id: themeTile
 
-                    required property var modelData
+                        required property var modelData
 
-                    stageHeight: 64
-                    caption: Tr.t(themeTile.modelData.label)
-                    selected: SettingsService.desktopTheme === themeTile.modelData.id
-                    onPicked: SettingsService.set("desktopTheme", themeTile.modelData.id)
+                        stageHeight: 64
+                        caption: Tr.t(themeTile.modelData.label)
+                        selected: SettingsService.desktopTheme === themeTile.modelData.id
+                        onPicked: SettingsService.set("desktopTheme", themeTile.modelData.id)
 
-                    ThemeSwatch {
-                        anchors.centerIn: parent
-                        theme: themeTile.modelData.id
-                        factor: 0.3
+                        ThemeSwatch {
+                            anchors.centerIn: parent
+                            theme: themeTile.modelData.id
+                            factor: 0.3
+                        }
                     }
                 }
             }
-        }
 
-        SettingTiles {
-            label: Tr.t("Style")
-            reading: Tr.t((DesktopService.styles.find(
-                entry => entry.id === SettingsService.desktopStyle) ?? { label: "" }).label)
+            SettingTiles {
+                label: Tr.t("Style")
 
-            Repeater {
-                model: DesktopService.styles
+                Repeater {
+                    model: DesktopService.styles
 
-                PreviewTile {
-                    id: styleTile
+                    PreviewTile {
+                        id: styleTile
 
-                    required property var modelData
+                        required property var modelData
 
-                    stageHeight: 56
-                    caption: Tr.t(styleTile.modelData.label)
-                    selected: SettingsService.desktopStyle === styleTile.modelData.id
-                    onPicked: SettingsService.set("desktopStyle", styleTile.modelData.id)
+                        stageHeight: 56
+                        caption: Tr.t(styleTile.modelData.label)
+                        selected: SettingsService.desktopStyle === styleTile.modelData.id
+                        onPicked: SettingsService.set("desktopStyle", styleTile.modelData.id)
 
-                    StyleSwatch {
-                        anchors.centerIn: parent
-                        factor: 1.6
-                        style: styleTile.modelData.id
-                        ink: DesktopService.inkFor({ style: styleTile.modelData.id })
+                        StyleSwatch {
+                            anchors.centerIn: parent
+                            factor: 1.6
+                            style: styleTile.modelData.id
+                            ink: DesktopService.inkFor({ style: styleTile.modelData.id })
+                        }
                     }
                 }
             }
-        }
 
-        SettingSlider {
-            label: Tr.t("Background")
-            value: SettingsService.desktopOpacity
-            from: 20
-            to: 100
-            stepSize: 5
-            unit: "%"
-            onMoved: value => SettingsService.set("desktopOpacity", Math.round(value))
+            SettingSlider {
+                label: Tr.t("Background")
+                value: SettingsService.desktopOpacity
+                from: 20
+                to: 100
+                stepSize: 5
+                unit: "%"
+                onMoved: value => SettingsService.set("desktopOpacity", Math.round(value))
+            }
         }
     }
 }

@@ -118,6 +118,31 @@ SettingsSection {
         }
     }
 
+    // The part's heading over the search field, closer to it than the gap
+    // between groups.
+    component PartHead: ColumnLayout {
+        property alias title: heading.title
+        property alias note: heading.note
+        property alias hint: heading.hint
+
+        Layout.fillWidth: true
+        spacing: 7
+
+        GroupHeading { id: heading }
+        BindSearch {}
+    }
+
+    component NoMatch: Text {
+        Layout.fillWidth: true
+        Layout.topMargin: 12
+        Layout.bottomMargin: 12
+        horizontalAlignment: Text.AlignHCenter
+        text: Tr.t("No binding matches that")
+        font.family: Theme.fontFamily
+        font.pixelSize: Theme.fontSizeSmall
+        color: Theme.textMuted
+    }
+
     function matches(combination: string, action: string, category: string): bool {
         const term = root.filter.trim().toLowerCase()
         if (term === "")
@@ -160,19 +185,14 @@ SettingsSection {
         visible: root.tab === "shell"
         spacing: root.spacing
 
-        GroupHeading {
-            leading: true
-            icon: "󰌆"
+        PartHead {
             title: Tr.t("The shell's own")
             note: Tr.t("Click a combination to change it. Every key here belongs to the profile in use.")
             hint: Tr.t("Each profile has its own complete set of keys. A combination already in use is allowed, since Hyprland fires both binds, but the row warns you before you apply it.")
         }
 
-        BindSearch {}
-
-        ColumnLayout {
-            Layout.fillWidth: true
-            spacing: 6
+        SettingGroup {
+            visible: root.own.length > 0
 
             Repeater {
                 model: root.own
@@ -186,16 +206,8 @@ SettingsSection {
             }
         }
 
-        Text {
-            Layout.fillWidth: true
-            Layout.topMargin: 20
-            Layout.bottomMargin: 20
+        NoMatch {
             visible: root.own.length === 0
-            horizontalAlignment: Text.AlignHCenter
-            text: Tr.t("No binding matches that")
-            font.family: Theme.fontFamily
-            font.pixelSize: Theme.fontSizeSmall
-            color: Theme.textMuted
         }
     }
 
@@ -207,26 +219,14 @@ SettingsSection {
         visible: root.tab === "compositor"
         spacing: root.spacing
 
-        GroupHeading {
-            leading: true
-            icon: "󰌌"
+        PartHead {
             title: Tr.t("The compositor's")
             note: Tr.t("Windows, workspaces, the media keys, the screen off — changed the same way, and kept in the same profile.")
             hint: Tr.t("The shell writes these to a file keybinds.lua reads, so applying a change reloads Hyprland. Mouse bindings are shown but cannot be rebound here.")
         }
 
-        BindSearch {}
-
-        Text {
-            Layout.fillWidth: true
-            Layout.topMargin: 24
-            Layout.bottomMargin: 24
+        NoMatch {
             visible: root.groups.length === 0
-            horizontalAlignment: Text.AlignHCenter
-            text: Tr.t("No binding matches that")
-            font.family: Theme.fontFamily
-            font.pixelSize: Theme.fontSizeSmall
-            color: Theme.textMuted
         }
 
         // A Repeater, not a ListView: the page already scrolls, and a nested
@@ -234,25 +234,12 @@ SettingsSection {
         Repeater {
             model: root.groups
 
-            ColumnLayout {
+            SettingGroup {
                 id: group
 
                 required property var modelData
 
-                Layout.fillWidth: true
-                spacing: 6
-
-                Text {
-                    Layout.topMargin: 8
-                    Layout.bottomMargin: 2
-                    Layout.leftMargin: 10
-                    text: Tr.t(group.modelData.name).toUpperCase()
-                    font.family: Theme.fontFamily
-                    font.pixelSize: Theme.fontSizeLabel
-                    font.weight: Font.DemiBold
-                    font.letterSpacing: 0.6
-                    color: Theme.textMuted
-                }
+                title: Tr.t(group.modelData.name)
 
                 Repeater {
                     model: group.modelData.items

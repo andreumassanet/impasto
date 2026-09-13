@@ -15,7 +15,7 @@ import "../theme"
 // A row pointing at a setting that lives on another page, for settings
 // shared by two subjects (module data, kept applications). `reading`
 // summarises what is there.
-Rectangle {
+Item {
     id: root
 
     property string label: ""
@@ -24,13 +24,9 @@ Rectangle {
     signal followed()
 
     Layout.fillWidth: true
-    implicitHeight: Math.max(42, body.implicitHeight + 16)
-    radius: Theme.radiusMedium
-    color: linkMouse.containsMouse ? Theme.islandSurfaceHover : Theme.islandSurface
-    border.color: Theme.islandBorder
-    border.width: 1
+    implicitHeight: Math.max(48, body.implicitHeight + 16)
 
-    Behavior on color { ColorAnimation { duration: Theme.durationFast } }
+    SettingDivider {}
 
     RowLayout {
         id: body
@@ -38,32 +34,13 @@ Rectangle {
         anchors.fill: parent
         anchors.leftMargin: 14
         anchors.rightMargin: 14
-        spacing: 14
+        spacing: 16
 
-        ColumnLayout {
+        SettingLabel {
             Layout.fillWidth: true
             Layout.alignment: Qt.AlignVCenter
-            spacing: 1
-
-            Text {
-                Layout.fillWidth: true
-                text: root.label
-                elide: Text.ElideRight
-                font.family: Theme.fontFamily
-                font.pixelSize: Theme.fontSizeSmall
-                font.weight: Font.DemiBold
-                color: Theme.text
-            }
-
-            Text {
-                Layout.fillWidth: true
-                visible: root.reading !== ""
-                text: root.reading
-                elide: Text.ElideRight
-                font.family: Theme.fontFamily
-                font.pixelSize: Theme.fontSizeLabel
-                color: Theme.textMuted
-            }
+            label: root.label
+            reading: root.reading
         }
 
         Text {

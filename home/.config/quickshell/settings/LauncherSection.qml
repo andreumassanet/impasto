@@ -25,19 +25,22 @@ SettingsSection {
     // Asks `SettingsPanel` to open another section.
     signal navigate(string section, string tab)
 
+    // Letters, digits and spaces start an application search, so none of them
+    // can be a sigil, and neither can one another mode already uses.
+    function accepts(mode: string, sigil: string): bool {
+        if (sigil.length !== 1 || /[A-Za-z0-9 ]/.test(sigil))
+            return false
+        return !LauncherService.modes.some(other =>
+            other.id !== mode && other.prefix === sigil)
+    }
+
     // ── RESULTS ─────────────────────────────────────────────────────────────
 
-    ColumnLayout {
-        Layout.fillWidth: true
-        spacing: root.spacing
+    SettingGroup {
         visible: root.tab === "results"
-
-        GroupHeading {
-            leading: true
-            title: Tr.t("The list")
-            note: Tr.t("What the launcher lists with nothing typed, and how tall it gets.")
-            hint: Tr.t("By use ranks applications by launches, with older launches counting for less; those kept on the dock come first until something else is used more. As tall as the answer sizes the island to the results, up to the limit above; off, the box is fixed and the list scrolls.")
-        }
+        title: Tr.t("The list")
+        note: Tr.t("What the launcher lists with nothing typed, and how tall it gets.")
+        hint: Tr.t("By use ranks applications by launches, with older launches counting for less; those kept on the dock come first until something else is used more. As tall as the answer sizes the island to the results, up to the limit above; off, the box is fixed and the list scrolls.")
 
         SettingRow {
             label: Tr.t("Order")
@@ -73,27 +76,15 @@ SettingsSection {
         }
 
         // Skeleton preview of the list at the chosen length.
-        Rectangle {
-            Layout.fillWidth: true
-            implicitHeight: mini.implicitHeight + 28
-            radius: Theme.radiusMedium
-            color: Theme.islandSurface
-            border.color: Theme.islandBorder
-            border.width: 1
-
+        SettingBlock {
             Behavior on implicitHeight {
                 NumberAnimation { duration: Theme.durationFast; easing.type: Theme.easing }
             }
 
             Rectangle {
-                id: mini
-
-                anchors.horizontalCenter: parent.horizontalCenter
-                anchors.top: parent.top
-                anchors.topMargin: 14
-                width: 250
+                Layout.alignment: Qt.AlignHCenter
+                Layout.preferredWidth: 250
                 implicitHeight: rows.implicitHeight + 20
-                height: implicitHeight
                 radius: Theme.radiusMedium
                 color: Theme.island
                 border.color: Theme.islandBorder
@@ -121,8 +112,8 @@ SettingsSection {
                         }
 
                         Rectangle {
-                            width: 52
-                            height: 4
+                            Layout.preferredWidth: 52
+                            Layout.preferredHeight: 4
                             radius: 2
                             color: Theme.textMuted
                             opacity: 0.5
@@ -190,135 +181,70 @@ SettingsSection {
     }
 
     // ── SIGILS ──────────────────────────────────────────────────────────────
+    //
+    // Each sigil is edited in place, at the end of its mode's row.
 
-    ColumnLayout {
-        Layout.fillWidth: true
-        spacing: root.spacing
+    SettingGroup {
         visible: root.tab === "sigils"
+        title: Tr.t("Sigils")
+        note: Tr.t("Plain text searches applications, and a sigil in front switches mode. Click one to change it.")
 
-        // Each sigil is edited in place. Letters, digits and spaces are
-        // rejected (they start an application search), as is a sigil another
-        // mode already uses.
-        Rectangle {
-            Layout.fillWidth: true
-            implicitHeight: modes.implicitHeight + 28
-            radius: Theme.radiusMedium
-            color: Theme.islandSurface
-            border.color: Theme.islandBorder
-            border.width: 1
+        Repeater {
+            model: LauncherService.modes
 
-            ColumnLayout {
-                id: modes
+            SettingRow {
+                id: mode
 
-                anchors.left: parent.left
-                anchors.right: parent.right
-                anchors.top: parent.top
-                anchors.margins: 14
-                spacing: 2
+                required property var modelData
+                readonly property bool fixed: mode.modelData.id === "apps"
 
-                Text {
-                    text: Tr.t("What the first character does")
-                    font.family: Theme.fontFamily
-                    font.pixelSize: Theme.fontSizeSmall
-                    font.weight: Font.DemiBold
-                    color: Theme.text
-                }
+                label: Tr.t(mode.modelData.label)
+                reading: Tr.t(mode.modelData.hint)
 
-                Text {
-                    Layout.fillWidth: true
-                    Layout.bottomMargin: 8
-                    text: Tr.t("Plain text searches applications, and a sigil in front switches mode. Click one to change it.")
-                    wrapMode: Text.WordWrap
-                    font.family: Theme.fontFamily
-                    font.pixelSize: Theme.fontSizeLabel
-                    color: Theme.textMuted
-                }
+                Rectangle {
+                    implicitWidth: 34
+                    implicitHeight: 28
+                    radius: Theme.radiusSmall
+                    color: Theme.island
+                    border.color: sigil.activeFocus ? Theme.accent : Theme.islandBorder
+                    border.width: 1
 
-                Repeater {
-                    model: LauncherService.modes
+                    Behavior on border.color { ColorAnimation { duration: Theme.durationFast } }
 
-                    RowLayout {
-                        id: mode
+                    Text {
+                        anchors.centerIn: parent
+                        visible: mode.fixed
+                        text: "abc"
+                        font.family: Theme.fontMono
+                        font.pixelSize: 8
+                        font.weight: Font.DemiBold
+                        color: Theme.accent
+                    }
 
-                        required property var modelData
-                        readonly property bool fixed: mode.modelData.id === "apps"
+                    TextInput {
+                        id: sigil
 
-                        function accept(sigil: string): bool {
-                            if (sigil.length !== 1 || /[A-Za-z0-9 ]/.test(sigil))
-                                return false
-                            const clash = LauncherService.modes.some(other =>
-                                other.id !== mode.modelData.id && other.prefix === sigil)
-                            return !clash
+                        anchors.fill: parent
+                        visible: !mode.fixed
+                        horizontalAlignment: TextInput.AlignHCenter
+                        verticalAlignment: TextInput.AlignVCenter
+                        maximumLength: 1
+                        font.family: Theme.fontMono
+                        font.pixelSize: Theme.fontSizeSmall
+                        font.weight: Font.DemiBold
+                        color: Theme.accent
+                        selectByMouse: true
+
+                        text: mode.modelData.prefix
+                        onTextEdited: {
+                            if (root.accepts(mode.modelData.id, sigil.text))
+                                SettingsService.setLauncherPrefix(
+                                    mode.modelData.id, sigil.text)
                         }
-
-                        Layout.fillWidth: true
-                        Layout.preferredHeight: 28
-                        spacing: 12
-
-                        Rectangle {
-                            Layout.preferredWidth: 26
-                            Layout.preferredHeight: 22
-                            radius: Theme.radiusSmall - 2
-                            color: Theme.island
-                            border.color: sigil.activeFocus ? Theme.accent : Theme.islandBorder
-                            border.width: 1
-
-                            Behavior on border.color { ColorAnimation { duration: Theme.durationFast } }
-
-                            Text {
-                                anchors.centerIn: parent
-                                visible: mode.fixed
-                                text: "abc"
-                                font.family: Theme.fontMono
-                                font.pixelSize: 8
-                                font.weight: Font.DemiBold
-                                color: Theme.accent
-                            }
-
-                            TextInput {
-                                id: sigil
-
-                                anchors.fill: parent
-                                visible: !mode.fixed
-                                horizontalAlignment: TextInput.AlignHCenter
-                                verticalAlignment: TextInput.AlignVCenter
-                                maximumLength: 1
-                                font.family: Theme.fontMono
-                                font.pixelSize: Theme.fontSizeSmall
-                                font.weight: Font.DemiBold
-                                color: Theme.accent
-                                selectByMouse: true
-
-                                text: mode.modelData.prefix
-                                onTextEdited: {
-                                    if (mode.accept(sigil.text))
-                                        SettingsService.setLauncherPrefix(
-                                            mode.modelData.id, sigil.text)
-                                }
-                                // Revert to the stored value, so a rejected
-                                // character does not look accepted.
-                                onEditingFinished:
-                                    sigil.text = Qt.binding(() => mode.modelData.prefix)
-                            }
-                        }
-
-                        Text {
-                            Layout.preferredWidth: 78
-                            text: Tr.t(mode.modelData.label)
-                            font.family: Theme.fontFamily
-                            font.pixelSize: Theme.fontSizeSmall
-                            font.weight: Font.DemiBold
-                            color: Theme.text
-                        }
-
-                        Text {
-                            Layout.fillWidth: true
-                            text: Tr.t(mode.modelData.hint)
-                            elide: Text.ElideRight
-                            font.family: Theme.fontFamily
-                            font.pixelSize: Theme.fontSizeLabel
-                            color: Theme.textMuted
-                        }
+                        // Revert to the stored value, so a rejected
+                        // character does not look accepted.
+                        onEditingFinished:
+                            sigil.text = Qt.binding(() => mode.modelData.prefix)
                     }
                 }
             }
@@ -329,17 +255,11 @@ SettingsSection {
     //
     // The clipboard history is a launcher mode, so its settings live here.
 
-    ColumnLayout {
-        Layout.fillWidth: true
-        spacing: root.spacing
+    SettingGroup {
         visible: root.tab === "clipboard"
-
-        GroupHeading {
-            leading: true
-            title: Tr.t("Clipboard history")
-            note: Tr.t("Everything copied, searchable from the launcher.")
-            hint: Tr.t("Copies from password managers are never stored, and turning the history off stops the watcher entirely. Emptying on lock is off by default, since the lock already protects the session.")
-        }
+        title: Tr.t("Clipboard history")
+        note: Tr.t("Everything copied, searchable from the launcher.")
+        hint: Tr.t("Copies from password managers are never stored, and turning the history off stops the watcher entirely. Emptying on lock is off by default, since the lock already protects the session.")
 
         SettingRow {
             label: Tr.t("Keep a history")

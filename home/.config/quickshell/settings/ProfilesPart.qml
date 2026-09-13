@@ -17,17 +17,21 @@ import "../theme"
 import "../services"
 import "../components"
 
-// One card per profile (`ProfileService`), the active one outlined in the
-// accent. Each shows the profile's wallpaper and a one-line summary of its bar,
-// dock and widgets. Rename, duplicate, export and delete are in the card's `⋯`
-// menu (`PopMenu`); delete is confirmed on the card, since it cannot be undone.
+// One row per profile (`ProfileService`) in one card, the active one marked
+// In use. Each shows the profile's wallpaper and a one-line summary of its
+// bar, dock and widgets. Rename, duplicate, export and delete are in the row's
+// `⋯` menu (`PopMenu`); delete is confirmed on the row, since it cannot be
+// undone.
 Item {
     id: root
 
     Layout.fillWidth: true
-    implicitHeight: column.implicitHeight
+    implicitHeight: group.implicitHeight
 
-    // Card keys with a menu open, a name being edited, or a delete pending.
+    // An open menu hangs past the card, over the group below it.
+    z: root.menuFor !== "" ? 2 : 0
+
+    // Row keys with a menu open, a name being edited, or a delete pending.
     // At most one of each.
     property string menuFor: ""
     property string renaming: ""
@@ -66,7 +70,7 @@ Item {
         return text.startsWith("file://") ? decodeURIComponent(text.slice(7)) : text
     }
 
-    // Opens a card's name for editing and cancels any pending delete.
+    // Opens a row's name for editing and cancels any pending delete.
     function rename(key: string): void {
         if (key === "")
             return
@@ -74,7 +78,7 @@ Item {
         root.renaming = key
     }
 
-    // Clicking empty space closes the open menu. Sits behind the cards so
+    // Clicking empty space closes the open menu. Sits behind the rows so
     // their buttons still work.
     MouseArea {
         anchors.fill: parent
@@ -83,23 +87,18 @@ Item {
         onClicked: root.menuFor = ""
     }
 
-    ColumnLayout {
-        id: column
+    SettingGroup {
+        id: group
 
         width: root.width
-        spacing: 10
-
-        GroupHeading {
-            leading: true
-            title: Tr.t("Profiles")
-            note: Tr.t("Changes are saved to the profile in use as you make them.")
-            hint: Tr.t("A profile holds the bar, widgets, dock, launcher, control centre, look, keys and wallpaper with its palette. Screens, your name and picture, language, weather location, GitHub user, Do not disturb and night light stay with the machine, and notes, tasks and clipboard are shared by every profile.")
-        }
+        title: Tr.t("Profiles")
+        note: Tr.t("Changes are saved to the profile in use as you make them.")
+        hint: Tr.t("A profile holds the bar, widgets, dock, launcher, control centre, look, keys and wallpaper with its palette. Screens, your name and picture, language, weather location, GitHub user, Do not disturb and night light stay with the machine, and notes, tasks and clipboard are shared by every profile.")
 
         Repeater {
             model: ProfileService.profiles
 
-            Rectangle {
+            Item {
                 id: card
 
                 required property var modelData
@@ -111,37 +110,32 @@ Item {
                 readonly property string picture: ProfileService.wallpaperOf(card.key)
 
                 Layout.fillWidth: true
-                implicitHeight: 60
+                implicitHeight: 62
                 z: root.menuFor === card.key ? 5 : 0
-                radius: Theme.radiusMedium
-                color: Theme.islandSurface
-                border.color: card.asking ? Theme.red
-                    : (card.inUse ? Theme.accent : Theme.islandBorder)
-                border.width: 1
 
-                Behavior on border.color { ColorAnimation { duration: Theme.durationFast } }
+                SettingDivider {}
 
                 RowLayout {
                     anchors.fill: parent
-                    anchors.leftMargin: 10
+                    anchors.leftMargin: 14
                     anchors.rightMargin: 10
                     spacing: 12
 
-                    // The profile's own painting, cropped to the card.
+                    // The profile's own painting, cropped to the row.
                     ClippingRectangle {
-                        Layout.preferredWidth: 68
-                        Layout.maximumWidth: 68
-                        Layout.preferredHeight: 42
+                        Layout.preferredWidth: 64
+                        Layout.maximumWidth: 64
+                        Layout.preferredHeight: 40
                         radius: height * Theme.pictureCorner
                         color: Theme.island
 
                         Image {
                             id: thumbnail
 
-                            width: 68
-                            height: 42
+                            width: 64
+                            height: 40
                             source: card.picture !== "" ? `file://${card.picture}` : ""
-                            sourceSize: Qt.size(136, 84)
+                            sourceSize: Qt.size(128, 80)
                             fillMode: Image.PreserveAspectCrop
                             asynchronous: true
                         }
@@ -177,7 +171,7 @@ Item {
                                 elide: Text.ElideRight
                                 font.family: Theme.fontFamily
                                 font.pixelSize: Theme.fontSizeSmall
-                                font.weight: Font.DemiBold
+                                font.weight: Font.Medium
                                 color: Theme.text
                             }
 
@@ -204,7 +198,7 @@ Item {
                                     maximumLength: ProfileService.nameLength
                                     font.family: Theme.fontFamily
                                     font.pixelSize: Theme.fontSizeSmall
-                                    font.weight: Font.DemiBold
+                                    font.weight: Font.Medium
                                     color: Theme.text
                                     selectByMouse: true
                                     selectionColor: Theme.accent
@@ -356,30 +350,33 @@ Item {
             }
         }
 
-        RowLayout {
-            Layout.fillWidth: true
-            Layout.topMargin: 2
-            spacing: 8
+        SettingBlock {
+            padding: 10
 
-            PillButton {
-                text: Tr.t("New profile")
-                icon: "󰐕"
-                onClicked: {
-                    root.menuFor = ""
-                    root.rename(ProfileService.create())
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 8
+
+                PillButton {
+                    text: Tr.t("New profile")
+                    icon: "󰐕"
+                    onClicked: {
+                        root.menuFor = ""
+                        root.rename(ProfileService.create())
+                    }
                 }
-            }
 
-            PillButton {
-                text: Tr.t("Import…")
-                icon: "󰋺"
-                onClicked: {
-                    root.menuFor = ""
-                    importDialog.open()
+                PillButton {
+                    text: Tr.t("Import…")
+                    icon: "󰋺"
+                    onClicked: {
+                        root.menuFor = ""
+                        importDialog.open()
+                    }
                 }
-            }
 
-            Item { Layout.fillWidth: true }
+                Item { Layout.fillWidth: true }
+            }
         }
     }
 

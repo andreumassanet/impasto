@@ -23,8 +23,9 @@ import "../components"
 // and declaring one in keybinds.lua would strand the keyboard if the shell
 // died mid-capture. A bare key is safe because nothing is bound to one.
 //
-// The row is one line at rest; clicking the combination opens the editor.
-Rectangle {
+// The row is one line at rest; clicking the combination opens the editor
+// under it. Sits in a `SettingGroup`'s card.
+Item {
     id: root
 
     // The bind's description, which is how the profile keys it.
@@ -68,13 +69,9 @@ Rectangle {
     }
 
     Layout.fillWidth: true
-    implicitHeight: body.implicitHeight + (root.editing ? 24 : 12)
-    radius: Theme.radiusMedium
-    color: Theme.islandSurface
-    border.color: root.editing ? Theme.accent : Theme.islandBorder
-    border.width: 1
+    implicitHeight: body.implicitHeight + (root.editing ? 28 : 18)
 
-    Behavior on border.color { ColorAnimation { duration: Theme.durationFast } }
+    SettingDivider {}
 
     ColumnLayout {
         id: body
@@ -96,7 +93,7 @@ Rectangle {
                 elide: Text.ElideRight
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.fontSizeSmall
-                font.weight: Font.DemiBold
+                font.weight: Font.Medium
                 color: Theme.text
             }
 

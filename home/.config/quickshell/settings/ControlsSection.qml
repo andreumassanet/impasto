@@ -29,7 +29,7 @@ SettingsSection {
 
     // A panel button: icon, name, reorder arrows and a switch. Not a
     // `SettingRow`, since the arrows only show while the row is on.
-    component OrderRow: Rectangle {
+    component OrderRow: Item {
         id: row
 
         property string icon: ""
@@ -42,16 +42,14 @@ SettingsSection {
         signal switched(bool on)
 
         Layout.fillWidth: true
-        implicitHeight: 44
-        radius: Theme.radiusMedium
-        color: Theme.islandSurface
-        border.color: Theme.islandBorder
-        border.width: 1
+        implicitHeight: 48
+
+        SettingDivider {}
 
         RowLayout {
             anchors.fill: parent
             anchors.leftMargin: 14
-            anchors.rightMargin: 10
+            anchors.rightMargin: 14
             spacing: 12
 
             Text {
@@ -70,7 +68,7 @@ SettingsSection {
                 elide: Text.ElideRight
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.fontSizeSmall
-                font.weight: Font.DemiBold
+                font.weight: Font.Medium
                 color: row.on ? Theme.text : Theme.textMuted
             }
 
@@ -100,18 +98,10 @@ SettingsSection {
         }
     }
 
-    // ── THE TOP ROW ─────────────────────────────────────────────────────────
-
-    ColumnLayout {
-        Layout.fillWidth: true
-        spacing: root.spacing
-
-        GroupHeading {
-            leading: true
-            title: Tr.t("The panel")
-            note: Tr.t("A six by eight grid, arranged on the panel itself.")
-            hint: Tr.t("Edit shows the grid with a tray of blocks underneath: drag blocks onto cells, pull a corner or scroll to resize, and drop one on the tray to remove it. Right-click the panel to enter or leave this mode without opening settings, and click a toggles block to choose its switches.")
-        }
+    SettingGroup {
+        title: Tr.t("The panel")
+        note: Tr.t("A six by eight grid, arranged on the panel itself.")
+        hint: Tr.t("Edit shows the grid with a tray of blocks underneath: drag blocks onto cells, pull a corner or scroll to resize, and drop one on the tray to remove it. Right-click the panel to enter or leave this mode without opening settings, and click a toggles block to choose its switches.")
 
         SettingRow {
             label: Tr.t("Arrange the control centre")
@@ -135,11 +125,13 @@ SettingsSection {
                 }
             }
         }
+    }
 
-        GroupHeading {
-            title: Tr.t("The top row")
-            note: Tr.t("Session actions always sit on the left. These buttons, which open other panels and this window, fill the row from the right in this order.")
-        }
+    // ── THE TOP ROW ─────────────────────────────────────────────────────────
+
+    SettingGroup {
+        title: Tr.t("The top row")
+        note: Tr.t("Session actions always sit on the left. These buttons, which open other panels and this window, fill the row from the right in this order.")
 
         Repeater {
             model: ControlsService.doorRows

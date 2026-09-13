@@ -12,11 +12,12 @@ import QtQuick.Layouts
 
 import "../theme"
 
-// The column every settings page is laid out in. It must not scroll:
-// `SettingsPanel` scrolls the hero and the page together.
+// The column every settings page is laid out in, one `SettingGroup` after
+// another. It must not scroll: `SettingsPanel` scrolls the hero and the page
+// together.
 ColumnLayout {
     id: root
 
     Layout.fillWidth: true
-    spacing: 10
+    spacing: 20
 }

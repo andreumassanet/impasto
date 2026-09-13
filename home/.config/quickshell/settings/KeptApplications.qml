@@ -15,26 +15,39 @@ import "../theme"
 import "../services"
 import "../components"
 
-// The kept (pinned) applications and a picker to add one. Stored as the
-// dock's pinned list, but the launcher also ranks them first, so the rows stay
-// editable while the dock is off.
+// The kept (pinned) applications, one row each, and a row to add one, whose
+// matches open under it as you type. Stored as the dock's pinned list, but
+// the launcher also ranks them first, so the rows stay editable while the
+// dock is off. Sits in a `SettingGroup`'s card.
 ColumnLayout {
     id: root
 
-    Layout.fillWidth: true
-    spacing: 10
+    readonly property string term: search.text.trim().toLowerCase()
 
-    Rectangle {
-        Layout.fillWidth: true
-        implicitHeight: 52
+    // Every application the launcher indexes, minus those already kept.
+    readonly property var offered: {
+        if (root.term === "")
+            return []
+        const list = []
+        for (const app of LauncherService.applications) {
+            if (DockService.isPinned(app.id))
+                continue
+            if (!app.name.toLowerCase().includes(root.term)
+                    && !app.keywords.includes(root.term))
+                continue
+            list.push(app)
+        }
+        return list
+    }
+
+    Layout.fillWidth: true
+    spacing: 0
+
+    SettingBlock {
         visible: DockService.pinnedCount === 0
-        radius: Theme.radiusMedium
-        color: Theme.islandSurface
-        border.color: Theme.islandBorder
-        border.width: 1
 
         Text {
-            anchors.centerIn: parent
+            Layout.alignment: Qt.AlignHCenter
             text: Tr.t("Nothing kept yet.")
             font.family: Theme.fontFamily
             font.pixelSize: Theme.fontSizeSmall
@@ -45,7 +58,7 @@ ColumnLayout {
     Repeater {
         model: DockService.pinned
 
-        Rectangle {
+        Item {
             id: kept
 
             required property string modelData
@@ -57,10 +70,8 @@ ColumnLayout {
 
             Layout.fillWidth: true
             implicitHeight: 52
-            radius: Theme.radiusMedium
-            color: Theme.islandSurface
-            border.color: Theme.islandBorder
-            border.width: 1
+
+            SettingDivider {}
 
             RowLayout {
                 anchors.fill: parent
@@ -69,7 +80,7 @@ ColumnLayout {
                 spacing: 12
 
                 Text {
-                    Layout.preferredWidth: 18
+                    Layout.preferredWidth: 14
                     text: `${kept.index + 1}`
                     font.family: Theme.fontMono
                     font.pixelSize: Theme.fontSizeLabel
@@ -98,11 +109,13 @@ ColumnLayout {
                     spacing: 1
 
                     Text {
+                        Layout.fillWidth: true
                         text: kept.entry ? kept.entry.name
                             : kept.modelData.replace(/\.desktop$/, "")
+                        elide: Text.ElideRight
                         font.family: Theme.fontFamily
                         font.pixelSize: Theme.fontSizeSmall
-                        font.weight: Font.DemiBold
+                        font.weight: Font.Medium
                         color: Theme.text
                     }
 
@@ -129,175 +142,141 @@ ColumnLayout {
     }
 
     // ── ADD ─────────────────────────────────────────────────────────────────
-    //
-    // Every application the launcher indexes, minus those already kept.
-    Rectangle {
-        id: picker
 
-        Layout.fillWidth: true
-        implicitHeight: 260
-        radius: Theme.radiusMedium
-        color: Theme.islandSurface
-        border.color: Theme.islandBorder
-        border.width: 1
-        clip: true
+    SettingRow {
+        label: Tr.t("Add an application")
 
-        readonly property string term: search.text.trim().toLowerCase()
+        Rectangle {
+            implicitWidth: 300
+            implicitHeight: 30
+            radius: Theme.radiusSmall
+            color: Theme.island
+            border.color: search.activeFocus ? Theme.accent : Theme.islandBorder
+            border.width: 1
 
-        readonly property var offered: {
-            const list = []
-            for (const app of LauncherService.applications) {
-                if (DockService.isPinned(app.id))
-                    continue
-                if (picker.term !== "" && !app.name.toLowerCase().includes(picker.term)
-                        && !app.keywords.includes(picker.term))
-                    continue
-                list.push(app)
-            }
-            return list
-        }
+            Behavior on border.color { ColorAnimation { duration: Theme.durationFast } }
 
-        ColumnLayout {
-            anchors.fill: parent
-            anchors.margins: 12
-            spacing: 10
+            RowLayout {
+                anchors.fill: parent
+                anchors.leftMargin: 9
+                anchors.rightMargin: 9
+                spacing: 8
 
-            Text {
-                text: Tr.t("Add an application")
-                font.family: Theme.fontFamily
-                font.pixelSize: Theme.fontSizeSmall
-                font.weight: Font.DemiBold
-                color: Theme.text
-            }
+                Text {
+                    text: "󰍉"
+                    font.family: Theme.fontMono
+                    font.pixelSize: 12
+                    color: Theme.textMuted
+                }
 
-            Rectangle {
-                Layout.fillWidth: true
-                Layout.preferredHeight: 30
-                radius: Theme.radiusSmall
-                color: Theme.island
-                border.color: search.activeFocus ? Theme.accent : Theme.islandBorder
-                border.width: 1
+                TextInput {
+                    id: search
 
-                Behavior on border.color { ColorAnimation { duration: Theme.durationFast } }
+                    Layout.fillWidth: true
+                    font.family: Theme.fontFamily
+                    font.pixelSize: Theme.fontSizeSmall
+                    color: Theme.text
+                    selectByMouse: true
+                    selectionColor: Theme.accent
+                    selectedTextColor: Theme.accentText
+                    clip: true
 
-                RowLayout {
-                    anchors.fill: parent
-                    anchors.leftMargin: 9
-                    anchors.rightMargin: 9
-                    spacing: 8
+                    Keys.onEscapePressed: event => {
+                        if (search.text === "") {
+                            event.accepted = false
+                            return
+                        }
+                        search.text = ""
+                    }
 
                     Text {
-                        text: "󰍉"
-                        font.family: Theme.fontMono
-                        font.pixelSize: 12
+                        anchors.verticalCenter: parent.verticalCenter
+                        visible: search.text === ""
+                        text: Tr.t("Search applications")
+                        font: search.font
                         color: Theme.textMuted
-                    }
-
-                    TextInput {
-                        id: search
-
-                        Layout.fillWidth: true
-                        font.family: Theme.fontFamily
-                        font.pixelSize: Theme.fontSizeSmall
-                        color: Theme.text
-                        selectByMouse: true
-                        selectionColor: Theme.accent
-                        selectedTextColor: Theme.accentText
-                        clip: true
-
-                        Keys.onEscapePressed: event => {
-                            if (search.text === "") {
-                                event.accepted = false
-                                return
-                            }
-                            search.text = ""
-                        }
-
-                        Text {
-                            anchors.verticalCenter: parent.verticalCenter
-                            visible: search.text === ""
-                            text: Tr.t("Search applications")
-                            font: search.font
-                            color: Theme.textMuted
-                        }
                     }
                 }
             }
+        }
+    }
 
-            ListView {
-                Layout.fillWidth: true
-                Layout.fillHeight: true
-                clip: true
-                model: picker.offered
-                boundsBehavior: Flickable.StopAtBounds
+    ListView {
+        Layout.fillWidth: true
+        Layout.leftMargin: 6
+        Layout.rightMargin: 6
+        Layout.bottomMargin: root.offered.length > 0 ? 6 : 0
+        Layout.preferredHeight: Math.min(root.offered.length, 6) * 34
+        visible: root.offered.length > 0
+        clip: true
+        model: root.offered
+        boundsBehavior: Flickable.StopAtBounds
 
-                delegate: Rectangle {
-                    id: option
+        delegate: Rectangle {
+            id: option
 
-                    required property var modelData
+            required property var modelData
 
-                    readonly property string picture: option.modelData.icon
-                        ? Quickshell.iconPath(option.modelData.icon, true) : ""
+            readonly property string picture: option.modelData.icon
+                ? Quickshell.iconPath(option.modelData.icon, true) : ""
 
-                    width: ListView.view.width
-                    height: 34
-                    radius: Theme.radiusSmall
-                    color: optionMouse.containsMouse ? Theme.islandBorder : "transparent"
+            width: ListView.view.width
+            height: 34
+            radius: Theme.radiusSmall
+            color: optionMouse.containsMouse ? Theme.islandSurfaceHover : "transparent"
 
-                    Behavior on color { ColorAnimation { duration: Theme.durationFast } }
+            Behavior on color { ColorAnimation { duration: Theme.durationFast } }
 
-                    RowLayout {
-                        anchors.fill: parent
-                        anchors.leftMargin: 8
-                        anchors.rightMargin: 10
-                        spacing: 10
+            RowLayout {
+                anchors.fill: parent
+                anchors.leftMargin: 8
+                anchors.rightMargin: 10
+                spacing: 10
 
-                        Image {
-                            Layout.preferredWidth: 20
-                            Layout.preferredHeight: 20
-                            source: option.picture
-                            sourceSize: Qt.size(40, 40)
-                            fillMode: Image.PreserveAspectFit
-                            visible: option.picture !== "" && status === Image.Ready
-                        }
-
-                        Text {
-                            visible: option.picture === ""
-                            Layout.preferredWidth: 20
-                            horizontalAlignment: Text.AlignHCenter
-                            text: "󰀻"
-                            font.family: Theme.fontMono
-                            font.pixelSize: 14
-                            color: Theme.textMuted
-                        }
-
-                        Text {
-                            Layout.fillWidth: true
-                            text: option.modelData.name
-                            elide: Text.ElideRight
-                            font.family: Theme.fontFamily
-                            font.pixelSize: Theme.fontSizeSmall
-                            color: Theme.text
-                        }
-
-                        Text {
-                            visible: optionMouse.containsMouse
-                            text: "󰐕"
-                            font.family: Theme.fontMono
-                            font.pixelSize: 12
-                            color: Theme.accent
-                        }
-                    }
-
-                    MouseArea {
-                        id: optionMouse
-
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: DockService.pin(option.modelData.id)
-                    }
+                Image {
+                    Layout.preferredWidth: 20
+                    Layout.preferredHeight: 20
+                    source: option.picture
+                    sourceSize: Qt.size(40, 40)
+                    fillMode: Image.PreserveAspectFit
+                    visible: option.picture !== "" && status === Image.Ready
                 }
+
+                Text {
+                    visible: option.picture === ""
+                    Layout.preferredWidth: 20
+                    horizontalAlignment: Text.AlignHCenter
+                    text: "󰀻"
+                    font.family: Theme.fontMono
+                    font.pixelSize: 14
+                    color: Theme.textMuted
+                }
+
+                Text {
+                    Layout.fillWidth: true
+                    text: option.modelData.name
+                    elide: Text.ElideRight
+                    font.family: Theme.fontFamily
+                    font.pixelSize: Theme.fontSizeSmall
+                    color: Theme.text
+                }
+
+                Text {
+                    visible: optionMouse.containsMouse
+                    text: "󰐕"
+                    font.family: Theme.fontMono
+                    font.pixelSize: 12
+                    color: Theme.accent
+                }
+            }
+
+            MouseArea {
+                id: optionMouse
+
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                onClicked: DockService.pin(option.modelData.id)
             }
         }
     }

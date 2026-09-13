@@ -12,15 +12,15 @@ import QtQuick.Layouts
 
 import "../theme"
 
-// A setting row with a text field. The placeholder shows the system default
-// that applies while the field is empty.
-Rectangle {
+// A setting row whose control is a text field, as wide as a slider's track
+// and figure so the two line up. The placeholder is what applies while the
+// field is empty.
+Item {
     id: root
 
     property string label: ""
-
-    // One line; longer text belongs in the group heading's `hint`.
-    property string note: ""
+    property string reading: ""
+    property bool alarm: false
 
     property string placeholder: ""
     property string value: ""
@@ -28,44 +28,30 @@ Rectangle {
     signal edited(string value)
 
     Layout.fillWidth: true
-    implicitHeight: body.implicitHeight + 26
-    radius: Theme.radiusMedium
-    color: Theme.islandSurface
-    border.color: Theme.islandBorder
-    border.width: 1
+    implicitHeight: Math.max(48, body.implicitHeight + 16)
 
-    ColumnLayout {
+    SettingDivider {}
+
+    RowLayout {
         id: body
 
-        anchors.left: parent.left
-        anchors.right: parent.right
-        anchors.verticalCenter: parent.verticalCenter
+        anchors.fill: parent
         anchors.leftMargin: 14
         anchors.rightMargin: 14
-        spacing: 4
+        spacing: 16
 
-        Text {
-            text: root.label
-            font.family: Theme.fontFamily
-            font.pixelSize: Theme.fontSizeSmall
-            font.weight: Font.DemiBold
-            color: Theme.text
-        }
-
-        Text {
+        SettingLabel {
             Layout.fillWidth: true
-            visible: root.note !== ""
-            text: root.note
-            wrapMode: Text.WordWrap
-            font.family: Theme.fontFamily
-            font.pixelSize: Theme.fontSizeLabel
-            color: Theme.textMuted
+            Layout.alignment: Qt.AlignVCenter
+            label: root.label
+            reading: root.reading
+            alarm: root.alarm
         }
 
         Rectangle {
-            Layout.fillWidth: true
-            Layout.topMargin: 6
-            implicitHeight: 30
+            Layout.preferredWidth: 300
+            Layout.preferredHeight: 30
+            Layout.alignment: Qt.AlignVCenter
             radius: Theme.radiusSmall
             color: Theme.island
             border.color: input.activeFocus ? Theme.accent : Theme.islandBorder
@@ -94,8 +80,10 @@ Rectangle {
 
                 Text {
                     anchors.verticalCenter: parent.verticalCenter
+                    width: parent.width
                     visible: input.text === ""
                     text: root.placeholder
+                    elide: Text.ElideRight
                     font: input.font
                     color: Theme.textMuted
                 }

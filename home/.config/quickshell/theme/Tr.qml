@@ -205,7 +205,7 @@ QtObject {
             "Only where its chip is put": "Solo donde esté su pieza",
 
             // ── BAR & ISLAND · MODULES ──────────────────────────────────────
-            "How a chip reads": "Cómo se ven los módulos",
+            "Chips": "Piezas",
             "Every piece on the bar follows these unless it was given its own.":
                 "Todas las piezas de la barra siguen esto salvo que se les haya dado uno propio.",
             "Like the bar": "Como la barra",
@@ -228,7 +228,7 @@ QtObject {
             "No figure beside it": "Sin cifra al lado",
             "The figure opens under the pointer": "La cifra se abre bajo el cursor",
             "The figure always beside it": "La cifra siempre al lado",
-            "What the bar carries": "Qué lleva la barra",
+            "Layout": "Disposición",
             "Drag a piece from the catalogue onto the bar.":
                 "Arrastra una pieza del catálogo a la barra.",
             "Drop a piece on either half of the bar to place it on that side of the island; drag it along to move it or off the bar to remove it, and click it to give it its own shape and figure. Adjacent modules share a capsule, and a split starts a new one.":
@@ -265,27 +265,24 @@ QtObject {
             "The time alone": "Solo la hora",
             "Show seconds": "Mostrar segundos",
 
-            "Where the weather is measured": "Dónde se mide el tiempo",
             "Left empty, wttr.in guesses from your connection's IP address, which can be far off. A city, postcode or airport code is more reliable, and the bar uses the same place.":
                 "Si lo dejas vacío, wttr.in lo deduce de la IP de tu conexión, y puede fallar bastante. Una ciudad, un código postal o un código de aeropuerto es más fiable, y la barra usa el mismo lugar.",
             "Location": "Ubicación",
             "A city, a postcode or an airport code.":
                 "Una ciudad, un código postal o un código de aeropuerto.",
             "Wherever the request comes from": "De donde venga la petición",
-            "No such place — the last reading is still showing.":
-                "No existe ese lugar — se sigue mostrando la última lectura.",
+            "No such place — the last reading is still showing":
+                "No existe ese lugar — se sigue mostrando la última lectura",
 
-            "Whose contributions": "De quién son las contribuciones",
             "The graph is read from the public profile page, so no token or account is needed. It stays empty until you enter a username.":
                 "El gráfico se lee de la página pública del perfil, así que no hace falta token ni cuenta. Queda vacío hasta que escribes un usuario.",
-            "GitHub username": "Usuario de GitHub",
+            "Username": "Usuario",
             "Whose public contribution graph to draw.":
                 "De quién se dibuja el gráfico público de contribuciones.",
             "Nobody yet": "Nadie todavía",
-            "No such profile — the last grid is still showing.":
-                "No existe ese perfil — se sigue mostrando la última cuadrícula.",
+            "No such profile — the last grid is still showing":
+                "No existe ese perfil — se sigue mostrando la última cuadrícula",
 
-            "How a note is written": "Cómo se escribe una nota",
             "A note on the wallpaper is written the same way as one in the panel.":
                 "Una nota en el fondo se escribe igual que una del panel.",
             "Handwriting": "A mano",
@@ -316,7 +313,7 @@ QtObject {
             "Arrange widgets": "Colocar widgets",
             "on the wallpaper": "en el fondo",
             "Nothing on the wallpaper yet": "Nada en el fondo todavía",
-            "How they look": "Cómo se ven",
+            "Look": "Aspecto",
             "Every widget follows these unless it was given a look of its own.":
                 "Todos los widgets siguen esto salvo que se les haya dado un aspecto propio.",
             "While arranging, click a widget to override these for it alone. Modern shows a figure with a caption and Analogue draws an object such as a dial or a gauge; the style and background set what sits behind it.":
@@ -398,7 +395,7 @@ QtObject {
             "Background sets how opaque the capsule behind the icons is; lower it to let the blurred wallpaper through.":
                 "Fondo fija la opacidad de la cápsula tras los iconos; bájalo para que se vea el fondo desenfocado.",
             "Icon size": "Tamaño de icono",
-            "How it behaves": "Cómo se comporta",
+            "Behaviour": "Comportamiento",
             "What else the dock shows, and how windows treat it.":
                 "Qué más muestra el dock, y cómo lo tratan las ventanas.",
             "The launcher button opens the island's launcher, and open applications appear after a divider while they run. Reserving keeps windows from tiling under the dock, and has no effect while it hides.":
@@ -410,9 +407,7 @@ QtObject {
             "Windows pass under it": "Las ventanas pasan por debajo",
             "Nothing is reserved while it hides": "No se reserva nada mientras se oculta",
             "Hide until pointed at": "Ocultar hasta apuntarlo",
-            "Hidden until pointed at": "Oculto hasta apuntarlo",
-            "Always on screen": "Siempre a la vista",
-            "What is kept on it": "Lo que se guarda en él",
+            "Kept on it": "Guardadas en él",
             "These stay whether they are running or not, and they lead the launcher's list too.":
                 "Estas se quedan estén o no en marcha, y también van delante en la lista del lanzador.",
             "Their order is set by dragging them on the dock, and right-clicking a dock icon also keeps or removes it. The launcher uses this list too, so it stays editable with the dock off.":
@@ -444,7 +439,6 @@ QtObject {
             "Applications you keep": "Aplicaciones que guardas",
             "Kept on the dock, and they lead this list":
                 "Guardadas en el dock, y van delante en esta lista",
-            "What the first character does": "Qué hace el primer carácter",
             "Plain text searches applications, and a sigil in front switches mode. Click one to change it.":
                 "El texto normal busca aplicaciones, y un prefijo delante cambia de modo. Haz clic en uno para cambiarlo.",
 
@@ -521,13 +515,14 @@ QtObject {
                 "El desenfoque se ve tras todo lo translúcido, como el terminal. El cristal (un plugin de Hyprland, ajustado en look.lua) esmerila y refracta lo que hay detrás de una ventana, y la sombra despega del fondo las ventanas y las cápsulas de la barra.",
             "size": "tamaño",
             "Glass": "Cristal",
-            "Frosted": "Esmerilado",
             "Needs the glass plugin — run ./setup plugins":
                 "Necesita el plugin del cristal — ejecuta ./setup plugins",
             "Shadow": "Sombra",
             "Lifted off the wallpaper": "Despegadas del fondo",
             "Flat": "Planas",
             "Window rules": "Reglas de ventana",
+            "Every rule": "Todas las reglas",
+            "in windowrules.lua": "en windowrules.lua",
             "Read from hypr/modules/windowrules.lua — changing them means editing that file.":
                 "Leídas de hypr/modules/windowrules.lua — cambiarlas es editar ese archivo.",
             "Nothing to show — the file is missing or empty.":
@@ -728,7 +723,6 @@ QtObject {
             "Choose a picture": "Elige una foto",
             "Name": "Nombre",
 
-            "The held screen": "La pantalla bloqueada",
             "Just enough to make the text underneath unreadable.":
                 "Lo justo para que el texto de debajo no se pueda leer.",
             "The preview uses the wallpaper, since the lock screen's own capture is taken when it locks. It applies the same blur with the capsule on top, so you can judge how it reads.":
@@ -794,7 +788,6 @@ QtObject {
             "% in use": "% en uso",
             "since boot": "desde el arranque",
 
-            "Starting over": "Empezar de cero",
             "Only the profile in use. The others are left as they were.":
                 "Solo el perfil en uso. Los demás se quedan como estaban.",
             "Reset returns every setting in this profile to its default, clears the compositor overrides and reloads Hyprland. Machine settings such as screens, name, picture and language are kept, and there is no undo.":

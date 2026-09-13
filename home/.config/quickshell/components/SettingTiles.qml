@@ -12,14 +12,15 @@ import QtQuick.Layouts
 
 import "../theme"
 
-// A setting whose options are shapes: a row of `PreviewTile`s sharing the
-// card width evenly.
-Rectangle {
+// A setting whose options are shapes: the name above, then a row of
+// `PreviewTile`s sharing the card's width evenly. The one row in a group that
+// needs more than a line.
+Item {
     id: root
 
     property string label: ""
 
-    // Current value.
+    // Only when it says more than the chosen tile's caption.
     property string reading: ""
 
     // Same meaning as in `SettingRow`.
@@ -30,60 +31,26 @@ Rectangle {
 
     Layout.fillWidth: true
     implicitHeight: body.implicitHeight + 28
-    radius: Theme.radiusMedium
-    color: Theme.islandSurface
-    border.color: Theme.islandBorder
-    border.width: 1
     opacity: root.locked ? 0.55 : 1
 
     Behavior on opacity { NumberAnimation { duration: Theme.durationFast } }
 
+    SettingDivider {}
+
     ColumnLayout {
         id: body
 
-        anchors.left: parent.left
-        anchors.right: parent.right
-        anchors.top: parent.top
-        anchors.margins: 14
-        spacing: 2
+        x: 14
+        y: 14
+        width: root.width - 28
+        spacing: 0
 
-        RowLayout {
+        SettingLabel {
             Layout.fillWidth: true
-            spacing: 8
-
-            Text {
-                text: root.label
-                font.family: Theme.fontFamily
-                font.pixelSize: Theme.fontSizeSmall
-                font.weight: Font.DemiBold
-                color: Theme.text
-            }
-
-
-            Item { Layout.fillWidth: true }
-        }
-
-        RowLayout {
-            Layout.fillWidth: true
-            visible: root.locked ? root.reason !== "" : root.reading !== ""
-            spacing: 5
-
-            Text {
-                visible: root.locked
-                text: "󰌾"
-                font.family: Theme.fontMono
-                font.pixelSize: 9
-                color: Theme.textMuted
-            }
-
-            Text {
-                Layout.fillWidth: true
-                text: root.locked ? root.reason : root.reading
-                elide: Text.ElideRight
-                font.family: Theme.fontFamily
-                font.pixelSize: Theme.fontSizeLabel
-                color: Theme.textMuted
-            }
+            label: root.label
+            reading: root.reading
+            locked: root.locked
+            reason: root.reason
         }
 
         RowLayout {

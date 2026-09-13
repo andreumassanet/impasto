@@ -476,7 +476,6 @@ Item {
                         Layout.fillWidth: true
                         icon: root.current.icon
                         title: root.current.label
-                        blurb: root.current.blurb
                     }
 
                     TabStrip {
