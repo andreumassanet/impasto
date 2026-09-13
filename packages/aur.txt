@@ -31,7 +31,7 @@ tty-clock                    # the clock alias
 
 # ── THEMED APPLICATIONS ─────────────────────────────────────────────────────
 
-vscodium-bin                 # then ./setup vscodium
+vscodium-bin                 # extensions and settings · ./setup vscodium
 zen-browser-bin
 vesktop-bin
 spotify

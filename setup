@@ -16,6 +16,7 @@ set -euo pipefail
 REPO=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 STATE=${XDG_STATE_HOME:-$HOME/.local/state}/impasto
 BACKUPS=$STATE/backups/$(date +%Y%m%d-%H%M%S)
+APPLIED=$STATE/applied
 THEME_MANAGER=$REPO/home/.config/quickshell/scripts/theme_manager.py
 COMPOSITOR=$REPO/home/.config/quickshell/scripts/compositor.py
 
@@ -33,6 +34,7 @@ SKIP_PACKAGES=0
 SKIP_SYSTEM=0
 SKIP_PLUGINS=0
 SUDO=
+SOFT=
 
 
 # ── OUTPUT ──────────────────────────────────────────────────────────────────
@@ -42,7 +44,9 @@ usage() {
 Usage: ./setup <command> [options]
 
   install     everything, in order: packages, the user folders, oh-my-zsh,
-              home/ into $HOME, system/ into /, the Hyprland plugins
+              home/ into $HOME, system/ into /, the Hyprland plugins, and
+              the extras below once each — one that has to wait is tried
+              again by the next install or update
   update      git pull, then install again with the same options
   uninstall   remove every installed file that has not been edited since,
               and put back what was in the way when it was installed
@@ -468,6 +472,7 @@ verb_install() {
     verb_sync
     if (( ! SKIP_SYSTEM )); then verb_system; fi
     if (( ! SKIP_PLUGINS )); then verb_plugins; fi
+    extras
     section done
     say 'log out and in again, or reload what is running: hyprctl reload'
 }
@@ -553,36 +558,96 @@ verb_uninstall() {
     restore system "$ROOT" '/'
     SUDO=
     if [[ -d $STATE/backups ]]; then act find "$STATE/backups" -depth -type d -empty -delete; fi
+    # So an install after this one sets the extras up again.
+    act rm -rf "$APPLIED"
     if (( KEPT )); then say "not put back, the path is taken: $KEPT, kept in $STATE/backups"; fi
 }
 
 
 # ── EXTRAS ──────────────────────────────────────────────────────────────────
+#
+# What a copied file cannot hold: the cursor, Thunar, VSCodium and Spotify.
+# `install` sets each up once per machine, and one that cannot run yet is
+# skipped with the reason and tried again by the next install or update.
+# After that only its own verb runs it, so a setting changed in one of those
+# programs is kept.
+
+# Run on its own, a verb stops at a refusal; run from install, it says why
+# and the install carries on.
+refuse() {
+    if [[ -z $SOFT ]]; then fail "$*"; fi
+    say "skipped  — $* (./setup $SOFT, or the next update)"
+    return 1
+}
+
+# $1 the verb, $2 its function.
+soft() {
+    SOFT=$1
+    "$2" || true
+    SOFT=
+}
+
+applied() { [[ -f $APPLIED/$1 ]]; }
+stamp()   { if (( ! DRY )); then mkdir -p "$APPLIED"; touch "$APPLIED/$1"; fi; }
+
+# Spotify is patched again whenever an update of the player has put the
+# unpatched xpui.spa back.
+extras() {
+    if [[ ! -d $CURSOR_SEED ]]; then soft cursors verb_cursors; fi
+    applied thunar || soft thunar verb_thunar
+    applied vscodium || soft vscodium verb_vscodium
+    if ! applied spotify || [[ -f /opt/spotify/Apps/xpui.spa ]]; then soft spotify verb_spotify; fi
+}
 
 # Shake-to-find magnifies the pointer, so it has to be a vector cursor. Fetches
 # Bibata's SVGs into the state directory and has compositor.py recolour and
-# compile them. The shell rebuilds it on wallpaper changes after that.
+# compile them into the seed env.lua names. The shell rebuilds it on wallpaper
+# changes after that.
+CURSOR_SEED=$HOME/.local/share/icons/impasto-cursor
+
 verb_cursors() {
     section 'cursor shape'
-    command -v hyprcursor-util >/dev/null || fail 'hyprcursor-util is not installed (package: hyprcursor)'
+    command -v hyprcursor-util >/dev/null \
+        || refuse 'hyprcursor-util is not installed (package: hyprcursor)' || return
     local src=${XDG_STATE_HOME:-$HOME/.local/state}/quickshell/cursor-src
     act rm -rf "$src"
     act mkdir -p "$src"
     act git clone -q --depth=1 https://github.com/javigomezo/bibata-modern-classic-hyprcursor "$src" \
-        || fail 'clone failed'
+        || refuse 'clone failed' || return
     say "fetched Bibata's SVGs into the state directory"
-    act python3 "$COMPOSITOR" cursor palette 24 --seed || fail 'build failed'
+    act python3 "$COMPOSITOR" cursor palette 24 --seed || refuse 'build failed' || return
     say 'built and set impasto-cursor'
 }
 
 # spicetify patches the colours into /opt/spotify, so the generated color.ini
 # does nothing until this runs. Not part of the palette push, which must not
-# restart the player. Also re-applies the theme after a Spotify update.
+# restart the player. Also re-applies the theme after a Spotify update. The
+# first patch selects the theme; after that the choice is spicetify's.
 verb_spotify() {
     section spotify
-    command -v spicetify >/dev/null || fail 'spicetify is not installed'
-    [[ -w /opt/spotify ]] || fail '/opt/spotify is not writable: sudo chmod a+wr -R /opt/spotify'
-    act spicetify apply >/dev/null 2>&1 || act spicetify backup apply || fail 'spicetify failed'
+    local config=${XDG_CONFIG_HOME:-$HOME/.config}
+    command -v spicetify >/dev/null || refuse 'spicetify is not installed' || return
+    [[ -f $config/spotify/prefs ]] \
+        || refuse 'open Spotify once first: spicetify needs the settings it writes' || return
+    [[ -f $config/spicetify/Themes/impasto/color.ini ]] \
+        || refuse 'no palette for Spotify yet: the shell writes one when it next themes the desk' || return
+    if [[ -n $SOFT ]] && pgrep -x spotify >/dev/null; then
+        refuse 'close Spotify first: patching it restarts it' || return
+    fi
+    if [[ ! -w /opt/spotify || ! -w /opt/spotify/Apps ]]; then
+        if (( ! DRY )) && ! ask 'spicetify patches /opt/spotify — make it writable (sudo chmod a+wr)?'; then
+            refuse '/opt/spotify is not writable: sudo chmod a+wr -R /opt/spotify' || return
+        fi
+        act sudo chmod a+wr /opt/spotify && act sudo chmod -R a+wr /opt/spotify/Apps \
+            || refuse 'could not make /opt/spotify writable' || return
+        say 'made /opt/spotify writable'
+    fi
+    if ! applied spotify; then
+        act spicetify config current_theme impasto color_scheme base >/dev/null \
+            || refuse 'spicetify could not select the theme' || return
+    fi
+    act spicetify apply >/dev/null 2>&1 || act spicetify backup apply || refuse 'spicetify failed' || return
+    stamp spotify
     say ok
 }
 
@@ -607,27 +672,35 @@ VSCODIUM_EXTENSIONS=(
 
 verb_vscodium() {
     section vscodium
-    command -v codium >/dev/null || fail 'vscodium is not installed'
-    if pgrep -x codium >/dev/null; then fail 'close VSCodium first: it rewrites settings.json as it exits'; fi
-    local e
+    command -v codium >/dev/null || refuse 'vscodium is not installed' || return
+    if pgrep -x codium >/dev/null; then
+        refuse 'close VSCodium first: it rewrites settings.json as it exits' || return
+    fi
+    local e missed=0
     for e in "${VSCODIUM_EXTENSIONS[@]}"; do
         if act codium --install-extension "$e" --force >/dev/null 2>&1; then
             say "$e"
         else
             say "$e FAILED — not on Open VSX, or no network"
+            missed=1
         fi
     done
-    act python3 "$THEME_MANAGER" apply-vscodium
+    act python3 "$THEME_MANAGER" apply-vscodium || refuse 'settings.json was not merged' || return
     say 'settings merged — the theme lands on the next window'
+    # A missed extension leaves it for the next install to try again.
+    if (( ! missed )); then stamp vscodium; fi
 }
 
 # Colours come from gtk.css; the rest lives in xfconf and uca.xml (custom
 # actions). Thunar must be closed, since it writes its state back on exit.
 verb_thunar() {
     section thunar
-    command -v thunar >/dev/null || fail 'thunar is not installed'
-    if pgrep -x thunar >/dev/null; then fail 'close Thunar first: it writes to the same channel as it exits'; fi
-    act python3 "$THEME_MANAGER" apply-thunar
+    command -v thunar >/dev/null || refuse 'thunar is not installed' || return
+    if pgrep -x thunar >/dev/null; then
+        refuse 'close Thunar first: it writes to the same channel as it exits' || return
+    fi
+    act python3 "$THEME_MANAGER" apply-thunar || refuse 'not every setting was applied' || return
+    stamp thunar
     say 'settings and right-click menu applied'
 }
 
