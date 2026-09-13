@@ -3090,11 +3090,6 @@ def build_vscodium_settings(colors):
         "indentRainbow.lightIndicatorStyleLineWidth": 1,
         "indentRainbow.colors": guides,
         "indentRainbow.errorColor": on("red") + VSCODIUM_GUIDE,
-        "git-graph.graph.colours": [on(key) for key in
-                                    ("accent", "green", "yellow", "blue", "red",
-                                     "accentHover")],
-        # Spell-check English and Spanish.
-        "cSpell.language": "en,es",
     }
 
 

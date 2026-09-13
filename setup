@@ -652,22 +652,13 @@ verb_spotify() {
 }
 
 # The palette push writes the colour theme. settings.json is merged here, with
-# the editor closed, because VSCodium rewrites it. Extensions come from Open
-# VSX; --force makes a re-run upgrade them.
+# the editor closed, because VSCodium rewrites it. Only the extensions the look
+# is made of, from Open VSX; --force makes a re-run upgrade them.
 VSCODIUM_EXTENSIONS=(
     pkief.material-icon-theme
     miguelsolorio.fluent-icons
     usernamehw.errorlens
     oderwat.indent-rainbow
-    naumovs.color-highlight
-    mhutchie.git-graph
-    esbenp.prettier-vscode
-    christian-kohler.path-intellisense
-    streetsidesoftware.code-spell-checker
-    vscjava.vscode-java-pack
-    ms-python.python
-    charliermarsh.ruff
-    Continue.continue
 )
 
 verb_vscodium() {
