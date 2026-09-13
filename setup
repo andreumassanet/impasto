@@ -291,11 +291,22 @@ seed() {
 
 # ── VERBS ───────────────────────────────────────────────────────────────────
 
+# The version this checkout is: a release tag, or the tag and the commits
+# since it (with -dirty when the working tree has edits).
+version() {
+    git -C "$REPO" describe --tags --always --dirty 2>/dev/null || echo unknown
+}
+
 verb_sync() {
     section home
     SUDO=
     deploy home "$HOME" "$STATE/home.manifest" '~/'
     seed
+    # What Settings → System shows: the version, then the branch.
+    if (( ! DRY )); then
+        mkdir -p "$STATE"
+        printf '%s\n%s\n' "$(version)" "$(git -C "$REPO" rev-parse --abbrev-ref HEAD 2>/dev/null)" > "$STATE/version"
+    fi
 }
 
 # Re-syncs home/ on every save.

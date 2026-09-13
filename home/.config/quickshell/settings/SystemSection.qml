@@ -9,6 +9,8 @@
 
 import QtQuick
 import QtQuick.Layouts
+import Quickshell
+import Quickshell.Io
 
 import "../theme"
 import "../services"
@@ -20,6 +22,31 @@ SettingsSection {
     id: root
 
     property string tab: "profiles"
+
+    // What `setup` last copied: the version, then the branch it came from.
+    // Missing when the shell runs straight from a checkout.
+    readonly property FileView versionFile: FileView {
+        path: `${Quickshell.env("XDG_STATE_HOME") || Quickshell.env("HOME") + "/.local/state"}/impasto/version`
+        printErrors: false
+        watchChanges: true
+        onFileChanged: reload()
+    }
+    readonly property var version: (root.versionFile.loaded ? root.versionFile.text() : "").trim().split("\n")
+
+    // `git describe`: a tag alone on a release, tag-commits-ghash between
+    // releases, -dirty with edits. The figure is the release; the rest is
+    // the note, after the branch.
+    readonly property var release: {
+        const found = /^(v[^-]+)(?:-(\d+)-g([0-9a-f]+))?(-dirty)?$/.exec(root.version[0] || "")
+        if (!found)
+            return { name: root.version[0] || "—", note: root.version[1] || "" }
+        const bits = [root.version[1] || ""]
+        if (found[2])
+            bits.push(`+${found[2]} · ${found[3]}`)
+        if (found[4])
+            bits.push(Tr.t("edited"))
+        return { name: found[1], note: bits.filter(bit => bit !== "").join(" · ") }
+    }
 
     function spell(seconds: int): string {
         const days = Math.floor(seconds / 86400)
@@ -158,6 +185,15 @@ SettingsSection {
                         label: Tr.t("UPTIME")
                         value: StatsService.uptime > 0 ? root.spell(StatsService.uptime) : "—"
                         note: Tr.t("since boot")
+                    }
+
+                    // What `setup` last installed, and the branch it came from.
+                    Figure {
+                        Layout.fillWidth: true
+                        Layout.preferredWidth: 1
+                        label: Tr.t("VERSION")
+                        value: root.release.name
+                        note: root.release.note
                     }
                 }
             }

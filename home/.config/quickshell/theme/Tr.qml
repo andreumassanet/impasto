@@ -781,6 +781,8 @@ QtObject {
             "PROCESSOR": "PROCESADOR",
             "MEMORY": "MEMORIA",
             "UPTIME": "ENCENDIDO",
+            "VERSION": "VERSIÓN",
+            "edited": "editado",
             "threads": "hilos",
             "% in use": "% en uso",
             "since boot": "desde el arranque",
