@@ -167,11 +167,11 @@ cd ~/impasto
 
 It installs the packages, oh-my-zsh, everything in `home/` into your home and
 everything in `system/` into `/`, the two Hyprland plugins and the vector
-cursor, and sets up Thunar, VSCodium and Spotify — asking for your password
-through sudo for pacman, for the copy into `/`, and to let spicetify patch
-Spotify. A program that is open, or a Spotify you have never started, is
-skipped with the reason and set up by the next `update`. After that they
-follow the wallpaper on their own; Spotify from its next start.
+cursor. It sets up Thunar, VSCodium, Vesktop and Spotify, asking for your
+password through sudo for pacman, for the copy into `/`, and to let spicetify
+patch Spotify. A program that is open, or a Spotify you have never started, is
+skipped with the reason and set up by the next `update`. After that they follow
+the wallpaper on their own; Spotify from its next start.
 
 | Flag | |
 |---|---|
@@ -248,8 +248,7 @@ gsettings set org.gnome.desktop.interface color-scheme prefer-dark
 gsettings set org.gnome.desktop.interface icon-theme impasto
 ```
 
-Zen needs nothing, Vesktop takes the palette once it is ticked under Vencord's
-themes, and Qt and KDE windows need `qt6ct`.
+Zen needs nothing, and Qt and KDE windows need `qt6ct`.
 
 </details>
 

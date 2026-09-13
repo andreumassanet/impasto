@@ -163,6 +163,10 @@ VESKTOP_DIR = os.path.join(XDG_CONFIG_HOME, "vesktop")
 VESKTOP_THEMES_DIR = os.path.join(VESKTOP_DIR, "themes")
 VESKTOP_THEME_FILE = os.path.join(VESKTOP_THEMES_DIR, "impasto.css")
 
+# Vencord's own settings, where a theme is ticked. Only `./setup vesktop`
+# writes it, once, with Vesktop closed; the push never does.
+VESKTOP_SETTINGS_FILE = os.path.join(VESKTOP_DIR, "settings", "settings.json")
+
 # Discord uses three background levels and the palette has two. The third
 # (server rail, search field) is the ground darkened towards black, as in
 # Discord's own themes.
@@ -2040,6 +2044,49 @@ def build_vesktop_css(colors):
     return "\n".join(lines)
 
 
+def tick_vesktop_theme():
+    """Add the theme to Vencord's enabled themes, keeping everything else.
+
+    Returns success. A settings file that cannot be read is left alone.
+    Written with four-space indentation, as Vencord writes it.
+    """
+    if not shutil.which("vesktop"):
+        sys.stderr.write("vesktop is not installed\n")
+        return False
+    settings = {}
+    if os.path.exists(VESKTOP_SETTINGS_FILE):
+        try:
+            with open(VESKTOP_SETTINGS_FILE, encoding="utf-8") as handle:
+                raw = handle.read()
+            settings = json.loads(raw) if raw.strip() else {}
+        except (OSError, ValueError) as error:
+            sys.stderr.write(f"Cannot read Vencord's settings, so they are "
+                             f"left alone: {error}\n")
+            return False
+        if not isinstance(settings, dict):
+            sys.stderr.write("Vencord's settings are not an object, so they "
+                             "are left alone\n")
+            return False
+
+    themes = settings.get("enabledThemes")
+    if not isinstance(themes, list):
+        themes = []
+    name = os.path.basename(VESKTOP_THEME_FILE)
+    if name in themes:
+        return True
+    settings["enabledThemes"] = themes + [name]
+    temporary = VESKTOP_SETTINGS_FILE + ".impasto"
+    try:
+        os.makedirs(os.path.dirname(VESKTOP_SETTINGS_FILE), exist_ok=True)
+        with open(temporary, "w", encoding="utf-8") as handle:
+            json.dump(settings, handle, indent=4, ensure_ascii=False)
+        os.replace(temporary, VESKTOP_SETTINGS_FILE)
+    except OSError as error:
+        sys.stderr.write(f"Cannot write Vencord's settings: {error}\n")
+        return False
+    return True
+
+
 def write_vesktop_css(colors):
     """Write the theme into Vesktop's themes directory.
 
@@ -3871,7 +3918,7 @@ def main():
     actions = ("list-wallpapers | get-current | get-state | set-wallpaper <path> [transition] | "
                "restore | extract-colors [path] | set-theme <id> | "
                "push-terminal-palette <json> | push-terminal-font <family> | "
-               "apply-vscodium [json] | apply-thunar")
+               "apply-vscodium [json] | apply-thunar | apply-vesktop")
     if len(sys.argv) < 2:
         sys.stderr.write(f"Usage: theme_manager.py {actions}\n")
         sys.exit(1)
@@ -3922,6 +3969,8 @@ def main():
         sys.exit(0 if write_vscodium_settings(colors) else 1)
     elif action == "apply-thunar":
         sys.exit(0 if apply_thunar() else 1)
+    elif action == "apply-vesktop":
+        sys.exit(0 if tick_vesktop_theme() else 1)
     else:
         sys.stderr.write(f"Unknown action: {action}\n")
         sys.exit(1)

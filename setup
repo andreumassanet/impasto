@@ -60,6 +60,7 @@ Usage: ./setup <command> [options]
   spotify     patch Spotify so it takes the palette (needs spicetify)
   vscodium    install the editor's extensions and merge its settings
   thunar      apply the file manager's settings and right-click menu
+  vesktop     tick the palette's theme in Vencord
 
   check       the syntax checks CI runs
   help        this
@@ -566,7 +567,8 @@ verb_uninstall() {
 
 # ── EXTRAS ──────────────────────────────────────────────────────────────────
 #
-# What a copied file cannot hold: the cursor, Thunar, VSCodium and Spotify.
+# What a copied file cannot hold: the cursor, Thunar, VSCodium, Vesktop and
+# Spotify.
 # `install` sets each up once per machine, and one that cannot run yet is
 # skipped with the reason and tried again by the next install or update.
 # After that only its own verb runs it, so a setting changed in one of those
@@ -596,6 +598,7 @@ extras() {
     if [[ ! -d $CURSOR_SEED ]]; then soft cursors verb_cursors; fi
     applied thunar || soft thunar verb_thunar
     applied vscodium || soft vscodium verb_vscodium
+    applied vesktop || soft vesktop verb_vesktop
     if ! applied spotify || [[ -f /opt/spotify/Apps/xpui.spa ]]; then soft spotify verb_spotify; fi
 }
 
@@ -679,6 +682,19 @@ verb_vscodium() {
     say 'settings merged — the theme lands on the next window'
     # A missed extension leaves it for the next install to try again.
     if (( ! missed )); then stamp vscodium; fi
+}
+
+# Vencord loads only a theme ticked in its own settings. The palette push
+# writes the sheet; this ticks it, with Vesktop closed.
+verb_vesktop() {
+    section vesktop
+    command -v vesktop >/dev/null || refuse 'vesktop is not installed' || return
+    if pgrep -x vesktop >/dev/null; then
+        refuse 'close Vesktop first: Vencord rewrites its settings while it runs' || return
+    fi
+    act python3 "$THEME_MANAGER" apply-vesktop || refuse 'the theme was not ticked' || return
+    stamp vesktop
+    say 'theme ticked'
 }
 
 # Colours come from gtk.css; the rest lives in xfconf and uca.xml (custom
@@ -783,6 +799,7 @@ main() {
         spotify)   verb_spotify ;;
         vscodium)  verb_vscodium ;;
         thunar)    verb_thunar ;;
+        vesktop)   verb_vesktop ;;
         check)     verb_check ;;
         help|-h|--help) usage ;;
         *)         fail "unknown command: $verb (./setup help)" ;;
