@@ -17,6 +17,7 @@
 </p>
 
 <p align="center">
+  <a href="https://andreumassanet.github.io/impasto-docs/"><b>Documentation</b></a> ·
   <a href="#the-island">The island</a> ·
   <a href="#the-bar">The bar</a> ·
   <a href="#the-launcher-and-the-dock">The launcher</a> ·
@@ -181,6 +182,10 @@ password through sudo for pacman and for the copy into `/`.
 ./setup uninstall    # remove what it installed, and put back what it moved aside
 ./setup help         # every verb and flag
 ```
+
+`update` follows the branch you cloned: `main` moves only when a version is
+released, and work in progress lives on `dev`. The version installed is under
+Settings → System.
 
 **Nothing is linked: `setup` copies**, and remembers what it wrote. A file of
 yours already in the way is moved to `~/.local/state/impasto/backups/` first; a
