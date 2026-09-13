@@ -62,6 +62,32 @@ PanelWindow {
         onCleared: DesktopService.edit(false)
     }
 
+    // Whether the desk has been drawn on `top` since arranging began. The
+    // backdrop waits for it: shown before, it covers the widgets for as long
+    // as the desk takes to draw the card.
+    property bool raised: false
+    property bool synced: false
+
+    onEditingChanged: {
+        root.raised = false
+        root.synced = false
+    }
+
+    // A frame synchronised after the change carries the new layer; one
+    // already rendering when it happened does not.
+    Connections {
+        target: root.editing && !root.raised ? surface.Window.window : null
+
+        function onAfterSynchronizing(): void {
+            root.synced = true
+        }
+
+        function onFrameSwapped(): void {
+            if (root.synced)
+                root.raised = true
+        }
+    }
+
     // The whole screen, ignoring exclusive zones, so a widget dragged into the
     // bar's area stays on this surface; the compositor sends away a pointer
     // that leaves its surface, and the drag would drop. The board inside is
@@ -264,7 +290,7 @@ PanelWindow {
             width: DesktopService.boardWidth
             height: DesktopService.boardHeight
             color: "transparent"
-            visible: root.editing && backdrop.status === Image.Ready
+            visible: root.editing && root.raised && backdrop.status === Image.Ready
 
             // The whole screen, cropped and centred as the wallpaper daemon
             // draws it, and kept loaded at the screen's own pixels so
