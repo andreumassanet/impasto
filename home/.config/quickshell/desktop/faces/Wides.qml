@@ -611,7 +611,7 @@ Item {
                     anchors.right: parent.right
                     spacing: 16
                     enabled: MediaService.available
-                    opacity: enabled ? 1 : 0.4
+                    opacity: MediaService.available ? 1 : 0.4
 
                     IconButton {
 

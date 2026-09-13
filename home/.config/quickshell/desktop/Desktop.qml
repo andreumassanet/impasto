@@ -11,6 +11,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Hyprland
 import Quickshell.Wayland
+import Quickshell.Widgets
 
 import "../theme"
 import "../services"
@@ -28,7 +29,8 @@ import "../components"
 //
 // It takes the keyboard only while a photo's caption is typed in the
 // inspector, on demand and under a focus grab, as the bar holds it. Arranging
-// ends with Done or a right-click, never with Escape.
+// ends with Done or a right-click, never with Escape. The right-click menu is
+// a surface of its own, so opening it never raises the widgets.
 PanelWindow {
     id: root
 
@@ -45,8 +47,8 @@ PanelWindow {
     // set by default.
     WlrLayershell.namespace: "impasto-desktop"
 
-    // Raised above the windows while arranging, or while a menu is open.
-    WlrLayershell.layer: root.editing || root.menu !== null ? WlrLayer.Top : WlrLayer.Bottom
+    // Raised above the windows while arranging, and only then.
+    WlrLayershell.layer: root.editing ? WlrLayer.Top : WlrLayer.Bottom
 
     // The grab keeps the keyboard here while the pointer is elsewhere, and a
     // click on any other surface clears it; the compositor hands the keyboard
@@ -215,28 +217,134 @@ PanelWindow {
             sourceComponent: Picker { board: surface }
         }
 
-        // ── MENU ────────────────────────────────────────────────────────────
-        //
-        // Right-click menu. On the background: arrange, new note, wallpaper,
-        // palette, settings. On a widget: Edit (opens its inspector), Remove,
-        // and Open for a note.
-        Loader {
-            id: menuLoader
+    }
+
+    // ── BACKDROP ────────────────────────────────────────────────────────────
+    //
+    // While arranging, the wallpaper under the grid: the windows on the
+    // workspace go out of the way and the desk looks as it does empty. A
+    // surface of its own under this one, so the blur rule still has the
+    // wallpaper behind the widgets to blur, as at rest; drawn inside this
+    // surface, the capsules showed it sharp. Mapped from the start and never
+    // unmapped, so it keeps its place in the top layer below the desk, which
+    // joins that layer later. On and off at once, never faded: the blur would
+    // show the windows through a half-drawn wallpaper.
+    PanelWindow {
+        id: backdropWindow
+
+        screen: root.screen
+
+        anchors {
+            top: true
+            left: true
+            right: true
+            bottom: true
+        }
+
+        WlrLayershell.namespace: "impasto-desktop-backdrop"
+        WlrLayershell.layer: WlrLayer.Top
+        WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
+        exclusionMode: ExclusionMode.Ignore
+        exclusiveZone: 0
+        color: "transparent"
+
+        // Takes no input, ever.
+        mask: Region {}
+
+        // The board's part of the screen: the bar and the dock keep their
+        // bands.
+        ClippingRectangle {
+            x: DesktopService.insets.left
+            y: DesktopService.insets.top
+            width: DesktopService.boardWidth
+            height: DesktopService.boardHeight
+            color: "transparent"
+            visible: root.editing && backdrop.status === Image.Ready
+
+            // The whole screen, cropped and centred as the wallpaper daemon
+            // draws it, and kept loaded at the screen's own pixels so
+            // arranging opens on it.
+            Image {
+                id: backdrop
+
+                readonly property real ratio:
+                    backdropWindow.screen ? backdropWindow.screen.devicePixelRatio : 1
+
+                x: -DesktopService.insets.left
+                y: -DesktopService.insets.top
+                width: backdropWindow.width
+                height: backdropWindow.height
+                source: WallpaperService.currentWallpaper !== ""
+                    ? DesktopService.urlOf(WallpaperService.currentWallpaper) : ""
+                sourceSize.width: backdropWindow.width * backdrop.ratio
+                sourceSize.height: backdropWindow.height * backdrop.ratio
+                fillMode: Image.PreserveAspectCrop
+                asynchronous: true
+            }
+        }
+    }
+
+    // ── MENU ────────────────────────────────────────────────────────────────
+    //
+    // Right-click menu. On the background: arrange, new note, wallpaper,
+    // palette, settings. On a widget: Edit (opens its inspector), Remove, and
+    // Open for a note.
+    //
+    // A surface of its own on the top layer, so the desk stays under the
+    // windows while it is open: raising the desk for it drew every widget over
+    // a floating window. It is the whole screen and clear, so a click anywhere
+    // else closes it.
+    LazyLoader {
+        active: root.menu !== null && !root.editing
+
+        PanelWindow {
+            id: menuWindow
 
             readonly property var menu: root.menu
             readonly property var row: menu && menu.key !== "" ? DesktopService.entryOf(menu.key) : null
             readonly property bool onNote: row !== null && row.id === "notes"
 
-            active: root.menu !== null
-            z: 6
-            x: menu ? Math.max(Theme.desktopGutter, Math.min(surface.width - Theme.desktopGutter - width, menu.x)) : 0
-            y: menu ? Math.max(Theme.desktopGutter, Math.min(surface.height - Theme.desktopGutter - height, menu.y)) : 0
+            screen: root.screen
 
-            sourceComponent: PopMenu {
+            anchors {
+                top: true
+                left: true
+                right: true
+                bottom: true
+            }
+
+            WlrLayershell.namespace: "impasto-desktop-menu"
+            WlrLayershell.layer: WlrLayer.Top
+            WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
+            exclusionMode: ExclusionMode.Ignore
+            exclusiveZone: 0
+            color: "transparent"
+
+            mask: Region {
+                width: menuWindow.width
+                height: menuWindow.height
+            }
+
+            TapHandler {
+                acceptedButtons: Qt.LeftButton | Qt.RightButton
+                onTapped: DesktopService.closeMenu()
+            }
+
+            // At the click, in the board's coordinates, kept on the board.
+            PopMenu {
+                x: DesktopService.insets.left + (menuWindow.menu
+                    ? Math.max(Theme.desktopGutter, Math.min(
+                        DesktopService.boardWidth - Theme.desktopGutter - width, menuWindow.menu.x))
+                    : 0)
+                y: DesktopService.insets.top + (menuWindow.menu
+                    ? Math.max(Theme.desktopGutter, Math.min(
+                        DesktopService.boardHeight - Theme.desktopGutter - height, menuWindow.menu.y))
+                    : 0)
+
                 rows: {
-                    if (!menuLoader.menu)
+                    if (!menuWindow.menu)
                         return []
-                    if (menuLoader.menu.key === "") {
+                    if (menuWindow.menu.key === "") {
                         return [
                             { id: "arrange", label: Tr.t("Arrange widgets"), icon: "󰆾", warn: false },
                             { id: "note", label: Tr.t("New note"), icon: "󰎞", warn: false },
@@ -246,15 +354,15 @@ PanelWindow {
                         ]
                     }
                     const rows = []
-                    if (menuLoader.onNote)
+                    if (menuWindow.onNote)
                         rows.push({ id: "open", label: Tr.t("Open"), icon: "󰏫", warn: false })
                     rows.push({ id: "edit", label: Tr.t("Edit"), icon: "󰆾", warn: false })
                     rows.push({ id: "remove", label: Tr.t("Remove"), icon: "󰆴", warn: true })
                     return rows
                 }
                 onChosen: id => {
-                    const menu = menuLoader.menu
-                    const row = menuLoader.row
+                    const menu = menuWindow.menu
+                    const row = menuWindow.row
                     DesktopService.closeMenu()
                     switch (id) {
                     case "arrange":

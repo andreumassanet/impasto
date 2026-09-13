@@ -634,7 +634,7 @@ Item {
                     Layout.alignment: Qt.AlignHCenter
                     spacing: 18
                     enabled: MediaService.available
-                    opacity: enabled ? 1 : 0.4
+                    opacity: MediaService.available ? 1 : 0.4
 
                     IconButton {
 

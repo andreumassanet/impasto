@@ -12,6 +12,7 @@ pragma Singleton
 import QtQml
 import QtQuick
 import Quickshell
+import Quickshell.Hyprland
 
 import "../theme"
 
@@ -871,6 +872,30 @@ Singleton {
             root.dragging = ""
             root.selected = ""
             root.landing = null
+        }
+    }
+
+    // Arranging lasts while the screen stays as it was. Another workspace, a
+    // special one shown or a window opening would be drawn under a surface
+    // that covers it and takes its clicks, and a fullscreen window covers the
+    // surface itself.
+    readonly property Connections compositor: Connections {
+        target: Hyprland
+
+        function onRawEvent(event): void {
+            if (!root.editing)
+                return
+            switch (event.name) {
+            case "workspacev2":
+            case "activespecialv2":
+            case "openwindow":
+                root.edit(false)
+                break
+            case "fullscreen":
+                if (event.data === "1")
+                    root.edit(false)
+                break
+            }
         }
     }
 }
