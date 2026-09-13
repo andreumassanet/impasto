@@ -53,7 +53,8 @@ Usage: ./setup <command> [options]
 
   packages    install what packages/pacman.txt and packages/aur.txt list
   sync        copy home/ into $HOME — how a change in the repository lands
-  system      copy system/ into / (asks for a password)
+  system      copy system/ into /, and switch the login screen on where no
+              other display manager is (asks for a password)
   plugins     build and enable the two Hyprland plugins with hyprpm
 
   defaults    what opens which file, and dark GTK with the impasto icons
@@ -359,7 +360,26 @@ verb_system() {
     deploy system "$ROOT" "$STATE/system.manifest" '/'
     # User pictures for the greeter and the lock screen. Never removed.
     act $SUDO install -d -m 755 "$ROOT/var/lib/impasto/faces"
+    display_manager
     SUDO=
+}
+
+# The login screen needs a display manager to run it. sddm is enabled once,
+# and only where none is: one somebody chose keeps the machine. Enabled, not
+# started; the next boot brings it up.
+display_manager() {
+    applied display-manager && return 0
+    command -v sddm >/dev/null || return 0
+    local link=$ROOT/etc/systemd/system/display-manager.service
+    if [[ -e $link || -L $link ]]; then
+        say "kept     $(basename "$(readlink "$link")"), the display manager already enabled"
+    elif act $SUDO systemctl ${ROOT:+--root="$ROOT"} enable sddm.service >/dev/null 2>&1; then
+        say 'enabled  sddm, from the next boot'
+    else
+        say 'skipped  sddm could not be enabled'
+        return 0
+    fi
+    stamp display-manager
 }
 
 # Uses yay or paru if installed; otherwise offers to build one from the AUR.

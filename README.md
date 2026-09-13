@@ -141,7 +141,8 @@ hatched from an egg. Nothing dies, and a week away costs nothing.
 
 **The shell locks the session itself**, over the blurred desk, and the login
 screen is the same lock with the desk taken away: an SDDM theme with the same
-clock, the same face and the same field.
+clock, the same face and the same field. The face is your initials, or a
+picture of yours at `/var/lib/impasto/faces/<username>.face.icon`.
 
 ## Settings
 
@@ -167,7 +168,8 @@ cd ~/impasto
 
 It installs the packages, oh-my-zsh, everything in `home/` into your home and
 everything in `system/` into `/`, the two Hyprland plugins and the vector
-cursor. It sets up Thunar, VSCodium, Vesktop and Spotify, dark GTK
+cursor, and the login screen, switched on unless your machine already uses
+another display manager. It sets up Thunar, VSCodium, Vesktop and Spotify, dark GTK
 applications, and what opens which kind of file — leaving alone any your
 machine already has an answer for. It asks for your password through sudo for
 pacman, for the copy into `/`, and to let spicetify patch Spotify. A program
@@ -231,22 +233,6 @@ rather than failing.
 | 🎧 | Player | [Spotify](https://www.spotify.com) · [spicetify](https://spicetify.app) |
 | 🌐 | Browser | [Zen](https://zen-browser.app) |
 | 🔑 | Login screen | [SDDM](https://github.com/sddm/sddm) |
-
-</details>
-
-<details>
-<summary><b>The login screen</b></summary>
-<br>
-
-`install` copies the SDDM theme into `/usr/share`. Try it before switching to
-it, then set `Current=impasto` under `[Theme]` in `/etc/sddm.conf.d/`:
-
-```bash
-sddm-greeter-qt6 --test-mode --theme system/usr/share/sddm/themes/impasto
-```
-
-The face on the lock and login screens is
-`/var/lib/impasto/faces/<username>.face.icon`, yours to put there.
 
 </details>
 
