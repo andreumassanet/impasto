@@ -457,4 +457,16 @@ ShellRoot {
             return path
         }
     }
+
+    // `./setup sync` calls this once every file has landed. The reload the
+    // shell starts on its own when a file changes can begin before the last
+    // one is written, and then never sees it:
+    //   qs ipc call shell reload
+    IpcHandler {
+        target: "shell"
+
+        function reload(): void {
+            Quickshell.reload(false)
+        }
+    }
 }
