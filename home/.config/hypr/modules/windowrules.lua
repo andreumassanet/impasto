@@ -53,6 +53,18 @@ hl.window_rule({
 })
 
 
+-- · imv, a look at one picture from the desk or from yazi, floats over the
+-- · layout instead of reflowing it.
+hl.window_rule({
+    name  = "imv-float",
+    match = { class = "^(imv)$" },
+
+    float  = true,
+    center = true,
+    size   = "monitor_w*0.7 monitor_h*0.7",
+})
+
+
 -- · satty, opened by the capture surface without --fullscreen
 hl.window_rule({
     name  = "satty-float",
