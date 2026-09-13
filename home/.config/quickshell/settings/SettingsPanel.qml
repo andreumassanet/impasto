@@ -127,6 +127,43 @@ Item {
           page: systemPage }
     ]
 
+    // ── THE GUIDE ───────────────────────────────────────────────────────────
+    //
+    // Where the help button takes each page, or one part of it, on the
+    // documentation site. Keyed "section" or "section/part".
+    readonly property string guideRoot: "https://andreumassanet.github.io/impasto-docs/"
+    readonly property var guides: ({
+        "bar": "shell/bar/",
+        "bar/island": "shell/island/#settings",
+        "bar/modules": "shell/bar/#arranging",
+        "bar/workspaces": "shell/bar/#size-and-workspaces",
+        "bar/notifications": "shell/island/#notifications",
+        "widgets": "shell/desktop/",
+        "widgets/widgets": "shell/desktop/#arranging",
+        "controls": "shell/control-centre/#arranging",
+        "dock": "shell/dock/#settings",
+        "launcher": "shell/launcher/#settings",
+        "launcher/sigils": "shell/launcher/#modes",
+        "launcher/clipboard": "shell/launcher/#the-clipboard",
+        "appearance": "shell/settings/#the-pages",
+        "appearance/theme": "theming/palettes/",
+        "monitors": "shell/displays/",
+        "monitors/arrangement": "shell/displays/#arrangement",
+        "monitors/screen": "shell/displays/#the-screen",
+        "monitors/lid": "shell/displays/#the-lid",
+        "monitors/night": "shell/displays/#night-light",
+        "input": "shell/settings/#the-pages",
+        "keys": "shell/keys-and-packages/#changing-a-key",
+        "session": "shell/lock-and-login/",
+        "session/lock": "shell/lock-and-login/#the-lock-screen",
+        "session/idle": "shell/lock-and-login/#when-you-leave-it-alone",
+        "system": "shell/settings/#profiles",
+        "system/machine": "shell/settings/#language"
+    })
+
+    readonly property string guide: root.guideRoot
+        + (root.guides[`${root.section}/${root.tab}`] ?? root.guides[root.section] ?? "")
+
     // ── NAVIGATION ──────────────────────────────────────────────────────────
     //
     // A history rather than a single id, so a page that links to another can
@@ -446,6 +483,13 @@ Item {
                 }
 
                 Item { Layout.fillWidth: true }
+
+                // This page, or this part of it, on the documentation site.
+                IconButton {
+                    icon: "󰋗"
+                    iconSize: 13
+                    onClicked: Qt.openUrlExternally(root.guide)
+                }
 
                 IconButton {
                     icon: "󰅖"
