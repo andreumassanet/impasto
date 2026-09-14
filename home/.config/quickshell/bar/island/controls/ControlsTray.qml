@@ -15,7 +15,7 @@ import "../../../components"
 
 // The card of blocks, on the bar's surface while the grid is being arranged,
 // so a block can be dragged from it onto the island within one window. It
-// starts under the island and moves by its head.
+// starts under the island.
 //
 // Every block at the smallest size it offers, which is the size it is added
 // at, packed in the grid's own cells; it grows on the grid.

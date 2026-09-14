@@ -87,8 +87,8 @@ pins come first in the launcher. Right-click an icon for its windows by name.
 </p>
 
 **Any module can live on the wallpaper**, on a grid, in four shapes: a square,
-a card, a large square and a band. Right-click the wallpaper to arrange — a tray
-of every module slides up, a corner is pulled for another shape, and a click
+a card, a large square and a band. Right-click the wallpaper to arrange — a card
+holds every module, a corner is pulled for another shape, and a click
 opens that widget's own look — for a photo widget, the picture of your own it
 holds.
 

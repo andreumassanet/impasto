@@ -429,7 +429,7 @@ PanelWindow {
 
     // The control centre's tray card while its grid is being arranged. On this
     // surface so blocks can be dragged from it onto the island; it fills the
-    // surface, starts under the island and moves by its head.
+    // surface and starts under the island.
     Item {
         id: overlay
 

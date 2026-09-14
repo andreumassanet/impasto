@@ -23,9 +23,9 @@ import "../components"
 // ── ARRANGING ───────────────────────────────────────────────────────────────
 //
 // Arranging raises the surface to the top layer and takes the whole screen for
-// input, so widgets can be moved even with windows open. A tray along the
-// bottom holds every module; drag a widget to move it, pull its corner to
-// resize it, click it for its inspector.
+// input, so widgets can be moved even with windows open. A card holds every
+// module; drag a widget to move it, pull its corner to resize it, click it
+// for its inspector.
 //
 // Arranging holds the keyboard, on demand and under a focus grab as the bar
 // holds it, and ends with Escape, a right-click or a click on any other
