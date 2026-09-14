@@ -15,11 +15,16 @@ import "../components"
 
 // Capture options: the shape, the kind, and where the result goes (or, for a
 // recording, whether it includes audio). Drawn in the island's black at the
-// bottom of the screen.
+// bottom of the screen, as glyphs, each named on hover.
 Rectangle {
     id: root
 
-    implicitWidth: row.implicitWidth + 28
+    // Each group sits flat on the bar, its segments square.
+    readonly property int groupHeight: 40
+    readonly property int glyphSize: 20
+    readonly property int tipGap: (root.height - root.groupHeight) / 2 + 8
+
+    implicitWidth: row.implicitWidth + 12
     implicitHeight: 52
     radius: height / 2
     color: Theme.island
@@ -38,14 +43,19 @@ Rectangle {
         id: row
 
         anchors.centerIn: parent
-        spacing: 12
+        spacing: 8
 
         SegmentedControl {
             anchors.verticalCenter: parent.verticalCenter
+            implicitHeight: root.groupHeight
+            color: "transparent"
+            border.width: 0
+            tipGap: root.tipGap
+            iconSize: root.glyphSize
             options: [
-                { id: "region", label: "Region" },
-                { id: "window", label: "Window" },
-                { id: "screen", label: "Screen" }
+                { id: "region", label: "Region", icon: "󰩭" },
+                { id: "window", label: "Window", icon: "󰣆" },
+                { id: "screen", label: "Screen", icon: "󰍹" }
             ]
             current: CaptureService.shape
             onSelected: id => CaptureService.setShape(id)
@@ -60,9 +70,14 @@ Rectangle {
 
         SegmentedControl {
             anchors.verticalCenter: parent.verticalCenter
+            implicitHeight: root.groupHeight
+            color: "transparent"
+            border.width: 0
+            tipGap: root.tipGap
+            iconSize: root.glyphSize
             options: [
-                { id: "photo", label: "Photo" },
-                { id: "video", label: "Video" }
+                { id: "photo", label: "Photo", icon: "󰄀" },
+                { id: "video", label: "Video", icon: "󰕧" }
             ]
             current: CaptureService.kind
             onSelected: id => CaptureService.setKind(id)
@@ -81,15 +96,20 @@ Rectangle {
         SegmentedControl {
             anchors.verticalCenter: parent.verticalCenter
             visible: CaptureService.kind === "photo"
+            implicitHeight: root.groupHeight
+            color: "transparent"
+            border.width: 0
+            tipGap: root.tipGap
+            iconSize: root.glyphSize
             // Destinations whose tool is missing are hidden rather than
             // disabled.
             options: [
-                { id: "file", label: "Save" },
-                { id: "clipboard", label: "Copy" }
+                { id: "file", label: "Save", icon: "󰆓" },
+                { id: "clipboard", label: "Copy", icon: "󰆏" }
             ].concat(CaptureService.offers("editor")
-                    ? [{ id: "editor", label: "Annotate" }] : [])
+                    ? [{ id: "editor", label: "Annotate", icon: "󰏫" }] : [])
              .concat(CaptureService.offers("text")
-                    ? [{ id: "text", label: "Text" }] : [])
+                    ? [{ id: "text", label: "Read text", icon: "󱄽" }] : [])
             current: CaptureService.to
             onSelected: id => CaptureService.to = id
         }
@@ -99,9 +119,14 @@ Rectangle {
         SegmentedControl {
             anchors.verticalCenter: parent.verticalCenter
             visible: CaptureService.kind === "video" && RecorderService.canAudio
+            implicitHeight: root.groupHeight
+            color: "transparent"
+            border.width: 0
+            tipGap: root.tipGap
+            iconSize: root.glyphSize
             options: [
-                { id: "mute", label: "No sound" },
-                { id: "sound", label: "Sound" }
+                { id: "mute", label: "No sound", icon: "󰖁" },
+                { id: "sound", label: "Sound", icon: "󰕾" }
             ]
             current: SettingsService.recorderAudio ? "sound" : "mute"
             onSelected: id => SettingsService.set("recorderAudio", id === "sound")

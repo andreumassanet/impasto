@@ -194,7 +194,7 @@ Item {
                     spacing: 9
                     visible: !RecorderService.recording
 
-                    // Same three shapes and labels as the capture surface.
+                    // Same three shapes as the capture surface.
                     // Screen starts at once; region and window open the surface
                     // to pick.
                     SegmentedControl {
