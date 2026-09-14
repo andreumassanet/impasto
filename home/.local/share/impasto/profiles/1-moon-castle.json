@@ -54,30 +54,30 @@
       {
         "id": "volume",
         "family": "2x2",
-        "col": 16,
+        "col": 15,
         "row": 0,
-        "key": "volume-16-0"
+        "key": "volume-15-0"
       },
       {
         "id": "brightness",
         "family": "2x2",
-        "col": 16,
+        "col": 15,
         "row": 2,
-        "key": "brightness-16-2"
+        "key": "brightness-15-2"
       },
       {
         "id": "timer",
         "family": "2x2",
-        "col": 16,
+        "col": 15,
         "row": 4,
-        "key": "timer-16-4"
+        "key": "timer-15-4"
       },
       {
         "id": "media",
         "family": "2x2",
-        "col": 16,
+        "col": 15,
         "row": 6,
-        "key": "media-16-6"
+        "key": "media-15-6"
       }
     ],
     "dockEdge": "bottom",

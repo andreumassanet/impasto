@@ -45,16 +45,16 @@
       {
         "id": "calendar",
         "family": "4x4",
-        "col": 12,
+        "col": 13,
         "row": 0,
-        "key": "calendar-12-0"
+        "key": "calendar-13-0"
       },
       {
         "id": "battery",
         "family": "2x2",
-        "col": 16,
-        "row": 0,
-        "key": "battery-16-0"
+        "col": 13,
+        "row": 4,
+        "key": "battery-13-4"
       },
       {
         "id": "media",
@@ -80,9 +80,9 @@
       {
         "id": "volume",
         "family": "2x2",
-        "col": 16,
-        "row": 2,
-        "key": "volume-16-2"
+        "col": 15,
+        "row": 4,
+        "key": "volume-15-4"
       }
     ],
     "centreBlocks": [

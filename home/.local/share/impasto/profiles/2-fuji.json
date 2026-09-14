@@ -36,52 +36,52 @@
       {
         "id": "clock",
         "family": "2x2",
-        "col": 14,
+        "col": 13,
         "row": 0,
-        "key": "clock-14-0",
+        "key": "clock-13-0",
         "theme": "analogue"
       },
       {
         "id": "pet",
         "family": "2x2",
-        "col": 16,
+        "col": 15,
         "row": 0,
-        "key": "pet-16-0"
+        "key": "pet-15-0"
       },
       {
         "id": "calendar",
         "family": "4x2",
-        "col": 14,
+        "col": 13,
         "row": 2,
-        "key": "calendar-14-2"
+        "key": "calendar-13-2"
       },
       {
         "id": "weather",
         "family": "2x2",
-        "col": 14,
+        "col": 13,
         "row": 4,
-        "key": "weather-14-4"
+        "key": "weather-13-4"
       },
       {
         "id": "media",
         "family": "2x2",
-        "col": 16,
+        "col": 15,
         "row": 4,
-        "key": "media-16-4"
+        "key": "media-15-4"
       },
       {
         "id": "stats",
         "family": "4x2",
-        "col": 14,
+        "col": 13,
         "row": 6,
-        "key": "stats-14-6"
+        "key": "stats-13-6"
       },
       {
         "id": "github",
         "family": "4x2",
-        "col": 14,
+        "col": 13,
         "row": 8,
-        "key": "github-14-8"
+        "key": "github-13-8"
       }
     ],
     "dockEdge": "bottom",
