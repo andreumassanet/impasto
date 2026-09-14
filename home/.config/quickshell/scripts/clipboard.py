@@ -26,7 +26,8 @@ stdin and the same arguments. `store` prints nothing, since the watcher's
 stdout is never read; the shell watches the store file instead.
 
 Payloads are separate files under `clipboard/`. The JSON holds only metadata
-and a preview, because the shell re-reads it on every copy.
+and a preview, because the shell re-reads it on every copy, and it is replaced
+whole each time, so the shell never reads half of it.
 """
 
 import fcntl
@@ -130,33 +131,36 @@ def preview_of(body):
     return " ".join(text.split())[:PREVIEW]
 
 
-def load(handle):
-    handle.seek(0)
+def load():
     try:
-        kept = json.load(handle)
-    except (json.JSONDecodeError, ValueError):
+        with open(store_path(), encoding="utf-8") as handle:
+            kept = json.load(handle)
+    except (OSError, ValueError):
         return []
     entries = kept.get("entries") if isinstance(kept, dict) else None
     return entries if isinstance(entries, list) else []
 
 
-def save(handle, entries):
-    handle.seek(0)
-    handle.truncate()
-    json.dump({"entries": entries}, handle, ensure_ascii=False)
-    handle.flush()
-    os.fsync(handle.fileno())
+def save(entries):
+    path = store_path()
+    staging = f"{path}.{os.getpid()}.part"
+    with open(staging, "w", encoding="utf-8") as handle:
+        json.dump({"entries": entries}, handle, ensure_ascii=False)
+        handle.flush()
+        os.fsync(handle.fileno())
+    os.replace(staging, path)
 
 
 def opened():
-    """Open the store under an exclusive lock.
+    """Take the store's exclusive lock, held until the handle is closed.
 
     `store`, `forget` and `wipe` run as separate processes and can overlap.
+    The lock is a file of its own, because `save` replaces the store.
     """
     directory = state_directory()
     directory.mkdir(parents=True, exist_ok=True)
     payload_directory().mkdir(parents=True, exist_ok=True)
-    handle = open(store_path(), "a+", encoding="utf-8")
+    handle = open(directory / "clipboard.lock", "a", encoding="utf-8")
     fcntl.flock(handle.fileno(), fcntl.LOCK_EX)
     return handle
 
@@ -200,8 +204,8 @@ def store(keep, keep_images):
 
     digest = hashlib.sha256(body).hexdigest()
 
-    with opened() as handle:
-        entries = load(handle)
+    with opened():
+        entries = load()
 
         # Copied again: move it to the top with a new time. This also covers
         # restore, since wl-copy triggers the watcher with the same content.
@@ -209,7 +213,7 @@ def store(keep, keep_images):
             if entry.get("hash") == digest:
                 entry["copied"] = int(time.time() * 1000)
                 entries.insert(0, entries.pop(index))
-                save(handle, entries)
+                save(entries)
                 return
 
         key = f"clip-{digest[:12]}"
@@ -232,7 +236,7 @@ def store(keep, keep_images):
             "copied": int(time.time() * 1000),
         })
         evict(entries, keep)
-        save(handle, entries)
+        save(entries)
 
 
 def entry_for(entries, key):
@@ -243,8 +247,8 @@ def entry_for(entries, key):
 
 
 def restore(key):
-    with opened() as handle:
-        entry = entry_for(load(handle), key)
+    with opened():
+        entry = entry_for(load(), key)
     if entry is None:
         print(json.dumps({"restored": False}))
         return
@@ -266,24 +270,24 @@ def restore(key):
 
 
 def forget(key):
-    with opened() as handle:
-        entries = load(handle)
+    with opened():
+        entries = load()
         entry = entry_for(entries, key)
         if entry is None:
             print(json.dumps({"forgotten": False}))
             return
         entries.remove(entry)
         discard(entry, entries)
-        save(handle, entries)
+        save(entries)
     print(json.dumps({"forgotten": True, "key": key}))
 
 
 def wipe():
-    with opened() as handle:
-        entries = load(handle)
+    with opened():
+        entries = load()
         for entry in entries:
             discard(entry, [])
-        save(handle, [])
+        save([])
     # Clear the live selection too, in case it still holds a secret.
     try:
         subprocess.run(["wl-copy", "--clear"], timeout=5)
