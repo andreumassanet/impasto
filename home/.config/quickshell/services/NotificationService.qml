@@ -24,7 +24,7 @@ Singleton {
     signal arrived(var notification)
 
     // For notifications that do not set their own timeout.
-    readonly property int defaultTimeout: 5000
+    readonly property int defaultTimeout: SettingsService.notificationTimeout
 
     property var current: null
     property var history: []
