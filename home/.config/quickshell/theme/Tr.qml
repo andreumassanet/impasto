@@ -436,9 +436,9 @@ QtObject {
             "As tall as the answer": "Tan alta como la respuesta",
             "Only as tall as it needs": "Solo lo alta que necesite",
             "A fixed box": "Una caja fija",
-            "Applications you keep": "Aplicaciones que guardas",
-            "Kept on the dock, and they lead this list":
-                "Guardadas en el dock, y van delante en esta lista",
+            "Kept applications": "Aplicaciones guardadas",
+            "They lead the list, and the dock keeps them too.":
+                "Van delante en la lista, y el dock también las guarda.",
             "Plain text searches applications, and a sigil in front switches mode. Click one to change it.":
                 "El texto normal busca aplicaciones, y un prefijo delante cambia de modo. Haz clic en uno para cambiarlo.",
 

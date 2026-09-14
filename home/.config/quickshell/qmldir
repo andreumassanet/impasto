@@ -87,7 +87,6 @@ SettingField     1.0 components/SettingField.qml
 GroupHeading     1.0 components/GroupHeading.qml
 TabStrip         1.0 components/TabStrip.qml
 LidPreview       1.0 components/LidPreview.qml
-LinkRow          1.0 components/LinkRow.qml
 MotionPreview    1.0 components/MotionPreview.qml
 IslandMotionPreview 1.0 components/IslandMotionPreview.qml
 StyleSwatch      1.0 components/StyleSwatch.qml

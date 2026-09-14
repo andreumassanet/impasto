@@ -22,9 +22,6 @@ SettingsSection {
     // The visible part; set by `SettingsPanel`.
     property string tab: ""
 
-    // Asks `SettingsPanel` to open another section.
-    signal navigate(string section, string tab)
-
     // Letters, digits and spaces start an application search, so none of them
     // can be a sigil, and neither can one another mode already uses.
     function accepts(mode: string, sigil: string): bool {
@@ -172,12 +169,15 @@ SettingsSection {
             }
         }
 
-        // Kept applications are edited on the dock page.
-        LinkRow {
-            label: Tr.t("Applications you keep")
-            reading: Tr.t("Kept on the dock, and they lead this list")
-            onFollowed: root.navigate("dock", "")
-        }
+    }
+
+    // The dock's kept list, editable here as well because it leads this one.
+    SettingGroup {
+        visible: root.tab === "results"
+        title: Tr.t("Kept applications")
+        note: Tr.t("They lead the list, and the dock keeps them too.")
+
+        KeptApplications {}
     }
 
     // ── SIGILS ──────────────────────────────────────────────────────────────

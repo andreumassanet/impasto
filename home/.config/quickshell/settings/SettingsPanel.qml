@@ -566,8 +566,7 @@ Item {
             root.closed()
         } } }
     Component { id: dockPage;       DockSection {} }
-    Component { id: launcherPage;   LauncherSection {
-        onNavigate: (section, part) => root.go(section, part) } }
+    Component { id: launcherPage;   LauncherSection {} }
     Component { id: appearancePage; AppearanceSection {
         onPanelRequested: name => root.panelRequested(name) } }
     Component { id: inputPage;      InputSection {} }
