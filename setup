@@ -502,7 +502,7 @@ verb_install() {
     if (( ! SKIP_PLUGINS )); then verb_plugins; fi
     extras
     section done
-    say 'log out and in again, or reload what is running: hyprctl reload'
+    say 'log out and in again: the desk starts with the next Hyprland session'
 }
 
 verb_update() {
