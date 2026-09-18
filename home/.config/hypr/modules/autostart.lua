@@ -24,6 +24,14 @@ hl.on("hyprland.start", function()
     hl.exec_cmd('test -d "/var/cache/hyprpm/$USER" && hyprpm reload')
 end)
 
+-- An install run outside the session leaves the plugins to the first one: a
+-- terminal on `./setup plugins`, which asks for the password hyprpm needs.
+local apps = require("modules.programs")
+hl.on("hyprland.start", function()
+    hl.exec_cmd('f="${XDG_STATE_HOME:-$HOME/.local/state}/impasto/plugins-pending"; '
+        .. 'test -f "$f" && ' .. apps.terminal .. ' --hold "$(cat "$f")/setup" plugins')
+end)
+
 -- · polkit agent
 --
 -- Without one, privileged requests (mounting a disk, etc.) fail silently.

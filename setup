@@ -487,7 +487,11 @@ omz() {
 }
 
 # hyprpm builds against the running Hyprland and keeps the .so in root's
-# /var/cache: it needs the session up, a terminal and a password.
+# /var/cache: it needs the session up, a terminal and a password. Run outside
+# the session, this leaves them to the first one: while PLUGINS_PENDING names
+# the checkout, autostart.lua opens a terminal on `./setup plugins`.
+PLUGINS_PENDING=$STATE/plugins-pending
+
 plugin() {
     if ! hyprpm list 2>/dev/null | grep -q "$1"; then
         act hyprpm update
@@ -500,12 +504,15 @@ plugin() {
 verb_plugins() {
     section 'hyprland plugins'
     if ! hyprctl version >/dev/null 2>&1; then
-        say 'needs a running Hyprland: run ./setup plugins from inside the session'
+        if (( ! DRY )); then mkdir -p "$STATE"; printf '%s\n' "$REPO" > "$PLUGINS_PENDING"; fi
+        say 'built by the first Hyprland session: a terminal asks for your password there'
         return 0
     fi
+    say 'building shake to find and glass: hyprpm asks for your password'
     plugin dynamic-cursors https://github.com/virtcode/hypr-dynamic-cursors
     plugin hyprglass https://github.com/hyprnux/hyprglass
     act hyprpm reload
+    act rm -f "$PLUGINS_PENDING"
 }
 
 verb_install() {
@@ -602,7 +609,7 @@ verb_uninstall() {
     SUDO=
     if [[ -d $STATE/backups ]]; then act find "$STATE/backups" -depth -type d -empty -delete; fi
     # So an install after this one sets the extras up again.
-    act rm -rf "$APPLIED"
+    act rm -rf "$APPLIED" "$PLUGINS_PENDING"
     if (( KEPT )); then say "not put back, the path is taken: $KEPT, kept in $STATE/backups"; fi
 }
 

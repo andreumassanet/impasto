@@ -157,8 +157,9 @@ under names: *Moon castle*, *Fuji* and *Night bay* come with it.
 ## Installation
 
 Arch Linux, and Hyprland 0.56 or newer (tested on 0.56.2), configured in Lua.
-Run it from a terminal inside the Hyprland session — the plugins are built
-against the compositor that is running:
+Run it from a terminal, in the Hyprland session or on a console before there
+is one. The two plugins are built against the compositor that is running, so
+from a console the first session opens a terminal that builds them:
 
 ```bash
 git clone https://github.com/andreumassanet/impasto.git ~/impasto
