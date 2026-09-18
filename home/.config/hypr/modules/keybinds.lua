@@ -150,13 +150,14 @@ bind(mainMod .. " + mouse_up",   hl.dsp.focus({ workspace = "e-1" }), { descript
 
 -- ── MEDIA KEYS ──────────────────────────────────────────────────────────────
 
--- · volume and brightness
+-- · volume and brightness; brightness goes through the shell, which knows
+-- · the focused screen and how to dim it
 bind("XF86AudioRaiseVolume",  hl.dsp.exec_cmd("wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 5%+"), { locked = true, repeating = true, description = "Media · Volume up" })
 bind("XF86AudioLowerVolume",  hl.dsp.exec_cmd("wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"),      { locked = true, repeating = true, description = "Media · Volume down" })
 bind("XF86AudioMute",         hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"),     { locked = true, description = "Media · Mute output" })
 bind("XF86AudioMicMute",      hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"),   { locked = true, description = "Media · Mute microphone" })
-bind("XF86MonBrightnessUp",   hl.dsp.exec_cmd("brightnessctl set 5%+ -n"),                       { locked = true, repeating = true, description = "Media · Brightness up" })
-bind("XF86MonBrightnessDown", hl.dsp.exec_cmd("brightnessctl set 5%- -n"),                       { locked = true, repeating = true, description = "Media · Brightness down" })
+bind("XF86MonBrightnessUp",   hl.dsp.global("quickshell:brightnessUp"),                          { locked = true, repeating = true, description = "Media · Brightness up" })
+bind("XF86MonBrightnessDown", hl.dsp.global("quickshell:brightnessDown"),                        { locked = true, repeating = true, description = "Media · Brightness down" })
 
 -- · Acer laptops send XF86Launch6 for the microphone key
 bind("XF86Launch6",           hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"),   { locked = true, description = "Media · Mute microphone (Acer)" })

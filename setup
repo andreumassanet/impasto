@@ -367,7 +367,22 @@ verb_system() {
     # User pictures for the greeter and the lock screen. Never removed.
     act $SUDO install -d -m 755 "$ROOT/var/lib/impasto/faces"
     display_manager
+    i2c_dev
     SUDO=
+}
+
+# ddcutil reaches external monitors through /dev/i2c-*. Its package loads
+# i2c-dev from the next boot and gives the seat's user the devices; this loads
+# it now, so the session that follows the install already has them.
+i2c_dev() {
+    [[ -z $ROOT ]] || return 0
+    command -v ddcutil >/dev/null || return 0
+    [[ -d /sys/module/i2c_dev ]] && return 0
+    if act $SUDO modprobe i2c-dev 2>/dev/null; then
+        say 'loaded   i2c-dev, for the brightness of external monitors'
+    else
+        say 'skipped  i2c-dev could not be loaded; it loads with the next boot'
+    fi
 }
 
 # The login screen needs a display manager to run it. sddm is enabled once,

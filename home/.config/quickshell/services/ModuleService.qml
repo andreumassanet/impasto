@@ -300,13 +300,17 @@ Singleton {
     }
 
     // The catalogue size, except network and Bluetooth, which open the
-    // control centre's lists, and an empty notification list, which is short.
+    // control centre's lists, an empty notification list, which is short,
+    // and brightness, which grows a row for every other screen it can dim.
     function openSize(id: string): var {
         if (id === "network" || id === "bluetooth")
             return { width: 420, height: 500 }
         const item = root.entry(id)
         if (id === "notifications" && NotificationService.history.length === 0)
             return { width: item.width, height: 124 }
+        if (id === "brightness")
+            return { width: item.width,
+                     height: item.height + Math.max(0, BrightnessService.dimmable.length - 1) * 62 }
         return { width: item.width, height: item.height }
     }
 

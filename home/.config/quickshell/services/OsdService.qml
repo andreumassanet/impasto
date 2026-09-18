@@ -60,15 +60,18 @@ Singleton {
         }
     }
 
+    // The screen whose level changed, which is not always the focused one:
+    // the backlight also moves on its own.
+    property var brightnessDisplay: null
+
     readonly property Timer brightnessTimer: Timer {
         interval: root.debounce
         // Skipped while the brightness detail is open.
         onTriggered: {
-            if (ModuleService.openId === "brightness")
+            const display = root.brightnessDisplay
+            if (!display || ModuleService.openId === "brightness")
                 return
-            root.requested(BrightnessService.icon,
-                           `${BrightnessService.percent}%`,
-                           BrightnessService.percent / 100)
+            root.requested(display.icon, `${display.percent}%`, display.percent / 100)
         }
     }
 
@@ -79,10 +82,15 @@ Singleton {
         function onMutedChanged(): void { root.volumeTimer.restart() }
     }
 
+    // Not on the reading: that also changes when the focus moves to another
+    // screen, which is not the user asking to see it.
     readonly property Connections brightness: Connections {
         target: BrightnessService
         enabled: root.armed
-        function onPercentChanged(): void { root.brightnessTimer.restart() }
+        function onAdjusted(display): void {
+            root.brightnessDisplay = display
+            root.brightnessTimer.restart()
+        }
     }
 
     // Not debounced: plugging in cannot repeat fast enough to need it.

@@ -50,7 +50,8 @@ less                         # kitty's scrollback pager, which base does not bri
 
 # ── QUICK CONTROLS ──────────────────────────────────────────────────────────
 
-brightnessctl                # brightness, and the keys for it
+brightnessctl                # the laptop panel's brightness
+ddcutil                      # an external monitor's, over DDC/CI
 networkmanager               # the network tile, and nmcli
 bluez                        # the bluetooth tile
 bluez-utils                  # bluetoothctl, which switches it

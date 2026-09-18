@@ -88,6 +88,8 @@ Item {
     Component {
         id: brightnessBlock
         Item {
+            Component.onCompleted: BrightnessService.refresh()
+
             SliderRow {
                 anchors.centerIn: parent
                 width: parent.width

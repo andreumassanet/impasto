@@ -228,6 +228,20 @@ ShellRoot {
         onPressed: root.island?.toggle("controls")
     }
 
+    // The brightness keys act on the focused screen, which only the shell
+    // knows how to dim. A held key repeats the press.
+    GlobalShortcut {
+        name: "brightnessUp"
+        description: "Raise the focused screen's brightness"
+        onPressed: BrightnessService.step(5)
+    }
+
+    GlobalShortcut {
+        name: "brightnessDown"
+        description: "Lower the focused screen's brightness"
+        onPressed: BrightnessService.step(-5)
+    }
+
     GlobalShortcut {
         name: "overview"
         description: "Open the workspace overview"
