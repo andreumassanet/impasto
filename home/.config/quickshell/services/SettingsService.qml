@@ -370,6 +370,28 @@ Singleton {
         root.adopt({})
     }
 
+    // A new desk types in the machine's layout, the one systemd-localed wrote
+    // for the console and the login screen, rather than in input.lua's `us`.
+    // Read into the first write, so nothing can reload over it.
+    readonly property FileView machineKeyboard: FileView {
+        path: "/etc/X11/xorg.conf.d/00-keyboard.conf"
+        blockLoading: true
+        printErrors: false
+    }
+
+    function machineLayout(): var {
+        const text = root.machineKeyboard.text()
+        const layout = /^\s*Option\s+"XkbLayout"\s+"([^"]+)"/m.exec(text)
+        if (!layout)
+            return ({})
+        const found = { "input:kb_layout": layout[1] }
+        const options = /^\s*Option\s+"XkbOptions"\s+"([^"]*)"/m.exec(text)
+        const switches = options ? options[1].split(",").filter(o => o.startsWith("grp:")) : []
+        if (switches.length > 0)
+            found["input:kb_options"] = switches.join(",")
+        return found
+    }
+
     // ── STORAGE ─────────────────────────────────────────────────────────────
 
     readonly property FileView file: FileView {
@@ -386,6 +408,7 @@ Singleton {
         onLoadFailed: error => {
             if (error === FileViewError.FileNotFound) {
                 root.fresh = true
+                config.keyboard = root.machineLayout()
                 root.arrived = true
                 writeAdapter()
             }
