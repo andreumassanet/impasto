@@ -15,7 +15,7 @@
 
 # ── DESKTOP ─────────────────────────────────────────────────────────────────
 
-hyprland                     # the compositor, hyprctl and hyprpm
+hyprland                     # the compositor and hyprctl
 quickshell                   # the shell: the bar, the island, the lock, notifications
 awww                         # the wallpaper
 imagemagick                  # the palette board
@@ -122,7 +122,8 @@ hyprcursor                   # hyprcursor-util, which ./setup cursors compiles w
 
 # ── HYPRLAND PLUGINS ────────────────────────────────────────────────────────
 
-base-devel                   # hyprpm builds both plugins in ./setup plugins
+hyprpm                       # builds both plugins in ./setup plugins
+base-devel                   # the compiler hyprpm builds with
 cmake
 meson
 cpio
