@@ -492,13 +492,47 @@ omz() {
 # the checkout, autostart.lua opens a terminal on `./setup plugins`.
 PLUGINS_PENDING=$STATE/plugins-pending
 
+# The repositories are the two named below, so hyprpm's "Are you sure?" gets
+# an empty line, which it takes as yes.
 plugin() {
     if ! hyprpm list 2>/dev/null | grep -q "$1"; then
         act hyprpm update
-        act hyprpm add "$2"
+        act hyprpm add "$2" </dev/null
     fi
     act hyprpm enable "$1"
     say "$1 ok"
+}
+
+# hyprpm asks sudo before every step and forgets it after each (`sudo -k`),
+# which is a password per step. For the build, a `sudo` that ignores -k goes
+# first in PATH, the password is asked once, and a refresh every minute
+# outlasts a long compile. Undone, and the timestamp dropped as hyprpm meant,
+# when the build ends or setup exits.
+SUDO_SHIM=
+SUDO_KEEP=
+
+hold_sudo() {
+    SUDO_SHIM=$(mktemp -d)
+    printf '#!/bin/sh\n[ "$1" = -k ] && exit 0\nexec %s "$@"\n' "$(command -v sudo)" > "$SUDO_SHIM/sudo"
+    chmod +x "$SUDO_SHIM/sudo"
+    trap release_sudo EXIT
+    sudo -v
+    while kill -0 $$ && sleep 60; do sudo -n -v || break; done 2>/dev/null &
+    SUDO_KEEP=$!
+    PATH=$SUDO_SHIM:$PATH
+}
+
+release_sudo() {
+    if [[ -n $SUDO_KEEP ]]; then
+        pkill -P "$SUDO_KEEP" 2>/dev/null || true
+        kill "$SUDO_KEEP" 2>/dev/null || true
+    fi
+    if [[ -n $SUDO_SHIM ]]; then
+        PATH=${PATH#"$SUDO_SHIM":}
+        rm -rf "$SUDO_SHIM"
+        sudo -k
+    fi
+    SUDO_SHIM= SUDO_KEEP=
 }
 
 verb_plugins() {
@@ -508,10 +542,12 @@ verb_plugins() {
         say 'built by the first Hyprland session: a terminal asks for your password there'
         return 0
     fi
-    say 'building shake to find and glass: hyprpm asks for your password'
+    say 'building shake to find and glass: your password, once'
+    if (( ! DRY )); then hold_sudo; fi
     plugin dynamic-cursors https://github.com/virtcode/hypr-dynamic-cursors
     plugin hyprglass https://github.com/hyprnux/hyprglass
     act hyprpm reload
+    release_sudo
     act rm -f "$PLUGINS_PENDING"
 }
 
