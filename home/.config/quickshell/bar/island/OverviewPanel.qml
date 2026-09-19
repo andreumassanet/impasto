@@ -34,28 +34,49 @@ ColumnLayout {
     readonly property int rows: Math.ceil(SettingsService.workspaceMax / root.columns)
     readonly property int gap: 10
 
-    // The monitor the cells model. Positions are scaled from its real size
-    // rather than an assumed aspect ratio.
-    readonly property var monitor: HyprlandService.monitors[0] ?? null
-    readonly property real screenWidth: root.monitor && root.monitor.width > 0
-        ? root.monitor.width : 1920
-    readonly property real screenHeight: root.monitor && root.monitor.height > 0
-        ? root.monitor.height : 1200
-    readonly property real screenX: root.monitor ? root.monitor.x : 0
-    readonly property real screenY: root.monitor ? root.monitor.y : 0
+    // The screen this panel is on. It decides the shape of a cell; what a cell
+    // MODELS is the screen its own workspace is on, which is not always this
+    // one (`areaOf`).
+    readonly property string screenName: root.QsWindow.window?.screen?.name ?? ""
+    readonly property var monitor: root.monitorNamed(root.screenName)
+        ?? HyprlandService.monitors[0] ?? null
 
-    // A cell models the area windows can occupy: the screen minus what the bar
-    // reserves, which hyprctl reports per monitor as [left, top, right,
-    // bottom]. Modelling the whole screen would draw the bar's strip as empty
-    // space above every window and make equal gaps look unequal.
-    readonly property var reserved: root.monitor && root.monitor.reserved
-        ? root.monitor.reserved : [0, 0, 0, 0]
-    readonly property real areaX: root.screenX + root.reserved[0]
-    readonly property real areaY: root.screenY + root.reserved[1]
-    readonly property real areaWidth:
-        root.screenWidth - root.reserved[0] - root.reserved[2]
-    readonly property real areaHeight:
-        root.screenHeight - root.reserved[1] - root.reserved[3]
+    function monitorNamed(name: string): var {
+        return name === "" ? null
+            : (HyprlandService.monitors.find(monitor => monitor.name === name) ?? null)
+    }
+
+    // The area windows can occupy on a monitor: its own place in the layout
+    // plus its size, minus what the bar reserves, which hyprctl reports per
+    // monitor as [left, top, right, bottom]. Modelling the whole screen would
+    // draw the bar's strip as empty space above every window and make equal
+    // gaps look unequal.
+    //
+    // A window's position is its real one, in the layout every screen shares,
+    // so a cell modelling the wrong monitor puts every window on it thousands
+    // of pixels outside the cell — which is a workspace that reads as empty.
+    function areaFor(monitor: var): var {
+        const width = monitor && monitor.width > 0 ? monitor.width : 1920
+        const height = monitor && monitor.height > 0 ? monitor.height : 1200
+        const reserved = (monitor && monitor.reserved) ? monitor.reserved : [0, 0, 0, 0]
+        return {
+            x: (monitor ? monitor.x : 0) + reserved[0],
+            y: (monitor ? monitor.y : 0) + reserved[1],
+            width: width - reserved[0] - reserved[2],
+            height: height - reserved[1] - reserved[3]
+        }
+    }
+
+    // The area a workspace's own screen offers. One nobody has made yet is
+    // modelled on this screen, since that is where it would be made.
+    function areaOf(workspaceId: int): var {
+        return root.areaFor(root.monitorNamed(HyprlandService.monitorOf(workspaceId))
+            ?? root.monitor)
+    }
+
+    readonly property var area: root.areaFor(root.monitor)
+    readonly property real areaWidth: root.area.width
+    readonly property real areaHeight: root.area.height
     readonly property real aspect: root.areaHeight / root.areaWidth
 
     // Hyprland knows each window's workspace and the Wayland toplevel has its
@@ -135,9 +156,10 @@ ColumnLayout {
         readonly property real cellHeight:
             (board.cellWidth - 2 * board.inset) * root.aspect + 2 * board.inset
 
-        // One cell's worth of workspace in one cell's worth of pixels.
-        readonly property real factor:
-            (board.cellWidth - 2 * board.inset) / root.areaWidth
+        // The box a cell's model is drawn into. The scale is a cell's own,
+        // since the screens it models need not be the same size.
+        readonly property real modelWidth: board.cellWidth - 2 * board.inset
+        readonly property real modelHeight: board.cellHeight - 2 * board.inset
 
         // False while the grid is still resizing. Every thumbnail's geometry
         // comes from `cellWidth`, which grows from zero while the panel morphs
@@ -177,6 +199,13 @@ ColumnLayout {
                     readonly property bool selected: root.selectedId === cell.workspaceId
                     readonly property var windows: HyprlandService.clientsOn(cell.workspaceId)
                     readonly property bool empty: cell.windows.length === 0
+
+                    // The screen this cell models, and one scale that fits it
+                    // into the cell whichever way it runs out first.
+                    readonly property var area: root.areaOf(cell.workspaceId)
+                    readonly property real factor: Math.min(
+                        board.modelWidth / cell.area.width,
+                        board.modelHeight / cell.area.height)
 
                     // The topmost window at a point on the real screen
                     // (floating above tiled, as drawn). Resolves drops without
@@ -258,11 +287,11 @@ ColumnLayout {
 
                                 // Monitor coordinates, scaled.
                                 x: board.inset
-                                    + (thumb.modelData.at[0] - root.areaX) * board.factor
+                                    + (thumb.modelData.at[0] - cell.area.x) * cell.factor
                                 y: board.inset
-                                    + (thumb.modelData.at[1] - root.areaY) * board.factor
-                                width: Math.max(8, thumb.modelData.size[0] * board.factor)
-                                height: Math.max(8, thumb.modelData.size[1] * board.factor)
+                                    + (thumb.modelData.at[1] - cell.area.y) * cell.factor
+                                width: Math.max(8, thumb.modelData.size[0] * cell.factor)
+                                height: Math.max(8, thumb.modelData.size[1] * cell.factor)
 
                                 // Animate moves (swap, float, resize), but not
                                 // until the grid has settled.
@@ -483,10 +512,10 @@ ColumnLayout {
 
                             // Back to monitor coordinates. The ghost's hot spot
                             // is its centre.
-                            const screenX = root.areaX
-                                + (dropped.x - board.inset) / board.factor
-                            const screenY = root.areaY
-                                + (dropped.y - board.inset) / board.factor
+                            const screenX = cell.area.x
+                                + (dropped.x - board.inset) / cell.factor
+                            const screenY = cell.area.y
+                                + (dropped.y - board.inset) / cell.factor
 
                             // Another workspace: just move it. Tiling decides
                             // the position; a floating window keeps its own.
