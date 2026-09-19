@@ -32,7 +32,9 @@ PanelWindow {
 
     readonly property int collapsedHeight: Theme.barBand
 
-    // The reserve is `BarReserve.qml`'s, as the main bar's is.
+    // The reserve is `BarReserve.qml`'s, as the main bar's is, and the zones
+    // are ignored for the same reason: to stay against the edge.
+    exclusionMode: ExclusionMode.Ignore
     exclusiveZone: 0
     color: "transparent"
 

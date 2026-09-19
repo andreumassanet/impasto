@@ -186,6 +186,9 @@ PanelWindow {
 
     // The reserve is `BarReserve.qml`'s, one strip per screen that outlives
     // every bar, so a window holds still while the island changes screens.
+    // Ignoring zones is what keeps the bar against the edge: a surface that
+    // reserves nothing is pushed below whatever else reserved.
+    exclusionMode: ExclusionMode.Ignore
     exclusiveZone: 0
     color: "transparent"
 
