@@ -245,8 +245,10 @@ knowing first:
 
 - <kbd>SUPER</kbd> <kbd>Return</kbd> a terminal, <kbd>SUPER</kbd> <kbd>Space</kbd>
   the launcher, <kbd>SUPER</kbd> <kbd>Q</kbd> closes the window
-- <kbd>SUPER</kbd> <kbd>1</kbd>…<kbd>0</kbd> a workspace, <kbd>SUPER</kbd>
-  <kbd>TAB</kbd> all of them at once
+- <kbd>SUPER</kbd> <kbd>1</kbd>…<kbd>0</kbd> a workspace, on the screen you are
+  on, <kbd>SUPER</kbd> <kbd>TAB</kbd> all of them at once
+- <kbd>SUPER</kbd> <kbd>ALT</kbd> <kbd>←</kbd> <kbd>→</kbd> the other screen,
+  adding <kbd>SHIFT</kbd> takes the workspace with you
 - <kbd>SUPER</kbd> <kbd>X</kbd> the session menu, <kbd>SUPER</kbd> <kbd>L</kbd>
   locks
 - <kbd>SUPER</kbd> <kbd>H</kbd> every other key, on the island

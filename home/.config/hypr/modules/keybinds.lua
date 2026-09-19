@@ -135,17 +135,32 @@ bind(mainMod .. " + mouse:273", hl.dsp.window.resize(), { mouse = true, descript
 -- ── WORKSPACES ──────────────────────────────────────────────────────────────
 
 -- · SUPER + [1-9,0] switches; adding SHIFT moves the window there
+--
+-- The ten are shared by every screen, and a number brings its workspace to
+-- the screen you are on rather than taking you to the screen it is on:
+-- `on_current_monitor` swaps the two screens' workspaces where it has to.
 for i = 1, 10 do
     local key = i % 10  -- 10 maps to the 0 key
-    bind(mainMod .. " + " .. key,         hl.dsp.focus({ workspace = i }),
+    bind(mainMod .. " + " .. key,         hl.dsp.focus({ workspace = i, on_current_monitor = true }),
          { description = "Workspaces · Go to workspace " .. i })
     bind(mainMod .. " + SHIFT + " .. key, hl.dsp.window.move({ workspace = i }),
          { description = "Workspaces · Move the window to workspace " .. i })
 end
 
--- · scroll wheel to cycle through them
-bind(mainMod .. " + mouse_down", hl.dsp.focus({ workspace = "e+1" }), { description = "Workspaces · Next workspace" })
-bind(mainMod .. " + mouse_up",   hl.dsp.focus({ workspace = "e-1" }), { description = "Workspaces · Previous workspace" })
+-- · scroll wheel to cycle through the ones on this screen
+bind(mainMod .. " + mouse_down", hl.dsp.focus({ workspace = "m+1" }), { description = "Workspaces · Next workspace" })
+bind(mainMod .. " + mouse_up",   hl.dsp.focus({ workspace = "m-1" }), { description = "Workspaces · Previous workspace" })
+
+
+-- ── SCREENS ─────────────────────────────────────────────────────────────────
+
+-- · the keyboard, and the workspace under it, across screens. A window
+-- · crosses with the window keys above: with nothing that way, they hand it
+-- · to the next screen.
+bind(mainMod .. " + ALT + left",          hl.dsp.focus({ monitor = "l" }), { description = "Screens · Focus the screen left" })
+bind(mainMod .. " + ALT + right",         hl.dsp.focus({ monitor = "r" }), { description = "Screens · Focus the screen right" })
+bind(mainMod .. " + ALT + SHIFT + left",  hl.dsp.workspace.move({ monitor = "l" }), { description = "Screens · Move the workspace to the screen left" })
+bind(mainMod .. " + ALT + SHIFT + right", hl.dsp.workspace.move({ monitor = "r" }), { description = "Screens · Move the workspace to the screen right" })
 
 
 -- ── MEDIA KEYS ──────────────────────────────────────────────────────────────
