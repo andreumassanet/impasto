@@ -572,6 +572,13 @@ verb_update() {
     else
         say 'no upstream to pull from — installing what is here'
     fi
+    # A pull that could not put your edits back leaves the conflict in the
+    # tree and still exits 0, and installing that copies the markers onto the
+    # desk. The edits are safe in the stash: resolve, `git stash drop`, and
+    # run update again.
+    if [[ -n $(git -C "$REPO" ls-files --unmerged 2>/dev/null) ]]; then
+        fail 'the pull left conflicts in the repository — your edits are in the stash. Resolve them, then run update again'
+    fi
     if [[ $(version) != "$before" ]]; then say "version  $before → $(version)"; fi
     # The pull may have changed this script, so the install runs from the
     # new copy, with the same options.
