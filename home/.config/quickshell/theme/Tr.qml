@@ -575,6 +575,13 @@ QtObject {
             "Extend": "Extender",
             "Mirror": "Duplicar",
             "The island is on": "La isla está en",
+            "Whichever screen you are typing on":
+                "La pantalla en la que estés escribiendo",
+            "The island is following the keyboard":
+                "La isla está siguiendo al teclado",
+            "The island follows you": "La isla te sigue",
+            "It rides to the screen with the keyboard, once nothing on it is open":
+                "Se va a la pantalla del teclado, en cuanto no haya nada abierto en ella",
             "This arrangement": "Esta disposición",
             "Kept against these screens and no others.":
                 "Guardada para estas pantallas y ninguna otra.",

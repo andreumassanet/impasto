@@ -90,6 +90,7 @@ Singleton {
     readonly property alias compositor: config.compositor
     readonly property alias keyboard: config.keyboard
     readonly property alias displays: config.displays
+    readonly property alias islandFollows: config.islandFollows
     readonly property alias keys: config.keys
     readonly property alias launcherPrefixes: config.launcherPrefixes
     readonly property alias cursorColor: config.cursorColor
@@ -281,7 +282,7 @@ Singleton {
     // the person: kept across switches, left out of exports and untouched by
     // Reset. The recorder and capture entries are last-used state.
     readonly property var machineKeys: [
-        "displays", "lidPolicy",
+        "displays", "islandFollows", "lidPolicy",
         "userName", "userAvatar", "language", "keyboard", "weatherPlace", "githubUser",
         "doNotDisturb", "nightLight", "nightTemperature",
         "recorderAudio", "recorderShape", "captureShape", "captureKind"
@@ -580,6 +581,10 @@ Singleton {
         //
         // Fields are defined by `monitors.py`.
         property var displays: ({})
+
+        // Whether the island rides to the screen the keyboard is on. Off, it
+        // stays on the primary screen. The desktop and the deck never move.
+        property bool islandFollows: false
 
         // ── KEYS ────────────────────────────────────────────────────────
         //

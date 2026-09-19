@@ -69,12 +69,53 @@ ShellRoot {
         return chosen ? [chosen] : []
     }
 
+    // The island is on one screen: the primary, or the screen with the
+    // keyboard where the desk is set to follow it. It moves only while the
+    // island is at rest — moving one that is open is a panel closing itself.
+    property string islandName: MonitorService.effectivePrimaryName
+
+    readonly property string wantedIslandName: {
+        if (!SettingsService.islandFollows)
+            return MonitorService.effectivePrimaryName
+        const focused = HyprlandService.focusedMonitor
+        for (const screen of Quickshell.screens)
+            if (screen.name === focused)
+                return focused
+        return MonitorService.effectivePrimaryName
+    }
+
+    onWantedIslandNameChanged: root.settleIsland()
+
+    function settleIsland(): void {
+        if (root.islandName === root.wantedIslandName || (root.island?.expanded ?? false))
+            return
+        root.islandName = root.wantedIslandName
+    }
+
+    readonly property Connections islandRests: Connections {
+        target: root.island
+
+        function onExpandedChanged(): void {
+            root.settleIsland()
+        }
+    }
+
+    readonly property var islandScreens: {
+        let chosen = null
+        for (const screen of Quickshell.screens)
+            if (screen.name === root.islandName)
+                chosen = screen
+        chosen = chosen ?? MonitorService.primaryScreen
+        return chosen ? [chosen] : []
+    }
+
     // Built rather than filtered: `Quickshell.screens` is a QML list and has
     // no `filter`.
     readonly property var secondaryScreens: {
+        const island = root.islandScreens[0] ?? null
         const rest = []
         for (const screen of Quickshell.screens)
-            if (!MonitorService.isPrimary(screen))
+            if (!island || screen.name !== island.name)
                 rest.push(screen)
         return rest
     }
@@ -84,12 +125,12 @@ ShellRoot {
 
     // ── BARS ────────────────────────────────────────────────────────────────
     //
-    // One island, on the primary screen; every other screen gets a bar
-    // without it. Two islands would draw the same state twice.
+    // One island, on one screen; every other screen gets a bar without it.
+    // Two islands would draw the same state twice.
     Variants {
         id: islandBars
 
-        model: root.primaryScreens
+        model: root.islandScreens
 
         Bar {
             required property var modelData
