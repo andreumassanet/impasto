@@ -47,8 +47,25 @@ QtObject {
 
     // ── TYPE ────────────────────────────────────────────────────────────────
 
-    readonly property string fontFamily: "Inter, Cantarell, SF Pro Text, sans-serif"
-    readonly property string fontMono: "JetBrainsMono Nerd Font, monospace"
+    // Qt matches one family and never a list: a comma-separated stack names
+    // no installed font, and the default sans is drawn instead. Qt is handed
+    // the first family in the stack that exists.
+    readonly property var installedFonts: Qt.fontFamilies()
+
+    function fontOf(stack: string): string {
+        const names = stack.split(",")
+        for (const name of names) {
+            const family = name.trim()
+            if (family !== "" && root.installedFonts.indexOf(family) !== -1)
+                return family
+        }
+        return names[names.length - 1].trim()
+    }
+
+    readonly property string fontFamily:
+        root.fontOf("Inter, Cantarell, SF Pro Text, sans-serif")
+    readonly property string fontMono:
+        root.fontOf("JetBrainsMono Nerd Font, monospace")
 
     readonly property int fontSizeSmall: 11
     readonly property int fontSizeRegular: 13
