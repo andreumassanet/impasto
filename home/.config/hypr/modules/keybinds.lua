@@ -157,10 +157,34 @@ bind(mainMod .. " + mouse_up",   hl.dsp.focus({ workspace = "m-1" }), { descript
 -- · the keyboard, and the workspace under it, across screens. A window
 -- · crosses with the window keys above: with nothing that way, they hand it
 -- · to the next screen.
+
+-- The two screens trade what they are showing, and the keyboard goes with the
+-- workspace. Moving it instead buries the other screen's workspace behind
+-- this one and leaves a new empty one where you were. The direction is
+-- resolved by moving the keyboard first: nothing that way leaves it where it
+-- was and changes nothing.
+local function trade_workspace(direction)
+    return function()
+        local here = hl.get_active_monitor()
+        if not here then
+            return
+        end
+
+        hl.dispatch(hl.dsp.focus({ monitor = direction }))
+
+        local there = hl.get_active_monitor()
+        if not there or there.name == here.name then
+            return
+        end
+
+        hl.dispatch(hl.dsp.workspace.swap_monitors({ monitor1 = here.name, monitor2 = there.name }))
+    end
+end
+
 bind(mainMod .. " + ALT + left",          hl.dsp.focus({ monitor = "l" }), { description = "Screens · Focus the screen left" })
 bind(mainMod .. " + ALT + right",         hl.dsp.focus({ monitor = "r" }), { description = "Screens · Focus the screen right" })
-bind(mainMod .. " + ALT + SHIFT + left",  hl.dsp.workspace.move({ monitor = "l" }), { description = "Screens · Move the workspace to the screen left" })
-bind(mainMod .. " + ALT + SHIFT + right", hl.dsp.workspace.move({ monitor = "r" }), { description = "Screens · Move the workspace to the screen right" })
+bind(mainMod .. " + ALT + SHIFT + left",  trade_workspace("l"), { description = "Screens · Take the workspace to the screen left" })
+bind(mainMod .. " + ALT + SHIFT + right", trade_workspace("r"), { description = "Screens · Take the workspace to the screen right" })
 
 
 -- ── MEDIA KEYS ──────────────────────────────────────────────────────────────
