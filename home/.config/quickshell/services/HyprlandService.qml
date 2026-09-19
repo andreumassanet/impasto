@@ -31,6 +31,11 @@ QtObject {
     property int activeId: 1
     property var occupiedIds: []
 
+    // The screen with the keyboard, by connector name. Quickshell's own
+    // `Hyprland.focusedMonitor` is empty here for the reason its monitor list
+    // is, so it comes from the active workspace and from `focusedmon`.
+    property string focusedMonitor: ""
+
     function isOccupied(workspaceId: int): bool {
         return root.occupiedIds.indexOf(workspaceId) >= 0
     }
@@ -235,6 +240,8 @@ QtObject {
                 const workspace = root.parseJson(text)
                 if (workspace && typeof workspace.id === "number")
                     root.activeId = workspace.id
+                if (typeof workspace?.monitor === "string" && workspace.monitor !== "")
+                    root.focusedMonitor = workspace.monitor
             }
         }
     }
@@ -262,6 +269,11 @@ QtObject {
                 break
             // Focus changes only affect the client list, and only watchers
             // need it; skipping it otherwise saves a process per alt-tab.
+            // `MONITOR,WORKSPACE`, sent whenever the keyboard changes screen.
+            case "focusedmon":
+            case "focusedmonv2":
+                root.focusedMonitor = String(event.data).split(",")[0]
+                break
             case "activewindow":
             case "activewindowv2":
                 if (event.name === "activewindowv2")

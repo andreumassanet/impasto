@@ -12,7 +12,6 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import Quickshell
-import Quickshell.Hyprland
 import Quickshell.Io
 
 // One entry per screen. The laptop panel is the backlight, watched on sysfs
@@ -30,7 +29,7 @@ Singleton {
     readonly property var displays: root.variants.instances
     readonly property var dimmable: root.displays.filter(display => display.available)
     readonly property var current: {
-        const focused = Hyprland.focusedMonitor?.name ?? ""
+        const focused = HyprlandService.focusedMonitor
         return root.dimmable.find(display => display.name === focused)
             ?? root.dimmable[0] ?? null
     }
