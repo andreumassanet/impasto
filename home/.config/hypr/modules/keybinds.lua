@@ -134,6 +134,48 @@ bind(mainMod .. " + mouse:273", hl.dsp.window.resize(), { mouse = true, descript
 
 -- ── WORKSPACES ──────────────────────────────────────────────────────────────
 
+-- The workspace each screen was showing before the one it shows now.
+-- `workspace_back_and_forth` only reaches the plain dispatcher, and the
+-- numbers use `on_current_monitor`; Hyprland's own previous is one for the
+-- whole desk, which on two screens is the wrong one.
+local before  = {}
+local showing = {}
+
+-- Seeded, so the first press of the number already showing has somewhere to
+-- go back to. At the first parse there may be no monitors yet, and the event
+-- below fills it in.
+for _, monitor in ipairs(hl.get_monitors() or {}) do
+    if monitor.active_workspace then
+        showing[monitor.name] = monitor.active_workspace.id
+    end
+end
+
+hl.on("workspace.active", function(workspace)
+    local monitor = workspace and workspace.monitor
+    if not monitor then
+        return
+    end
+    local name = monitor.name
+    if showing[name] ~= nil and showing[name] ~= workspace.id then
+        before[name] = showing[name]
+    end
+    showing[name] = workspace.id
+end)
+
+-- The number of the workspace already here goes back to the one before it.
+local function to_workspace(index)
+    return function()
+        local monitor = hl.get_active_monitor()
+        local active  = hl.get_active_workspace()
+        local back    = monitor and before[monitor.name]
+        local target  = index
+        if active and active.id == index and back and back ~= index then
+            target = back
+        end
+        hl.dispatch(hl.dsp.focus({ workspace = target, on_current_monitor = true }))
+    end
+end
+
 -- · SUPER + [1-9,0] switches; adding SHIFT moves the window there
 --
 -- The ten are shared by every screen, and a number brings its workspace to
@@ -141,7 +183,7 @@ bind(mainMod .. " + mouse:273", hl.dsp.window.resize(), { mouse = true, descript
 -- `on_current_monitor` swaps the two screens' workspaces where it has to.
 for i = 1, 10 do
     local key = i % 10  -- 10 maps to the 0 key
-    bind(mainMod .. " + " .. key,         hl.dsp.focus({ workspace = i, on_current_monitor = true }),
+    bind(mainMod .. " + " .. key,         to_workspace(i),
          { description = "Workspaces · Go to workspace " .. i })
     bind(mainMod .. " + SHIFT + " .. key, hl.dsp.window.move({ workspace = i }),
          { description = "Workspaces · Move the window to workspace " .. i })
