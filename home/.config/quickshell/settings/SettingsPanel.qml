@@ -123,7 +123,7 @@ Item {
           blurb: Tr.t("Profiles, language, this machine and reset."),
           tabs: [{ id: "profiles", label: Tr.t("Profiles") },
                  { id: "machine", label: Tr.t("This machine") }],
-          keywords: "system about version cpu memory uptime reset defaults language spanish english profile profiles switch rename duplicate delete import export backup file json",
+          keywords: "system about version update updates upgrade changelog commits cpu memory uptime reset defaults language spanish english profile profiles switch rename duplicate delete import export backup file json",
           page: systemPage }
     ]
 

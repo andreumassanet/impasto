@@ -791,6 +791,28 @@ QtObject {
             "% in use": "% en uso",
             "since boot": "desde el arranque",
 
+            "This desk itself, not the packages it runs.":
+                "El escritorio en sí, no los paquetes que usa.",
+            "Update pulls the checkout this desk was installed from and runs the installer again in a terminal, so its questions and your password stay visible; the desk reloads when it lands and this window closes with it.":
+                "Actualizar descarga el repositorio del que se instaló este escritorio y vuelve a ejecutar el instalador en una terminal, para que sus preguntas y tu contraseña se vean; el escritorio se recarga al terminar y esta ventana se cierra con él.",
+            "Check for updates": "Buscar actualizaciones",
+            "Check": "Buscar",
+            "Checking…": "Buscando…",
+            "Not checked yet": "Sin comprobar todavía",
+            "The remote did not answer": "El remoto no respondió",
+            "Up to date": "Al día",
+            "checked at": "comprobado a las",
+            "commit waiting": "commit esperando",
+            "commits waiting": "commits esperando",
+            "Update": "Actualizar",
+            "To": "A",
+            "Commits of your own are not on the remote":
+                "Tienes commits que no están en el remoto",
+            "No checkout to update from": "No hay repositorio del que actualizar",
+            "No remote to compare with": "Sin remoto con el que comparar",
+            "WHAT IS WAITING": "LO QUE ESPERA",
+            "more": "más",
+
             "Only the profile in use. The others are left as they were.":
                 "Solo el perfil en uso. Los demás se quedan como estaban.",
             "Reset returns every setting in this profile to its default, clears the compositor overrides and reloads Hyprland. Machine settings such as screens, name, picture and language are kept, and there is no undo.":

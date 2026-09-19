@@ -9,8 +9,6 @@
 
 import QtQuick
 import QtQuick.Layouts
-import Quickshell
-import Quickshell.Io
 
 import "../theme"
 import "../services"
@@ -23,29 +21,60 @@ SettingsSection {
 
     property string tab: "profiles"
 
-    // What `setup` last copied: the version, then the branch it came from.
-    // Missing when the shell runs straight from a checkout.
-    readonly property FileView versionFile: FileView {
-        path: `${Quickshell.env("XDG_STATE_HOME") || Quickshell.env("HOME") + "/.local/state"}/impasto/version`
-        printErrors: false
-        watchChanges: true
-        onFileChanged: reload()
-    }
-    readonly property var version: (root.versionFile.loaded ? root.versionFile.text() : "").trim().split("\n")
-
     // `git describe`: a tag alone on a release, tag-commits-ghash between
-    // releases, -dirty with edits. The figure is the release; the rest is
-    // the note, after the branch.
-    readonly property var release: {
-        const found = /^(v[^-]+)(?:-(\d+)-g([0-9a-f]+))?(-dirty)?$/.exec(root.version[0] || "")
+    // releases, -dirty with edits. The release is the figure; the rest is
+    // its note.
+    function describe(text: string): var {
+        const found = /^(v[^-]+)(?:-(\d+)-g([0-9a-f]+))?(-dirty)?$/.exec(text)
         if (!found)
-            return { name: root.version[0] || "—", note: root.version[1] || "" }
-        const bits = [root.version[1] || ""]
+            return { name: text, note: [] }
+        const bits = []
         if (found[2])
             bits.push(`+${found[2]} · ${found[3]}`)
         if (found[4])
             bits.push(Tr.t("edited"))
-        return { name: found[1], note: bits.filter(bit => bit !== "").join(" · ") }
+        return { name: found[1], note: bits }
+    }
+
+    // What `setup` recorded, with the branch in front of the note.
+    readonly property var release: {
+        const found = root.describe(VersionService.version)
+        return { name: found.name || "—",
+                 note: [VersionService.branch].concat(found.note)
+                     .filter(bit => bit !== "").join(" · ") }
+    }
+
+    // Where the update would leave that figure, written the same way.
+    readonly property string destination: {
+        const found = root.describe(VersionService.target)
+        return [found.name].concat(found.note).filter(bit => bit !== "").join(" · ")
+    }
+
+    // Whether there is a checkout to ask about at all: none recorded, or one
+    // recorded and no longer there.
+    readonly property bool checkout: VersionService.repo !== ""
+        && !(VersionService.answered && !VersionService.available)
+
+    // One line on the checkout: what it is doing, what it found, or nothing
+    // at all when there is nothing to ask.
+    readonly property string waiting: {
+        if (!root.checkout)
+            return ""
+        if (VersionService.answered && VersionService.upstream === "")
+            return Tr.t("No remote to compare with")
+        if (VersionService.checking)
+            return Tr.t("Checking…")
+        if (VersionService.checkedAt <= 0)
+            return Tr.t("Not checked yet")
+        if (VersionService.offline)
+            return Tr.t("The remote did not answer")
+        if (VersionService.behind === 0)
+            return `${Tr.t("Up to date")} · ${Tr.t("checked at")} `
+                + Qt.formatTime(new Date(VersionService.checkedAt),
+                                SettingsService.clockFormat)
+        // What it would become is the Update row's, below it.
+        return `${VersionService.behind} `
+            + Tr.t(VersionService.behind === 1 ? "commit waiting" : "commits waiting")
     }
 
     function spell(seconds: int): string {
@@ -109,6 +138,10 @@ SettingsSection {
         visible: root.tab === "machine"
         spacing: root.spacing
 
+        // The remote is asked when the page opens, and only when the last
+        // answer is old enough to be worth another.
+        onVisibleChanged: if (visible) VersionService.checkStale()
+
         // Strings missing from `Tr.qml` fall back to English.
         SettingGroup {
             title: Tr.t("This window")
@@ -168,6 +201,101 @@ SettingsSection {
                         value: root.release.name
                         note: root.release.note
                     }
+                }
+            }
+        }
+
+        SettingGroup {
+            title: Tr.t("Updates")
+            note: Tr.t("This desk itself, not the packages it runs.")
+            hint: Tr.t("Update pulls the checkout this desk was installed from and runs the installer again in a terminal, so its questions and your password stay visible; the desk reloads when it lands and this window closes with it.")
+
+            SettingRow {
+                label: Tr.t("Check for updates")
+                reading: root.waiting
+                alarm: VersionService.offline
+                locked: !root.checkout
+                reason: Tr.t("No checkout to update from")
+
+                PillButton {
+                    text: VersionService.checking ? Tr.t("Checking…") : Tr.t("Check")
+                    icon: "󰑐"
+                    enabled: !VersionService.checking
+                    implicitWidth: 112
+                    implicitHeight: 30
+                    onClicked: VersionService.check()
+                }
+            }
+
+            // Only when there is something to install: with nothing waiting
+            // the row is an offer to do nothing. Locked when the pull would
+            // refuse, rather than a button that is known to fail.
+            SettingRow {
+                visible: VersionService.behind > 0
+                label: Tr.t("Update")
+                reading: `${Tr.t("To")} ${root.destination}`
+                locked: VersionService.ahead > 0
+                reason: Tr.t("Commits of your own are not on the remote")
+
+                PillButton {
+                    text: Tr.t("Update")
+                    icon: "󰚰"
+                    active: true
+                    implicitWidth: 112
+                    implicitHeight: 30
+                    onClicked: VersionService.update()
+                }
+            }
+
+            // The commits the update would bring, newest first.
+            SettingBlock {
+                visible: VersionService.commits.length > 0
+
+                Text {
+                    text: Tr.t("WHAT IS WAITING")
+                    font.family: Theme.fontFamily
+                    font.pixelSize: Theme.fontSizeLabel
+                    font.weight: Font.DemiBold
+                    font.letterSpacing: 0.6
+                    color: Theme.textMuted
+                }
+
+                Repeater {
+                    model: VersionService.commits
+
+                    RowLayout {
+                        id: entry
+
+                        required property var modelData
+
+                        Layout.fillWidth: true
+                        spacing: 10
+
+                        Text {
+                            text: entry.modelData.hash
+                            font.family: Theme.fontMono
+                            font.pixelSize: Theme.fontSizeSmall
+                            color: Theme.accent
+                        }
+
+                        Text {
+                            Layout.fillWidth: true
+                            text: entry.modelData.subject
+                            elide: Text.ElideRight
+                            font.family: Theme.fontFamily
+                            font.pixelSize: Theme.fontSizeSmall
+                            color: Theme.text
+                        }
+                    }
+                }
+
+                Text {
+                    visible: VersionService.behind > VersionService.commits.length
+                    text: `+${VersionService.behind - VersionService.commits.length} `
+                        + Tr.t("more")
+                    font.family: Theme.fontFamily
+                    font.pixelSize: Theme.fontSizeSmall
+                    color: Theme.textMuted
                 }
             }
         }

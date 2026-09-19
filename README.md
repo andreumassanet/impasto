@@ -195,7 +195,8 @@ own; Spotify from its next start.
 
 `update` follows the branch you cloned: `main` moves only when a version is
 released, and work in progress lives on `dev`. The version installed is under
-Settings → System.
+Settings → System, with what the branch has waiting since it and a button that
+runs `update` in a terminal.
 
 **Nothing is linked: `setup` copies**, and remembers what it wrote. A file of
 yours already in the way is moved to `~/.local/state/impasto/backups/` first; a

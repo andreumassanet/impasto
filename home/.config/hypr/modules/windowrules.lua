@@ -76,10 +76,11 @@ hl.window_rule({
 })
 
 
--- · the terminal the packages panel runs pacman in
+-- · the terminals the shell opens: pacman from the packages panel, and the
+--   installer from Settings
 hl.window_rule({
-    name  = "packages-terminal",
-    match = { class = "^(impasto-packages)$" },
+    name  = "shell-terminal",
+    match = { class = "^(impasto-packages|impasto-update)$" },
 
     float  = true,
     center = true,
