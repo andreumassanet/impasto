@@ -44,17 +44,29 @@ Singleton {
     // Tints are palette tokens, so each species follows the wallpaper. Labels
     // are proper names and are not translated.
     readonly property var species: [
-        { id: "dot",    label: "Dot",    tint: "accent", ears: "round", aspect: 0.88 },
-        { id: "sprout", label: "Sprout", tint: "green",  ears: "leaf",  aspect: 0.94 },
-        { id: "ember",  label: "Ember",  tint: "red",    ears: "tuft",  aspect: 0.85 },
-        { id: "sol",    label: "Sol",    tint: "yellow", ears: "none",  aspect: 0.80 },
-        { id: "drift",  label: "Drift",  tint: "blue",   ears: "droop", aspect: 0.96 }
+        { id: "dot",    label: "Dot",    tint: "accent", ears: "round" },
+        { id: "sprout", label: "Sprout", tint: "green",  ears: "leaf" },
+        { id: "ember",  label: "Ember",  tint: "red",    ears: "tuft" },
+        { id: "sol",    label: "Sol",    tint: "yellow", ears: "none" },
+        { id: "drift",  label: "Drift",  tint: "blue",   ears: "droop" }
     ]
 
     function speciesOf(record: var): var {
         const wanted = record ? record.species : ""
         return root.species.find(kind => kind.id === wanted) ?? root.species[0]
     }
+
+    // ── STYLES ──────────────────────────────────────────────────────────────
+
+    // How a creature is drawn, whichever species it is: one file per style in
+    // `components/pets`, and `SettingsService.petStyle` holds the id. The
+    // species decide colour and silhouette, the style decides the finish.
+    readonly property var styles: [
+        { id: "creature", label: "Creature", note: "A different animal for each species." },
+        { id: "plush",    label: "Plush",    note: "One round body, shaded." },
+        { id: "paper",    label: "Paper",    note: "Flat, cut from two tones." },
+        { id: "pixel",    label: "Pixel",    note: "A sprite, sixteen cells across." }
+    ]
 
     // ── FAMILY ──────────────────────────────────────────────────────────────
 

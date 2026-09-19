@@ -59,6 +59,7 @@ Singleton {
     readonly property alias dockLauncher: config.dockLauncher
     readonly property alias weatherPlace: config.weatherPlace
     readonly property alias githubUser: config.githubUser
+    readonly property alias petStyle: config.petStyle
     readonly property alias launcherResults: config.launcherResults
     readonly property alias launcherOrder: config.launcherOrder
     readonly property alias launcherFits: config.launcherFits
@@ -694,6 +695,10 @@ Singleton {
 
         // GitHub user for the contributions widget; empty draws nothing.
         property string githubUser: ""
+
+        // One of `PetService.styles`: how the pet is drawn, everywhere it is
+        // drawn.
+        property string petStyle: "creature"
 
         // Idle timeouts in minutes, 0 = never; all off by default.
         // `IdleService` runs one monitor per value.

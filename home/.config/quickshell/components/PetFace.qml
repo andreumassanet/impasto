@@ -1,7 +1,7 @@
 // ╭──────────────────────────────────────────────────────────────────────────╮
 // │                                                                          │
 // │   P E T   F A C E                                                        │
-// │   one creature, drawn · egg, coat, ears, mood                            │
+// │   one creature, drawn · the style the setting names                      │
 // │                                                                          │
 // │   github.com/andreumassanet/impasto                                      │
 // │                                                                          │
@@ -11,13 +11,14 @@ import QtQuick
 
 import "../theme"
 import "../services"
+import "./pets"
 
-// One pet, drawn from shapes in its species' palette token. The record and
-// mood are properties rather than read from PetService because the shelf and
-// settings draw the whole family at once.
+// One pet, drawn in one of the four styles. The record and mood are
+// properties rather than read from PetService because the shelf and settings
+// draw the whole family at once.
 //
-// Egg until hatched (speckled in its future colour); ears at level 5, a star
-// at level 15.
+// An egg until it hatches, a star at level fifteen. The blink is timed here,
+// so every style shares one clock and one set of moods.
 Item {
     id: root
 
@@ -26,8 +27,12 @@ Item {
     property real size: 40
     property bool lively: false
 
+    // One of `PetService.styles`. A property rather than a read of the
+    // setting, so the settings tiles can draw all four at once.
+    property string style: SettingsService.petStyle
+
     readonly property bool egg: !(root.record && root.record.hatchedAt > 0)
-    readonly property int level: root.record ? root.record.level : 1
+    readonly property int level: (root.record && root.record.level) ?? 1
     readonly property bool asleep: root.mood === "asleep"
     readonly property var kind: PetService.speciesOf(root.record)
 
@@ -39,6 +44,7 @@ Item {
         blue: Theme.blue
     })[root.kind.tint] ?? Theme.accent
 
+    // 1 open, 0 shut.
     property real blink: 1
 
     implicitWidth: root.size
@@ -56,144 +62,52 @@ Item {
         NumberAnimation { target: root; property: "blink"; to: 1; duration: 110 }
     }
 
-    // ── THE EGG ─────────────────────────────────────────────────────────────
+    readonly property var styles: ({
+        plush: plush,
+        pixel: pixel,
+        paper: paper,
+        creature: creature
+    })
 
-    Rectangle {
-        visible: root.egg
-        anchors.horizontalCenter: parent.horizontalCenter
-        anchors.bottom: parent.bottom
-        width: root.size * 0.72
-        height: root.size * 0.92
-        topLeftRadius: width * 0.52
-        topRightRadius: width * 0.52
-        bottomLeftRadius: width * 0.42
-        bottomRightRadius: width * 0.42
-        color: Theme.indicator
+    Loader {
+        anchors.fill: parent
+        sourceComponent: root.styles[root.style] ?? creature
+    }
 
-        Rectangle {
-            x: parent.width * 0.22
-            y: parent.height * 0.30
-            width: root.size * 0.09
-            height: width
-            radius: width / 2
-            color: root.coat
-        }
+    Component {
+        id: plush
 
-        Rectangle {
-            x: parent.width * 0.58
-            y: parent.height * 0.46
-            width: root.size * 0.07
-            height: width
-            radius: width / 2
-            color: root.coat
-        }
-
-        Rectangle {
-            x: parent.width * 0.34
-            y: parent.height * 0.64
-            width: root.size * 0.08
-            height: width
-            radius: width / 2
-            color: root.coat
+        PetPlush {
+            kind: root.kind; coat: root.coat; size: root.size
+            mood: root.mood; egg: root.egg; blink: root.blink
         }
     }
 
-    // ── EARS ────────────────────────────────────────────────────────────────
+    Component {
+        id: pixel
 
-    // Drawn behind the head, shaped per species (`kind.ears`); Sol has none.
-    readonly property bool eared: !root.egg && root.level >= 5
-
-    Rectangle {
-        visible: root.eared && root.kind.ears === "round"
-        x: root.size * 0.10
-        y: root.size * 0.02
-        width: root.size * 0.24
-        height: root.size * 0.24
-        radius: width / 2
-        color: root.coat
+        PetPixel {
+            kind: root.kind; coat: root.coat; size: root.size
+            mood: root.mood; egg: root.egg; blink: root.blink
+        }
     }
 
-    Rectangle {
-        visible: root.eared && root.kind.ears === "round"
-        x: root.size * 0.66
-        y: root.size * 0.02
-        width: root.size * 0.24
-        height: root.size * 0.24
-        radius: width / 2
-        color: root.coat
+    Component {
+        id: paper
+
+        PetPaper {
+            kind: root.kind; coat: root.coat; size: root.size
+            mood: root.mood; egg: root.egg; blink: root.blink
+        }
     }
 
-    Rectangle {
-        visible: root.eared && root.kind.ears === "leaf"
-        x: root.size * 0.14
-        y: -root.size * 0.02
-        width: root.size * 0.20
-        height: root.size * 0.20
-        rotation: 45
-        radius: root.size * 0.04
-        color: root.coat
-    }
+    Component {
+        id: creature
 
-    Rectangle {
-        visible: root.eared && root.kind.ears === "leaf"
-        x: root.size * 0.66
-        y: -root.size * 0.02
-        width: root.size * 0.20
-        height: root.size * 0.20
-        rotation: 45
-        radius: root.size * 0.04
-        color: root.coat
-    }
-
-    Rectangle {
-        visible: root.eared && root.kind.ears === "tuft"
-        x: root.size * 0.40
-        y: -root.size * 0.02
-        width: root.size * 0.20
-        height: root.size * 0.20
-        radius: width / 2
-        color: root.coat
-    }
-
-    Rectangle {
-        visible: root.eared && root.kind.ears === "tuft"
-        x: root.size * 0.46
-        y: -root.size * 0.11
-        width: root.size * 0.10
-        height: root.size * 0.10
-        radius: width / 2
-        color: root.coat
-    }
-
-    Rectangle {
-        visible: root.eared && root.kind.ears === "droop"
-        x: -root.size * 0.03
-        y: root.size * 0.30
-        width: root.size * 0.15
-        height: root.size * 0.32
-        radius: width / 2
-        color: root.coat
-    }
-
-    Rectangle {
-        visible: root.eared && root.kind.ears === "droop"
-        x: root.size * 0.88
-        y: root.size * 0.30
-        width: root.size * 0.15
-        height: root.size * 0.32
-        radius: width / 2
-        color: root.coat
-    }
-
-    // Head.
-    Rectangle {
-        visible: !root.egg
-        anchors.horizontalCenter: parent.horizontalCenter
-        anchors.bottom: parent.bottom
-        width: root.size
-        height: root.size * root.kind.aspect
-        radius: height * 0.5
-        color: root.coat
+        PetCreature {
+            kind: root.kind; coat: root.coat; size: root.size
+            mood: root.mood; egg: root.egg; blink: root.blink
+        }
     }
 
     // Level-15 star, in a fixed indicator colour.
@@ -205,78 +119,6 @@ Item {
         text: "★"
         font.pixelSize: Math.round(root.size * 0.26)
         color: Theme.indicatorWarn
-    }
-
-    // Eyes. A Scale transform because `scale` is uniform and a blink is
-    // vertical only; Scale is not an Item, so the eyes are referenced by id.
-    readonly property real lid: root.asleep ? 0.18 : root.blink
-
-    Rectangle {
-        id: leftEye
-        visible: !root.egg
-        x: root.size * 0.26
-        y: root.size * 0.42
-        width: root.size * 0.11
-        height: root.size * 0.18
-        radius: width / 2
-        color: Theme.island
-        transform: Scale {
-            origin.y: leftEye.height / 2
-            yScale: root.lid
-        }
-    }
-
-    Rectangle {
-        id: rightEye
-        visible: !root.egg
-        x: root.size * 0.63
-        y: root.size * 0.42
-        width: root.size * 0.11
-        height: root.size * 0.18
-        radius: width / 2
-        color: Theme.island
-        transform: Scale {
-            origin.y: rightEye.height / 2
-            yScale: root.lid
-        }
-    }
-
-    // Mouth, by mood. The smile is flat on top and round below.
-    Rectangle {
-        visible: !root.egg
-        anchors.horizontalCenter: parent.horizontalCenter
-        y: root.size * 0.67
-        width: {
-            switch (root.mood) {
-            case "beaming": return root.size * 0.34
-            case "peckish": return root.size * 0.26
-            case "lonely":  return root.size * 0.12
-            case "asleep":  return root.size * 0.16
-            }
-            return root.size * 0.22
-        }
-        height: {
-            switch (root.mood) {
-            case "beaming": return root.size * 0.15
-            case "peckish": return root.size * 0.05
-            case "lonely":  return root.size * 0.12
-            case "asleep":  return root.size * 0.05
-            }
-            return root.size * 0.07
-        }
-        readonly property bool smiling: root.mood === "beaming"
-        topLeftRadius: smiling ? height * 0.25 : height / 2
-        topRightRadius: smiling ? height * 0.25 : height / 2
-        bottomLeftRadius: height / 2
-        bottomRightRadius: height / 2
-        color: Theme.island
-
-        Behavior on width {
-            NumberAnimation { duration: Theme.durationMedium; easing.type: Theme.easing }
-        }
-        Behavior on height {
-            NumberAnimation { duration: Theme.durationMedium; easing.type: Theme.easing }
-        }
     }
 
     Text {

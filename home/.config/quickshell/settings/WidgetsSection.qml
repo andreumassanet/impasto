@@ -73,6 +73,45 @@ SettingsSection {
             }
         }
 
+        // The tiles draw the pet itself, one in each style, and blink while
+        // the pointer is on them.
+        SettingGroup {
+            title: Tr.t("Pet")
+            note: Tr.t("How the creature is drawn, wherever it is drawn.")
+            hint: Tr.t("The species decides the colour and what the creature is; the style decides how it is drawn. The same drawing is used on the bar, in the pet's panel and on the desktop.")
+
+            SettingTiles {
+                label: Tr.t("Style")
+                reading: Tr.t((PetService.styles.find(
+                    entry => entry.id === SettingsService.petStyle) ?? { note: "" }).note)
+
+                Repeater {
+                    model: PetService.styles
+
+                    PreviewTile {
+                        id: petTile
+
+                        required property var modelData
+
+                        stageHeight: 78
+                        caption: Tr.t(petTile.modelData.label)
+                        selected: SettingsService.petStyle === petTile.modelData.id
+                        onPicked: SettingsService.set("petStyle", petTile.modelData.id)
+
+                        // An egg is an egg in three of the four styles, so
+                        // the tiles draw the creature inside it.
+                        PetFace {
+                            anchors.centerIn: parent
+                            size: 58
+                            style: petTile.modelData.id
+                            record: Object.assign({}, PetService.pet, { hatchedAt: 1 })
+                            lively: petTile.hovered
+                        }
+                    }
+                }
+            }
+        }
+
         SettingGroup {
             title: Tr.t("Notes")
             note: Tr.t("A note on the wallpaper is written the same way as one in the panel.")

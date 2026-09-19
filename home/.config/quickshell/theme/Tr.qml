@@ -294,6 +294,21 @@ QtObject {
             "Gone while a window is open": "Fuera mientras haya una ventana abierta",
             "Over the windows": "Sobre las ventanas",
 
+            "How the creature is drawn, wherever it is drawn.":
+                "Cómo se dibuja la criatura, en todas partes donde se dibuja.",
+            "The species decides the colour and what the creature is; the style decides how it is drawn. The same drawing is used on the bar, in the pet's panel and on the desktop.":
+                "La especie decide el color y qué criatura es; el estilo decide cómo se dibuja. El mismo dibujo se usa en la barra, en el panel de la mascota y en el escritorio.",
+            "Creature": "Criatura",
+            "A different animal for each species.":
+                "Un animal distinto para cada especie.",
+            "Plush": "Peluche",
+            "One round body, shaded.": "Un solo cuerpo redondo, sombreado.",
+            "Paper": "Papel",
+            "Flat, cut from two tones.": "Plano, recortado en dos tonos.",
+            "Pixel": "Píxel",
+            "A sprite, sixteen cells across.":
+                "Un sprite de dieciséis celdas de ancho.",
+
             "Unhatched — care for it and see": "Sin eclosionar — cuídalo y verás",
             "Bring out": "Sacar",
             "Out": "Fuera",

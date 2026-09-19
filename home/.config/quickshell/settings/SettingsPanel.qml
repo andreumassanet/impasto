@@ -57,7 +57,7 @@ Item {
           blurb: Tr.t("What sits on the wallpaper, under the windows."),
           tabs: [{ id: "modules", label: Tr.t("Module settings") },
                  { id: "widgets", label: Tr.t("The widgets") }],
-          keywords: "widgets desktop wallpaper widget place drag size shape capsule bare outline accent style palette ink tray edit arrange clock calendar notes note sticky theme analogue modern opacity weather location place city github contributions username handwriting edges deck",
+          keywords: "widgets desktop wallpaper widget place drag size shape capsule bare outline accent style palette ink tray edit arrange clock calendar notes note sticky theme analogue modern opacity weather location place city github contributions username handwriting edges deck pet creature plush paper pixel egg species style",
           page: widgetsPage },
 
         { id: "controls", category: "shell", icon: "󰕰", label: Tr.t("Control Centre"),
