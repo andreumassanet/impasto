@@ -35,13 +35,29 @@ PanelWindow {
 
     readonly property bool editing: DesktopService.editing
 
+    // One deck surface per screen; each draws its own edges and nobody
+    // else's. A tab can still be dragged onto another screen, which is the
+    // widget's arithmetic (`Widget.qml`).
+    readonly property string screenName: root.screen?.name ?? ""
+
+
+    // The edges take the pointer where they are, so they claim the card the
+    // way the board does (`Desktop.qml`): crossing screens along an edge is
+    // still crossing screens.
+    HoverHandler {
+        id: pointerOn
+    }
+
+    readonly property bool claims: root.editing && pointerOn.hovered
+        && !DesktopService.inHand && DeckService.dragging === ""
+
+    onClaimsChanged: if (root.claims) DesktopService.galleryScreen = root.screenName
+
     // Published for the desktop's focus grab, so a press on a tab while
     // arranging does not end the mode.
-    Component.onCompleted: DeckService.surface = root
-    Component.onDestruction: {
-        if (DeckService.surface === root)
-            DeckService.surface = null
-    }
+    Component.onCompleted: DeckService.publish(root.screenName, root)
+
+    Component.onDestruction: DeckService.publish(root.screenName, null)
 
     // Reset any press in progress when the mode changes; a region left expanded
     // would swallow every click.
@@ -70,15 +86,18 @@ PanelWindow {
 
     // Hidden with no decks, under a fullscreen window, or under any window when
     // decks only show on an empty workspace. Always shown while arranging.
-    visible: (root.editing || !DeckService.away)
-        && (DeckService.count > 0 || DeckService.receiving !== "" || root.editing)
+    visible: (root.editing || !DeckService.awayOn(root.screenName))
+        && (DeckService.decksOn(root.screenName).length > 0
+            || (DeckService.receiving !== "" && DeckService.receivingScreen === root.screenName)
+            || root.editing)
 
     // ── REVEAL ──────────────────────────────────────────────────────────────
     //
     // How far the tabs are out, from 0 (strips) to 1 (tabs). Fully out while
     // arranging.
     readonly property bool out: root.editing || DeckService.revealed
-        || DeckService.peeked !== "" || DeckService.receiving !== ""
+        || DeckService.peeked !== ""
+        || (DeckService.receiving !== "" && DeckService.receivingScreen === root.screenName)
 
     property real reveal: root.out ? 1 : 0
 
@@ -95,7 +114,7 @@ PanelWindow {
 
     // Where a note's tab peeks from, or null for a note on no edge.
     function boxFor(key: string): var {
-        for (const deck of DeckService.decks) {
+        for (const deck of DeckService.decksOn(root.screenName)) {
             const index = deck.notes.findIndex(note => note.key === key)
             if (index >= 0)
                 return DeckService.peekBox(deck.edge, index,
@@ -163,7 +182,7 @@ PanelWindow {
     Instantiator {
         id: strips
 
-        model: DeckService.decks
+        model: DeckService.decksOn(root.screenName)
 
         delegate: Region {
             required property var modelData
@@ -237,7 +256,7 @@ PanelWindow {
         // Repeater given a new array rebuilds every delegate, and the rows are
         // a new array on every write, which would destroy the grip mid-drag.
         Repeater {
-            model: DesktopService.deckKeys
+            model: DesktopService.deckKeysOn(root.screenName)
 
             Item {
                 id: deck
@@ -269,7 +288,8 @@ PanelWindow {
                 readonly property real start: root.startOf(deck.edge, deck.count, deck.along)
                 readonly property bool selected: DesktopService.selected === deck.deckKey
                 readonly property bool receiving: board.dropEdge === deck.edge
-                    || DeckService.receiving === deck.edge
+                    || (DeckService.receiving === deck.edge
+                        && DeckService.receivingScreen === root.screenName)
 
                 anchors.fill: parent
 
@@ -547,7 +567,7 @@ PanelWindow {
         // Edges with no deck yet, lit while something is held against them.
         Repeater {
             model: ["left", "right", "bottom"].filter(
-                edge => !DeckService.decks.some(deck => deck.edge === edge))
+                edge => !DeckService.decksOn(root.screenName).some(deck => deck.edge === edge))
 
             Rectangle {
                 required property string modelData
@@ -557,7 +577,9 @@ PanelWindow {
                 width: modelData === "bottom" ? board.width : 3
                 height: modelData === "bottom" ? 3 : board.height
                 color: Theme.accent
-                opacity: DeckService.receiving === modelData || board.dropEdge === modelData ? 1 : 0
+                opacity: (DeckService.receiving === modelData
+                    && DeckService.receivingScreen === root.screenName)
+                    || board.dropEdge === modelData ? 1 : 0
                 visible: opacity > 0
 
                 Behavior on opacity { NumberAnimation { duration: Theme.durationFast } }
@@ -695,7 +717,7 @@ PanelWindow {
                 if (id === "open")
                     root.openNote(menu.note)
                 else if (id === "edit") {
-                    DesktopService.edit(true)
+                    DesktopService.edit(true, root.screenName)
                     DesktopService.selected = menu.deck
                 }
             }
@@ -703,12 +725,13 @@ PanelWindow {
     }
 
     // While dragging: the edge and position under the pointer, or the grid
-    // cell, lit by the desktop's landing mark.
+    // cell, lit by the desktop's landing mark. All of it on this board: a tab
+    // never leaves the screen it is on.
     function aim(scene: point): void {
         const point = board.mapFromItem(null, scene.x, scene.y)
         ghost.x = point.x - ghost.width / 2
         ghost.y = point.y - ghost.height / 2
-        if (DesktopService.overTray(point.x, point.y)) {
+        if (DesktopService.overTray(root.screenName, point.x, point.y)) {
             board.dropEdge = ""
             board.dropIndex = -1
             DesktopService.landing = null
@@ -716,7 +739,7 @@ PanelWindow {
         }
         const edge = DeckService.edgeAt(point.x, point.y, board.width, board.height)
         if (edge !== "") {
-            const deck = DeckService.decks.find(deck => deck.edge === edge)
+            const deck = DeckService.decksOn(root.screenName).find(deck => deck.edge === edge)
             board.dropEdge = edge
             board.dropIndex = deck
                 ? DeckService.indexAt(edge, point.x, point.y, deck.notes.length,
@@ -727,11 +750,12 @@ PanelWindow {
         }
         board.dropEdge = ""
         board.dropIndex = -1
-        const size = DesktopService.sizeFor("2x2")
-        const spot = DesktopService.nearestFree(
-            DesktopService.cellX(point.x - size.width / 2),
-            DesktopService.cellY(point.y - size.height / 2), "2x2", "")
-        DesktopService.landing = spot ? { col: spot.col, row: spot.row, family: "2x2" } : null
+        const face = DesktopService.sizeFor("2x2", root.screenName)
+        const spot = DesktopService.nearestFree(root.screenName,
+            DesktopService.cellX(root.screenName, point.x - face.width / 2),
+            DesktopService.cellY(root.screenName, point.y - face.height / 2), "2x2", "")
+        DesktopService.landing = spot
+            ? { screen: root.screenName, col: spot.col, row: spot.row, family: "2x2" } : null
     }
 
     // Dropped on an edge, it takes its place there; on the desktop, the nearest
@@ -746,18 +770,18 @@ PanelWindow {
         board.dropEdge = ""
         board.dropIndex = -1
         DesktopService.landing = null
-        if (DesktopService.overTray(point.x, point.y)) {
+        if (DesktopService.overTray(root.screenName, point.x, point.y)) {
             DesktopService.removeNote(key)
             return
         }
         if (edge !== "") {
-            DesktopService.placeNote(key, edge, index)
+            DesktopService.placeNote(key, root.screenName, edge, index)
             return
         }
-        const size = DesktopService.sizeFor("2x2")
-        DesktopService.noteToGrid(key,
-            DesktopService.cellX(point.x - size.width / 2),
-            DesktopService.cellY(point.y - size.height / 2))
+        const face = DesktopService.sizeFor("2x2", root.screenName)
+        DesktopService.noteToGrid(key, root.screenName,
+            DesktopService.cellX(root.screenName, point.x - face.width / 2),
+            DesktopService.cellY(root.screenName, point.y - face.height / 2))
     }
 
     function openNote(key: string): void {

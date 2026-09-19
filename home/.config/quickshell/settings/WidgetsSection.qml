@@ -9,6 +9,7 @@
 
 import QtQuick
 import QtQuick.Layouts
+import Quickshell
 
 import "../theme"
 import "../services"
@@ -123,7 +124,9 @@ SettingsSection {
                     text: Tr.t("Edit")
                     implicitHeight: 30
                     onClicked: {
-                        DesktopService.edit(true)
+                        // The card opens on the screen this window is on.
+                        DesktopService.edit(true, root.QsWindow.window?.screen?.name
+                            || MonitorService.effectivePrimaryName)
                         root.arranging()
                     }
                 }

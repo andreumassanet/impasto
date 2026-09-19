@@ -70,6 +70,12 @@ Singleton {
         return root.monitors.find(monitor => monitor.description === description) ?? null
     }
 
+    // The other way round, for anything that starts from a `ShellScreen`.
+    // Empty when the connector is not plugged in.
+    function descriptionFor(name: string): string {
+        return root.monitors.find(monitor => monitor.name === name)?.description ?? ""
+    }
+
 
     // ── PROFILE KEY ─────────────────────────────────────────────────────────
     //

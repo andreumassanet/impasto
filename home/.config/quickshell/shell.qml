@@ -64,11 +64,6 @@ ShellRoot {
     // whose ShellScreen is destroyed (output unplugged) does not recover when
     // handed a new one; Variants destroys and rebuilds the window with the
     // list, which does.
-    readonly property var primaryScreens: {
-        const chosen = MonitorService.primaryScreen
-        return chosen ? [chosen] : []
-    }
-
     // The island is on one screen: the primary, or the screen with the
     // keyboard where the desk is set to follow it. It moves only while the
     // island is at rest — moving one that is open is a panel closing itself.
@@ -162,10 +157,10 @@ ShellRoot {
         }
     }
 
-    // Widgets under the windows. Primary screen only: a widget is stored by
-    // grid square alone, so a second screen would draw the same widget twice.
+    // Widgets under the windows, on every screen: a row carries the screen it
+    // is on, and every board has a grid of its own.
     Variants {
-        model: root.primaryScreens
+        model: Quickshell.screens
 
         Desktop {
             required property var modelData
@@ -188,9 +183,10 @@ ShellRoot {
         }
     }
 
-    // Notes docked on the screen edge. Primary only, for the desktop's reason.
+    // Notes docked on the screen edges, on every screen, for the desktop's
+    // reason. A deck is a row like a widget and carries its screen too.
     Variants {
-        model: root.primaryScreens
+        model: Quickshell.screens
 
         Deck {
             required property var modelData

@@ -26,6 +26,11 @@ EditTray {
 
     required property Item board
 
+    // The screen this card is on. It is wherever the pointer is: crossing to
+    // another board brings the card there and takes it off this one, which is
+    // `Desktop.qml`'s doing, not this file's.
+    required property string screenName
+
     // The module being dragged out of the card, or empty.
     property string pulling: ""
 
@@ -34,22 +39,30 @@ EditTray {
         const shape = DesktopService.family(root.smallest(entry.id))
         return { id: entry.id, name: entry.name, cols: shape.cols / 2, rows: shape.rows / 2 }
     })
-    unitWidth: DesktopService.sizeFor("2x2").width
-    unitHeight: DesktopService.sizeFor("2x2").height
+    unitWidth: DesktopService.sizeFor("2x2", root.screenName).width
+    unitHeight: DesktopService.sizeFor("2x2", root.screenName).height
     unitGap: Theme.desktopGutter
     startColumns: 5
     startRows: 2
     factor: 0.75
     homeX: (root.width - root.card.width) / 2
     homeY: root.height - root.card.height - Theme.desktopGutter
-    at: DesktopService.galleryAt
-    onMoved: (x, y) => DesktopService.galleryAt = { x: x, y: y }
+    at: DesktopService.galleryAtOn(root.screenName)
+    onMoved: (x, y) => DesktopService.setGalleryAt(root.screenName, x, y)
     size: DesktopService.gallerySize
     onResized: (columns, rows) => DesktopService.gallerySize = { columns: columns, rows: rows }
     receiving: DesktopService.dragging !== "" && DesktopService.landing === null
 
     function smallest(id: string): string {
         return DesktopService.familiesFor(id)[0] ?? "4x2"
+    }
+
+    // Anything held here keeps the card on this screen until it is let go.
+    Binding {
+        target: DesktopService
+        property: "inHand"
+        value: true
+        when: root.holding || root.pulling !== ""
     }
 
     // The card's rect in board coordinates, so a drop can tell whether it
@@ -63,7 +76,12 @@ EditTray {
         })
     }
 
+    // Dragged onto another screen, this card is destroyed and that board
+    // builds one: the box is already that one's, so only a card going away
+    // for good takes it with it.
     Component.onDestruction: {
+        if (DesktopService.editing)
+            return
         DesktopService.trayBox = null
         DesktopService.landing = null
     }
@@ -77,7 +95,7 @@ EditTray {
 
         readonly property string moduleId: tile.modelData.id
         readonly property string familyId: root.smallest(tile.moduleId)
-        readonly property var box: DesktopService.sizeFor(tile.familyId)
+        readonly property var box: DesktopService.sizeFor(tile.familyId, root.screenName)
         readonly property real factor: tile.width / tile.box.width
         readonly property bool pulled: root.pulling === tile.moduleId
 
@@ -118,7 +136,7 @@ EditTray {
         // also fire.
         TapHandler {
             gesturePolicy: TapHandler.ReleaseWithinBounds
-            onTapped: DesktopService.add(tile.moduleId)
+            onTapped: DesktopService.add(tile.moduleId, root.screenName)
         }
 
         DragHandler {
@@ -135,14 +153,15 @@ EditTray {
                 }
                 const spot = DesktopService.landing
                 const edge = DeckService.receiving
+                const onScreen = DeckService.receivingScreen
                 const moduleId = root.pulling
                 root.pulling = ""
                 DesktopService.landing = null
                 DeckService.receiving = ""
                 if (edge !== "" && moduleId === "notes")
-                    DesktopService.addDeck(edge)
+                    DesktopService.addDeck(onScreen, edge)
                 else if (spot)
-                    DesktopService.add(moduleId, spot.col, spot.row)
+                    DesktopService.add(moduleId, spot.screen, spot.col, spot.row)
             }
 
             onCentroidChanged: {
@@ -161,7 +180,9 @@ EditTray {
         const pointer = root.board.mapFromItem(null, scene.x, scene.y)
         ghost.x = pointer.x - ghost.width / 2
         ghost.y = pointer.y - ghost.height / 2
-        if (DesktopService.overTray(pointer.x, pointer.y)) {
+
+        const name = root.screenName
+        if (DesktopService.overTray(name, pointer.x, pointer.y)) {
             DesktopService.landing = null
             DeckService.receiving = ""
             return
@@ -169,22 +190,24 @@ EditTray {
         // A notes piece against an edge is a deck there, not a square.
         const edge = root.pulling === "notes"
             ? DeckService.edgeAt(pointer.x, pointer.y, root.board.width, root.board.height) : ""
+        DeckService.receivingScreen = name
         DeckService.receiving = edge
         if (edge !== "") {
             DesktopService.landing = null
             return
         }
-        const spot = DesktopService.nearestFree(
-            DesktopService.cellX(ghost.x), DesktopService.cellY(ghost.y), ghost.familyId, "")
+        const spot = DesktopService.nearestFree(name,
+            DesktopService.cellX(name, ghost.x),
+            DesktopService.cellY(name, ghost.y), ghost.familyId, "")
         DesktopService.landing = spot
-            ? { col: spot.col, row: spot.row, family: ghost.familyId } : null
+            ? { screen: name, col: spot.col, row: spot.row, family: ghost.familyId } : null
     }
 
     Item {
         id: ghost
 
         readonly property string familyId: root.smallest(root.pulling)
-        readonly property var box: DesktopService.sizeFor(ghost.familyId)
+        readonly property var box: DesktopService.sizeFor(ghost.familyId, root.screenName)
 
         parent: root.board
         z: 10

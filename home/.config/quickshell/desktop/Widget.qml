@@ -31,6 +31,9 @@ Item {
     // shadows an id of the same name.
     required property Item board
 
+    // The screen this board is on, which a drag never leaves.
+    required property string screenName
+
     readonly property string key: root.modelData
 
     // Briefly null between the row's removal and the delegate's destruction.
@@ -42,6 +45,10 @@ Item {
     readonly property var ink: DesktopService.inkFor(root.row)
     readonly property real solidity: DesktopService.opacityOf(root.row) / 100
 
+    // Two of the four styles draw a capsule; the other two draw on the
+    // wallpaper with a shadow.
+    readonly property bool onPicture: root.style === "bare" || root.style === "outline"
+
     readonly property var box: DesktopService.geometry(
         root.row ?? ({}), root.board.width, root.board.height)
 
@@ -49,10 +56,6 @@ Item {
     readonly property bool held: DesktopService.dragging === root.key
     readonly property bool selected: DesktopService.selected === root.key
     readonly property bool hovered: hover.hovered
-
-    // Two of the four styles draw a capsule; the other two draw on the
-    // wallpaper with a shadow.
-    readonly property bool onPicture: root.style === "bare" || root.style === "outline"
 
     width: root.box.width
     height: root.box.height
@@ -176,7 +179,7 @@ Item {
         onTapped: eventPoint => {
             const point = root.board.mapFromItem(null,
                 eventPoint.scenePosition.x, eventPoint.scenePosition.y)
-            DesktopService.openMenu(root.key, point.x, point.y)
+            DesktopService.openMenu(root.key, root.screenName, point.x, point.y)
         }
     }
 
@@ -196,6 +199,10 @@ Item {
 
         enabled: root.editing
         target: root
+
+        // This board and no further. A widget belongs to the screen it was put
+        // on, and the way to move one to another screen is to take it off here
+        // and put it back there, where the card already is.
         xAxis.minimum: 0
         xAxis.maximum: Math.max(0, root.board.width - root.width)
         yAxis.minimum: 0
@@ -216,17 +223,18 @@ Item {
             // original one, and the binding above moves it there.
             const pointer = root.board.mapFromItem(
                 null, drag.centroid.scenePosition.x, drag.centroid.scenePosition.y)
-            if (DesktopService.overTray(pointer.x, pointer.y)) {
+            if (DesktopService.overTray(root.screenName, pointer.x, pointer.y)) {
                 DesktopService.remove(root.key)
                 return
             }
             const edge = root.edgeUnder(pointer.x, pointer.y)
             if (edge !== "") {
-                DesktopService.noteToEdge(root.key, edge)
+                DesktopService.noteToEdge(root.key, root.screenName, edge)
                 return
             }
-            DesktopService.place(root.key,
-                DesktopService.cellX(root.x), DesktopService.cellY(root.y))
+            DesktopService.place(root.key, root.screenName,
+                DesktopService.cellX(root.screenName, root.x),
+                DesktopService.cellY(root.screenName, root.y))
         }
     }
 
@@ -245,7 +253,7 @@ Item {
             return
         const pointer = root.board.mapFromItem(
             null, drag.centroid.scenePosition.x, drag.centroid.scenePosition.y)
-        if (DesktopService.overTray(pointer.x, pointer.y)) {
+        if (DesktopService.overTray(root.screenName, pointer.x, pointer.y)) {
             DesktopService.landing = null
             DeckService.receiving = ""
             return
@@ -253,19 +261,28 @@ Item {
         const edge = root.edgeUnder(pointer.x, pointer.y)
         if (edge !== "") {
             DesktopService.landing = null
+            DeckService.receivingScreen = root.screenName
             DeckService.receiving = edge
             return
         }
         DeckService.receiving = ""
-        const spot = DesktopService.nearestFree(
-            DesktopService.cellX(root.x), DesktopService.cellY(root.y),
-            root.family, root.key)
+        const spot = DesktopService.nearestFree(root.screenName,
+            DesktopService.cellX(root.screenName, root.x),
+            DesktopService.cellY(root.screenName, root.y), root.family, root.key)
         DesktopService.landing = spot
-            ? { col: spot.col, row: spot.row, family: root.family } : null
+            ? { screen: root.screenName, col: spot.col, row: spot.row, family: root.family } : null
     }
 
     onXChanged: root.aim()
     onYChanged: root.aim()
+
+    // Dragged or resized, it keeps the card on this screen until it is let go.
+    Binding {
+        target: DesktopService
+        property: "inHand"
+        value: true
+        when: drag.active || resize.active
+    }
 
     // The wheel cycles through the module's families, as in the control centre.
     // One step per notch with a cooldown: touchpads send an event per pixel.
@@ -413,8 +430,9 @@ Item {
                     return
                 const pointer = root.board.mapFromItem(null,
                     resize.centroid.scenePosition.x, resize.centroid.scenePosition.y)
-                const cols = (pointer.x - root.box.x + Theme.desktopGutter) / DesktopService.stride
-                const rows = (pointer.y - root.box.y + Theme.desktopGutter) / DesktopService.stride
+                const stride = DesktopService.strideOn(root.screenName)
+                const cols = (pointer.x - root.box.x + Theme.desktopGutter) / stride
+                const rows = (pointer.y - root.box.y + Theme.desktopGutter) / stride
                 const next = DesktopService.familyNearest(
                     root.moduleId, cols, rows, DesktopService.themeOf(root.row))
                 if (next !== root.family)

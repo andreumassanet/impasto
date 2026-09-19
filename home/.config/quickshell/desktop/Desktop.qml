@@ -36,6 +36,36 @@ PanelWindow {
 
     readonly property bool editing: DesktopService.editing
 
+    // Every board is one screen's, and nothing on it ever leaves: widgets,
+    // decks and the grid are this screen's alone. The mode is held by the
+    // screen it was entered from, the card is on the screen the pointer is
+    // on, and the inspector and the picker are beside the widget they are
+    // about, whichever screen that is on.
+    readonly property string screenName: root.screen?.name ?? ""
+    readonly property bool hosting: DesktopService.editingScreen === root.screenName
+
+    // The card follows the pointer while arranging: crossing to another board
+    // brings it there and takes it off this one. The desk is on `top` and
+    // covers the screen for as long as the mode lasts, so this is hovered
+    // wherever the pointer goes on it.
+    HoverHandler {
+        id: pointerOn
+    }
+
+    // Nothing in hand: the pointer runs past the seam while something is
+    // being dragged, and the card changing screens under it would take the
+    // drag with it.
+    readonly property bool claims: root.editing && pointerOn.hovered
+        && !DesktopService.inHand && DeckService.dragging === ""
+
+    onClaimsChanged: if (root.claims) DesktopService.galleryScreen = root.screenName
+
+    function about(key: string): bool {
+        return key !== ""
+            && DesktopService.nameOf(DesktopService.entryOf(key)) === root.screenName
+    }
+
+
     anchors {
         top: true
         left: true
@@ -53,14 +83,19 @@ PanelWindow {
     // While arranging. The grab keeps the keyboard here while the pointer is
     // elsewhere, and a click on any surface but this one and the edges' clears
     // it, which ends the mode; the compositor hands the keyboard back.
-    WlrLayershell.keyboardFocus: root.editing
+    WlrLayershell.keyboardFocus: root.editing && root.hosting
         ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
 
     HyprlandFocusGrab {
-        active: root.editing
-        windows: DeckService.surface ? [root, DeckService.surface] : [root]
+        active: root.editing && root.hosting
+        // Defensive: both lists are read while the singletons are still
+        // being built, and one of them is briefly undefined.
+        windows: (DesktopService.windows ?? []).concat(DeckService.windows ?? [])
         onCleared: DesktopService.edit(false)
     }
+
+    Component.onCompleted: DesktopService.publish(root.screenName, root)
+    Component.onDestruction: DesktopService.publish(root.screenName, null)
 
     // Whether the desk has been drawn on `top` since arranging began. The
     // backdrop waits for it: shown before, it covers the widgets for as long
@@ -91,7 +126,7 @@ PanelWindow {
     // The whole screen, ignoring exclusive zones, so a widget dragged into the
     // bar's area stays on this surface; the compositor sends away a pointer
     // that leaves its surface, and the drag would drop. The board inside is
-    // inset by what the bar and the dock reserve (`DesktopService.insets`).
+    // inset by what the bar and the dock keep clear (`DesktopService.insets`).
     exclusionMode: ExclusionMode.Ignore
     exclusiveZone: 0
     color: "transparent"
@@ -126,18 +161,11 @@ PanelWindow {
         anchors.bottomMargin: DesktopService.insets.bottom
 
         // The grid's available area, published because the service works in
-        // cells and placing from the tray needs the same answer.
-        Binding {
-            target: DesktopService
-            property: "boardWidth"
-            value: surface.width
-        }
-
-        Binding {
-            target: DesktopService
-            property: "boardHeight"
-            value: surface.height
-        }
+        // cells and placing from the tray needs the same answer. One entry
+        // per screen: the grid is worked out from the board's own sides.
+        onWidthChanged: DesktopService.setBoard(root.screenName, surface.width, surface.height)
+        onHeightChanged: DesktopService.setBoard(root.screenName, surface.width, surface.height)
+        Component.onCompleted: DesktopService.setBoard(root.screenName, surface.width, surface.height)
 
         // Anywhere on the background: leaves arranging, and a left click
         // dismisses the inspector. Declared first, so widget handlers take
@@ -152,7 +180,7 @@ PanelWindow {
                 }
                 const point = surface.mapFromItem(null,
                     eventPoint.scenePosition.x, eventPoint.scenePosition.y)
-                DesktopService.openMenu("", point.x, point.y)
+                DesktopService.openMenu("", root.screenName, point.x, point.y)
             }
         }
 
@@ -179,6 +207,8 @@ PanelWindow {
             id: landing
 
             readonly property var spot: DesktopService.landing
+                && DesktopService.landing.screen === root.screenName
+                ? DesktopService.landing : null
             property bool showing: false
 
             visible: root.editing && landing.showing
@@ -193,13 +223,14 @@ PanelWindow {
                     return
                 }
                 const shape = DesktopService.family(landing.spot.family)
-                const x = DesktopService.offsetX(landing.spot.col)
-                const y = DesktopService.offsetY(landing.spot.row)
+                const name = root.screenName
+                const x = DesktopService.offsetX(name, landing.spot.col)
+                const y = DesktopService.offsetY(name, landing.spot.row)
                 slide.enabled = landing.showing
                 landing.x = x
                 landing.y = y
-                landing.width = DesktopService.offsetX(landing.spot.col + shape.cols) - Theme.desktopGutter - x
-                landing.height = DesktopService.offsetY(landing.spot.row + shape.rows) - Theme.desktopGutter - y
+                landing.width = DesktopService.offsetX(name, landing.spot.col + shape.cols) - Theme.desktopGutter - x
+                landing.height = DesktopService.offsetY(name, landing.spot.row + shape.rows) - Theme.desktopGutter - y
                 slide.enabled = true
                 landing.showing = true
             }
@@ -214,10 +245,11 @@ PanelWindow {
         // delegate. The rows change on every drop; the keys only on add and
         // remove.
         Repeater {
-            model: DesktopService.keys
+            model: DesktopService.keysOn(root.screenName)
 
             Widget {
                 board: surface
+                screenName: root.screenName
             }
         }
 
@@ -227,8 +259,8 @@ PanelWindow {
         Loader {
             anchors.fill: parent
             z: 1
-            active: root.editing
-            sourceComponent: Tray { board: surface }
+            active: root.editing && DesktopService.galleryScreen === root.screenName
+            sourceComponent: Tray { board: surface; screenName: root.screenName }
         }
 
         // The inspector, beside the selected widget and above everything. It
@@ -236,7 +268,8 @@ PanelWindow {
         Loader {
             anchors.fill: parent
             z: 5
-            active: root.editing && DesktopService.selected !== "" && DesktopService.picking === ""
+            active: root.editing && DesktopService.picking === ""
+                && root.about(DesktopService.selected)
             sourceComponent: Inspector { board: surface }
         }
 
@@ -244,7 +277,7 @@ PanelWindow {
         Loader {
             anchors.fill: parent
             z: 5
-            active: root.editing && DesktopService.picking !== ""
+            active: root.editing && root.about(DesktopService.picking)
             sourceComponent: Picker { board: surface }
         }
 
@@ -287,8 +320,8 @@ PanelWindow {
         ClippingRectangle {
             x: DesktopService.insets.left
             y: DesktopService.insets.top
-            width: DesktopService.boardWidth
-            height: DesktopService.boardHeight
+            width: surface.width
+            height: surface.height
             color: "transparent"
             visible: root.editing && root.raised && backdrop.status === Image.Ready
 
@@ -326,7 +359,7 @@ PanelWindow {
     // a floating window. It is the whole screen and clear, so a click anywhere
     // else closes it.
     LazyLoader {
-        active: root.menu !== null && !root.editing
+        active: root.menu !== null && root.menu.screen === root.screenName && !root.editing
 
         PanelWindow {
             id: menuWindow
@@ -365,11 +398,11 @@ PanelWindow {
             PopMenu {
                 x: DesktopService.insets.left + (menuWindow.menu
                     ? Math.max(Theme.desktopGutter, Math.min(
-                        DesktopService.boardWidth - Theme.desktopGutter - width, menuWindow.menu.x))
+                        surface.width - Theme.desktopGutter - width, menuWindow.menu.x))
                     : 0)
                 y: DesktopService.insets.top + (menuWindow.menu
                     ? Math.max(Theme.desktopGutter, Math.min(
-                        DesktopService.boardHeight - Theme.desktopGutter - height, menuWindow.menu.y))
+                        surface.height - Theme.desktopGutter - height, menuWindow.menu.y))
                     : 0)
 
                 rows: {
@@ -397,7 +430,7 @@ PanelWindow {
                     DesktopService.closeMenu()
                     switch (id) {
                     case "arrange":
-                        DesktopService.edit(true)
+                        DesktopService.edit(true, root.screenName)
                         break
                     case "note":
                         NotesService.create()
@@ -419,7 +452,7 @@ PanelWindow {
                         break
                     }
                     case "edit":
-                        DesktopService.edit(true)
+                        DesktopService.edit(true, root.screenName)
                         DesktopService.selected = menu.key
                         break
                     case "remove":
@@ -436,19 +469,20 @@ PanelWindow {
 
         Item {
             Repeater {
-                model: DesktopService.columns * DesktopService.rows
+                model: DesktopService.columnsOn(root.screenName) * DesktopService.rowsOn(root.screenName)
 
                 Rectangle {
                     id: square
 
                     required property int index
-                    readonly property int col: square.index % DesktopService.columns
-                    readonly property int row: Math.floor(square.index / DesktopService.columns)
+                    readonly property int columns: DesktopService.columnsOn(root.screenName)
+                    readonly property int col: square.index % square.columns
+                    readonly property int row: Math.floor(square.index / square.columns)
 
-                    x: DesktopService.offsetX(square.col)
-                    y: DesktopService.offsetY(square.row)
-                    width: DesktopService.offsetX(square.col + 1) - Theme.desktopGutter - square.x
-                    height: DesktopService.offsetY(square.row + 1) - Theme.desktopGutter - square.y
+                    x: DesktopService.offsetX(root.screenName, square.col)
+                    y: DesktopService.offsetY(root.screenName, square.row)
+                    width: DesktopService.offsetX(root.screenName, square.col + 1) - Theme.desktopGutter - square.x
+                    height: DesktopService.offsetY(root.screenName, square.row + 1) - Theme.desktopGutter - square.y
                     radius: Theme.radiusSmall
                     color: "transparent"
                     border.color: Theme.hairline

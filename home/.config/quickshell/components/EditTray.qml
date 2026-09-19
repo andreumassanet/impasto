@@ -60,6 +60,13 @@ Item {
 
     readonly property alias card: card
 
+    // Whether a gesture has hold of the pointer here: the card moved by its
+    // edge or its grip, stretched by its corner, or its bar scrubbed. The
+    // desktop's card uses it to stay on the screen it is on for as long as
+    // the hand is down (`desktop/Tray.qml`).
+    readonly property bool holding:
+        mover.active || carry.active || stretch.active || scrub.active
+
     // Wide enough to take hold of the card by its edge.
     readonly property int pad: 24
 

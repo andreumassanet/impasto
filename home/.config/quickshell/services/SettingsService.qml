@@ -606,6 +606,7 @@ Singleton {
         //   key      this widget — "clock-1"; a row without one is keyed
         //            by its module on the way in
         //   id       the module, the same id the catalogue uses
+        //   screen   the monitor's description; absent means the main screen
         //   col, row the square its top left corner is on
         //   family   "2x2", "4x2", "4x4" or "8x2" — which face it wears
         //   theme    "modern" or "analogue"; absent means the desktop's
@@ -618,6 +619,7 @@ Singleton {
         //
         //   key      "notes-2"
         //   id       "notes"
+        //   screen   as above
         //   edge     "left", "right" or "bottom"
         //   notes    the note keys on it, in order along the edge
         property var desktopWidgets: []

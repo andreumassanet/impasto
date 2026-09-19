@@ -279,13 +279,14 @@ Item {
                                 const where = whereTile.modelData.id
                                 if (whereTile.current)
                                     return
+                                const name = DesktopService.nameOf(root.row)
                                 if (root.deck) {
                                     if (where === "grid")
                                         return
-                                    DesktopService.setDeckEdge(root.key, where)
+                                    DesktopService.setDeckEdge(root.key, name, where)
                                     return
                                 }
-                                DesktopService.noteToEdge(root.key, where)
+                                DesktopService.noteToEdge(root.key, name, where)
                             }
                         }
                     }
