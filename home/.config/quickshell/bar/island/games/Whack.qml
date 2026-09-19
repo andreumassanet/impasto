@@ -8,6 +8,7 @@
 // ╰──────────────────────────────────────────────────────────────────────────╯
 
 import QtQuick
+import QtQuick.Shapes
 
 import "../../../theme"
 
@@ -112,6 +113,8 @@ FocusScope {
         root.until = root.until.map(when => when + root.penalty)
     }
 
+    signal struck(int hole)
+
     function whack(hole: int): void {
         if (root.over)
             return
@@ -121,6 +124,7 @@ FocusScope {
         }
         root.score += 1
         root.put(hole, false, root.elapsed + root.rest)
+        root.struck(hole)
     }
 
     function step(): void {
@@ -207,75 +211,233 @@ FocusScope {
                 required property int index
 
                 readonly property bool raised: root.up[hole.index] === true
+                // Red while a miss on it is flashing.
+                readonly property bool missed:
+                    hole.index === root.missHole && root.missLeft > 0
+                readonly property color earth: hole.missed
+                    ? Theme.red : Theme.islandSurfaceHover
 
                 x: (hole.index % root.columns) * root.cell
                 y: Math.floor(hole.index / root.columns) * root.cell
                 width: root.cell
                 height: root.cell
 
-                // The pit, low in its square so the mole has room above it.
-                Rectangle {
-                    id: pit
+                Connections {
+                    target: root
 
-                    x: Math.round((root.cell - width) / 2)
-                    y: root.cell - Math.round(root.cell * 0.14) - height
-                    width: Math.round(root.cell * 0.72)
-                    height: Math.round(root.cell * 0.26)
+                    function onStruck(at: int): void {
+                        if (at !== hole.index)
+                            return
+                        hit.play()
+                        paid.play("+1")
+                    }
+                }
+
+                // The earth heaped behind the pit.
+                Rectangle {
+                    x: root.cell * 0.10
+                    y: root.cell * 0.58
+                    width: root.cell * 0.80
+                    height: root.cell * 0.30
                     radius: height / 2
-                    // Red while a miss on it is flashing.
-                    color: hole.index === root.missHole && root.missLeft > 0
-                        ? Theme.red : Theme.island
-                    border.color: Theme.islandBorder
-                    border.width: 1
+                    color: hole.earth
 
                     Behavior on color { ColorAnimation { duration: Theme.durationFast } }
                 }
 
-                // Clips the mole at the pit's midline so a dropped mole
-                // disappears into it.
+                // The pit, dark and the same shape.
+                Rectangle {
+                    x: root.cell * 0.16
+                    y: root.cell * 0.61
+                    width: root.cell * 0.68
+                    height: root.cell * 0.22
+                    radius: height / 2
+                    color: Theme.island
+                }
+
+                // The creature, clipped at the lip so it climbs out of the
+                // pit rather than appearing over it.
                 Item {
                     id: well
 
                     width: root.cell
-                    height: pit.y + Math.round(pit.height / 2)
+                    height: root.cell * 0.72
                     clip: true
 
-                    Rectangle {
+                    Item {
                         id: mole
 
-                        x: Math.round((root.cell - width) / 2)
-                        y: hole.raised
-                            ? well.height - height + Math.round(width * 0.3)
-                            : well.height
-                        width: Math.round(root.cell * 0.46)
-                        height: Math.round(root.cell * 0.6)
-                        radius: width / 2
-                        color: root.tint
+                        readonly property color dark: Qt.darker(root.tint, 1.7)
+                        readonly property color mid: Qt.darker(root.tint, 1.25)
+                        readonly property color light: Qt.lighter(root.tint, 1.3)
 
+                        x: (root.cell - width) / 2
+                        y: hole.raised ? root.cell * 0.19 : root.cell * 0.74
+                        width: root.cell * 0.46
+                        height: root.cell * 0.56
+
+                        // Out of the pit on a spring, back into it flat: the
+                        // overshoot is what makes it look alive, and a mole
+                        // dropping with one would bounce off the ground.
                         Behavior on y {
                             NumberAnimation {
-                                duration: Theme.durationFast
-                                easing.type: Theme.easing
+                                duration: hole.raised ? 190 : 110
+                                easing.type: hole.raised ? Easing.OutBack : Easing.InQuad
                             }
+                        }
+
+                        // Ears, behind the head.
+                        Repeater {
+                            model: [-1, 1]
+
+                            Rectangle {
+                                required property int modelData
+
+                                x: mole.width * 0.5 + modelData * mole.width * 0.34 - width / 2
+                                y: mole.height * 0.02
+                                width: mole.width * 0.30
+                                height: width
+                                radius: width / 2
+                                color: mole.mid
+                            }
+                        }
+
+                        Shape {
+                            anchors.fill: parent
+                            preferredRendererType: Shape.CurveRenderer
+
+                            ShapePath {
+                                strokeWidth: 0
+                                fillGradient: LinearGradient {
+                                    x1: 0; y1: 0
+                                    x2: 0; y2: mole.height
+
+                                    GradientStop { position: 0.0; color: mole.light }
+                                    GradientStop { position: 0.5; color: root.tint }
+                                    GradientStop { position: 1.0; color: mole.mid }
+                                }
+
+                                startX: mole.width * 0.5
+                                startY: 0
+
+                                PathCubic {
+                                    control1X: mole.width * 0.96; control1Y: 0
+                                    control2X: mole.width;        control2Y: mole.height * 0.5
+                                    x: mole.width;                y: mole.height
+                                }
+                                PathLine { x: 0; y: mole.height }
+                                PathCubic {
+                                    control1X: 0;                 control1Y: mole.height * 0.5
+                                    control2X: mole.width * 0.04; control2Y: 0
+                                    x: mole.width * 0.5;          y: 0
+                                }
+                            }
+                        }
+
+                        // Snout and nose.
+                        Rectangle {
+                            x: mole.width * 0.26
+                            y: mole.height * 0.46
+                            width: mole.width * 0.48
+                            height: mole.height * 0.34
+                            radius: width / 2
+                            opacity: 0.55
+                            color: mole.light
+                        }
+
+                        Rectangle {
+                            x: mole.width * 0.5 - width / 2
+                            y: mole.height * 0.56
+                            width: mole.width * 0.16
+                            height: width * 0.8
+                            radius: width / 2
+                            color: mole.dark
                         }
 
                         Repeater {
-                            model: 2
+                            model: [-1, 1]
+
+                            Item {
+                                required property int modelData
+
+                                x: mole.width * 0.5 + modelData * mole.width * 0.19 - width / 2
+                                y: mole.height * 0.24
+                                width: mole.width * 0.18
+                                height: mole.width * 0.22
+
+                                Rectangle {
+                                    anchors.fill: parent
+                                    radius: width / 2
+                                    color: Theme.island
+                                }
+
+                                Rectangle {
+                                    x: parent.width * 0.16
+                                    y: parent.height * 0.14
+                                    width: parent.width * 0.4
+                                    height: width
+                                    radius: width / 2
+                                    color: Theme.indicator
+                                }
+                            }
+                        }
+
+                        // Paws over the lip.
+                        Repeater {
+                            model: [-1, 1]
 
                             Rectangle {
-                                id: eye
+                                required property int modelData
 
-                                required property int index
-
-                                x: Math.round(mole.width * (eye.index === 0 ? 0.32 : 0.68) - width / 2)
-                                y: Math.round(mole.width * 0.36 - height / 2)
-                                width: Math.round(mole.width * 0.16)
-                                height: width
-                                radius: width / 2
-                                color: Theme.island
+                                x: mole.width * 0.5 + modelData * mole.width * 0.42 - width / 2
+                                y: mole.height * 0.82
+                                width: mole.width * 0.26
+                                height: mole.height * 0.16
+                                radius: height / 2
+                                color: mole.mid
                             }
                         }
                     }
+                }
+
+                // The lip of the pit, in front of the creature.
+                Rectangle {
+                    x: root.cell * 0.10
+                    y: root.cell * 0.70
+                    width: root.cell * 0.80
+                    height: root.cell * 0.20
+                    radius: height / 2
+                    color: hole.earth
+
+                    Behavior on color { ColorAnimation { duration: Theme.durationFast } }
+
+                    Rectangle {
+                        anchors.left: parent.left
+                        anchors.right: parent.right
+                        anchors.top: parent.top
+                        height: parent.height * 0.3
+                        radius: height / 2
+                        opacity: 0.4
+                        color: Theme.islandBorder
+                    }
+                }
+
+                Burst {
+                    id: hit
+
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    y: root.cell * 0.42 - height / 2
+                    tint: root.tint
+                    spread: root.cell * 0.26
+                }
+
+                Pop {
+                    id: paid
+
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    y: root.cell * 0.28
+                    tint: root.tint
+                    rise: root.cell * 0.2
                 }
 
                 MouseArea {

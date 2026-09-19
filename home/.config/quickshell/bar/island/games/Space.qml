@@ -38,6 +38,8 @@ FocusScope {
         root.leftHeld = false
         root.rightHeld = false
         root.stars = root.scatter()
+        root.blasts = []
+        root.ticks = 0
         root.over = false
         root.spawnWave()
         board.requestPaint()
@@ -94,6 +96,11 @@ FocusScope {
     property bool leftHeld: false
     property bool rightHeld: false
 
+    // Ticks, for the two frames every invader walks in and the flicker in the
+    // ship's engine, and the blasts left behind by the ones that are gone.
+    property int ticks: 0
+    property var blasts: []
+
     readonly property int lane: Math.max(1, root.boardWidth - 2 * root.margin - root.shipWidth)
     readonly property real shipX: root.margin + root.shipWidth / 2 + root.shipAt * root.lane
 
@@ -117,10 +124,91 @@ FocusScope {
         }
     }
 
+    // Eleven cells across and eight down, two frames each: the row decides
+    // which creature and what it is worth.
+    readonly property var shapes: ({
+        squid: [[
+            "....###....",
+            "...#####...",
+            "..#######..",
+            "..##.#.##..",
+            "..#######..",
+            "...#.#.#...",
+            "..#.#.#.#..",
+            "...#...#..."
+        ], [
+            "....###....",
+            "...#####...",
+            "..#######..",
+            "..##.#.##..",
+            "..#######..",
+            "...#.#.#...",
+            "..#.....#..",
+            "...#...#..."
+        ]],
+        crab: [[
+            "..#.....#..",
+            "...#...#...",
+            "..#######..",
+            ".##.###.##.",
+            "###########",
+            "#.#######.#",
+            "#.#.....#.#",
+            "...##.##..."
+        ], [
+            "..#.....#..",
+            "#..#...#..#",
+            "#.#######.#",
+            "###.###.###",
+            "###########",
+            ".#########.",
+            "..#.....#..",
+            ".#.......#."
+        ]],
+        octopus: [[
+            "...#####...",
+            "..#######..",
+            ".#########.",
+            "###..#..###",
+            "###########",
+            "..###.###..",
+            ".##.....##.",
+            "...##.##..."
+        ], [
+            "...#####...",
+            "..#######..",
+            ".#########.",
+            "###..#..###",
+            "###########",
+            "...#.#.#...",
+            "..#.#.#.#..",
+            ".##.....##."
+        ]]
+    })
+
+    // The front row is worth double and wears the colour that says so.
+    function breedOf(row: int): string {
+        if (row === root.rows - 1)
+            return "octopus"
+        return row === 0 ? "squid" : "crab"
+    }
+
+    function colourOf(row: int): color {
+        if (row === root.rows - 1)
+            return Theme.yellow
+        return row === 0 ? Theme.green : Theme.red
+    }
+
     function scatter(): var {
         const sky = []
-        for (let index = 0; index < 48; index++)
-            sky.push({ x: Math.random(), y: Math.random(), r: 1 + Math.random() })
+        for (let index = 0; index < 60; index++)
+            sky.push({
+                x: Math.random(),
+                y: Math.random(),
+                r: 0.7 + Math.random() * 1.4,
+                lit: 0.12 + Math.random() * 0.4,
+                blink: index % 7 === 0
+            })
         return sky
     }
 
@@ -170,7 +258,14 @@ FocusScope {
         board.requestPaint()
     }
 
+    readonly property int blastLife: 9
+
     function step(): void {
+        root.ticks += 1
+        root.blasts = root.blasts
+            .map(blast => ({ x: blast.x, y: blast.y, life: blast.life - 1, tint: blast.tint }))
+            .filter(blast => blast.life > 0)
+
         // Ship.
         const heading = (root.rightHeld ? 1 : 0) - (root.leftHeld ? 1 : 0)
         root.shipAt = Math.max(0, Math.min(1, root.shipAt + heading * root.shipSpeed / root.lane))
@@ -192,7 +287,14 @@ FocusScope {
                 flying.push({ x: shot.x, y: y })
                 continue
             }
-            root.score += standing[hit].r === root.rows - 1 ? 20 : 10
+            const struck = standing[hit]
+            root.score += struck.r === root.rows - 1 ? 20 : 10
+            root.blasts = root.blasts.concat([{
+                x: root.invaderX(struck) + size / 2,
+                y: root.invaderY(struck) + size / 2,
+                life: root.blastLife,
+                tint: root.colourOf(struck.r)
+            }])
             standing = standing.filter((invader, index) => index !== hit)
         }
         root.shots = flying
@@ -308,46 +410,115 @@ FocusScope {
                 ctx.clearRect(0, 0, width, height)
                 const size = root.invaderSize
 
-                // Stars.
-                ctx.fillStyle = Theme.hairline
+                const paintOf = (colour, alpha) =>
+                    `rgba(${Math.round(colour.r * 255)},${Math.round(colour.g * 255)},`
+                    + `${Math.round(colour.b * 255)},${alpha})`
+
+                // Stars, each at its own strength and two of every seven
+                // breathing.
                 for (const star of root.stars) {
+                    const twinkle = star.lit
+                        + (star.blink ? 0.18 * Math.sin(root.ticks / 9 + star.x * 30) : 0)
+                    ctx.fillStyle = paintOf(Theme.indicator, Math.max(0.05, twinkle))
                     ctx.beginPath()
                     ctx.arc(star.x * width, star.y * height, star.r, 0, Math.PI * 2)
                     ctx.fill()
                 }
 
-                // The formation: front row yellow, the rest muted, with two
-                // eyes cut out.
-                const corner = Math.round(size * 0.3)
-                const eye = Math.max(2, Math.round(size * 0.14))
+                // The formation, drawn cell by cell from its row's shape. Both
+                // frames march on the same clock, so the wall steps together.
+                const frame = Math.floor(root.ticks / 9) % 2
                 for (const invader of root.invaders) {
+                    const shape = root.shapes[root.breedOf(invader.r)][frame]
+                    const unit = size / shape[0].length
                     const x = root.invaderX(invader)
-                    const y = root.invaderY(invader)
-                    ctx.fillStyle = invader.r === root.rows - 1 ? Theme.yellow : Theme.textMuted
-                    ctx.beginPath()
-                    ctx.roundedRect(x, y, size, size, corner, corner)
-                    ctx.fill()
-                    ctx.fillStyle = Theme.islandSurface
-                    ctx.fillRect(x + size * 0.26 - eye / 2, y + size * 0.36, eye, eye)
-                    ctx.fillRect(x + size * 0.74 - eye / 2, y + size * 0.36, eye, eye)
+                    const y = root.invaderY(invader) + (size - unit * shape.length) / 2
+                    ctx.fillStyle = root.colourOf(invader.r)
+                    for (let row = 0; row < shape.length; row++) {
+                        const cells = shape[row]
+                        let at = 0
+                        while (at < cells.length) {
+                            if (cells[at] !== "#") {
+                                at += 1
+                                continue
+                            }
+                            let run = 1
+                            while (at + run < cells.length && cells[at + run] === "#")
+                                run += 1
+                            ctx.fillRect(x + at * unit, y + row * unit,
+                                         unit * run + 0.5, unit + 0.5)
+                            at += run
+                        }
+                    }
                 }
 
-                // Shots up, bombs down.
-                ctx.fillStyle = root.tint
-                for (const shot of root.shots)
-                    ctx.fillRect(shot.x - 1, shot.y, 2, root.shotLength)
-                ctx.fillStyle = Theme.red
-                for (const bomb of root.bombs)
-                    ctx.fillRect(bomb.x - 1, bomb.y, 2, root.shotLength)
-
-                // The ship skips frames while invulnerable.
-                if (Math.floor(root.shield / 3) % 2 === 0) {
-                    ctx.fillStyle = root.tint
+                // What is left of the ones that are gone: a ring and its
+                // pieces, thrown out of where they stood.
+                for (const blast of root.blasts) {
+                    const at = 1 - blast.life / root.blastLife
+                    ctx.strokeStyle = paintOf(blast.tint, 1 - at)
+                    ctx.lineWidth = Math.max(1, size * 0.1 * (1 - at))
                     ctx.beginPath()
-                    ctx.moveTo(root.shipX, root.shipTop)
-                    ctx.lineTo(root.shipX + root.shipWidth / 2, root.shipTop + root.shipHeight)
-                    ctx.lineTo(root.shipX - root.shipWidth / 2, root.shipTop + root.shipHeight)
+                    ctx.arc(blast.x, blast.y, size * (0.25 + at * 0.6), 0, Math.PI * 2)
+                    ctx.stroke()
+                    ctx.fillStyle = paintOf(blast.tint, 1 - at)
+                    for (let spark = 0; spark < 6; spark++) {
+                        const angle = spark * Math.PI / 3
+                        ctx.beginPath()
+                        ctx.arc(blast.x + Math.cos(angle) * size * (0.2 + at * 0.8),
+                                blast.y + Math.sin(angle) * size * (0.2 + at * 0.8),
+                                size * 0.09 * (1 - at), 0, Math.PI * 2)
+                        ctx.fill()
+                    }
+                }
+
+                // Shots up, bombs down, each in its own light.
+                const bolt = (x, y, colour) => {
+                    ctx.fillStyle = paintOf(colour, 0.25)
+                    ctx.fillRect(x - 2.5, y - 2, 5, root.shotLength + 4)
+                    ctx.fillStyle = paintOf(colour, 1)
+                    ctx.fillRect(x - 1, y, 2, root.shotLength)
+                }
+                for (const shot of root.shots)
+                    bolt(shot.x, shot.y, root.tint)
+                for (const bomb of root.bombs)
+                    bolt(bomb.x, bomb.y, Theme.red)
+
+                // The ship: a hull, a cockpit and an engine that flickers. It
+                // skips frames while invulnerable.
+                if (Math.floor(root.shield / 3) % 2 === 0) {
+                    const sx = root.shipX
+                    const st = root.shipTop
+                    const sw = root.shipWidth
+                    const sh = root.shipHeight
+
+                    ctx.fillStyle = paintOf(Theme.yellow, 0.75)
+                    const flame = sh * (0.3 + 0.22 * Math.abs(Math.sin(root.ticks / 2)))
+                    ctx.beginPath()
+                    ctx.moveTo(sx - sw * 0.12, st + sh)
+                    ctx.lineTo(sx, st + sh + flame)
+                    ctx.lineTo(sx + sw * 0.12, st + sh)
                     ctx.closePath()
+                    ctx.fill()
+
+                    const hull = ctx.createLinearGradient(0, st, 0, st + sh)
+                    hull.addColorStop(0, paintOf(Qt.lighter(root.tint, 1.4), 1))
+                    hull.addColorStop(1, paintOf(Qt.darker(root.tint, 1.35), 1))
+                    ctx.fillStyle = hull
+                    ctx.beginPath()
+                    ctx.moveTo(sx, st)
+                    ctx.lineTo(sx + sw * 0.22, st + sh * 0.62)
+                    ctx.lineTo(sx + sw * 0.5, st + sh * 0.72)
+                    ctx.lineTo(sx + sw * 0.5, st + sh)
+                    ctx.lineTo(sx - sw * 0.5, st + sh)
+                    ctx.lineTo(sx - sw * 0.5, st + sh * 0.72)
+                    ctx.lineTo(sx - sw * 0.22, st + sh * 0.62)
+                    ctx.closePath()
+                    ctx.fill()
+
+                    ctx.fillStyle = paintOf(Theme.indicator, 0.85)
+                    ctx.beginPath()
+                    ctx.arc(sx, st + sh * 0.6, sw * 0.09, 0, Math.PI * 2)
                     ctx.fill()
                 }
 

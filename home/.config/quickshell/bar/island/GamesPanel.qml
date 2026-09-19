@@ -238,12 +238,36 @@ FocusScope {
                 // buttons for what a key already does.
                 Item { Layout.fillWidth: true }
 
+                // The score beats when it changes, so every game has one
+                // piece of feedback the frame gives it for free.
                 Text {
+                    id: tally
+
                     text: `${round.byMoves ? "Moves" : "Score"} ${round.score}`
                     font.family: Theme.fontMono
                     font.pixelSize: Theme.fontSizeSmall
                     font.weight: Font.DemiBold
                     color: Theme.text
+
+                    Connections {
+                        target: round
+
+                        function onScoreChanged(): void {
+                            if (round.score !== 0)
+                                beat.restart()
+                        }
+                    }
+
+                    NumberAnimation {
+                        id: beat
+
+                        target: tally
+                        property: "scale"
+                        from: 1.22
+                        to: 1
+                        duration: 220
+                        easing.type: Easing.OutBack
+                    }
                 }
 
                 Text {
@@ -280,34 +304,77 @@ FocusScope {
                         NumberAnimation { duration: Theme.durationMedium; easing.type: Theme.easing }
                     }
 
-                    Column {
+                    // A beaten best throws a ring behind the card.
+                    Burst {
+                        id: fanfare
+
                         anchors.centerIn: parent
-                        spacing: 10
+                        tint: Theme.indicatorWarn
+                        spread: 120
+                        sparks: 10
+                        span: 620
+                    }
 
-                        Text {
-                            anchors.horizontalCenter: parent.horizontalCenter
-                            text: round.byMoves ? "Solved" : "Game over"
-                            font.family: Theme.fontFamily
-                            font.pixelSize: Theme.fontSizeLarge
-                            font.weight: Font.DemiBold
-                            color: Theme.scrimText
+                    // `parent` inside a Connections is the Burst's parent, not
+                    // the Burst, so the ring is played by name.
+                    Connections {
+                        target: round
+
+                        function onBeatenChanged(): void {
+                            if (round.beaten)
+                                fanfare.play()
+                        }
+                    }
+
+                    // The end of the round on a card of its own, which lands
+                    // rather than appears.
+                    Rectangle {
+                        id: card
+
+                        anchors.centerIn: parent
+                        width: ending.implicitWidth + 56
+                        height: ending.implicitHeight + 36
+                        radius: Theme.radiusLarge
+                        color: Theme.islandSurface
+                        border.color: round.beaten ? Theme.indicatorWarn : Theme.islandBorder
+                        border.width: 1
+                        scale: round.over ? 1 : 0.92
+
+                        Behavior on scale {
+                            NumberAnimation { duration: 260; easing.type: Easing.OutBack }
                         }
 
-                        Text {
-                            anchors.horizontalCenter: parent.horizontalCenter
-                            text: round.beaten
-                                ? `New best · ${round.score}`
-                                : `${round.byMoves ? "Moves" : "Score"} ${round.score}`
-                            font.family: Theme.fontMono
-                            font.pixelSize: Theme.fontSizeMedium
-                            color: round.beaten ? Theme.indicatorWarn : Theme.scrimText
-                        }
+                        Column {
+                            id: ending
 
-                        PillButton {
-                            anchors.horizontalCenter: parent.horizontalCenter
-                            text: "Play again"
-                            active: true
-                            onClicked: round.again()
+                            anchors.centerIn: parent
+                            spacing: 10
+
+                            Text {
+                                anchors.horizontalCenter: parent.horizontalCenter
+                                text: round.byMoves ? "Solved" : "Game over"
+                                font.family: Theme.fontFamily
+                                font.pixelSize: Theme.fontSizeLarge
+                                font.weight: Font.DemiBold
+                                color: Theme.text
+                            }
+
+                            Text {
+                                anchors.horizontalCenter: parent.horizontalCenter
+                                text: round.beaten
+                                    ? `★ New best · ${round.score}`
+                                    : `${round.byMoves ? "Moves" : "Score"} ${round.score}`
+                                font.family: Theme.fontMono
+                                font.pixelSize: Theme.fontSizeMedium
+                                color: round.beaten ? Theme.indicatorWarn : Theme.textMuted
+                            }
+
+                            PillButton {
+                                anchors.horizontalCenter: parent.horizontalCenter
+                                text: "Play again"
+                                active: true
+                                onClicked: round.again()
+                            }
                         }
                     }
 

@@ -140,28 +140,80 @@ FocusScope {
                 width: root.cell
                 height: root.cell
 
-                // Glow: a wider tinted disc behind the light, faded by opacity.
-                Rectangle {
-                    anchors.centerIn: parent
-                    width: root.cell + root.gap
-                    height: width
-                    radius: width / 2
-                    color: Qt.rgba(root.tint.r, root.tint.g, root.tint.b, 0.22)
-                    opacity: light.lit ? 1 : 0
+                // Glow: two discs behind the light, the wider one fainter, so
+                // a lit bulb throws light on the board around it.
+                Repeater {
+                    model: [
+                        { at: 2.0, alpha: 0.10 },
+                        { at: 1.0, alpha: 0.22 }
+                    ]
 
-                    Behavior on opacity { NumberAnimation { duration: Theme.durationFast } }
+                    Rectangle {
+                        required property var modelData
+
+                        anchors.centerIn: parent
+                        width: root.cell + root.gap * modelData.at
+                        height: width
+                        radius: width / 2
+                        color: Qt.rgba(root.tint.r, root.tint.g, root.tint.b, modelData.alpha)
+                        opacity: light.lit ? 1 : 0
+
+                        Behavior on opacity { NumberAnimation { duration: Theme.durationFast } }
+                    }
                 }
 
                 Rectangle {
+                    id: glass
+
                     anchors.fill: parent
                     radius: width / 2
                     color: light.lit ? root.tint : Theme.islandSurfaceHover
-                    border.color: light.lit ? root.tint : Theme.islandBorder
+                    border.color: light.lit ? Qt.lighter(root.tint, 1.4) : Theme.islandBorder
                     border.width: 1
+                    scale: 1
 
                     Behavior on color        { ColorAnimation { duration: Theme.durationFast } }
                     Behavior on border.color { ColorAnimation { duration: Theme.durationFast } }
+
+                    // A bulb settles when it is switched.
+                    NumberAnimation {
+                        id: bounce
+
+                        target: glass
+                        property: "scale"
+                        from: 1.12
+                        to: 1
+                        duration: 200
+                        easing.type: Easing.OutBack
+                    }
+
+                    // Lit, the light sits high in the glass; dark, the glass
+                    // is hollow.
+                    Rectangle {
+                        anchors.centerIn: parent
+                        anchors.verticalCenterOffset: -parent.height * 0.14
+                        width: parent.width * 0.52
+                        height: width
+                        radius: width / 2
+                        opacity: light.lit ? 0.4 : 0
+                        color: Theme.indicator
+
+                        Behavior on opacity { NumberAnimation { duration: Theme.durationFast } }
+                    }
+
+                    Rectangle {
+                        anchors.centerIn: parent
+                        width: parent.width * 0.62
+                        height: width
+                        radius: width / 2
+                        opacity: light.lit ? 0 : 1
+                        color: Theme.island
+
+                        Behavior on opacity { NumberAnimation { duration: Theme.durationFast } }
+                    }
                 }
+
+                onLitChanged: bounce.restart()
 
                 MouseArea {
                     anchors.fill: parent

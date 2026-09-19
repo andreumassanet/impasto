@@ -29,6 +29,9 @@ FocusScope {
 
     signal finished(int score)
 
+    // Rows gone and what they paid, for the flash over the well.
+    signal swept(int rows, int paid)
+
     function restart(): void {
         root.board = new Array(root.columns * root.rows).fill(0)
         root.bag = []
@@ -224,8 +227,10 @@ FocusScope {
             kept.unshift(new Array(root.columns).fill(0))
         root.board = kept.reduce((all, line) => all.concat(line), [])
         if (cleared > 0) {
-            root.score += [0, 100, 300, 500, 800][cleared] * root.level
+            const paid = [0, 100, 300, 500, 800][cleared] * root.level
+            root.score += paid
             root.lines += cleared
+            root.swept(cleared, paid)
         }
         if (cells.some(at => at.y < 0)) {
             root.over = true
@@ -237,13 +242,42 @@ FocusScope {
 
     // One block, shared by the well and the preview: inset and rounded so
     // pieces read as pieces.
-    function block(ctx: var, x: real, y: real, size: int, paint: color): void {
+    function block(ctx: var, x: real, y: real, size: int, paint: color, faint: bool): void {
         const inset = Math.max(1, Math.round(size * 0.1))
-        ctx.fillStyle = paint
+        const side = size - 2 * inset
+        const corner = size * 0.2
+        const left = x + inset
+        const top = y + inset
+        const alpha = faint ? 0.22 : 1
+        const tone = (colour, at) =>
+            `rgba(${Math.round(colour.r * 255)},${Math.round(colour.g * 255)},`
+            + `${Math.round(colour.b * 255)},${at})`
+
+        // Lit from above, with the light on the top edge and the shade under
+        // it: a slab rather than a square of colour.
+        const face = ctx.createLinearGradient(0, top, 0, top + side)
+        face.addColorStop(0, tone(Qt.lighter(paint, 1.25), alpha))
+        face.addColorStop(0.5, tone(paint, alpha))
+        face.addColorStop(1, tone(Qt.darker(paint, 1.3), alpha))
+        ctx.fillStyle = face
         ctx.beginPath()
-        ctx.roundedRect(x + inset, y + inset, size - 2 * inset, size - 2 * inset,
-                        size * 0.2, size * 0.2)
+        ctx.roundedRect(left, top, side, side, corner, corner)
         ctx.fill()
+
+        if (faint)
+            return
+
+        ctx.fillStyle = tone(Theme.indicator, 0.22)
+        ctx.beginPath()
+        ctx.roundedRect(left + side * 0.16, top + side * 0.12, side * 0.5, side * 0.14,
+                        side * 0.07, side * 0.07)
+        ctx.fill()
+
+        ctx.strokeStyle = tone(Qt.darker(paint, 1.5), 0.8)
+        ctx.lineWidth = Math.max(1, size * 0.04)
+        ctx.beginPath()
+        ctx.roundedRect(left, top, side, side, corner, corner)
+        ctx.stroke()
     }
 
     // Gravity: 800 ms per row, 70 ms less each level, never under 90.
@@ -310,6 +344,45 @@ FocusScope {
             border.color: Theme.islandBorder
             border.width: 1
 
+            // A sweep flashes the well and says what it paid.
+            Connections {
+                target: root
+
+                function onSwept(rows: int, paid: int): void {
+                    sweep.restart()
+                    paidFor.play(`+${paid}`)
+                }
+            }
+
+            Rectangle {
+                id: flash
+
+                anchors.fill: parent
+                radius: parent.radius
+                color: Theme.indicator
+                opacity: 0
+
+                NumberAnimation {
+                    id: sweep
+
+                    target: flash
+                    property: "opacity"
+                    from: 0.35
+                    to: 0
+                    duration: 260
+                    easing.type: Easing.OutCubic
+                }
+            }
+
+            Pop {
+                id: paidFor
+
+                anchors.horizontalCenter: parent.horizontalCenter
+                y: parent.height * 0.4
+                tint: Theme.indicator
+                rise: root.cell * 1.6
+            }
+
             Canvas {
                 id: well
 
@@ -320,12 +393,27 @@ FocusScope {
                     ctx.clearRect(0, 0, width, height)
                     const size = root.cell
 
+                    // The well's own rows and columns, so the empty part of it
+                    // is a grid and not a hole.
+                    ctx.strokeStyle = Qt.rgba(1, 1, 1, 0.035)
+                    ctx.lineWidth = 1
+                    ctx.beginPath()
+                    for (let column = 1; column < root.columns; column++) {
+                        ctx.moveTo(column * size + 0.5, 0)
+                        ctx.lineTo(column * size + 0.5, root.rows * size)
+                    }
+                    for (let row = 1; row < root.rows; row++) {
+                        ctx.moveTo(0, row * size + 0.5)
+                        ctx.lineTo(root.columns * size, row * size + 0.5)
+                    }
+                    ctx.stroke()
+
                     // The stack.
                     root.board.forEach((kind, index) => {
                         if (kind)
                             root.block(ctx, (index % root.columns) * size,
                                        Math.floor(index / root.columns) * size,
-                                       size, root.paints[kind])
+                                       size, root.paints[kind], false)
                     })
 
                     const piece = root.piece
@@ -334,15 +422,14 @@ FocusScope {
                     // The ghost, faint, then the piece, both clipped to the
                     // well's rows.
                     const paint = root.paints[piece.kind]
-                    const ghost = Qt.rgba(paint.r, paint.g, paint.b, 0.22)
                     const rest = root.landing()
                     if (rest > piece.y)
                         for (const at of root.covered(piece.cells, piece.x, rest))
                             if (at.y >= 0)
-                                root.block(ctx, at.x * size, at.y * size, size, ghost)
+                                root.block(ctx, at.x * size, at.y * size, size, paint, true)
                     for (const at of root.covered(piece.cells, piece.x, piece.y))
                         if (at.y >= 0)
-                            root.block(ctx, at.x * size, at.y * size, size, paint)
+                            root.block(ctx, at.x * size, at.y * size, size, paint, false)
                 }
             }
         }
@@ -384,7 +471,7 @@ FocusScope {
                         const oy = Math.round((height - (Math.max(...ys) + 1 - top) * size) / 2)
                         for (const at of covered)
                             root.block(ctx, ox + (at.x - left) * size, oy + (at.y - top) * size,
-                                       size, root.paints[root.next])
+                                       size, root.paints[root.next], false)
                     }
                 }
             }

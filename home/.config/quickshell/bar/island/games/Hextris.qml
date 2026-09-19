@@ -303,42 +303,78 @@ FocusScope {
                 const step = Math.PI / 3
                 const spun = base + root.spin * step
 
-                // The stack limit, faint, and the hexagon.
-                ctx.lineWidth = 1
-                ctx.strokeStyle = Theme.hairline
+                const tone = (colour, at) =>
+                    `rgba(${Math.round(colour.r * 255)},${Math.round(colour.g * 255)},`
+                    + `${Math.round(colour.b * 255)},${at})`
+
+                // One slab, lit along its outer edge so the stack reads as
+                // stacked rather than as a fan of flat colour.
+                const laySlab = (angle, inner, outer, colour, lit) => {
+                    const cx = width / 2
+                    const cy = height / 2
+                    const mid = angle + Math.PI / 6
+                    const face = ctx.createLinearGradient(
+                        cx + inner * Math.cos(mid), cy + inner * Math.sin(mid),
+                        cx + outer * Math.cos(mid), cy + outer * Math.sin(mid))
+                    face.addColorStop(0, tone(Qt.darker(colour, 1.35), 1))
+                    face.addColorStop(0.65, tone(colour, 1))
+                    face.addColorStop(1, tone(Qt.lighter(colour, 1.25), 1))
+                    ctx.fillStyle = lit ? tone(Theme.indicator, 1) : face
+                    board.slab(ctx, angle, inner, outer)
+                    ctx.fill()
+                    ctx.strokeStyle = tone(Theme.island, 0.55)
+                    ctx.stroke()
+                }
+
+                // The stack limit: the line a stack must not cross, so it is
+                // drawn in the colour that says so rather than as a hairline.
+                ctx.lineWidth = 2
+                ctx.strokeStyle = tone(Theme.red, 0.3)
                 board.hexagon(ctx, spun, root.core + root.rings * root.ring)
                 ctx.stroke()
+
+                const core = ctx.createLinearGradient(0, height / 2 - root.core,
+                                                      0, height / 2 + root.core)
+                core.addColorStop(0, tone(Theme.islandSurfaceHover, 1))
+                core.addColorStop(1, tone(Theme.island, 1))
                 ctx.lineWidth = 2
-                ctx.fillStyle = Theme.islandSurfaceHover
-                ctx.strokeStyle = Theme.islandBorder
+                ctx.fillStyle = core
+                ctx.strokeStyle = tone(root.tint, 0.5)
                 board.hexagon(ctx, spun, root.core)
                 ctx.fill()
                 ctx.stroke()
 
-                // The stacks, rotated with it; stroked in the background colour
-                // to separate slabs.
-                ctx.strokeStyle = Theme.islandSurface
+                ctx.lineWidth = 1
+                ctx.strokeStyle = Theme.hairline
+                board.hexagon(ctx, spun, root.core * 0.55)
+                ctx.stroke()
+
+                // The stacks, rotated with the hexagon.
+                ctx.lineWidth = 2
                 for (let side = 0; side < root.sides; side++) {
                     const angle = spun + side * step
                     const stack = root.stacks[side] ?? []
                     for (let level = 0; level < stack.length; level++) {
                         const lit = root.flash.indexOf(root.key(side, level)) !== -1
-                        ctx.fillStyle = lit ? Theme.text : root.colours[stack[level]]
-                        board.slab(ctx, angle, root.core + level * root.ring,
-                                   root.core + (level + 1) * root.ring)
-                        ctx.fill()
-                        ctx.stroke()
+                        laySlab(angle, root.core + level * root.ring,
+                                root.core + (level + 1) * root.ring,
+                                root.colours[stack[level]], lit)
                     }
                 }
 
-                // The falling slab, in a lane that doesn't rotate. After game
-                // over it is already part of the stack.
+                // The falling slab, in a lane that doesn't rotate, with its
+                // own light around it. After game over it is already part of
+                // the stack.
                 if (!root.over) {
                     const inner = root.core + root.falling.at * root.ring
-                    ctx.fillStyle = root.colours[root.falling.colour]
-                    board.slab(ctx, base + root.falling.lane * step, inner, inner + root.ring)
-                    ctx.fill()
+                    const lane = base + root.falling.lane * step
+                    const colour = root.colours[root.falling.colour]
+                    ctx.strokeStyle = tone(colour, 0.35)
+                    ctx.lineWidth = 5
+                    board.slab(ctx, lane, inner, inner + root.ring)
                     ctx.stroke()
+                    ctx.lineWidth = 2
+                    laySlab(lane, inner, inner + root.ring, colour, false)
                 }
             }
         }

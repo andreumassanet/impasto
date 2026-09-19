@@ -77,10 +77,13 @@ FocusScope {
         const distance = Math.hypot(x - root.targetX, y - root.targetY)
         if (distance > radius)
             return
-        root.score += distance <= radius / 3 ? 3 : distance <= radius * 2 / 3 ? 2 : 1
+        const worth = distance <= radius / 3 ? 3 : distance <= radius * 2 / 3 ? 2 : 1
+        root.score += worth
         root.smashed = true
         shrink.stop()
         burst.restart()
+        hit.play()
+        paid.play(`+${worth}`)
     }
 
     function miss(): void {
@@ -106,9 +109,34 @@ FocusScope {
         border.color: Theme.islandBorder
         border.width: 1
 
+        // The range: a field of dots, painted once, so the board is a place
+        // rather than an empty rectangle.
+        Canvas {
+            id: field
+
+            anchors.fill: parent
+            onWidthChanged: field.requestPaint()
+            onHeightChanged: field.requestPaint()
+
+            onPaint: {
+                const ctx = getContext("2d")
+                ctx.clearRect(0, 0, width, height)
+                const gap = 34
+                ctx.fillStyle = Qt.rgba(1, 1, 1, 0.045)
+                for (let y = gap / 2; y < height; y += gap) {
+                    for (let x = gap / 2; x < width; x += gap) {
+                        ctx.beginPath()
+                        ctx.arc(x, y, 1.6, 0, Math.PI * 2)
+                        ctx.fill()
+                    }
+                }
+            }
+        }
+
         MouseArea {
             anchors.fill: parent
             acceptedButtons: Qt.LeftButton
+            cursorShape: Qt.CrossCursor
             onPressed: event => root.smash(event.x, event.y)
         }
 
@@ -137,21 +165,43 @@ FocusScope {
 
                 anchors.fill: parent
 
-                // Outer, middle, bullseye: the tint at three strengths.
+                // Five rings, the tint and white by turns, with the bullseye
+                // in the colour a bullseye is. All of it whitens on a hit.
                 Repeater {
-                    model: [0.22, 0.5, 1]
+                    model: [
+                        { at: 1.0,  paint: "tint" },
+                        { at: 0.78, paint: "pale" },
+                        { at: 0.56, paint: "tint" },
+                        { at: 0.34, paint: "pale" },
+                        { at: 0.16, paint: "eye" }
+                    ]
 
                     Rectangle {
-                        required property int index
-                        required property real modelData
+                        required property var modelData
 
                         anchors.centerIn: parent
-                        width: root.size * (3 - index) / 3
+                        width: root.size * modelData.at
                         height: width
                         radius: width / 2
-                        color: root.smashed ? Theme.text
-                            : Qt.rgba(root.tint.r, root.tint.g, root.tint.b, modelData)
+                        color: root.smashed ? Theme.indicator
+                            : modelData.paint === "tint" ? root.tint
+                            : modelData.paint === "pale" ? Theme.indicator : Theme.red
+                        border.color: Qt.rgba(Theme.island.r, Theme.island.g,
+                                              Theme.island.b, 0.35)
+                        border.width: modelData.at === 1 ? Math.max(1, root.size * 0.02) : 0
                     }
+                }
+
+                // The light on it, so it reads as a disc rather than a print.
+                Rectangle {
+                    x: parent.width * 0.2
+                    y: parent.height * 0.16
+                    width: parent.width * 0.3
+                    height: parent.height * 0.16
+                    radius: height / 2
+                    rotation: -28
+                    opacity: root.smashed ? 0 : 0.22
+                    color: Theme.indicator
                 }
             }
 
@@ -175,6 +225,25 @@ FocusScope {
                 }
                 onFinished: root.place()
             }
+        }
+
+        Burst {
+            id: hit
+
+            x: root.targetX - width / 2
+            y: root.targetY - height / 2
+            tint: root.tint
+            spread: root.size * 0.7
+            sparks: 9
+        }
+
+        Pop {
+            id: paid
+
+            x: root.targetX - width / 2
+            y: root.targetY - root.size * 0.5
+            tint: Theme.indicator
+            rise: root.size * 0.4
         }
 
         // Three lives, top right; a lost one dims.

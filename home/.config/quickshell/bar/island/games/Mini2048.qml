@@ -209,10 +209,47 @@ FocusScope {
                 height: root.cell
                 radius: Theme.radiusSmall
                 color: root.fill(tile.value)
+                border.color: tile.value === 0
+                    ? "transparent" : Qt.rgba(0, 0, 0, 0.25)
+                border.width: 1
 
                 // Animate the colour so a merge reads as the same tile
                 // changing.
                 Behavior on color { ColorAnimation { duration: Theme.durationFast } }
+
+                // A tile that has just taken a value swells and settles: the
+                // grid has no identity to slide, so the beat is what says
+                // something happened here.
+                onValueChanged: {
+                    if (tile.value !== 0)
+                        swell.restart()
+                }
+
+                NumberAnimation {
+                    id: swell
+
+                    target: tile
+                    property: "scale"
+                    from: 1.16
+                    to: 1
+                    duration: 170
+                    easing.type: Easing.OutBack
+                }
+
+                // The light on the face, so a tile is a tile and not a patch
+                // of colour. A gradient over the colour rather than in it,
+                // since the colour is animated on a merge.
+                Rectangle {
+                    anchors.fill: parent
+                    radius: parent.radius
+                    visible: tile.value !== 0
+
+                    gradient: Gradient {
+                        GradientStop { position: 0.0; color: Qt.rgba(1, 1, 1, 0.16) }
+                        GradientStop { position: 0.45; color: Qt.rgba(1, 1, 1, 0.03) }
+                        GradientStop { position: 1.0; color: Qt.rgba(0, 0, 0, 0.14) }
+                    }
+                }
 
                 Text {
                     anchors.centerIn: parent

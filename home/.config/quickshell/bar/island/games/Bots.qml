@@ -32,6 +32,9 @@ FocusScope {
 
     signal finished(int score)
 
+    // Where a robot was bashed, so the lane can throw a burst at it.
+    signal bashed(int lane, real at, int worth)
+
     function restart(): void {
         root.robots = []
         root.lives = 3
@@ -104,9 +107,12 @@ FocusScope {
     function bash(index: int): void {
         if (index < 0)
             return
-        root.score += root.robots[index].y > 2 / 3 ? 2 : 1
+        const struck = root.robots[index]
+        const worth = struck.y > 2 / 3 ? 2 : 1
+        root.score += worth
         root.robots = root.robots.map((robot, at) =>
             at === index ? { lane: robot.lane, y: robot.y, squash: 0.001 } : robot)
+        root.bashed(struck.lane, struck.y, worth)
         board.requestPaint()
     }
 
@@ -204,23 +210,43 @@ FocusScope {
                 const cell = root.cell
                 const body = root.body
                 const corner = Math.max(2, Math.round(body * 0.22))
+                const floor = Math.round(cell * 0.26)
 
-                // Lanes, each with its digit underneath.
-                ctx.strokeStyle = Theme.hairline
-                ctx.lineWidth = 1
-                ctx.fillStyle = Qt.rgba(Theme.textMuted.r, Theme.textMuted.g, Theme.textMuted.b, 0.5)
-                ctx.font = Theme.fontSizeSmall + "px '" + Theme.fontMono + "'"
-                ctx.textAlign = "center"
-                ctx.textBaseline = "bottom"
+                // Canvas parses a colour string; a Qt colour with alpha on it
+                // does not survive `addColorStop`.
+                const paintOf = (colour, alpha) =>
+                    `rgba(${Math.round(colour.r * 255)},${Math.round(colour.g * 255)},`
+                    + `${Math.round(colour.b * 255)},${alpha})`
+
+                // Lanes: every other one lifted off the ground, a floor
+                // they are marching at, and the digit that bashes each.
                 for (let lane = 0; lane < root.lanes; lane++) {
+                    if (lane % 2 === 1) {
+                        ctx.fillStyle = paintOf(Theme.indicator, 0.02)
+                        ctx.fillRect(lane * cell, 0, cell, height)
+                    }
                     if (lane > 0) {
+                        ctx.strokeStyle = Theme.hairline
+                        ctx.lineWidth = 1
                         ctx.beginPath()
                         ctx.moveTo(lane * cell + 0.5, 0)
-                        ctx.lineTo(lane * cell + 0.5, height)
+                        ctx.lineTo(lane * cell + 0.5, height - floor)
                         ctx.stroke()
                     }
-                    ctx.fillText(String(lane + 1), lane * cell + cell / 2, height - cell * 0.1)
                 }
+
+                ctx.fillStyle = paintOf(Theme.indicator, 0.05)
+                ctx.fillRect(0, height - floor, width, floor)
+                ctx.fillStyle = paintOf(Theme.red, root.lives < 3 ? 0.5 : 0.25)
+                ctx.fillRect(0, height - floor, width, Math.max(1, cell * 0.012))
+
+                ctx.fillStyle = paintOf(Theme.textMuted, 0.65)
+                ctx.font = Theme.fontSizeSmall + "px '" + Theme.fontMono + "'"
+                ctx.textAlign = "center"
+                ctx.textBaseline = "middle"
+                for (let lane = 0; lane < root.lanes; lane++)
+                    ctx.fillText(String(lane + 1), lane * cell + cell / 2,
+                                 height - floor / 2)
 
                 // A miss flashes its lane red.
                 if (root.missLeft > 0 && root.missLane >= 0) {
@@ -240,37 +266,124 @@ FocusScope {
                     ctx.fill()
                 }
 
-                // Robots: body, two eyes and an antenna, with a slight sway. A
-                // bashed one flattens and fades.
+                // Robots: tracks, a lit body, a visor with two eyes and an
+                // antenna, walking with a slight sway. A bashed one flattens
+                // and fades.
+                const lit = Qt.lighter(root.tint, 1.35)
+                const shade = Qt.darker(root.tint, 1.5)
                 for (const robot of root.robots) {
                     const alive = 1 - robot.squash
-                    const paint = Qt.rgba(root.tint.r, root.tint.g, root.tint.b, alive)
                     const cx = robot.lane * cell + cell / 2
                         + Math.sin(root.ticks / 4 + robot.lane * 1.3) * body * 0.05 * alive
                     const feet = (robot.y + root.half) * root.drop
                     const w = body * (1 + robot.squash * 0.6)
                     const h = body * (1 - robot.squash * 0.85)
-                    ctx.fillStyle = paint
-                    if (robot.squash === 0) {
-                        ctx.strokeStyle = paint
-                        ctx.lineWidth = Math.max(1, Math.round(body * 0.06))
-                        ctx.beginPath()
-                        ctx.moveTo(cx, feet - h)
-                        ctx.lineTo(cx, feet - h - body * 0.2)
-                        ctx.stroke()
-                        ctx.beginPath()
-                        ctx.arc(cx, feet - h - body * 0.24, body * 0.07, 0, Math.PI * 2)
-                        ctx.fill()
-                    }
-                    ctx.beginPath()
-                    ctx.roundedRect(cx - w / 2, feet - h, w, h, corner, corner)
-                    ctx.fill()
-                    ctx.fillStyle = Qt.rgba(Theme.island.r, Theme.island.g, Theme.island.b, alive)
+                    const top = feet - h
+                    const step = Math.sin(root.ticks / 3 + robot.lane) * body * 0.06 * alive
+
+                    // Tracks, one lifted as it walks.
+                    ctx.fillStyle = paintOf(shade, alive)
                     for (const side of [-1, 1]) {
                         ctx.beginPath()
-                        ctx.arc(cx + side * w * 0.2, feet - h * 0.6, body * 0.09, 0, Math.PI * 2)
+                        ctx.roundedRect(cx + side * w * 0.3 - w * 0.19,
+                                        feet - h * 0.1 + (side > 0 ? step : -step),
+                                        w * 0.38, h * 0.2, h * 0.1, h * 0.1)
                         ctx.fill()
                     }
+
+                    // Arms.
+                    for (const side of [-1, 1]) {
+                        ctx.beginPath()
+                        ctx.roundedRect(cx + side * w * 0.49 - w * 0.07, top + h * 0.3,
+                                        w * 0.14, h * 0.42, w * 0.07, w * 0.07)
+                        ctx.fill()
+                    }
+
+                    if (robot.squash === 0) {
+                        ctx.strokeStyle = paintOf(shade, 1)
+                        ctx.lineWidth = Math.max(1, Math.round(body * 0.06))
+                        ctx.beginPath()
+                        ctx.moveTo(cx, top)
+                        ctx.lineTo(cx, top - body * 0.2)
+                        ctx.stroke()
+                        ctx.fillStyle = paintOf(lit, 1)
+                        ctx.beginPath()
+                        ctx.arc(cx, top - body * 0.24, body * 0.08, 0, Math.PI * 2)
+                        ctx.fill()
+                    }
+
+                    // The body, lit from above.
+                    const skin = ctx.createLinearGradient(0, top, 0, feet)
+                    skin.addColorStop(0, paintOf(lit, alive))
+                    skin.addColorStop(0.55, paintOf(root.tint, alive))
+                    skin.addColorStop(1, paintOf(shade, alive))
+                    ctx.fillStyle = skin
+                    ctx.beginPath()
+                    ctx.roundedRect(cx - w / 2, top, w, h, corner, corner)
+                    ctx.fill()
+
+                    // The visor, with an eye at each end of it.
+                    ctx.fillStyle = paintOf(Theme.island, alive * 0.9)
+                    ctx.beginPath()
+                    ctx.roundedRect(cx - w * 0.34, top + h * 0.22, w * 0.68, h * 0.34,
+                                    h * 0.17, h * 0.17)
+                    ctx.fill()
+                    ctx.fillStyle = paintOf(lit, alive)
+                    for (const side of [-1, 1]) {
+                        ctx.beginPath()
+                        ctx.arc(cx + side * w * 0.17, top + h * 0.39, body * 0.075,
+                                0, Math.PI * 2)
+                        ctx.fill()
+                    }
+
+                    // The light on the top edge.
+                    ctx.fillStyle = paintOf(Theme.indicator, alive * 0.22)
+                    ctx.beginPath()
+                    ctx.roundedRect(cx - w * 0.28, top + h * 0.08, w * 0.4, h * 0.08,
+                                    h * 0.04, h * 0.04)
+                    ctx.fill()
+                }
+            }
+        }
+
+        // One burst and one figure per lane, thrown where the robot was.
+        Repeater {
+            model: root.lanes
+
+            Item {
+                id: lane
+
+                required property int index
+
+                anchors.fill: parent
+
+                Connections {
+                    target: root
+
+                    function onBashed(at: int, y: real, worth: int): void {
+                        if (at !== lane.index)
+                            return
+                        hit.y = (y + root.half) * root.drop - root.body / 2 - hit.height / 2
+                        paid.y = hit.y - root.body * 0.4
+                        hit.play()
+                        paid.play(`+${worth}`)
+                    }
+                }
+
+                Burst {
+                    id: hit
+
+                    x: lane.index * root.cell + root.cell / 2 - width / 2
+                    tint: root.tint
+                    spread: root.body * 0.7
+                }
+
+                Pop {
+                    id: paid
+
+                    x: lane.index * root.cell + root.cell / 2 - width / 2
+                    tint: root.tint
+                    rise: root.body * 0.6
                 }
             }
         }
