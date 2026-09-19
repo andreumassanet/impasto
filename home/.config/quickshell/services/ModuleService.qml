@@ -322,13 +322,12 @@ Singleton {
             root.close()
     }
 
-    // Chips cannot see their bar, so they ask here and the bar listens. `from`
-    // ("zone", "island" or "elsewhere") lets the screen with the island answer
-    // for one without it.
-    signal activationRequested(string id, string from)
+    // Chips cannot see their bar, so they ask here and every bar listens. The
+    // live one answers, since the detail opens in its island.
+    signal activationRequested(string id)
 
-    function activate(id: string, from: string): void {
-        root.activationRequested(id, from)
+    function activate(id: string): void {
+        root.activationRequested(id)
     }
 
     // A module asking for a panel, e.g. the games detail opening the arcade.

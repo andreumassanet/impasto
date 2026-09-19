@@ -24,8 +24,16 @@ import "../../services"
 // A notification outranks a transient, which only confirms something the user
 // just did. The summary sits just above rest because it only restates what was
 // already true. Adding a layer means giving it a rank.
+//
+// There is one of these per screen, and only the live one arbitrates: an
+// island that is not stays at rest, whatever arrives.
 QtObject {
     id: root
+
+    // Whether this island is the one being worked on (`Bar.live`). A panel, a
+    // notification or an OSD on two screens at once is one thing shown twice,
+    // so every layer above rest belongs to the live island alone.
+    property bool active: true
 
     // "transient" on its own is a reserved QML keyword, hence the prefix.
     readonly property string layerModules: "modules"
@@ -50,6 +58,8 @@ QtObject {
     property bool summary: false
 
     readonly property string layer: {
+        if (!root.active)
+            return root.layerModules
         if (root.openPanel !== "")
             return root.layerPanel
         if (NotificationService.active)
@@ -63,6 +73,18 @@ QtObject {
 
     readonly property bool expanded: root.openPanel !== ""
 
+    // Handing the island to another screen puts this one back to rest at once:
+    // the layer is already forced above, and what is left is the state behind
+    // it, which would otherwise come back when the island returned.
+    onActiveChanged: {
+        if (root.active)
+            return
+        root.openPanel = ""
+        root.summary = false
+        root.transientActive = false
+        root.expiry.stop()
+    }
+
     readonly property Timer expiry: Timer {
         interval: root.transientDuration
         onTriggered: root.transientActive = false
@@ -73,6 +95,7 @@ QtObject {
     // showing it then would look like a ghost.
     readonly property Connections osd: Connections {
         target: OsdService
+        enabled: root.active
 
         function onRequested(icon: string, label: string, progress: real): void {
             if (root.openPanel !== "")
@@ -86,6 +109,8 @@ QtObject {
     }
 
     function open(panel: string): void {
+        if (!root.active)
+            return
         // A panel takes over immediately; whatever was flashing is now noise.
         root.transientActive = false
         root.expiry.stop()

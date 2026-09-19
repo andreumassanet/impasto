@@ -28,10 +28,6 @@ Item {
 
     property string moduleId: ""
 
-    // Where a click comes from: "zone" on the island's own screen,
-    // "elsewhere" on the others, whose bar has no island to open it in.
-    property string origin: "zone"
-
     property bool alone: false
 
     // The piece's own look, "" for the bar's (`SettingsService.barItems`).
@@ -112,7 +108,7 @@ Item {
                 ModuleService.togglePanel(root.door.panel)
             // The player with no player open has nothing to open onto.
             else if (ModuleService.has(root.moduleId))
-                ModuleService.activate(root.moduleId, root.origin)
+                ModuleService.activate(root.moduleId)
         }
     }
 }

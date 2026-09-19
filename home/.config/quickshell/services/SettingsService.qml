@@ -33,6 +33,7 @@ Singleton {
     readonly property alias barFullWidth: config.barFullWidth
     readonly property alias barSideMargin: config.barSideMargin
     readonly property alias barStyle: config.barStyle
+    readonly property alias barEverywhere: config.barEverywhere
     readonly property alias barLeft: config.barLeft
     readonly property alias barRight: config.barRight
     readonly property alias islandSummary: config.islandSummary
@@ -90,7 +91,6 @@ Singleton {
     readonly property alias compositor: config.compositor
     readonly property alias keyboard: config.keyboard
     readonly property alias displays: config.displays
-    readonly property alias islandFollows: config.islandFollows
     readonly property alias keys: config.keys
     readonly property alias launcherPrefixes: config.launcherPrefixes
     readonly property alias cursorColor: config.cursorColor
@@ -282,7 +282,7 @@ Singleton {
     // the person: kept across switches, left out of exports and untouched by
     // Reset. The recorder and capture entries are last-used state.
     readonly property var machineKeys: [
-        "displays", "islandFollows", "lidPolicy",
+        "displays", "lidPolicy",
         "userName", "userAvatar", "language", "keyboard", "weatherPlace", "githubUser",
         "doNotDisturb", "nightLight", "nightTemperature",
         "recorderAudio", "recorderShape", "captureShape", "captureKind"
@@ -449,6 +449,10 @@ Singleton {
 
         property int barSideMargin: 18
 
+        // A bar on every screen, or only on the one being worked on. The
+        // surface is on every screen either way: this is whether it paints.
+        property bool barEverywhere: true
+
         property bool windowShadow: false
 
         // hyprglass. Dimmed in the settings when the plugin is not built;
@@ -581,10 +585,6 @@ Singleton {
         //
         // Fields are defined by `monitors.py`.
         property var displays: ({})
-
-        // Whether the island rides to the screen the keyboard is on. Off, it
-        // stays on the primary screen. The desktop and the deck never move.
-        property bool islandFollows: false
 
         // ── KEYS ────────────────────────────────────────────────────────
         //

@@ -27,6 +27,11 @@ Rectangle {
     readonly property alias state: islandState
     readonly property bool expanded: islandState.expanded
 
+    // The island is drawn on every screen; one of them is the one being
+    // worked on (`Bar.live`) and the rest are this shape at rest. Only the
+    // live one opens anything, and `IslandState` is where that is enforced.
+    property bool active: true
+
     // While a note is open the island is the note: paper to the edge, with no
     // rim or padding.
     readonly property bool paper: islandState.openPanel === "notes" && NotesService.opened !== ""
@@ -173,6 +178,8 @@ Rectangle {
 
     IslandState {
         id: islandState
+
+        active: root.active
     }
 
     // ── GLANCE ──────────────────────────────────────────────────────────────
@@ -197,6 +204,7 @@ Rectangle {
         && (collapsedLoader.item?.busy ?? false)
 
     readonly property bool canSummarise: SettingsService.islandSummary
+        && root.active
         && !root.summaryHeld
         && !root.landing
         && ModuleService.openId === ""

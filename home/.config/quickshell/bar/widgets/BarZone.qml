@@ -27,8 +27,6 @@ Row {
     // Inside the one capsule, where the band is already the ground.
     property bool chromeless: false
 
-    property string origin: "zone"
-
     readonly property var groups: {
         const out = []
         let chips = []
@@ -62,7 +60,6 @@ Row {
             kind: modelData.kind
             items: modelData.items
             chromeless: root.chromeless
-            origin: root.origin
         }
     }
 
@@ -72,7 +69,6 @@ Row {
         property string kind: "chips"
         property var items: []
         property bool chromeless: false
-        property string origin: "zone"
 
         readonly property bool workspaces: group.kind === "workspaces"
 
@@ -169,7 +165,6 @@ Row {
                         ownShape: modelData.shape
                         ownFigure: modelData.figure
                         ownWhen: modelData.when ?? ""
-                        origin: group.origin
                         alone: group.alone
                     }
                 }

@@ -32,10 +32,35 @@ import "../components"
 // Every detail opens in the island. The window is full-screen and never
 // resizes; the input mask covers the bar and the island, and a focus grab
 // closes the island on any click outside it.
+//
+// ── ONE PER SCREEN, ONE LIVE ────────────────────────────────────────────────
+//
+// There is one of these on every screen and exactly one of them is `live`:
+// the screen being worked on. The live bar opens panels, holds the keyboard
+// and shows whatever arrives; the rest are the same bar with the island at
+// rest, which is what the other screens were already drawing. So the island
+// crossing screens is a flag changing hands — nothing is built, nothing is
+// torn down, and what is under the pointer is always the one that answers it.
 PanelWindow {
     id: root
 
     readonly property alias island: island
+
+    // Whether this is the screen being worked on (`shell.qml`). Everything
+    // below that touches state the whole shell shares is gated on it, because
+    // every screen runs a copy of this file.
+    required property bool live
+
+    // Whether this one is drawn at all. The surface is on every screen
+    // either way and the reserve is `BarReserve`'s, which never moves, so a
+    // desk set to one bar costs no window a re-tile when a hand crosses.
+    readonly property bool painted: root.live || SettingsService.barEverywhere
+
+    // The compositor's focus follows the pointer, so by the time anything here
+    // is clicked this screen is already the live one. Said outright for the
+    // case that is not a journey across the screen: a pointer warped onto the
+    // bar, or a compositor not set to follow it.
+    signal claimed()
 
     // Distance from the screen edge to the ends. Matches the compositor's
     // outer gap so the bar lines up with tiled windows.
@@ -171,15 +196,17 @@ PanelWindow {
 
     // No input at all while desktop widgets are being arranged: dragging one
     // over the bar would move the pointer to this surface, and the desktop
-    // would drop the widget.
+    // would drop the widget. None either where nothing is painted.
+    readonly property bool inert: DesktopService.editing || !root.painted
+
     mask: Region {
-        width: DesktopService.editing ? 0 : root.width
-        height: DesktopService.editing ? 0
+        width: root.inert ? 0 : root.width
+        height: root.inert ? 0
             : root.wholeScreen ? root.height : root.collapsedHeight
 
         Region {
             x: root.shapeLeft
-            width: DesktopService.editing ? 0 : root.shapeRight - root.shapeLeft
+            width: root.inert ? 0 : root.shapeRight - root.shapeLeft
             height: root.islandTopMargin + island.height + 12
         }
     }
@@ -200,7 +227,8 @@ PanelWindow {
     // other surface clears it, which closes the island. The compositor
     // restores focus when the grab ends. Both stand down while the capture
     // surface is up, so an open panel waits under it instead of closing.
-    readonly property bool holdsKeyboard: island.expanded && !CaptureService.active
+    readonly property bool holdsKeyboard: root.live && island.expanded
+        && !CaptureService.active
 
     WlrLayershell.keyboardFocus: root.holdsKeyboard
         ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
@@ -211,12 +239,16 @@ PanelWindow {
         onCleared: root.dismiss()
     }
 
+    HoverHandler {
+        onHoveredChanged: if (hovered) root.claimed()
+    }
+
     // ── OPENING A DETAIL ────────────────────────────────────────────────────
     //
     // Every activation on the bar comes through here
     // (`ModuleService.activate`). Clicking the open module again closes it; any
     // other replaces it.
-    function activate(id: string, from: string): void {
+    function activate(id: string): void {
         if (ModuleService.openId === id) {
             root.dismiss()
             return
@@ -234,11 +266,14 @@ PanelWindow {
         ModuleService.close()
     }
 
+    // Every bar hears these; only the live one answers, since the panel opens
+    // in its island.
     Connections {
         target: ModuleService
+        enabled: root.live
 
-        function onActivationRequested(id: string, from: string): void {
-            root.activate(id, from)
+        function onActivationRequested(id: string): void {
+            root.activate(id)
         }
 
         // Bar buttons for panels (launcher, overview) toggle them.
@@ -253,11 +288,13 @@ PanelWindow {
         }
     }
 
-    // Lets a bar button stay lit while its panel is open.
+    // Lets a bar button stay lit while its panel is open. One writer: the
+    // live bar, since two bars binding the same property is a conflict.
     Binding {
         target: ModuleService
         property: "shownPanel"
         value: island.state.openPanel
+        when: root.live
     }
 
     Connections {
@@ -278,252 +315,271 @@ PanelWindow {
         onClicked: root.dismiss()
     }
 
-    // ── SHADOW ──────────────────────────────────────────────────────────────
+    // ── THE FACE ────────────────────────────────────────────────────────────
     //
-    // Same numbers and setting as the window shadow. The band, the island and
-    // the notch fillets touch, so they share one flattened layer; separate
-    // shadows would draw a seam where they overlap. The side capsules cast
-    // their own (`BarZone`).
-    //
-    // Cast from a copy of the shapes: layering the real bar would re-blur the
-    // full-screen surface every time the clock or the spectrum repaints.
-    //
-    // The copy is grown by `Theme.shadowBarSpread` and blurred. MultiEffect's
-    // `shadowEnabled` would also draw the source, showing the enlarged copy as
-    // a black rim. `layer.effect` rather than a hidden `source` item, which
-    // does not work inside a Repeater.
-    Loader {
-        anchors.fill: parent
-        active: SettingsService.windowShadow
-        sourceComponent: shadowBody
-    }
-
-    Component {
-        id: shadowBody
-
-        Item {
-            id: caster
-
-            anchors.fill: parent
-            opacity: Theme.shadowOpacity
-
-            layer.enabled: true
-            layer.effect: MultiEffect {
-                blurEnabled: true
-                blur: 1
-                blurMax: Theme.shadowBarRange - Theme.shadowBarSpread
-            }
-
-            readonly property int spread: Theme.shadowBarSpread
-
-            Rectangle {
-                x: band.x - caster.spread
-                y: band.y - caster.spread
-                width: band.width + 2 * caster.spread
-                height: band.height + 2 * caster.spread
-                radius: band.radius + caster.spread
-                topLeftRadius: band.topLeftRadius > 0 ? band.topLeftRadius + caster.spread : 0
-                topRightRadius: band.topRightRadius > 0 ? band.topRightRadius + caster.spread : 0
-                visible: body.visible
-                color: Theme.shadowColor
-            }
-
-            Rectangle {
-                x: root.islandLeft - caster.spread
-                y: island.y - caster.spread
-                width: island.width + 2 * caster.spread
-                height: island.height + 2 * caster.spread
-                radius: island.radius + caster.spread
-                topLeftRadius: island.topLeftRadius > 0 ? island.topLeftRadius + caster.spread : 0
-                topRightRadius: island.topRightRadius > 0 ? island.topRightRadius + caster.spread : 0
-                color: Theme.shadowColor
-            }
-
-            Repeater {
-                model: [notchLeft, notchRight]
-
-                NotchFillet {
-                    required property var modelData
-
-                    x: modelData.x
-                    y: modelData.y
-                    width: modelData.width
-                    height: modelData.height
-                    visible: modelData.visible
-                    opacity: modelData.opacity
-                    mirrored: modelData.mirrored
-                    color: Theme.shadowColor
-                }
-            }
-
-        }
-    }
-
-    // ── BAND ────────────────────────────────────────────────────────────────
-    //
-    // Two shapes of the same black: the band, and the island on top of it.
-    // Neither has an outline, which would draw the seam between them.
+    // Everything this bar draws. The surface stays on every screen whatever
+    // `barEverywhere` says, so the reserve never moves and no window is ever
+    // re-tiled by a hand crossing; what the setting decides is only whether
+    // this is painted. Nothing is built or torn down either way.
     Item {
-        id: body
+        id: face
 
         anchors.fill: parent
-        visible: root.unified
+        visible: root.painted || face.opacity > 0
+        opacity: root.painted ? 1 : 0
 
-        // Grows with the island; at rest both share height and radius.
-        Rectangle {
-            id: band
-
-            x: root.bandX
-            y: root.islandTopMargin
-            width: root.bandWidth
-            height: Math.max(root.bandRow, island.height)
-            radius: island.radius
-            topLeftRadius: SettingsService.islandAttached ? 0 : band.radius
-            topRightRadius: SettingsService.islandAttached ? 0 : band.radius
-            color: island.surfaceColor
-
-            Behavior on color { ColorAnimation { duration: Theme.durationFast } }
-
-            // Clicking the band opens the island. The sides sit above it and
-            // take their own clicks.
-            MouseArea {
-                anchors.fill: parent
-                cursorShape: Qt.PointingHandCursor
-                onClicked: island.open("controls")
-            }
+        Behavior on opacity {
+            NumberAnimation { duration: Theme.durationFast; easing.type: Theme.easing }
         }
-    }
 
-    DynamicIsland {
-        id: island
-
-        hosted: root.unified
-        roomForPanel: root.panelRoom
-        anchors.horizontalCenter: parent.horizontalCenter
-        anchors.top: parent.top
-        anchors.topMargin: root.islandTopMargin
-
-        Behavior on anchors.topMargin {
-            enabled: island.animated
-            NumberAnimation { duration: Theme.durationMedium; easing.type: Theme.easing }
-        }
-    }
-
-    // The island's hairline, drawn round the band once it takes the island's
-    // shape. Above both, since the opaque island covers the band's own edge.
-    // None at rest and none in paper mode.
-    Rectangle {
-        id: outline
-
-        x: band.x
-        y: band.y
-        width: band.width
-        height: band.height
-        radius: band.radius
-        topLeftRadius: band.topLeftRadius
-        topRightRadius: band.topRightRadius
-        visible: root.unified && !island.paper
-        color: "transparent"
-        border.width: 1
-        border.color: root.islandTaken ? Theme.islandBorder : "transparent"
-
-        Behavior on border.color { ColorAnimation { duration: Theme.durationMedium } }
-    }
-
-    // The control centre's tray card while its grid is being arranged. On this
-    // surface so blocks can be dragged from it onto the island; it fills the
-    // surface and starts under the island.
-    Item {
-        id: overlay
-
-        anchors.fill: parent
-        z: 3
-
+        // ── SHADOW ──────────────────────────────────────────────────────────────
+        //
+        // Same numbers and setting as the window shadow. The band, the island and
+        // the notch fillets touch, so they share one flattened layer; separate
+        // shadows would draw a seam where they overlap. The side capsules cast
+        // their own (`BarZone`).
+        //
+        // Cast from a copy of the shapes: layering the real bar would re-blur the
+        // full-screen surface every time the clock or the spectrum repaints.
+        //
+        // The copy is grown by `Theme.shadowBarSpread` and blurred. MultiEffect's
+        // `shadowEnabled` would also draw the source, showing the enlarged copy as
+        // a black rim. `layer.effect` rather than a hidden `source` item, which
+        // does not work inside a Repeater.
         Loader {
             anchors.fill: parent
-            active: ControlsService.editing
-            sourceComponent: ControlsTray {
-                host: overlay
-                homeTop: root.islandTopMargin + island.height + Theme.desktopGutter
+            active: SettingsService.windowShadow
+            sourceComponent: shadowBody
+        }
+
+        Component {
+            id: shadowBody
+
+            Item {
+                id: caster
+
+                anchors.fill: parent
+                opacity: Theme.shadowOpacity
+
+                layer.enabled: true
+                layer.effect: MultiEffect {
+                    blurEnabled: true
+                    blur: 1
+                    blurMax: Theme.shadowBarRange - Theme.shadowBarSpread
+                }
+
+                readonly property int spread: Theme.shadowBarSpread
+
+                Rectangle {
+                    x: band.x - caster.spread
+                    y: band.y - caster.spread
+                    width: band.width + 2 * caster.spread
+                    height: band.height + 2 * caster.spread
+                    radius: band.radius + caster.spread
+                    topLeftRadius: band.topLeftRadius > 0 ? band.topLeftRadius + caster.spread : 0
+                    topRightRadius: band.topRightRadius > 0 ? band.topRightRadius + caster.spread : 0
+                    visible: body.visible
+                    color: Theme.shadowColor
+                }
+
+                Rectangle {
+                    x: root.islandLeft - caster.spread
+                    y: island.y - caster.spread
+                    width: island.width + 2 * caster.spread
+                    height: island.height + 2 * caster.spread
+                    radius: island.radius + caster.spread
+                    topLeftRadius: island.topLeftRadius > 0 ? island.topLeftRadius + caster.spread : 0
+                    topRightRadius: island.topRightRadius > 0 ? island.topRightRadius + caster.spread : 0
+                    color: Theme.shadowColor
+                }
+
+                Repeater {
+                    model: [notchLeft, notchRight]
+
+                    NotchFillet {
+                        required property var modelData
+
+                        x: modelData.x
+                        y: modelData.y
+                        width: modelData.width
+                        height: modelData.height
+                        visible: modelData.visible
+                        opacity: modelData.opacity
+                        mirrored: modelData.mirrored
+                        color: Theme.shadowColor
+                    }
+                }
+
             }
         }
-    }
 
-    // Notch fillets flaring from the island's edges out to the screen edge.
-    // In one capsule they follow whichever edge is further out, the band's or
-    // the island's, since a spring curve can push the island past the band.
-    NotchFillet {
-        id: notchLeft
+        // ── BAND ────────────────────────────────────────────────────────────────
+        //
+        // Two shapes of the same black: the band, and the island on top of it.
+        // Neither has an outline, which would draw the seam between them.
+        Item {
+            id: body
 
-        x: (root.unified ? Math.min(root.bandX, root.islandLeft) : root.islandLeft) - width
-        anchors.top: parent.top
-        visible: SettingsService.islandAttached
-        mirrored: true
-        color: island.surfaceColor
-    }
+            anchors.fill: parent
+            visible: root.unified
 
-    NotchFillet {
-        id: notchRight
+            // Grows with the island; at rest both share height and radius.
+            Rectangle {
+                id: band
 
-        x: root.unified ? Math.max(root.bandX + root.bandWidth, root.islandRight) : root.islandRight
-        anchors.top: parent.top
-        visible: SettingsService.islandAttached
-        color: island.surfaceColor
-    }
+                x: root.bandX
+                y: root.islandTopMargin
+                width: root.bandWidth
+                height: Math.max(root.bandRow, island.height)
+                radius: island.radius
+                topLeftRadius: SettingsService.islandAttached ? 0 : band.radius
+                topRightRadius: SettingsService.islandAttached ? 0 : band.radius
+                color: island.surfaceColor
 
-    // ── SIDES ───────────────────────────────────────────────────────────────
-    //
-    // Grouped, the sides are anchored to the island's animated edges, so they
-    // move aside on its clock with nothing else to animate. Spread, they stay
-    // in the corners. In one capsule they are the band's ends; while it morphs
-    // they are clipped by it and fade out faster than it closes.
-    Item {
-        id: sides
+                Behavior on color { ColorAnimation { duration: Theme.durationFast } }
 
-        readonly property bool cropped: root.unified && root.bandInto > 0
-
-        x: sides.cropped ? band.x : 0
-        y: 0
-        width: sides.cropped ? band.width : root.width
-        height: root.height
-        clip: sides.cropped
-
-        BarZone {
-            id: leftZone
-
-            entries: SettingsService.barItems("left")
-            chromeless: root.unified
-            x: (root.unified ? root.bodyX + root.hostedInset
-                : root.spread ? root.edgeMargin
-                : root.islandLeft - Theme.capsuleSpacing - leftZone.width) - sides.x
-            y: root.laneY
-            opacity: root.sidesAway ? 0 : 1
-            visible: opacity > 0
-
-            Behavior on opacity {
-                NumberAnimation {
-                    duration: root.unified && root.sidesAway ? Theme.durationFast : Theme.durationMedium
-                    easing.type: Theme.easing
+                // Clicking the band opens the island. The sides sit above it and
+                // take their own clicks.
+                MouseArea {
+                    anchors.fill: parent
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: island.open("controls")
                 }
             }
         }
 
-        BarZone {
-            id: rightZone
+        DynamicIsland {
+            id: island
 
-            entries: SettingsService.barItems("right")
-            chromeless: root.unified
-            x: (root.unified ? root.bodyX + root.bodyWidth - root.hostedInset - rightZone.width
-                : root.spread ? root.width - root.edgeMargin - rightZone.width
-                : root.islandRight + Theme.capsuleSpacing) - sides.x
-            y: root.laneY
-            opacity: root.sidesAway ? 0 : 1
-            visible: opacity > 0
+            active: root.live
+            hosted: root.unified
+            roomForPanel: root.panelRoom
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.top: parent.top
+            anchors.topMargin: root.islandTopMargin
 
-            Behavior on opacity {
-                NumberAnimation {
-                    duration: root.unified && root.sidesAway ? Theme.durationFast : Theme.durationMedium
-                    easing.type: Theme.easing
+            Behavior on anchors.topMargin {
+                enabled: island.animated
+                NumberAnimation { duration: Theme.durationMedium; easing.type: Theme.easing }
+            }
+        }
+
+        // The island's hairline, drawn round the band once it takes the island's
+        // shape. Above both, since the opaque island covers the band's own edge.
+        // None at rest and none in paper mode.
+        Rectangle {
+            id: outline
+
+            x: band.x
+            y: band.y
+            width: band.width
+            height: band.height
+            radius: band.radius
+            topLeftRadius: band.topLeftRadius
+            topRightRadius: band.topRightRadius
+            visible: root.unified && !island.paper
+            color: "transparent"
+            border.width: 1
+            border.color: root.islandTaken ? Theme.islandBorder : "transparent"
+
+            Behavior on border.color { ColorAnimation { duration: Theme.durationMedium } }
+        }
+
+        // The control centre's tray card while its grid is being arranged. On this
+        // surface so blocks can be dragged from it onto the island; it fills the
+        // surface and starts under the island.
+        Item {
+            id: overlay
+
+            anchors.fill: parent
+            z: 3
+
+            Loader {
+                anchors.fill: parent
+                active: root.live && ControlsService.editing
+                sourceComponent: ControlsTray {
+                    host: overlay
+                    homeTop: root.islandTopMargin + island.height + Theme.desktopGutter
+                }
+            }
+        }
+
+        // Notch fillets flaring from the island's edges out to the screen edge.
+        // In one capsule they follow whichever edge is further out, the band's or
+        // the island's, since a spring curve can push the island past the band.
+        NotchFillet {
+            id: notchLeft
+
+            x: (root.unified ? Math.min(root.bandX, root.islandLeft) : root.islandLeft) - width
+            anchors.top: parent.top
+            visible: SettingsService.islandAttached
+            mirrored: true
+            color: island.surfaceColor
+        }
+
+        NotchFillet {
+            id: notchRight
+
+            x: root.unified ? Math.max(root.bandX + root.bandWidth, root.islandRight) : root.islandRight
+            anchors.top: parent.top
+            visible: SettingsService.islandAttached
+            color: island.surfaceColor
+        }
+
+        // ── SIDES ───────────────────────────────────────────────────────────────
+        //
+        // Grouped, the sides are anchored to the island's animated edges, so they
+        // move aside on its clock with nothing else to animate. Spread, they stay
+        // in the corners. In one capsule they are the band's ends; while it morphs
+        // they are clipped by it and fade out faster than it closes.
+        Item {
+            id: sides
+
+            readonly property bool cropped: root.unified && root.bandInto > 0
+
+            x: sides.cropped ? band.x : 0
+            y: 0
+            width: sides.cropped ? band.width : root.width
+            height: root.height
+            clip: sides.cropped
+
+            BarZone {
+                id: leftZone
+
+                entries: SettingsService.barItems("left")
+                chromeless: root.unified
+                x: (root.unified ? root.bodyX + root.hostedInset
+                    : root.spread ? root.edgeMargin
+                    : root.islandLeft - Theme.capsuleSpacing - leftZone.width) - sides.x
+                y: root.laneY
+                opacity: root.sidesAway ? 0 : 1
+                visible: opacity > 0
+
+                Behavior on opacity {
+                    NumberAnimation {
+                        duration: root.unified && root.sidesAway ? Theme.durationFast : Theme.durationMedium
+                        easing.type: Theme.easing
+                    }
+                }
+            }
+
+            BarZone {
+                id: rightZone
+
+                entries: SettingsService.barItems("right")
+                chromeless: root.unified
+                x: (root.unified ? root.bodyX + root.bodyWidth - root.hostedInset - rightZone.width
+                    : root.spread ? root.width - root.edgeMargin - rightZone.width
+                    : root.islandRight + Theme.capsuleSpacing) - sides.x
+                y: root.laneY
+                opacity: root.sidesAway ? 0 : 1
+                visible: opacity > 0
+
+                Behavior on opacity {
+                    NumberAnimation {
+                        duration: root.unified && root.sidesAway ? Theme.durationFast : Theme.durationMedium
+                        easing.type: Theme.easing
+                    }
                 }
             }
         }

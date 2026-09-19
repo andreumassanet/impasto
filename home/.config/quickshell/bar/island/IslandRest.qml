@@ -106,7 +106,7 @@ Item {
                 if (segment.activityId === "recorder")
                     RecorderService.toggle(CaptureService.settle)
                 else
-                    ModuleService.activate(segment.activityId, "island")
+                    ModuleService.activate(segment.activityId)
             }
         }
 

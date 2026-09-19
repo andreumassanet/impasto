@@ -182,12 +182,8 @@ SettingsSection {
 
             SettingRow {
                 visible: root.monitors.length > 1
-                label: Tr.t("The island is on")
-                reading: SettingsService.islandFollows
-                    ? Tr.t("Whichever screen you are typing on")
-                    : MonitorService.effectivePrimaryName
-                locked: SettingsService.islandFollows
-                reason: Tr.t("The island is following the keyboard")
+                label: Tr.t("The main screen")
+                reading: Tr.t("Where anything with no screen of its own goes, and what mirroring copies.")
 
                 SegmentedControl {
                     options: root.screenOptions
@@ -196,17 +192,6 @@ SettingsSection {
                             ?.description ?? "")
                         : ""
                     onSelected: id => MonitorService.rememberPrimary(id)
-                }
-            }
-
-            SettingRow {
-                visible: root.monitors.length > 1
-                label: Tr.t("The island follows you")
-                reading: Tr.t("It rides to the screen with the keyboard, once nothing on it is open")
-
-                ToggleSwitch {
-                    checked: SettingsService.islandFollows
-                    onToggled: on => SettingsService.set("islandFollows", on)
                 }
             }
         }

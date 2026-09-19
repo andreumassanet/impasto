@@ -64,14 +64,17 @@ ShellRoot {
     // whose ShellScreen is destroyed (output unplugged) does not recover when
     // handed a new one; Variants destroys and rebuilds the window with the
     // list, which does.
-    // The island is on one screen: the primary, or the screen with the
-    // keyboard where the desk is set to follow it. It moves only while the
-    // island is at rest — moving one that is open is a panel closing itself.
+
+    // The island is the same bar on every screen, and one of them is LIVE: the
+    // screen being worked on. It changes hands the moment the focus does —
+    // nothing is created and nothing is destroyed, so the crossing costs no
+    // frame and what is under the pointer is always what answers it. It waits
+    // only while a panel is open, since moving then is a panel closing itself.
+    // The primary is the fallback, and is where the widgets and the decks stay
+    // whatever the island does.
     property string islandName: MonitorService.effectivePrimaryName
 
     readonly property string wantedIslandName: {
-        if (!SettingsService.islandFollows)
-            return MonitorService.effectivePrimaryName
         const focused = HyprlandService.focusedMonitor
         for (const screen of Quickshell.screens)
             if (screen.name === focused)
@@ -82,9 +85,16 @@ ShellRoot {
     onWantedIslandNameChanged: root.settleIsland()
 
     function settleIsland(): void {
-        if (root.islandName === root.wantedIslandName || (root.island?.expanded ?? false))
+        root.claimIsland(root.wantedIslandName)
+    }
+
+    // A bar saying the pointer is on it (`Bar.claimed`), which is the same
+    // answer the compositor's focus gives a moment earlier — except when the
+    // pointer was warped there rather than walked.
+    function claimIsland(name: string): void {
+        if (name === "" || root.islandName === name || (root.island?.expanded ?? false))
             return
-        root.islandName = root.wantedIslandName
+        root.islandName = name
     }
 
     readonly property Connections islandRests: Connections {
@@ -95,33 +105,35 @@ ShellRoot {
         }
     }
 
-    readonly property var islandScreens: {
-        let chosen = null
+    // `islandName` with a screen that is not plugged in resolved away, so an
+    // output leaving never leaves every bar inert.
+    readonly property string liveScreenName: {
         for (const screen of Quickshell.screens)
             if (screen.name === root.islandName)
-                chosen = screen
-        chosen = chosen ?? MonitorService.primaryScreen
-        return chosen ? [chosen] : []
+                return root.islandName
+        return MonitorService.effectivePrimaryName
     }
 
-    // Built rather than filtered: `Quickshell.screens` is a QML list and has
-    // no `filter`.
-    readonly property var secondaryScreens: {
-        const island = root.islandScreens[0] ?? null
-        const rest = []
-        for (const screen of Quickshell.screens)
-            if (!island || screen.name !== island.name)
-                rest.push(screen)
-        return rest
+    // The live bar's island. Notifiable through `instances` and through each
+    // bar's own `live`, so it follows the flag rather than a window.
+    readonly property var island: {
+        for (const bar of bars.instances)
+            if (bar.live)
+                return bar.island
+        return null
     }
-
-    // Follows the bar when it is rebuilt on another screen.
-    readonly property var island: islandBars.instances[0]?.island ?? null
 
     // ── BARS ────────────────────────────────────────────────────────────────
     //
-    // One island, on one screen; every other screen gets a bar without it.
-    // Two islands would draw the same state twice.
+    // One bar per screen, exactly one of them live. A layer surface cannot
+    // change output — handed another screen it is destroyed and a new one is
+    // created — so an island that travelled was a bar built on the far screen
+    // and torn down on this one, with its clock and its workspaces animating
+    // in from nothing over the identical drawing already there. Measured on
+    // two screens: the hour greyed out and the workspace pill slid back from
+    // the wrong screen's, for about 290 ms, every crossing. Every screen
+    // carrying the whole bar and one flag deciding which is live costs one
+    // transparent surface per screen and no frames at all.
 
     // The space the bars keep, held per screen and never rebuilt, so swapping
     // one kind of bar for another moves no windows.
@@ -136,24 +148,17 @@ ShellRoot {
     }
 
     Variants {
-        id: islandBars
+        id: bars
 
-        model: root.islandScreens
+        model: Quickshell.screens
 
         Bar {
             required property var modelData
 
             screen: modelData
-        }
-    }
+            live: modelData.name === root.liveScreenName
 
-    Variants {
-        model: root.secondaryScreens
-
-        SecondBar {
-            required property var modelData
-
-            screen: modelData
+            onClaimed: root.claimIsland(modelData.name)
         }
     }
 
@@ -526,4 +531,5 @@ ShellRoot {
             Quickshell.reload(false)
         }
     }
+
 }

@@ -119,6 +119,19 @@ SettingsSection {
             }
 
             SettingRow {
+                visible: Quickshell.screens.length > 1
+                label: Tr.t("On every screen")
+                reading: SettingsService.barEverywhere
+                    ? Tr.t("One on each, and the one you are on is the live one")
+                    : Tr.t("Only on the screen you are on")
+
+                ToggleSwitch {
+                    checked: SettingsService.barEverywhere
+                    onToggled: checked => SettingsService.set("barEverywhere", checked)
+                }
+            }
+
+            SettingRow {
                 label: Tr.t("A glance on hover")
                 reading: SettingsService.islandSummary
                     ? Tr.t("Resting the pointer on the island opens it")

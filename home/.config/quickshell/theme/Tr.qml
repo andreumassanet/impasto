@@ -406,6 +406,10 @@ QtObject {
             "Windows tile around it": "Las ventanas se colocan alrededor",
             "Windows pass under it": "Las ventanas pasan por debajo",
             "Nothing is reserved while it hides": "No se reserva nada mientras se oculta",
+            "On every screen": "En todas las pantallas",
+            "Only on the screen you are on": "Solo en la pantalla en la que estás",
+            "One on each, and the one you are on is the live one":
+                "Una en cada una, y la de tu pantalla es la que funciona",
             "Hide until pointed at": "Ocultar hasta apuntarlo",
             "Kept on it": "Guardadas en él",
             "These stay whether they are running or not, and they lead the launcher's list too.":
@@ -574,14 +578,9 @@ QtObject {
             "Extended across all of them": "Repartido entre todas",
             "Extend": "Extender",
             "Mirror": "Duplicar",
-            "The island is on": "La isla está en",
-            "Whichever screen you are typing on":
-                "La pantalla en la que estés escribiendo",
-            "The island is following the keyboard":
-                "La isla está siguiendo al teclado",
-            "The island follows you": "La isla te sigue",
-            "It rides to the screen with the keyboard, once nothing on it is open":
-                "Se va a la pantalla del teclado, en cuanto no haya nada abierto en ella",
+            "The main screen": "La pantalla principal",
+            "Where anything with no screen of its own goes, and what mirroring copies.":
+                "Donde va lo que no tiene pantalla propia, y lo que duplican las demás.",
             "This arrangement": "Esta disposición",
             "Kept against these screens and no others.":
                 "Guardada para estas pantallas y ninguna otra.",
