@@ -37,6 +37,9 @@ PanelWindow {
         || (root.selection.width > 1 && root.selection.height > 1)
 
     visible: CaptureService.active
+    // The screen the photograph was taken of, so the picture is this screen
+    // at its own size and the pointer lands where it looks.
+    screen: CaptureService.screen
     color: "transparent"
 
     exclusionMode: ExclusionMode.Ignore
@@ -288,18 +291,21 @@ PanelWindow {
 
     // ── WINDOW LOOKUP ───────────────────────────────────────────────────────
 
-    // Topmost window containing the point. The surface covers the screen from
-    // its origin, so its coordinates are the compositor's. hyprctl lists
-    // windows bottom to top, so the last match is the visible one.
+    // Topmost window containing the point. The surface covers one screen, so
+    // its coordinates start at that screen's corner and hyprctl's start at the
+    // compositor's; the corner is added to ask and taken off to answer.
+    // hyprctl lists windows bottom to top, so the last match is the visible one.
     function windowUnder(x: real, y: real): rect {
         const clients = HyprlandService.clientsOn(HyprlandService.activeId)
+        const left = root.screen?.x ?? 0
+        const top = root.screen?.y ?? 0
         let found = Qt.rect(0, 0, 0, 0)
         for (const client of clients) {
             const at = client.at ?? [0, 0]
             const size = client.size ?? [0, 0]
-            if (x >= at[0] && x <= at[0] + size[0]
-                && y >= at[1] && y <= at[1] + size[1])
-                found = Qt.rect(at[0], at[1], size[0], size[1])
+            if (x + left >= at[0] && x + left <= at[0] + size[0]
+                && y + top >= at[1] && y + top <= at[1] + size[1])
+                found = Qt.rect(at[0] - left, at[1] - top, size[0], size[1])
         }
         return found
     }

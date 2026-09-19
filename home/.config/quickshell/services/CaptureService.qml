@@ -56,8 +56,18 @@ Singleton {
     // from the photo. It is the island's close animation, 0 with motion off.
     readonly property int settle: Theme.durationIslandGone
 
+    // The screen being photographed: the one with the keyboard when the key
+    // was pressed, so a second monitor is not in the picture and the surface
+    // opens where the work is. Held for as long as the capture lasts.
+    property string screenName: ""
+
+    readonly property var screen: {
+        const named = Quickshell.screens.find(screen => screen.name === root.screenName)
+        return named ?? MonitorService.primaryScreen ?? Quickshell.screens[0] ?? null
+    }
+
     readonly property real ratio: {
-        const screen = Quickshell.screens.length > 0 ? Quickshell.screens[0] : null
+        const screen = root.screen
         if (!screen || screen.width <= 0 || root.photoWidth <= 0)
             return 1
         return root.photoWidth / screen.width
@@ -107,6 +117,7 @@ Singleton {
         if (kind !== "")
             root.setKind(kind)
         root.to = destination !== "" && root.offers(destination) ? destination : "file"
+        root.screenName = HyprlandService.focusedMonitor
         root.busy = true
         root.launch.interval = after
         root.launch.restart()
@@ -155,10 +166,13 @@ Singleton {
         root.shooter.running = true
     }
 
-    // `box` is in compositor (logical) coordinates, for the recorder; `crop`
-    // is in the photo's pixels.
+    // The surface works in its own screen's coordinates. `box` is in the
+    // compositor's, for the recorder, so the screen's corner goes back on;
+    // `crop` is in the photo's pixels, and the photo is that screen alone.
     function box(x: real, y: real, width: real, height: real): string {
-        return `${Math.round(x)},${Math.round(y)} `
+        const left = root.screen?.x ?? 0
+        const top = root.screen?.y ?? 0
+        return `${Math.round(x + left)},${Math.round(y + top)} `
              + `${Math.round(width)}x${Math.round(height)}`
     }
 
@@ -186,7 +200,12 @@ Singleton {
     }
 
     readonly property Timer launch: Timer {
-        onTriggered: root.grabber.running = true
+        onTriggered: {
+            root.grabber.command = root.screenName === ""
+                ? [root.script, "grab"]
+                : [root.script, "grab", "--output", root.screenName]
+            root.grabber.running = true
+        }
     }
 
     readonly property Process grabber: Process {

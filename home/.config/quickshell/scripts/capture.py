@@ -143,11 +143,13 @@ def tools():
     })
 
 
-def grab():
-    """Capture the whole screen into the runtime directory.
+def grab(output=""):
+    """Capture one screen into the runtime directory.
 
     Every crop is cut from this picture, so the result is what was on screen
     when the key was pressed, including menus that close once the pointer moves.
+    Without an output name grim takes every screen side by side, which is a
+    picture of no single one.
     """
     if not shutil.which("grim"):
         report(error="grim is not installed")
@@ -156,7 +158,10 @@ def grab():
                                     dir=str(runtime()))
     os.close(handle)
     path = Path(name)
-    result = run(["grim", str(path)])
+    command = ["grim"]
+    if output:
+        command += ["-o", output]
+    result = run(command + [str(path)])
     if result is None or result.returncode != 0:
         path.unlink(missing_ok=True)
         report(error="grim took nothing")
@@ -318,13 +323,18 @@ def main():
         tools()
         return
     if action == "grab":
-        grab()
+        output = ""
+        if "--output" in arguments:
+            at = arguments.index("--output")
+            if at + 1 < len(arguments):
+                output = arguments[at + 1]
+        grab(output)
         return
     if action == "drop" and len(arguments) > 1:
         drop(arguments[1])
         return
     if action != "finish" or len(arguments) < 2:
-        print("usage: capture.py [tools | grab | drop <picture> | "
+        print("usage: capture.py [tools | grab [--output <screen>] | drop <picture> | "
               "finish <picture> [--geometry 'x,y wxh'] "
               f"[--to {'|'.join(DESTINATIONS)}]]", file=sys.stderr)
         report(error=f"No such capture: {action}")
