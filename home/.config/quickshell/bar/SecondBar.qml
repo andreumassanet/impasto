@@ -32,9 +32,8 @@ PanelWindow {
 
     readonly property int collapsedHeight: Theme.barBand
 
-    // Same exclusive zone as the main bar, so tiled windows line up across
-    // screens.
-    exclusiveZone: Theme.barReserve
+    // The reserve is `BarReserve.qml`'s, as the main bar's is.
+    exclusiveZone: 0
     color: "transparent"
 
     // Input only on the band, and none while the desktop is being arranged

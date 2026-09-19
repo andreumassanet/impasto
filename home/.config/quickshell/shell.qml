@@ -127,6 +127,19 @@ ShellRoot {
     //
     // One island, on one screen; every other screen gets a bar without it.
     // Two islands would draw the same state twice.
+
+    // The space the bars keep, held per screen and never rebuilt, so swapping
+    // one kind of bar for another moves no windows.
+    Variants {
+        model: Quickshell.screens
+
+        BarReserve {
+            required property var modelData
+
+            screen: modelData
+        }
+    }
+
     Variants {
         id: islandBars
 

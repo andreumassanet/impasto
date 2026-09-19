@@ -184,9 +184,9 @@ PanelWindow {
         }
     }
 
-    // Pinned to what the bar paints, so tiled windows never move while the
-    // island grows.
-    exclusiveZone: Theme.barReserve
+    // The reserve is `BarReserve.qml`'s, one strip per screen that outlives
+    // every bar, so a window holds still while the island changes screens.
+    exclusiveZone: 0
     color: "transparent"
 
     // ── FOCUS ───────────────────────────────────────────────────────────────
