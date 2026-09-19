@@ -54,7 +54,7 @@ Singleton {
     readonly property alias dockIconSize: config.dockIconSize
     readonly property alias dockOpacity: config.dockOpacity
     readonly property alias dockRunning: config.dockRunning
-    readonly property alias dockReserve: config.dockReserve
+    readonly property alias dockEverywhere: config.dockEverywhere
     readonly property alias dockAutohide: config.dockAutohide
     readonly property alias dockLauncher: config.dockLauncher
     readonly property alias weatherPlace: config.weatherPlace
@@ -680,11 +680,9 @@ Singleton {
         // Also show running applications that aren't pinned.
         property bool dockRunning: true
 
-        // Reserve an exclusive zone instead of floating over windows.
-        property bool dockReserve: false
+        // A dock on every screen, or only on the one being worked on.
+        property bool dockEverywhere: true
 
-        // With `dockReserve` on this leaves an empty reserved strip; the
-        // settings page warns rather than forbids.
         property bool dockAutohide: false
 
         // Launcher button at the start of the row.

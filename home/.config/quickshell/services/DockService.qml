@@ -53,14 +53,24 @@ Singleton {
 
     readonly property bool vertical: root.edge !== "bottom"
 
-    // Autohide overrides reserving space.
-    readonly property bool reserves: SettingsService.dockReserve && !root.autohide
+    // On every screen, or only on the one being worked on. The surface is on
+    // every screen either way (`Dock.qml`).
+    readonly property bool everywhere: SettingsService.dockEverywhere
 
-    // The desktop reads these to keep its grid clear of the dock, since its
-    // surface ignores exclusive zones (see `Desktop`).
-    readonly property bool shown: root.enabled && !root.covered
+    // Whether it is painted on a screen: away under a fullscreen window on
+    // that screen alone.
+    function shownOn(name: string): bool {
+        return root.enabled && (root.count > 0 || root.hasLauncher)
+            && root.coveredScreens.indexOf(" " + name + " ") < 0
+    }
+
+    // The band the desktop keeps clear of it, since its surface ignores
+    // exclusive zones (see `Desktop`). It does not ask where the dock is
+    // painting right now — under a fullscreen window, or on a screen the
+    // pointer has left — because a grid worked out again would move every
+    // widget on it. Windows pass under the dock; widgets never do.
+    readonly property int zone: root.enabled && !root.autohide
         && (root.count > 0 || root.hasLauncher)
-    readonly property int zone: root.reserves && root.shown
         ? Theme.dockMargin + Theme.dockThickness : 0
 
     // ── PINNED ──────────────────────────────────────────────────────────────
@@ -224,11 +234,27 @@ Singleton {
         return root.groups.find(group => group.key === key) ?? null
     }
 
-    // A fullscreen window on the active workspace. Hyprland reports maximised
-    // as 1 and fullscreen as 2; only the latter hides the dock.
-    readonly property bool covered: HyprlandService.clients.some(
-        client => (client.fullscreen ?? 0) >= 2
-            && client.workspace && client.workspace.id === HyprlandService.activeId)
+    // A fullscreen window on the workspace a screen is showing. Hyprland
+    // reports maximised as 1 and fullscreen as 2; only the latter hides the
+    // dock — and only on its own screen.
+    function coveredOn(name: string): bool {
+        const workspace = HyprlandService.activeOn(name)
+        return workspace > 0 && HyprlandService.clients.some(
+            client => (client.fullscreen ?? 0) >= 2
+                && client.workspace && client.workspace.id === workspace)
+    }
+
+    // The screens it is away from, as one padded string. A plain value rather
+    // than a list, so the desktop's insets are worked out again when the
+    // answer changes and not every time a window changes its title: the client
+    // list is read here, once, instead of by a board's every binding.
+    readonly property string coveredScreens: {
+        let out = " "
+        for (const screen of Quickshell.screens)
+            if (root.coveredOn(screen.name))
+                out += screen.name + " "
+        return out
+    }
 
     // ── ITEMS ───────────────────────────────────────────────────────────────
     //

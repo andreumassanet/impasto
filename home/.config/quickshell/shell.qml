@@ -182,6 +182,7 @@ ShellRoot {
             required property var modelData
 
             screen: modelData
+            live: modelData.name === root.liveScreenName
 
             // The dock cannot see the island, so it asks.
             onLauncherRequested: root.island?.toggle("launcher")

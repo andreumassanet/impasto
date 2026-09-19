@@ -22,15 +22,26 @@ import "../services"
 // input mask is computed from the same geometry as the capsule, so clicks
 // beside it reach the window behind. Never on the top edge, which is the bar's.
 //
-// ── ONE SCREEN ──────────────────────────────────────────────────────────────
+// ── ONE PER SCREEN ──────────────────────────────────────────────────────────
 //
-// One instance, on whichever monitor the compositor assigns. A dock per monitor
-// would need a `Variants` over `Quickshell.screens` and per-screen state.
+// One on every screen, all showing the same shelf: the list is what you have
+// pinned and what is open anywhere, so every application is reachable from
+// wherever you are — the workspaces strip's rule, where the dots are every
+// workspace on the desk and only which one is lit is this screen's. What is
+// this screen's here is what the pointer and the windows are doing on it: the
+// hovered name, the menu, the autohide peek, and going away under a
+// fullscreen window (`DockService.coveredOn`).
 PanelWindow {
     id: root
 
     // The dock only requests the launcher; `shell.qml` wires it to the island.
     signal launcherRequested()
+
+    readonly property string screenName: root.screen?.name ?? ""
+
+    // Whether this is the screen being worked on — the same answer the island
+    // uses, so the two never disagree about where you are (`shell.qml`).
+    required property bool live
 
     readonly property bool vertical: DockService.vertical
     readonly property string edge: DockService.edge
@@ -85,17 +96,20 @@ PanelWindow {
     WlrLayershell.namespace: "impasto-dock"
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
 
-    // Reserve space, or float over the windows. DockService resolves autohide
-    // against reserving.
-    exclusiveZone: DockService.reserves
-        ? Theme.dockMargin + Theme.dockThickness : 0
+    // It never reserves: windows pass under it, and the desktop keeps its
+    // grid clear of it on its own (`DockService.zone`). A reserved band would
+    // have to appear and go with the dock, re-tiling every window on both
+    // screens every time a hand crossed.
+    exclusiveZone: 0
 
     color: "transparent"
 
-    // Hidden when empty and under fullscreen windows. With the launcher button
-    // it is never empty.
-    visible: DockService.enabled && !DockService.covered
-        && (DockService.count > 0 || DockService.hasLauncher)
+    // Hidden when empty and under fullscreen windows on its own screen. With
+    // the launcher button it is never empty. Set to one dock, it is drawn only
+    // on the screen being worked on; it reserves nothing either way, so a
+    // crossing moves no window.
+    visible: DockService.shownOn(root.screenName)
+        && (DockService.everywhere || root.live)
 
     // ── CONTEXT MENU ────────────────────────────────────────────────────────
     //

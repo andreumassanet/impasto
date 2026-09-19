@@ -396,17 +396,14 @@ QtObject {
                 "Fondo fija la opacidad de la cápsula tras los iconos; bájalo para que se vea el fondo desenfocado.",
             "Icon size": "Tamaño de icono",
             "Behaviour": "Comportamiento",
-            "What else the dock shows, and how windows treat it.":
-                "Qué más muestra el dock, y cómo lo tratan las ventanas.",
-            "The launcher button opens the island's launcher, and open applications appear after a divider while they run. Reserving keeps windows from tiling under the dock, and has no effect while it hides.":
-                "El botón del lanzador abre el lanzador de la isla, y las aplicaciones abiertas aparecen tras un separador mientras están en marcha. Reservar evita que las ventanas se coloquen bajo el dock, y no tiene efecto mientras se oculta.",
+            "What else the dock shows, and which screens it is on.":
+                "Qué más muestra el dock, y en qué pantallas está.",
+            "The launcher button opens the island's launcher, and open applications appear after a divider while they run. Windows always pass under the dock; the desktop keeps its widgets clear of it.":
+                "El botón del lanzador abre el lanzador de la isla, y las aplicaciones abiertas aparecen tras un separador mientras están en marcha. Las ventanas siempre pasan por debajo del dock; el escritorio mantiene sus widgets fuera de él.",
             "Launcher button": "Botón del lanzador",
             "Open applications": "Aplicaciones abiertas",
-            "Reserve its space": "Reservar su espacio",
-            "Windows tile around it": "Las ventanas se colocan alrededor",
-            "Windows pass under it": "Las ventanas pasan por debajo",
-            "Nothing is reserved while it hides": "No se reserva nada mientras se oculta",
             "On every screen": "En todas las pantallas",
+            "One on each, all showing the same": "Uno en cada una, todos iguales",
             "Only on the screen you are on": "Solo en la pantalla en la que estás",
             "One on each, and the one you are on is the live one":
                 "Una en cada una, y la de tu pantalla es la que funciona",

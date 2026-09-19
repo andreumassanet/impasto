@@ -9,6 +9,7 @@
 
 import QtQuick
 import QtQuick.Layouts
+import Quickshell
 
 import "../theme"
 import "../services"
@@ -36,6 +37,9 @@ SettingsSection {
 
     // Everything but the main switch is locked while the dock is off.
     readonly property bool off: !SettingsService.dockEnabled
+
+    // The rows about more than one screen are not drawn on a desk with one.
+    readonly property int screens: Quickshell.screens.length
     readonly property string offReason: Tr.t("The dock is off")
 
     SettingGroup {
@@ -161,8 +165,8 @@ SettingsSection {
 
     SettingGroup {
         title: Tr.t("Behaviour")
-        note: Tr.t("What else the dock shows, and how windows treat it.")
-        hint: Tr.t("The launcher button opens the island's launcher, and open applications appear after a divider while they run. Reserving keeps windows from tiling under the dock, and has no effect while it hides.")
+        note: Tr.t("What else the dock shows, and which screens it is on.")
+        hint: Tr.t("The launcher button opens the island's launcher, and open applications appear after a divider while they run. Windows always pass under the dock; the desktop keeps its widgets clear of it.")
 
         SettingRow {
             label: Tr.t("Launcher button")
@@ -186,19 +190,18 @@ SettingsSection {
             }
         }
 
-        // A hidden dock reserves nothing, so this is locked while autohide is on.
         SettingRow {
-            label: Tr.t("Reserve its space")
-            reading: SettingsService.dockReserve
-                ? Tr.t("Windows tile around it")
-                : Tr.t("Windows pass under it")
-            locked: root.off || SettingsService.dockAutohide
-            reason: root.off ? root.offReason
-                : Tr.t("Nothing is reserved while it hides")
+            visible: root.screens > 1
+            label: Tr.t("On every screen")
+            reading: SettingsService.dockEverywhere
+                ? Tr.t("One on each, all showing the same")
+                : Tr.t("Only on the screen you are on")
+            locked: root.off
+            reason: root.offReason
 
             ToggleSwitch {
-                checked: SettingsService.dockReserve
-                onToggled: checked => SettingsService.set("dockReserve", checked)
+                checked: SettingsService.dockEverywhere
+                onToggled: checked => SettingsService.set("dockEverywhere", checked)
             }
         }
 
