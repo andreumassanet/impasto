@@ -31,10 +31,30 @@ QtObject {
     property int activeId: 1
     property var occupiedIds: []
 
+    // Every workspace as hyprctl lists it, for the name an event carries.
+    property var named: []
+
     // The screen with the keyboard, by connector name. Quickshell's own
     // `Hyprland.focusedMonitor` is empty here for the reason its monitor list
     // is, so it comes from the active workspace and from `focusedmon`.
     property string focusedMonitor: ""
+
+    // The workspace each screen is showing, by connector name, so the bar on a
+    // screen is about that screen. Seeded from hyprctl and kept up by the
+    // events that move a workspace or the keyboard.
+    property var activeByMonitor: ({})
+
+    function activeOn(monitor: string): int {
+        return root.activeByMonitor[monitor] ?? 0
+    }
+
+    function noteActive(monitor: string, workspaceId: int): void {
+        if (monitor === "" || workspaceId <= 0 || root.activeByMonitor[monitor] === workspaceId)
+            return
+        const next = Object.assign({}, root.activeByMonitor)
+        next[monitor] = workspaceId
+        root.activeByMonitor = next
+    }
 
     function isOccupied(workspaceId: int): bool {
         return root.occupiedIds.indexOf(workspaceId) >= 0
@@ -79,8 +99,11 @@ QtObject {
         stdout: StdioCollector {
             onStreamFinished: {
                 const list = root.parseJson(text)
-                if (Array.isArray(list))
-                    root.monitors = list
+                if (!Array.isArray(list))
+                    return
+                root.monitors = list
+                for (const monitor of list)
+                    root.noteActive(monitor.name ?? "", monitor.activeWorkspace?.id ?? 0)
             }
         }
     }
@@ -215,7 +238,22 @@ QtObject {
     }
 
     function loadMonitors(): void { root.monitorsProcess.running = true }
+
+    // The id of a workspace an event names. Hyprland sends the name, which is
+    // the number for every workspace nobody has renamed.
+    function idNamed(name: string): int {
+        const found = root.named.find(workspace => workspace.name === name)
+        if (found)
+            return found.id
+        const number = parseInt(name, 10)
+        return isNaN(number) ? 0 : number
+    }
     function loadBinds(): void { root.bindsProcess.running = true }
+
+    // One read at start, for the workspace every screen is showing. After it
+    // the events keep the map, and the settings window asks again when it
+    // wants the full list.
+    Component.onCompleted: root.loadMonitors()
 
     readonly property Process workspacesProcess: Process {
         command: ["hyprctl", "workspaces", "-j"]
@@ -228,6 +266,7 @@ QtObject {
                 root.occupiedIds = workspaces
                     .filter(workspace => workspace.windows > 0)
                     .map(workspace => workspace.id)
+                root.named = workspaces
             }
         }
     }
@@ -240,8 +279,10 @@ QtObject {
                 const workspace = root.parseJson(text)
                 if (workspace && typeof workspace.id === "number")
                     root.activeId = workspace.id
-                if (typeof workspace?.monitor === "string" && workspace.monitor !== "")
+                if (typeof workspace?.monitor === "string" && workspace.monitor !== "") {
                     root.focusedMonitor = workspace.monitor
+                    root.noteActive(workspace.monitor, workspace.id ?? 0)
+                }
             }
         }
     }
@@ -272,7 +313,17 @@ QtObject {
             // `MONITOR,WORKSPACE`, sent whenever the keyboard changes screen.
             case "focusedmon":
             case "focusedmonv2":
-                root.focusedMonitor = String(event.data).split(",")[0]
+                const moved = String(event.data).split(",")
+                root.focusedMonitor = moved[0]
+                root.noteActive(moved[0], root.idNamed(moved[1] ?? ""))
+                break
+            // `WORKSPACEID,WORKSPACENAME,MONITORNAME`: a whole workspace has
+            // gone to another screen, so both screens are showing something
+            // else now.
+            case "moveworkspace":
+            case "moveworkspacev2":
+                root.loadMonitors()
+                root.refresh()
                 break
             case "activewindow":
             case "activewindowv2":

@@ -10,6 +10,8 @@
 import QtQuick
 import QtQuick.Layouts
 
+import Quickshell
+
 import "../../theme"
 import "../../services"
 
@@ -27,6 +29,13 @@ Rectangle {
 
     // Inside the one capsule it drops its own capsule and padding.
     property bool chromeless: false
+
+    // The strip is about the screen it is drawn on: the ten are shared, and
+    // this says which of them this screen is showing. Off a screen of its own
+    // it falls back to the focused one.
+    readonly property string screenName: root.QsWindow.window?.screen?.name ?? ""
+    readonly property int activeId: HyprlandService.activeOn(root.screenName)
+        || HyprlandService.activeId
 
     readonly property int dotSize: 6
     readonly property int activeWidth: 22
@@ -61,7 +70,7 @@ Rectangle {
                 required property int index
                 readonly property int workspaceId: slot.index + 1
                 readonly property bool shown: HyprlandService.isVisible(slot.workspaceId)
-                readonly property bool focused: HyprlandService.activeId === slot.workspaceId
+                readonly property bool focused: root.activeId === slot.workspaceId
                 readonly property bool occupied: HyprlandService.isOccupied(slot.workspaceId)
 
                 Layout.preferredWidth: slot.shown
