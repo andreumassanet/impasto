@@ -87,11 +87,11 @@ def weight(path):
         return 0
 
 
-def encoder():
-    for name in ENCODERS:
-        if shutil.which(name):
-            return name
-    return ""
+def encoders():
+    """Every encoder installed, best first. More than one matters: on some
+    cards wl-screenrec cannot negotiate a capture format and dies at once,
+    and the take goes to the next one rather than failing."""
+    return [name for name in ENCODERS if shutil.which(name)]
 
 
 def directory():
@@ -122,10 +122,13 @@ def monitor_source():
     return f"{sink}.monitor" if sink else ""
 
 
-def command_for(tool, geometry, path, audio):
+def command_for(tool, geometry, path, audio, output=""):
     command = [tool, "-f", str(path)]
     if geometry:
         command += ["-g", geometry]
+    elif output:
+        # Without one, both encoders take whichever screen they list first.
+        command += ["-o", output]
     if audio:
         source = monitor_source()
         if tool == "wl-screenrec":
@@ -139,7 +142,7 @@ def command_for(tool, geometry, path, audio):
 
 def tools():
     report(**{
-        "tool": encoder(),
+        "tool": next(iter(encoders()), ""),
         "wl-screenrec": bool(shutil.which("wl-screenrec")),
         "wf-recorder": bool(shutil.which("wf-recorder")),
         "audio": bool(monitor_source()),
@@ -161,15 +164,15 @@ def status():
            size=weight(kept.get("path", "")))
 
 
-def start(geometry, audio, shape):
-    """Record the whole screen, or the rectangle from the capture overlay."""
+def start(geometry, audio, shape, output=""):
+    """Record one screen, or the rectangle from the capture overlay."""
     kept = read_state()
     if kept and alive(kept.get("pid")):
         report(error="Already recording")
         return
 
-    tool = encoder()
-    if not tool:
+    tools_found = encoders()
+    if not tools_found:
         report(error="No screen recorder installed")
         return
 
@@ -181,22 +184,29 @@ def start(geometry, audio, shape):
         return
     path = folder / f"{datetime.now().strftime(STAMP)}_impasto.mp4"
 
-    try:
-        # Its own session, so the encoder is not a child of whatever pressed
-        # the key: the shell may be restarted mid-take and the take goes on.
-        process = subprocess.Popen(
-            command_for(tool, geometry, path, audio),
-            stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL, start_new_session=True)
-    except OSError as error:
-        report(error=f"{tool} failed: {error}")
-        return
+    process = None
+    for tool in tools_found:
+        try:
+            # Its own session, so the encoder is not a child of whatever
+            # pressed the key: the shell may be restarted mid-take and the
+            # take goes on.
+            started = subprocess.Popen(
+                command_for(tool, geometry, path, audio, output),
+                stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL, start_new_session=True)
+        except OSError:
+            continue
 
-    # An encoder that rejects its arguments exits immediately; report that
-    # rather than a recording that has already ended.
-    time.sleep(0.25)
-    if process.poll() is not None:
-        report(error=f"{tool} would not start")
+        # One that rejects its arguments, or cannot capture at all, exits
+        # immediately. Try the next rather than report a take that is over.
+        time.sleep(0.25)
+        if started.poll() is None:
+            process = started
+            break
+        path.unlink(missing_ok=True)
+
+    if process is None:
+        report(error=f"{tools_found[0]} would not start")
         return
 
     kept = {"pid": process.pid, "path": str(path), "started": time.time(),
@@ -243,6 +253,11 @@ def main():
         at = arguments.index("--geometry")
         if at + 1 < len(arguments):
             geometry = arguments[at + 1]
+    output = ""
+    if "--output" in arguments:
+        at = arguments.index("--output")
+        if at + 1 < len(arguments):
+            output = arguments[at + 1]
     shape = "region" if geometry else "screen"
     if "--shape" in arguments:
         at = arguments.index("--shape")
@@ -254,12 +269,13 @@ def main():
     elif action == "status":
         status()
     elif action == "start":
-        start(geometry, audio, shape)
+        start(geometry, audio, shape, output)
     elif action == "stop":
         stop()
     else:
         print("usage: record.py [tools|status|start|stop] "
-              "[--geometry 'x,y wxh'] [--shape screen|region|window] "
+              "[--geometry 'x,y wxh'] [--output <screen>] "
+              "[--shape screen|region|window] "
               "[--audio]", file=sys.stderr)
         report(error=f"No such action: {action}")
 
