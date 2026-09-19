@@ -202,19 +202,28 @@ QtObject {
 
     // ── TYPOGRAPHY ──────────────────────────────────────────────────────────
 
-    readonly property string fontFamily: SettingsService.fontFamily
-    readonly property string fontMono: SettingsService.fontMono
+    // Qt matches one family and never a list: a comma-separated stack names
+    // no installed font, and fontconfig's default sans is drawn instead. Both
+    // settings hold a stack, so Qt is handed the first family in it that
+    // exists, or the generic name at the end when none of them do.
+    readonly property var installedFonts: Qt.fontFamilies()
 
-    // Script face for the shell's own name. Checked explicitly because Qt
-    // substitutes silently when a family is missing.
-    readonly property string fontSignature: {
-        const installed = Qt.fontFamilies()
-        for (const family of ["Grape Nuts", "Georgia"]) {
-            if (installed.indexOf(family) !== -1)
+    function fontOf(stack: string): string {
+        const names = stack.split(",")
+        for (const name of names) {
+            const family = name.trim()
+            if (family !== "" && root.installedFonts.indexOf(family) !== -1)
                 return family
         }
-        return root.fontFamily
+        return names[names.length - 1].trim()
     }
+
+    readonly property string fontFamily: root.fontOf(SettingsService.fontFamily)
+    readonly property string fontMono: root.fontOf(SettingsService.fontMono)
+
+    // Script face for the shell's own name, shipped with it.
+    readonly property string fontSignature:
+        root.fontOf(`Grape Nuts, Georgia, ${root.fontFamily}`)
 
     // Note bodies: handwriting unless switched off.
     readonly property string fontHand: SettingsService.notesHandwriting
