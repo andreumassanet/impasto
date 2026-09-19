@@ -62,6 +62,15 @@ Singleton {
         onTriggered: root.dismiss()
     }
 
+    // An application can close its own notification while the island is
+    // showing it, and the object goes with it.
+    readonly property Connections closing: Connections {
+        target: root.current
+        function onClosed(reason: int): void {
+            root.dismiss()
+        }
+    }
+
     function timeoutFor(notification: var): int {
         // Critical urgency waits for the user. Anything else that asks to stay
         // forever is capped, or a misbehaving application owns the island.
@@ -72,8 +81,25 @@ Singleton {
         return root.defaultTimeout
     }
 
+    // Closing a notification destroys the object, so the history keeps a copy
+    // of what the list draws rather than the notification itself. Pixels sent
+    // in a hint are served by that object and go with it; a path outlives it.
+    function record(notification: var): var {
+        const image = notification.image
+        return {
+            id: notification.id,
+            summary: notification.summary,
+            body: notification.body,
+            appName: notification.appName,
+            image: image.startsWith("image://qsimage/") ? "" : image,
+            urgency: notification.urgency
+        }
+    }
+
     function present(notification: var): void {
-        root.history = [notification].concat(root.history).slice(0, root.historyLimit)
+        root.history = [root.record(notification)]
+            .concat(root.history)
+            .slice(0, root.historyLimit)
 
         // Critical notifications ignore do-not-disturb.
         const isCritical = notification.urgency === NotificationUrgency.Critical
@@ -114,9 +140,9 @@ Singleton {
         root.history = []
     }
 
-    function remove(notification: var): void {
-        root.history = root.history.filter(entry => entry !== notification)
-        if (root.current === notification)
+    function remove(entry: var): void {
+        root.history = root.history.filter(other => other !== entry)
+        if (root.current && root.current.id === entry.id)
             root.dismiss()
     }
 
