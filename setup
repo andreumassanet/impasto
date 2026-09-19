@@ -33,11 +33,118 @@ HELPER=
 SKIP_PACKAGES=0
 SKIP_SYSTEM=0
 SKIP_PLUGINS=0
+SKIP_EXTRAS=0
 SUDO=
 SOFT=
 
 
 # ── OUTPUT ──────────────────────────────────────────────────────────────────
+#
+# Colour is the terminal's own here: this runs before there is a desk to ask
+# for a palette. Twenty-four bit where the terminal says it can, the sixteen a
+# console has otherwise, and none of it when the output is not a terminal or
+# NO_COLOR is set.
+
+ATTY=0
+COLOUR=0
+TRUECOLOUR=0
+if [[ -t 1 ]]; then ATTY=1; fi
+if (( ATTY )) && [[ -z ${NO_COLOR:-} && ${TERM:-dumb} != dumb ]]; then
+    COLOUR=1
+    case ${COLORTERM:-} in truecolor|24bit) TRUECOLOUR=1 ;; esac
+fi
+
+if (( TRUECOLOUR )); then
+    TEXT=$'\e[38;2;238;242;247m'
+    MUTED=$'\e[38;2;139;139;147m'
+    FAINT=$'\e[38;2;74;74;82m'
+    ACCENT=$'\e[38;2;206;142;54m'
+    WARN=$'\e[38;2;243;139;168m'
+    OFF=$'\e[0m'
+    BOLD=$'\e[1m'
+elif (( COLOUR )); then
+    TEXT=$'\e[97m'
+    MUTED=$'\e[37m'
+    FAINT=$'\e[90m'
+    ACCENT=$'\e[33m'
+    WARN=$'\e[31m'
+    OFF=$'\e[0m'
+    BOLD=$'\e[1m'
+else
+    TEXT= MUTED= FAINT= ACCENT= WARN= OFF= BOLD=
+fi
+
+# The wordmark, four rows of half blocks, one field per letter. The colour
+# runs left to right across it, the way paint comes off a loaded brush.
+MARK=(
+    '██  |██▄    ▄██  |███████▄  | ▄█████▄   |▄███████  |████████  |▄███████▄'
+    '██  |██▀█▄▄█▀██  |██    ██  |██     ██  |██▄▄▄▄▄   |   ██     |██     ██'
+    '██  |██  ▀▀  ██  |███████▀  |█████████  | ▀▀▀▀▀██  |   ██     |██     ██'
+    '██  |██      ██  |██        |██     ██  |███████▀  |   ██     |▀███████▀'
+)
+if (( TRUECOLOUR )); then
+    MARK_PAINT=($'\e[38;2;142;102;42m' $'\e[38;2;159;112;45m' $'\e[38;2;181;126;49m'
+                $'\e[38;2;203;140;53m' $'\e[38;2;217;154;64m' $'\e[38;2;228;167;76m'
+                $'\e[38;2;240;179;87m')
+else
+    MARK_PAINT=("$ACCENT" "$ACCENT" "$ACCENT" "$ACCENT" "$ACCENT" "$ACCENT" "$ACCENT")
+fi
+
+# Columns to draw in: what the terminal has, and never past the width of this
+# file's own header boxes. Nought where the output is not a terminal, and a
+# rule there is the short one it has always been.
+width() {
+    local size
+    if (( ! ATTY )); then printf 0; return 0; fi
+    size=$(stty size 2>/dev/null </dev/tty) || size=
+    # shellcheck disable=SC2086
+    set -- $size
+    if [[ ${2:-} =~ ^[0-9]+$ ]] && (( $2 > 8 )); then
+        if (( $2 < 76 )); then printf '%s' "$2"; else printf 76; fi
+    else
+        printf 76
+    fi
+}
+
+# How long the install took, for the line that closes it.
+elapsed() {
+    if (( SECONDS >= 60 )); then printf '%dm %02ds' $(( SECONDS / 60 )) $(( SECONDS % 60 ))
+    else printf '%ds' "$SECONDS"; fi
+}
+
+dashes() {
+    local n=$1 out=
+    while (( n-- > 0 )); do out+='─'; done
+    printf '%s' "$out"
+}
+
+mark() {
+    local row letters line i
+    # The wordmark is 66 columns wide, and a narrower terminal gets the name
+    # spaced out instead of a wrapped drawing.
+    if (( $(width) < 70 )); then
+        printf '  %s%sI M P A S T O%s\n' "$BOLD" "$ACCENT" "$OFF"
+        return 0
+    fi
+    for row in "${MARK[@]}"; do
+        IFS='|' read -ra letters <<< "$row"
+        line=
+        for i in "${!letters[@]}"; do line+="${MARK_PAINT[i]}${letters[i]}"; done
+        printf '  %s%s\n' "$line" "$OFF"
+    done
+}
+
+# The opening screen. Printed once, and only for a person: a log, a pipe and
+# the `--noconfirm` of an unattended install get the plain lines alone.
+BANNERED=${IMPASTO_RELAUNCHED:-0}
+banner() {
+    if (( ! COLOUR || BANNERED )); then return 0; fi
+    BANNERED=1
+    printf '\n'
+    mark
+    printf '\n  %sa desk for Arch Linux and Hyprland%s   %s%s%s\n\n' \
+        "$MUTED" "$OFF" "$FAINT" "$(version)" "$OFF"
+}
 
 usage() {
     cat <<'EOF'
@@ -67,10 +174,13 @@ Usage: ./setup <command> [options]
   check       the syntax checks CI runs
   help        this
 
+Run ./setup with no command at a terminal to pick from a menu instead.
+
 Options:
   --skip-packages     install, update: leave the packages alone
   --skip-system       install, update: leave / alone
   --skip-plugins      install, update: do not build the plugins
+  --skip-extras       install, update: leave the programs below alone
   --aur-helper NAME   yay or paru. The one installed is used, and when there
                       is neither, this one is built from the AUR (yay if unset)
   --noconfirm         answer every question with its default
@@ -83,9 +193,46 @@ way the first time is moved to ~/.local/state/impasto/backups.
 EOF
 }
 
-section() { (( QUIET )) || printf '── %s ──\n' "$1"; }
-say()     { printf '  %s\n' "$*"; }
-fail()    { printf 'setup: %s\n' "$*" >&2; exit 1; }
+# A rule across the width, the stage's name in it, and on the right whatever
+# the caller has to say about it — the time it took, mostly.
+section() {
+    if (( QUIET )); then return 0; fi
+    local name=$1 note=${2:-} fill columns
+    columns=$(width)
+    if (( columns )); then
+        fill=$(( columns - 5 - ${#name} ))
+        if [[ -n $note ]]; then fill=$(( fill - ${#note} - 2 )); fi
+    else
+        fill=2
+    fi
+    if (( fill < 1 )); then fill=1; fi
+    printf '%s── %s%s%s %s' "$FAINT" "$TEXT$BOLD" "$name" "$OFF$FAINT" "$(dashes "$fill")"
+    if [[ -n $note ]]; then printf ' %s%s' "$MUTED" "$note"; fi
+    printf '%s\n' "$OFF"
+}
+
+# A line's first word is what happened, when it has one, and is written in the
+# accent so a long install can be read down its left edge. What follows a dash
+# is the reason, and is dimmer than the thing it explains.
+say() {
+    local line=$* word rest
+    if (( COLOUR )); then
+        word=${line%%' '*}
+        rest=${line#"$word"}
+        case $word in
+            ok|new|updated|replaced|removed|seeded|enabled|loaded|cloned|built|restored|reloaded|version)
+                line="$ACCENT$word$OFF$rest" ;;
+            kept|left|skipped*|missing*|nothing*|all|watching|would|not)
+                line="$MUTED$word$OFF$rest" ;;
+        esac
+        if [[ $line == *' — '* ]]; then
+            line="${line%% — *}$FAINT — ${line#* — }$OFF"
+        fi
+    fi
+    printf '  %s\n' "$line"
+}
+
+fail() { printf '%ssetup:%s %s\n' "$WARN" "$OFF" "$*" >&2; exit 1; }
 
 # Every change to the machine goes through act, so --dry-run is handled in one
 # place. Callers report what happened (or would have) themselves.
@@ -97,7 +244,7 @@ act() {
 ask() {
     if (( NOCONFIRM )); then return 0; fi
     local answer
-    read -rp "  $1 [Y/n] " answer
+    read -rp "  $1 $FAINT[Y/n]$OFF " answer
     [[ -z $answer || $answer == [Yy]* ]]
 }
 
@@ -555,14 +702,15 @@ verb_plugins() {
 }
 
 verb_install() {
+    SECONDS=0
     if (( ! SKIP_PACKAGES )); then verb_packages; fi
     folders
     omz
     verb_sync
     if (( ! SKIP_SYSTEM )); then verb_system; fi
     if (( ! SKIP_PLUGINS )); then verb_plugins; fi
-    extras
-    section done
+    if (( ! SKIP_EXTRAS )); then extras; fi
+    section done "$(elapsed)"
     say 'log out and in again: the desk starts with the next Hyprland session'
 }
 
@@ -915,6 +1063,223 @@ verb_check() {
 }
 
 
+# ── CHOOSER ─────────────────────────────────────────────────────────────────
+#
+# `./setup` with nothing after it, at a terminal, is this: the verbs, and for
+# install a screen of what it may leave out, which is the --skip flags with
+# somewhere to press them. Every other way in is untouched — a script, an
+# unattended `--noconfirm` and the first boot of the install medium never see
+# it, and choosing here only composes the same command line by hand.
+
+CURSOR_HIDDEN=0
+DRAWN=0
+
+quiet_cursor() {
+    if (( ! CURSOR_HIDDEN )); then printf '\e[?25l'; CURSOR_HIDDEN=1; fi
+}
+
+loud_cursor() {
+    if (( CURSOR_HIDDEN )); then printf '\e[?25h'; CURSOR_HIDDEN=0; fi
+}
+
+# One keypress. An arrow arrives as three bytes and leaves as one word.
+key() {
+    local k rest
+    IFS= read -rsn1 k || return 1
+    if [[ $k == $'\e' ]]; then
+        IFS= read -rsn2 -t 0.02 rest || rest=
+        case $rest in
+            '[A') k=up ;;
+            '[B') k=down ;;
+            '[C') k=right ;;
+            '[D') k=left ;;
+            *)    k=quit ;;
+        esac
+    fi
+    case $k in
+        '')  k=enter ;;
+        ' ') k=space ;;
+        j)   k=down ;;
+        k)   k=up ;;
+        h)   k=left ;;
+        l)   k=right ;;
+        q)   k=quit ;;
+    esac
+    printf '%s' "$k"
+}
+
+# Every line of a screen goes through here, so redrawing it is a matter of
+# stepping back over what was counted.
+line() {
+    printf '%s\n' "$*"
+    DRAWN=$(( DRAWN + 1 ))
+}
+
+redraw() {
+    if (( DRAWN )); then printf '\e[%dF\e[0J' "$DRAWN"; fi
+    DRAWN=0
+}
+
+# The row under the cursor, and the mark in front of it.
+here() {
+    if (( $1 == $2 )); then printf '%s▸%s' "$ACCENT" "$OFF"; else printf ' '; fi
+}
+
+hint() {
+    local out= pair
+    for pair in "$@"; do
+        out+="$TEXT${pair%%:*}$OFF $FAINT${pair#*:}$OFF   "
+    done
+    line "  $out"
+}
+
+VERBS=(
+    'install:everything: the packages, the files, the system, the plugins'
+    'update:pull what is new, and install it'
+    'sync:copy home/ into $HOME'
+    'uninstall:remove what was installed, and put back what it moved aside'
+    'check:the syntax checks CI runs'
+    'help:every verb and flag'
+)
+
+# The verbs. What was picked is left in CHOSEN, empty when nothing was.
+CHOSEN=
+menu() {
+    local at=0 i k name note label
+    CHOSEN=
+    while :; do
+        redraw
+        line "  ${TEXT}what to do${OFF}"
+        line ''
+        for i in "${!VERBS[@]}"; do
+            name=${VERBS[i]%%:*}
+            note=${VERBS[i]#*:}
+            if (( i == at )); then
+                label="$TEXT$BOLD$(printf '%-11s' "$name")$OFF$MUTED$note"
+            else
+                label="$MUTED$(printf '%-11s' "$name")$OFF$FAINT$note"
+            fi
+            line "  $(here "$i" "$at") $label$OFF"
+        done
+        line ''
+        hint '↑↓:move' 'enter:choose' 'q:quit'
+        k=$(key) || k=quit
+        case $k in
+            up)    at=$(( at ? at - 1 : ${#VERBS[@]} - 1 )) ;;
+            down)  at=$(( (at + 1) % ${#VERBS[@]} )) ;;
+            enter) CHOSEN=${VERBS[at]%%:*}; return 0 ;;
+            quit)  return 0 ;;
+        esac
+    done
+}
+
+# What install may leave out, in the order it does it. Each row is a --skip.
+PARTS=(
+    'packages:the packages'
+    'system:the login screen'
+    'plugins:the plugins'
+    'extras:the extras'
+)
+
+# The screen install opens on. Sets the SKIP_* flags and HELPER, and answers
+# whether to go ahead.
+parts() {
+    local -a on=(1 1 1 1)
+    local at=0 rows=5 i k name note label box pick pacman aur helper=0
+    local -a helpers=(yay paru)
+    pacman=$(names "$REPO/packages/pacman.txt" | wc -l)
+    aur=$(names "$REPO/packages/aur.txt" | wc -l)
+    case $HELPER in paru) helper=1 ;; esac
+    while :; do
+        redraw
+        line "  ${TEXT}what to install${OFF}   $FAINT·   space toggles, enter installs$OFF"
+        line ''
+        for i in "${!PARTS[@]}"; do
+            name=${PARTS[i]#*:}
+            case ${PARTS[i]%%:*} in
+                packages) note="$pacman from the repositories, $aur from the AUR" ;;
+                system)   note='sddm, unless this machine already has one' ;;
+                plugins)  note='shake to find · glass on the windows' ;;
+                extras)   note='Thunar, VSCodium, Vesktop, Spotify, dark GTK' ;;
+            esac
+            if (( on[i] )); then box="$ACCENT◉$OFF"; else box="$FAINT○$OFF"; fi
+            if (( i == at )); then
+                label="$TEXT$BOLD$(printf '%-18s' "$name")$OFF"
+            else
+                label="$MUTED$(printf '%-18s' "$name")$OFF"
+            fi
+            line "  $(here "$i" "$at") $box  $label$FAINT$note$OFF"
+        done
+        line ''
+        if (( helper == 0 )); then
+            pick="$ACCENT‹ yay ›$OFF   ${FAINT}paru$OFF"
+        else
+            pick="${FAINT}yay$OFF   $ACCENT‹ paru ›$OFF"
+        fi
+        if (( at == 4 )); then
+            label="$TEXT$BOLD$(printf '%-18s' 'the AUR helper')$OFF"
+        else
+            label="$MUTED$(printf '%-18s' 'the AUR helper')$OFF"
+        fi
+        line "  $(here 4 "$at")    $label$pick"
+        line ''
+        hint '↑↓:move' 'space:toggle' 'enter:install' 'q:quit'
+        k=$(key) || k=quit
+        case $k in
+            up)    at=$(( at ? at - 1 : rows - 1 )) ;;
+            down)  at=$(( (at + 1) % rows )) ;;
+            left|right|space)
+                if (( at == 4 )); then helper=$(( 1 - helper ))
+                elif [[ $k == space ]]; then on[at]=$(( 1 - on[at] )); fi ;;
+            enter)
+                SKIP_PACKAGES=$(( 1 - on[0] ))
+                SKIP_SYSTEM=$((   1 - on[1] ))
+                SKIP_PLUGINS=$((  1 - on[2] ))
+                SKIP_EXTRAS=$((   1 - on[3] ))
+                HELPER=${helpers[helper]}
+                return 0 ;;
+            quit) return 1 ;;
+        esac
+    done
+}
+
+# What `./setup` does with no command. Falls back to the help text wherever
+# this cannot be drawn: no terminal, or one too small to hold a screen.
+interactive() {
+    local rows size verb
+    size=$(stty size 2>/dev/null </dev/tty) || size=
+    # shellcheck disable=SC2086
+    set -- $size
+    rows=${1:-0}
+    if [[ ! -t 0 ]] || (( ! ATTY || rows < 20 || $(width) < 40 )); then
+        usage
+        return 0
+    fi
+    banner
+    trap 'loud_cursor; printf "\n"; exit 130' INT
+    trap loud_cursor EXIT
+    quiet_cursor
+    menu
+    verb=$CHOSEN
+    if [[ -z $verb ]]; then redraw; loud_cursor; return 0; fi
+    if [[ $verb == install ]]; then
+        redraw
+        parts || { redraw; loud_cursor; return 0; }
+    fi
+    redraw
+    loud_cursor
+    trap - INT EXIT
+    case $verb in
+        install)   verb_install ;;
+        update)    ARGS=(update); (( DRY )) && ARGS+=(--dry-run); verb_update ;;
+        sync)      verb_sync ;;
+        uninstall) ask 'remove every file setup installed?' || return 0; verb_uninstall ;;
+        check)     verb_check ;;
+        help)      usage ;;
+    esac
+}
+
+
 # ── MAIN ────────────────────────────────────────────────────────────────────
 
 main() {
@@ -925,6 +1290,7 @@ main() {
             --skip-packages) SKIP_PACKAGES=1 ;;
             --skip-system)   SKIP_SYSTEM=1 ;;
             --skip-plugins)  SKIP_PLUGINS=1 ;;
+            --skip-extras)   SKIP_EXTRAS=1 ;;
             --aur-helper)    (( $# > 1 )) || fail '--aur-helper takes yay or paru'; HELPER=$2; shift ;;
             --aur-helper=*)  HELPER=${1#*=} ;;
             --noconfirm)     NOCONFIRM=1 ;;
@@ -936,12 +1302,15 @@ main() {
         esac
         shift
     done
-    if [[ -z $verb ]]; then usage; exit 0; fi
+    if [[ -z $verb ]]; then interactive; exit 0; fi
     case $HELPER in
         ''|yay|paru) ;;
         *) fail '--aur-helper takes yay or paru' ;;
     esac
-    if (( DRY )) && [[ -z ${IMPASTO_RELAUNCHED:-} ]]; then printf 'dry run — nothing on this machine is changed\n'; fi
+    case $verb in install|update|uninstall) banner ;; esac
+    if (( DRY )) && [[ -z ${IMPASTO_RELAUNCHED:-} ]]; then
+        printf '  %sdry run — nothing on this machine is changed%s\n' "$MUTED" "$OFF"
+    fi
 
     case $verb in
         install)   verb_install ;;

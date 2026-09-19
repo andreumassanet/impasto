@@ -178,11 +178,16 @@ that is open, or a Spotify you have never started, is skipped with the reason
 and set up by the next `update`. After that they follow the wallpaper on their
 own; Spotify from its next start.
 
+Run `./setup` with nothing after it and it asks instead: the verbs on one
+screen, and what an install may leave out on the next, which is the flags below
+with somewhere to press them.
+
 | Flag | |
 |---|---|
 | `--skip-packages` | install nothing; copy and build only |
 | `--skip-system` | leave `/` alone — no login screen, and no password for it |
 | `--skip-plugins` | no shake to find, no glass |
+| `--skip-extras` | leave Thunar, VSCodium, Vesktop, Spotify and GTK alone |
 | `--aur-helper yay\|paru` | which helper builds the AUR half — built from the AUR if you have neither |
 | `--noconfirm` | take the default at every question |
 | `-n`, `--dry-run` | say what would happen, and do none of it |
