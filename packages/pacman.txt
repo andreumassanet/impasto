@@ -38,6 +38,9 @@ papirus-icon-theme           # what the impasto icon theme inherits
 inter-font                   # the shell's type, and the greeter's
 ttf-jetbrains-mono-nerd      # the terminal's type, and every glyph on the bar
 adwaita-fonts                # the GTK windows' type
+noto-fonts                   # the scripts the three above do not cover
+noto-fonts-emoji             # emoji, in colour
+noto-fonts-cjk               # Chinese, Japanese and Korean, and their punctuation
 
 
 # ── TERMINAL ────────────────────────────────────────────────────────────────
