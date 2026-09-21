@@ -119,11 +119,12 @@ SettingsSection {
             }
 
             SettingRow {
-                visible: Quickshell.screens.length > 1
                 label: Tr.t("On every screen")
                 reading: SettingsService.barEverywhere
                     ? Tr.t("One on each, and the one you are on is the live one")
                     : Tr.t("Only on the screen you are on")
+                locked: Quickshell.screens.length < 2
+                reason: Tr.t("Only one screen is on")
 
                 ToggleSwitch {
                     checked: SettingsService.barEverywhere

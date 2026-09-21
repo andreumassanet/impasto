@@ -67,6 +67,9 @@ SettingsSection {
         return group ? group.refreshes : []
     }
 
+    // One screen plugged in, lit or not: nothing to arrange or choose between.
+    readonly property bool single: root.monitors.length < 2
+
     readonly property bool lastLit:
         root.monitors.filter(m => !m.disabled).length <= 1
         && !root.currentOff
@@ -165,10 +168,11 @@ SettingsSection {
             }
 
             SettingRow {
-                visible: root.monitors.length > 1
                 label: Tr.t("Arrangement")
                 reading: root.mirrored
                     ? Tr.t("Every screen shows the primary's") : Tr.t("Extended across all of them")
+                locked: root.single
+                reason: Tr.t("Only one screen is plugged in")
 
                 SegmentedControl {
                     options: [
@@ -181,9 +185,10 @@ SettingsSection {
             }
 
             SettingRow {
-                visible: root.monitors.length > 1
                 label: Tr.t("The main screen")
                 reading: Tr.t("Where anything with no screen of its own goes, and what mirroring copies.")
+                locked: root.single
+                reason: Tr.t("Only one screen is plugged in")
 
                 SegmentedControl {
                     options: root.screenOptions
@@ -221,8 +226,9 @@ SettingsSection {
         spacing: root.spacing
         visible: root.tab === "screen"
 
+        // A chooser, not a setting: with one screen it has nothing to offer.
         SettingGroup {
-            visible: root.monitors.length > 1
+            visible: !root.single
             title: Tr.t("Which screen")
 
             SettingRow {
@@ -382,11 +388,11 @@ SettingsSection {
             }
 
             SettingRow {
-                visible: (root.currentRefreshes?.length ?? 0) > 1
                 label: Tr.t("Refresh rate")
                 reading: `${(root.current?.refresh ?? 0).toFixed(2)} Hz`
-                locked: root.currentOff
-                reason: Tr.t("The screen is off")
+                locked: root.currentOff || (root.currentRefreshes?.length ?? 0) < 2
+                reason: root.currentOff
+                    ? Tr.t("The screen is off") : Tr.t("The only rate at this resolution")
 
                 Row {
                     spacing: 6

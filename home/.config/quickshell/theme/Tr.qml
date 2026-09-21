@@ -629,6 +629,8 @@ QtObject {
             "Dark — the panel is asleep, and the workspaces are still on it":
                 "Oscura — el panel duerme, y sus espacios siguen en ella",
             "The only screen there is": "La única pantalla que hay",
+            "Only one screen is plugged in": "Solo hay una pantalla conectada",
+            "Only one screen is on": "Solo hay una pantalla encendida",
             "Resolution": "Resolución",
             "What the monitor itself reported, largest first.":
                 "Lo que ha reportado el propio monitor, de mayor a menor.",
@@ -636,6 +638,7 @@ QtObject {
                 "Solo aparecen los modos que anuncia el monitor. Al elegir una resolución se usa su frecuencia de refresco más alta.",
             "Refresh rate": "Frecuencia de refresco",
             "The screen is off": "La pantalla está apagada",
+            "The only rate at this resolution": "La única frecuencia a esta resolución",
             "Rotation": "Rotación",
             "Variable refresh": "Refresco variable",
 

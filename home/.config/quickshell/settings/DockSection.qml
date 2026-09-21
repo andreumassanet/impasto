@@ -191,13 +191,12 @@ SettingsSection {
         }
 
         SettingRow {
-            visible: root.screens > 1
             label: Tr.t("On every screen")
             reading: SettingsService.dockEverywhere
                 ? Tr.t("One on each, all showing the same")
                 : Tr.t("Only on the screen you are on")
-            locked: root.off
-            reason: root.offReason
+            locked: root.off || root.screens < 2
+            reason: root.off ? root.offReason : Tr.t("Only one screen is on")
 
             ToggleSwitch {
                 checked: SettingsService.dockEverywhere
