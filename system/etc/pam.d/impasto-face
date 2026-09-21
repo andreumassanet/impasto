@@ -1,0 +1,18 @@
+#%PAM-1.0
+# ╭──────────────────────────────────────────────────────────────────────────╮
+# │                                                                          │
+# │   I M P A S T O - F A C E                                                │
+# │   pam · face unlock for the lock screen, beside the password             │
+# │                                                                          │
+# │   github.com/andreumassanet/impasto                                      │
+# │                                                                          │
+# ╰──────────────────────────────────────────────────────────────────────────╯
+
+# The lock screen's second service, run next to `login` rather than inside
+# it: a face that is not recognised never counts against the password's
+# attempts, and the password never waits on the camera. Only the lock screen
+# uses it. `./setup face` installs howdy-next; without it the `-` skips the
+# line quietly and the service refuses.
+
+-auth       sufficient  pam_howdy.so
+auth        required    pam_deny.so

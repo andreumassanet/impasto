@@ -14,6 +14,8 @@ import Quickshell
 import Quickshell.Io
 import Quickshell.Services.Pam
 
+import "../theme"
+
 // Locks the session through ext-session-lock instead of an external locker,
 // so the desktop can stay on screen behind the lock, blurred.
 //
@@ -21,7 +23,8 @@ import Quickshell.Services.Pam
 // has to finish before the lock surface is mapped. It goes to the runtime
 // directory (tmpfs, user-only) and is deleted on unlock.
 //
-// The password is handed straight to PAM's `respond` and never stored.
+// The password is handed straight to PAM's `respond` and never stored. A face
+// is a second PAM conversation beside it, where `./setup face` has put howdy.
 Singleton {
     id: root
 
@@ -34,6 +37,10 @@ Singleton {
     property bool authenticating: false
     property string message: ""
     property bool failed: false
+
+    // From the moment the lock is answered until the surface has let go of
+    // the desktop; `locked` falls after it.
+    property bool leaving: false
 
     readonly property string shotDirectory:
         `${Quickshell.env("XDG_RUNTIME_DIR") || "/tmp"}/quickshell`
@@ -62,6 +69,10 @@ Singleton {
             return
         root.message = ""
         root.failed = false
+        root.leaving = false
+        root.faceScanning = false
+        root.faceMatched = false
+        root.faceCheck.running = true
         root.shotReady = false
         // Capture first, surface second — and only once the island has
         // closed, or the screenshot shows the panel the lock came from.
@@ -119,6 +130,8 @@ Singleton {
             root.shotSerial += 1
             root.shotReady = code === 0
             root.locked = true
+            root.faceMisses = 0
+            root.faceQuietUntil = 0
             root.begin()
         }
     }
@@ -144,8 +157,13 @@ Singleton {
     }
 
     function submit(password: string): void {
-        if (root.authenticating || password === "")
+        if (root.authenticating || root.leaving)
             return
+        // Enter on an empty field asks for the camera instead.
+        if (password === "") {
+            root.scan()
+            return
+        }
         root.failed = false
         root.message = ""
 
@@ -168,13 +186,12 @@ Singleton {
         onCompleted: result => {
             root.authenticating = false
             if (result === PamResult.Success) {
-                root.locked = false
-                root.message = ""
-                root.failed = false
-                root.forget()
-                root.unlocked()
+                root.release()
                 return
             }
+            // The face got there first; the lock is already on its way out.
+            if (root.leaving || root.faceMatched)
+                return
             root.failed = true
             root.message = result === PamResult.MaxTries
                 ? "Too many attempts"
@@ -187,6 +204,110 @@ Singleton {
             root.failed = true
             root.message = "Authentication is unavailable"
             console.warn("PAM error while unlocking:", error)
+        }
+    }
+
+    // ── FACE ────────────────────────────────────────────────────────────────
+
+    // A PAM service of its own, `impasto-face`, beside the password and never
+    // inside `login`: a face that is not recognised does not count against
+    // the password's attempts, and the password never waits for the camera.
+    // Ready where `./setup system` put the service and `./setup face` put howdy.
+    property bool faceReady: false
+
+    // From howdy's first message, which is the camera coming on, until the
+    // scan ends. A refusal with nothing said first is howdy declining to look
+    // (no face enrolled, the lid shut), and shows nothing.
+    property bool faceScanning: false
+    property bool faceMatched: false
+    signal faceMissed()
+
+    // A scan starts on a key, the pointer or the lid, never on its own: the
+    // camera would otherwise find the face that has just locked the screen.
+    // A miss rests long enough for its shake to be seen, and after three only
+    // Enter on an empty field asks again.
+    readonly property int faceRest: 1500
+    readonly property int faceIdle: 5000
+    readonly property int faceTries: 3
+    property int faceMisses: 0
+    property real faceQuietUntil: 0
+
+    // How long the ring holds a match before the lock lets go.
+    readonly property int faceHold: 650
+
+    function wake(): void {
+        if (root.faceMisses >= root.faceTries || Date.now() < root.faceQuietUntil)
+            return
+        root.scan()
+    }
+
+    function scan(): void {
+        if (!root.locked || !root.secure || !root.faceReady || root.leaving
+                || root.faceMatched || root.face.active)
+            return
+        root.face.start()
+    }
+
+    readonly property Process faceCheck: Process {
+        command: ["sh", "-c",
+            "test -f /etc/pam.d/impasto-face && test -f /usr/lib/security/pam_howdy.so"]
+        onExited: code => root.faceReady = code === 0
+    }
+
+    readonly property PamContext face: PamContext {
+        config: "impasto-face"
+
+        onPamMessage: root.faceScanning = true
+
+        onCompleted: result => {
+            const looked = root.faceScanning
+            root.faceScanning = false
+            if (!root.locked || root.leaving)
+                return
+            if (result === PamResult.Success) {
+                root.faceMatched = true
+                root.faceHoldTimer.restart()
+                return
+            }
+            root.faceQuietUntil = Date.now() + (looked ? root.faceRest : root.faceIdle)
+            if (looked) {
+                root.faceMisses += 1
+                root.faceMissed()
+            }
+        }
+
+        onError: error => console.warn("PAM error while looking for a face:", error)
+    }
+
+    readonly property Timer faceHoldTimer: Timer {
+        interval: root.faceHold
+        onTriggered: root.release()
+    }
+
+    // ── UNLOCKING ───────────────────────────────────────────────────────────
+
+    // Both conversations end here. The surface relaxes its blur while
+    // `leaving`, and the lock falls once it has.
+    function release(): void {
+        if (root.leaving)
+            return
+        root.leaving = true
+        root.leave.restart()
+    }
+
+    readonly property Timer leave: Timer {
+        interval: Theme.durationMorph
+        onTriggered: {
+            if (root.pam.active)
+                root.pam.abort()
+            if (root.face.active)
+                root.face.abort()
+            root.faceHoldTimer.stop()
+            root.locked = false
+            root.message = ""
+            root.failed = false
+            root.forget()
+            root.unlocked()
         }
     }
 }

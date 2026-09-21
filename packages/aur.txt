@@ -36,3 +36,9 @@ zen-browser-bin
 vesktop-bin
 spotify
 spicetify-cli                # applies the palette to Spotify · ./setup spotify
+
+
+# ── FACE UNLOCK ─────────────────────────────────────────────────────────────
+
+# · howdy-next is not listed: ./setup face installs it, and only where there
+# · is an infrared camera, since it brings opencv with it.

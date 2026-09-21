@@ -281,10 +281,14 @@ ShellRoot {
         onPressed: MonitorService.lid(true)
     }
 
+    // Opening the lid is somebody sitting down, and the lock looks for them.
     GlobalShortcut {
         name: "lidOpened"
         description: "The laptop lid was opened"
-        onPressed: MonitorService.lid(false)
+        onPressed: {
+            MonitorService.lid(false)
+            LockService.wake()
+        }
     }
 
     GlobalShortcut {

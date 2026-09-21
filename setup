@@ -170,6 +170,8 @@ Usage: ./setup <command> [options]
   vscodium    install the editor's extensions and merge its settings
   thunar      apply the file manager's settings and right-click menu
   vesktop     tick the palette's theme in Vencord
+  face        unlock the lock screen with your face, where there is an
+              infrared camera: installs howdy-next and enrols you
 
   check       the syntax checks CI runs
   help        this
@@ -811,7 +813,7 @@ verb_uninstall() {
 # ── EXTRAS ──────────────────────────────────────────────────────────────────
 #
 # What a copied file cannot hold: what opens which file, dark GTK, the cursor,
-# Thunar, VSCodium, Vesktop and Spotify.
+# Thunar, VSCodium, Vesktop, Spotify and face unlock.
 # `install` sets each up once per machine, and one that cannot run yet is
 # skipped with the reason and tried again by the next install or update.
 # After that only its own verb runs it, so a setting changed in one of those
@@ -843,6 +845,7 @@ extras() {
     applied thunar || soft thunar verb_thunar
     applied vscodium || soft vscodium verb_vscodium
     applied vesktop || soft vesktop verb_vesktop
+    applied face || soft face verb_face
     if ! applied spotify || [[ -f /opt/spotify/Apps/xpui.spa ]]; then soft spotify verb_spotify; fi
 }
 
@@ -1012,6 +1015,67 @@ verb_thunar() {
     act python3 "$THEME_MANAGER" apply-thunar || refuse 'not every setting was applied' || return
     stamp thunar
     say 'settings and right-click menu applied'
+}
+
+# The infrared half of a Windows Hello camera: the capture device that offers
+# 8-bit grey, by its stable /dev/v4l/by-path name when it has one.
+ir_camera() {
+    local dev link formats
+    for dev in /dev/video*; do
+        [[ -c $dev ]] || continue
+        formats=$(v4l2-ctl -d "$dev" --list-formats 2>/dev/null) || continue
+        [[ $formats == *"'GREY'"* ]] || continue
+        for link in /dev/v4l/by-path/*; do
+            if [[ $(readlink -f "$link") == "$dev" ]]; then printf '%s\n' "$link"; return 0; fi
+        done
+        printf '%s\n' "$dev"
+        return 0
+    done
+    return 1
+}
+
+# Face unlock for the lock screen: howdy-next on the infrared camera, asked
+# through the lock's own PAM service, system/etc/pam.d/impasto-face. Not in
+# packages/, since it brings opencv and only a machine with an infrared camera
+# can use it. Enrolling needs somebody in front of the camera, so an install
+# that cannot ask leaves it for this verb.
+verb_face() {
+    section 'face unlock'
+    command -v v4l2-ctl >/dev/null || refuse 'v4l2-ctl is not installed (package: v4l-utils)' || return
+    local camera
+    local -a yes=()
+    if (( NOCONFIRM )); then yes=(--noconfirm); fi
+    if ! camera=$(ir_camera); then
+        if [[ -n $SOFT ]]; then say 'skipped  no infrared camera'; return 0; fi
+        fail 'no infrared camera: face unlock needs one'
+    fi
+    [[ -f /etc/pam.d/impasto-face ]] \
+        || refuse "the lock screen's PAM service is not installed (./setup system)" || return
+    # Built without its test suite: one test races the compare process against
+    # the password prompt and fails under a parallel build, and passes alone.
+    if ! command -v howdy >/dev/null; then
+        aur_helper || refuse 'howdy-next needs an AUR helper' || return
+        act "$HELPER" -S --needed "${yes[@]}" --mflags --nocheck howdy-next \
+            || refuse 'howdy-next was not installed' || return
+        say 'installed howdy-next'
+    fi
+    act sudo howdy download-models >/dev/null || refuse 'the recognition models did not download' || return
+    # The notice is the lock screen's cue that the camera is on.
+    act sudo howdy set device_path "$camera" >/dev/null \
+        && act sudo howdy set detection_notice true >/dev/null \
+        || refuse 'howdy could not be configured' || return
+    say "camera   $camera"
+    if (( ! DRY )) && sudo howdy list >/dev/null 2>&1; then
+        say 'kept     the face already enrolled · sudo howdy add for another'
+    elif (( NOCONFIRM )) || [[ ! -t 0 ]]; then
+        refuse 'enrolling needs you in front of the camera' || return
+    elif ask 'enrol your face now? look straight at the camera'; then
+        act sudo howdy add || refuse 'no face was enrolled' || return
+    else
+        say 'skipped  enrolling · ./setup face when you want it'
+    fi
+    stamp face
+    say 'ok · lock the screen and look at it'
 }
 
 
@@ -1200,7 +1264,7 @@ parts() {
                 packages) note="$pacman from the repositories, $aur from the AUR" ;;
                 system)   note='sddm, unless this machine already has one' ;;
                 plugins)  note='shake to find · glass on the windows' ;;
-                extras)   note='Thunar, VSCodium, Vesktop, Spotify, dark GTK' ;;
+                extras)   note='Thunar, VSCodium, Vesktop, Spotify, dark GTK, your face' ;;
             esac
             if (( on[i] )); then box="$ACCENT◉$OFF"; else box="$FAINT○$OFF"; fi
             if (( i == at )); then
@@ -1326,6 +1390,7 @@ main() {
         vscodium)  verb_vscodium ;;
         thunar)    verb_thunar ;;
         vesktop)   verb_vesktop ;;
+        face)      verb_face ;;
         check)     verb_check ;;
         help|-h|--help) usage ;;
         *)         fail "unknown command: $verb (./setup help)" ;;

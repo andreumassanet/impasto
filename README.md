@@ -144,6 +144,12 @@ screen is the same lock with the desk taken away: an SDDM theme with the same
 clock, the same face and the same field. The face is your initials, or a
 picture of yours at `/var/lib/impasto/faces/<username>.face.icon`.
 
+**With an infrared camera, the lock opens for your face.** Touch a key or the
+pointer and a ring turns around your picture while the camera looks, closes
+green, and the blur lifts off the desk. It is its own conversation beside the
+password, so a face it does not know never costs you a try, and the login
+screen still asks for the password after a boot.
+
 ## Settings
 
 <p align="center">
@@ -172,7 +178,8 @@ everything in `system/` into `/`, the two Hyprland plugins and the vector
 cursor, and the login screen, switched on unless your machine already uses
 another display manager. It sets up Thunar, VSCodium, Vesktop and Spotify, dark GTK
 applications, and what opens which kind of file — leaving alone any your
-machine already has an answer for. It asks for your password through sudo for
+machine already has an answer for. Where there is an infrared camera it
+installs howdy-next and asks to enrol your face. It asks for your password through sudo for
 pacman, for the copy into `/`, and to let spicetify patch Spotify. A program
 that is open, or a Spotify you have never started, is skipped with the reason
 and set up by the next `update`. After that they follow the wallpaper on their
@@ -187,7 +194,7 @@ with somewhere to press them.
 | `--skip-packages` | install nothing; copy and build only |
 | `--skip-system` | leave `/` alone — no login screen, and no password for it |
 | `--skip-plugins` | no shake to find, no glass |
-| `--skip-extras` | leave Thunar, VSCodium, Vesktop, Spotify and GTK alone |
+| `--skip-extras` | leave Thunar, VSCodium, Vesktop, Spotify, GTK and face unlock alone |
 | `--aur-helper yay\|paru` | which helper builds the AUR half — built from the AUR if you have neither |
 | `--noconfirm` | take the default at every question |
 | `-n`, `--dry-run` | say what would happen, and do none of it |
@@ -240,6 +247,7 @@ rather than failing.
 | 🎧 | Player | [Spotify](https://www.spotify.com) · [spicetify](https://spicetify.app) |
 | 🌐 | Browser | [Zen](https://zen-browser.app) |
 | 🔑 | Login screen | [SDDM](https://github.com/sddm/sddm) |
+| 👤 | Face unlock | [howdy-next](https://codeberg.org/nathawat/howdy-next) |
 
 </details>
 

@@ -30,6 +30,23 @@ Item {
         field.forceActiveFocus()
     }
 
+    // 1 while the lock holds, 0 once it is answered: the type goes and the
+    // blur relaxes, so the desktop is what is left when the lock falls.
+    property real held: LockService.leaving ? 0 : 1
+
+    Behavior on held {
+        NumberAnimation { duration: Theme.durationMorph; easing.type: Easing.InOutCubic }
+    }
+
+    // The shot is every screen at once, so only a lone screen can show it
+    // sharp; with more, the blur stays and only the type goes.
+    readonly property real clearing: Quickshell.screens.length === 1 ? root.held : 1
+
+    // The pointer moving is somebody there, and a reason to look for a face.
+    HoverHandler {
+        onPointChanged: LockService.wake()
+    }
+
     // ── BACKGROUND ──────────────────────────────────────────────────────────
 
     Rectangle {
@@ -53,13 +70,13 @@ Item {
         source: shot
         visible: shot.status === Image.Ready
         blurEnabled: true
-        blur: 1
+        blur: root.clearing
         // Enough to make text unreadable while the desktop stays recognisable.
         blurMax: SettingsService.lockBlur
         // Barely darkened: a dark desktop dimmed further looks broken. The text
         // has its own shadow and every capsule is opaque, so the background
         // only needs to be blurred.
-        brightness: -0.05
+        brightness: -0.05 * root.clearing
         saturation: 0
     }
 
@@ -67,7 +84,7 @@ Item {
     Rectangle {
         anchors.fill: parent
         color: Theme.scrim
-        opacity: 0.18
+        opacity: 0.18 * root.clearing
     }
 
     // ── STATUS ──────────────────────────────────────────────────────────────
@@ -87,6 +104,7 @@ Item {
         radius: Theme.radiusPill
         color: Theme.island
         visible: BatteryService.available
+        opacity: root.held
 
         BatteryWidget {
             anchors.centerIn: parent
@@ -108,6 +126,7 @@ Item {
         anchors.verticalCenterOffset: -60
         width: face.width
         height: face.height
+        opacity: root.held
 
         layer.enabled: true
         layer.effect: MultiEffect {
@@ -156,6 +175,28 @@ Item {
         anchors.bottomMargin: 26
         width: identity.width
         height: identity.height
+        opacity: root.held
+
+        // A face not recognised shakes the picture, ring and all, the way a
+        // wrong password shakes the field.
+        SequentialAnimation {
+            id: unknown
+
+            loops: 2
+            NumberAnimation { target: who; property: "anchors.horizontalCenterOffset"
+                to: -9; duration: 55; easing.type: Easing.OutCubic }
+            NumberAnimation { target: who; property: "anchors.horizontalCenterOffset"
+                to: 9; duration: 55; easing.type: Easing.OutCubic }
+            NumberAnimation { target: who; property: "anchors.horizontalCenterOffset"
+                to: 0; duration: 55; easing.type: Easing.OutCubic }
+        }
+
+        Connections {
+            target: LockService
+            function onFaceMissed(): void {
+                unknown.restart()
+            }
+        }
 
         layer.enabled: true
         layer.effect: MultiEffect {
@@ -172,6 +213,8 @@ Item {
             spacing: 12
 
             Avatar {
+                id: avatar
+
                 anchors.horizontalCenter: parent.horizontalCenter
                 width: 88
                 height: 88
@@ -179,6 +222,8 @@ Item {
                 initials: AccountService.initials
             }
 
+            // The ring reaches past the gap below the picture, so the name
+            // makes way while it is up.
             Text {
                 anchors.horizontalCenter: parent.horizontalCenter
                 text: AccountService.name
@@ -186,8 +231,21 @@ Item {
                 font.pixelSize: Theme.fontSizeLarge
                 font.weight: Font.DemiBold
                 color: Theme.text
+                opacity: 1 - ring.shown
             }
         }
+    }
+
+    // Outside the shadowed block above, whose layer would cut off whatever
+    // reaches past its edges; it carries its own shadow instead.
+    FaceRing {
+        id: ring
+
+        anchors.horizontalCenter: who.horizontalCenter
+        anchors.verticalCenter: who.top
+        anchors.verticalCenterOffset: avatar.height / 2
+        diameter: avatar.width
+        fade: root.held
     }
 
     // ── PASSWORD ────────────────────────────────────────────────────────────
@@ -203,6 +261,7 @@ Item {
         anchors.bottomMargin: 104
         width: 360
         height: 96
+        opacity: root.held
 
         readonly property bool typing: field.text !== ""
             || LockService.authenticating
@@ -328,7 +387,7 @@ Item {
                 echoMode: TextInput.Password
                 passwordCharacter: "•"
                 passwordMaskDelay: 0
-                enabled: !LockService.authenticating
+                enabled: !LockService.authenticating && !LockService.leaving
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.fontSizeMedium
                 color: Theme.text
@@ -350,6 +409,12 @@ Item {
                 // Escape clears the field rather than leaving part of a
                 // password on screen.
                 Keys.onEscapePressed: field.clear()
+
+                // Any key is somebody there; the key still reaches the field.
+                Keys.onPressed: event => {
+                    LockService.wake()
+                    event.accepted = false
+                }
             }
 
             // A spinner while PAM checks the password.
@@ -400,6 +465,7 @@ Item {
     // buttons.
 
     LockPower {
+        opacity: root.held
         anchors.left: parent.left
         anchors.leftMargin: Theme.barTopMargin + 6
         anchors.bottom: parent.bottom
