@@ -108,8 +108,16 @@ Item {
         root.pickedIndex = -1
     }
 
+    // On the list as drawn: a saved piece that has left the catalogue would
+    // otherwise shift the look onto its neighbour. The write drops it, as
+    // every write from here does. An empty value reverts that field to the
+    // bar-wide setting.
     function setLook(changes: var): void {
-        SettingsService.setBarLook(root.pickedSide, root.pickedIndex, changes)
+        const items = root.listOf(root.pickedSide).slice()
+        if (root.pickedIndex < 0 || root.pickedIndex >= items.length)
+            return
+        items[root.pickedIndex] = Object.assign({}, items[root.pickedIndex], changes)
+        SettingsService.setBarZone(root.pickedSide, items)
     }
 
     function removePicked(): void {

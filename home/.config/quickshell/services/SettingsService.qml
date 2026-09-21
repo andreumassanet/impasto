@@ -213,15 +213,6 @@ Singleton {
         root.set(side === "left" ? "barLeft" : "barRight", packed)
     }
 
-    // An empty value reverts that field to the bar-wide setting.
-    function setBarLook(side: string, index: int, changes: var): void {
-        const items = root.barItems(side)
-        if (index < 0 || index >= items.length)
-            return
-        items[index] = Object.assign({}, items[index], changes)
-        root.setBarZone(side, items)
-    }
-
     // Modules allowed beside the time on the island while running. One left
     // out still works on the bar; it just doesn't take a side of the island.
     // A recording is always there, and is not on this list.
