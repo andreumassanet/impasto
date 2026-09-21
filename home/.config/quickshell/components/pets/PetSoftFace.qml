@@ -22,7 +22,7 @@ Item {
 
     property real size: 40
     property string mood: "content"
-    // 1 open, 0 shut. Driven by the blink above.
+    // 1 open, 0 shut. Driven by PetFace's blink.
     property real blink: 1
     property color ink: Theme.island
     property color blush: Theme.accent

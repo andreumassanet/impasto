@@ -15,10 +15,10 @@ import "../services"
 // Bars rising from one edge of this box, as many as fit, centred, in one of
 // the looks a strip can take (`DesktopService.spectrumOf`).
 //
-// One shader draws every bar (`spectrum.frag`): a bar per item cost the scene
-// graph a node per bar on every one of cava's frames. The bars step with
-// cava's frames rather than gliding between them, since a glide redraws at
-// the screen's rate instead of cava's.
+// One shader draws every bar (`spectrum.frag`), rather than a scene graph
+// node per bar on every one of cava's frames. The bars step with cava's
+// frames rather than gliding between them, since a glide redraws at the
+// screen's rate instead of cava's.
 //
 // Listens to cava while `listening`. A `sample` draws a fixed spectrum
 // instead, for a tile that has to show a look in silence.

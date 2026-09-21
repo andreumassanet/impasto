@@ -23,7 +23,7 @@ import "../services"
 Item {
     id: root
 
-    // The row key, from the surface's Repeater over `DesktopService.keys`.
+    // The row key, from the surface's Repeater over `DesktopService.keysOn`.
     required property string modelData
 
     // The surface the grid is measured against, passed in rather than found

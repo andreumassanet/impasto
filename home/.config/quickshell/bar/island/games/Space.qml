@@ -414,7 +414,7 @@ FocusScope {
                     `rgba(${Math.round(colour.r * 255)},${Math.round(colour.g * 255)},`
                     + `${Math.round(colour.b * 255)},${alpha})`
 
-                // Stars, each at its own strength and two of every seven
+                // Stars, each at its own strength and one in seven
                 // breathing.
                 for (const star of root.stars) {
                     const twinkle = star.lit

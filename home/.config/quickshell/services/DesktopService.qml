@@ -1092,9 +1092,8 @@ Singleton {
         return true
     }
 
-    // Drop: the target cell on the target screen, or the nearest free fit
-    // there; otherwise unchanged. A drop on another screen is the same call
-    // with another name, which is the whole of dragging across.
+    // Drop: the target cell on the named screen, or the nearest free fit
+    // there; otherwise unchanged.
     function place(key: string, name: string, col: int, row: int): void {
         const widget = root.entryOf(key)
         if (!widget)
@@ -1373,9 +1372,8 @@ Singleton {
             && y >= box.y && y <= box.y + box.height
     }
 
-    // Every board is arranged at once — a widget has to be able to leave one
-    // and land on another — but one of them holds the mode: the screen it was
-    // entered from, which keeps the single focus grab and the keyboard for as
+    // Every board is arranged at once, but one of them holds the mode: the
+    // screen it was entered from, which keeps the single focus grab and the keyboard for as
     // long as it lasts. It never changes hands, because handing a grab over is
     // a grab clearing, and a grab clearing is what ends the mode.
     property string editingScreen: ""
@@ -1388,7 +1386,7 @@ Singleton {
     // The desk surfaces, one per screen, so the focus grab can name every
     // one of them. ONE grab, held by the screen the card is on: two grabs at
     // once and the second clears the first, which ends the mode the moment it
-    // starts (measured, on two screens).
+    // starts.
     property var surfaces: ({})
 
     function publish(name: string, window: var): void {

@@ -317,8 +317,8 @@ FocusScope {
                 ctx.fill()
 
                 // The light on a round back: one path over the whole snake,
-                // head included, offset towards the top left. Drawn in one
-                // stroke rather than per segment, which banded.
+                // head included, offset towards the top left. One stroke,
+                // since strokes per segment band where they overlap.
                 ctx.strokeStyle = paint(0, 0.34)
                 ctx.lineWidth = size * 0.2
                 ctx.beginPath()

@@ -60,18 +60,17 @@ ShellRoot {
 
     // ── SCREENS ─────────────────────────────────────────────────────────────
     //
-    // Single-screen surfaces are Variants over a list of one. A PanelWindow
-    // whose ShellScreen is destroyed (output unplugged) does not recover when
-    // handed a new one; Variants destroys and rebuilds the window with the
-    // list, which does.
+    // Every surface is a Variants over the screens. A PanelWindow whose
+    // ShellScreen is destroyed (output unplugged) does not recover when handed
+    // a new one; Variants destroys and rebuilds the window with the list,
+    // which does.
 
     // The island is the same bar on every screen, and one of them is LIVE: the
     // screen being worked on. It changes hands the moment the focus does —
     // nothing is created and nothing is destroyed, so the crossing costs no
     // frame and what is under the pointer is always what answers it. It waits
     // only while a panel is open, since moving then is a panel closing itself.
-    // The primary is the fallback, and is where the widgets and the decks stay
-    // whatever the island does.
+    // The primary is the fallback.
     property string islandName: MonitorService.effectivePrimaryName
 
     readonly property string wantedIslandName: {
@@ -126,14 +125,11 @@ ShellRoot {
     // ── BARS ────────────────────────────────────────────────────────────────
     //
     // One bar per screen, exactly one of them live. A layer surface cannot
-    // change output — handed another screen it is destroyed and a new one is
-    // created — so an island that travelled was a bar built on the far screen
-    // and torn down on this one, with its clock and its workspaces animating
-    // in from nothing over the identical drawing already there. Measured on
-    // two screens: the hour greyed out and the workspace pill slid back from
-    // the wrong screen's, for about 290 ms, every crossing. Every screen
-    // carrying the whole bar and one flag deciding which is live costs one
-    // transparent surface per screen and no frames at all.
+    // change output, so an island that moved would be a bar built from
+    // nothing on the far screen, its clock and workspaces animating in over
+    // the same drawing. Every screen carrying the whole bar, with one flag
+    // deciding which is live, costs one transparent surface per screen and no
+    // frames at all.
 
     // The space the bars keep, held per screen and never rebuilt, so swapping
     // one kind of bar for another moves no windows.
@@ -174,7 +170,8 @@ ShellRoot {
         }
     }
 
-    // The dock has no per-screen state, so it is on every screen.
+    // A dock on every screen, each drawn or not by `dockEverywhere` and
+    // which screen is live.
     Variants {
         model: Quickshell.screens
 

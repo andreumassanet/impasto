@@ -36,8 +36,7 @@ PanelWindow {
     readonly property bool editing: DesktopService.editing
 
     // One deck surface per screen; each draws its own edges and nobody
-    // else's. A tab can still be dragged onto another screen, which is the
-    // widget's arithmetic (`Widget.qml`).
+    // else's.
     readonly property string screenName: root.screen?.name ?? ""
 
 

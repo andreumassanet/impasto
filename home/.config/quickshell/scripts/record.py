@@ -11,7 +11,7 @@
 """Screen recording: start, stop and report status.
 
 Uses `wl-screenrec` (GPU encoding) when installed, else `wf-recorder`; with
-neither, the recorder module is hidden.
+neither, there is no recording.
 
 A recording outlives the shell, so its state is a file in the runtime
 directory, and a restarted shell finds a running take through `status`.
