@@ -99,8 +99,9 @@ QtObject {
 
     // ── ON DEMAND ───────────────────────────────────────────────────────────
     //
-    // Monitors and keybindings only matter while the settings window is open,
-    // so they are queried when asked for rather than kept in step with events.
+    // Keybindings only matter while the settings window is open, so they are
+    // queried when asked for. Monitors are read at start, whenever a workspace
+    // moves or a screen arrives, and when the settings window asks.
 
     property var monitors: []
     property var binds: []
@@ -319,8 +320,6 @@ QtObject {
                 if (root.watchClients || root.clients.length > 0)
                     root.loadClients()
                 break
-            // Focus changes only affect the client list, and only watchers
-            // need it; skipping it otherwise saves a process per alt-tab.
             // `MONITOR,WORKSPACE`, sent whenever the keyboard changes screen.
             case "focusedmon":
             case "focusedmonv2":
@@ -330,12 +329,16 @@ QtObject {
                 break
             // `WORKSPACEID,WORKSPACENAME,MONITORNAME`: a whole workspace has
             // gone to another screen, so both screens are showing something
-            // else now.
+            // else now. A screen plugged in is showing one from the start.
             case "moveworkspace":
             case "moveworkspacev2":
+            case "monitoradded":
+            case "monitoraddedv2":
                 root.loadMonitors()
                 root.refresh()
                 break
+            // Focus changes only affect the client list, and only watchers
+            // need it; skipping it otherwise saves a process per alt-tab.
             case "activewindow":
             case "activewindowv2":
                 if (event.name === "activewindowv2")
