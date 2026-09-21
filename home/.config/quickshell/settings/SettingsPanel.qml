@@ -80,7 +80,7 @@ Item {
           keywords: "launcher search apps results calculate run window timer note task board prefix sigil order recent frequency favourite favorite pinned kept clipboard history copy paste images wipe lock",
           page: launcherPage },
 
-        { id: "appearance", category: "desk", icon: "󰔏", label: Tr.t("Appearance"),
+        { id: "appearance", category: "desk", icon: "󰏘", label: Tr.t("Appearance"),
           blurb: Tr.t("Palette, windows, fonts and animations."),
           tabs: [{ id: "theme", label: Tr.t("Theme") },
                  { id: "windows", label: Tr.t("Windows") },

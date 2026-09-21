@@ -73,7 +73,7 @@ SettingsSection {
 
                 PillButton {
                     text: Tr.t("Open")
-                    icon: "󰔏"
+                    icon: "󰏘"
                     active: true
                     implicitWidth: 92
                     implicitHeight: 30
