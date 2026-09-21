@@ -56,6 +56,8 @@ Item {
     SequentialAnimation {
         running: root.lively && !root.asleep && !root.egg
         loops: Animation.Infinite
+        // Stopped mid-blink, the eyes would stay half shut.
+        onRunningChanged: if (!running) root.blink = 1
 
         PauseAnimation { duration: 2800 }
         NumberAnimation { target: root; property: "blink"; to: 0.15; duration: 70 }
