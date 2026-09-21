@@ -29,20 +29,12 @@ SettingsSection {
         CompositorService.loadShake()
     }
 
-    // "palette" follows the accent; the rest are fixed. compositor.py does the
-    // recolouring.
+    // "palette" follows the accent; the rest are fixed (`Theme.fixedColours`).
+    // compositor.py does the recolouring.
     readonly property var cursorColors: [
-        { id: "palette", label: Tr.t("Palette"), swatch: Theme.accent, palette: true },
-        { id: "#000000", label: Tr.t("Black"),  swatch: "#000000" },
-        { id: "#ffffff", label: Tr.t("White"),  swatch: "#ffffff" },
-        { id: "#e5484d", label: Tr.t("Red"),    swatch: "#e5484d" },
-        { id: "#f76b15", label: Tr.t("Orange"), swatch: "#f76b15" },
-        { id: "#f5c518", label: Tr.t("Yellow"), swatch: "#f5c518" },
-        { id: "#46a758", label: Tr.t("Green"),  swatch: "#46a758" },
-        { id: "#3b82f6", label: Tr.t("Blue"),   swatch: "#3b82f6" },
-        { id: "#8b5cf6", label: Tr.t("Purple"), swatch: "#8b5cf6" },
-        { id: "#e93d82", label: Tr.t("Pink"),   swatch: "#e93d82" }
-    ]
+        { id: "palette", label: Tr.t("Palette"), swatch: Theme.accent, palette: true }
+    ].concat(Theme.fixedColours.map(entry =>
+        ({ id: entry.id, label: Tr.t(entry.label), swatch: entry.id })))
 
     readonly property string switchOption:
         CompositorService.value("input:kb_options", "")

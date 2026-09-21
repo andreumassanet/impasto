@@ -39,7 +39,8 @@ Item {
         claude: claudeLarge,
         notes: notesLarge,
         tasks: tasksLarge,
-        photo: photoLarge
+        photo: photoLarge,
+        spectrum: spectrumLarge
     })
 
     Loader {
@@ -729,5 +730,12 @@ Item {
                 }
             ]
         }
+    }
+
+    // The bars in a capsule; see `SpectrumFace`.
+    Component {
+        id: spectrumLarge
+
+        SpectrumFace { ink: root.ink; row: root.row; family: "4x4" }
     }
 }

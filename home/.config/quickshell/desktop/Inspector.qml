@@ -37,8 +37,16 @@ Item {
     readonly property bool onNote: root.moduleId === "notes"
     readonly property bool onPhoto: root.moduleId === "photo"
 
-    // Notes and photos have no capsule to style and no opacity to set.
-    readonly property bool styled: !root.onNote && !root.onPhoto
+    // The spectrum is its bars wherever it is: no face and no capsule, a look
+    // and an opacity of its own instead. On an edge it is a strip, with a
+    // height and no shape.
+    readonly property bool onSpectrum: root.moduleId === "spectrum"
+    readonly property bool strip: DesktopService.isSpectrum(root.row)
+    readonly property var looks: DesktopService.spectrumOf(root.onSpectrum ? root.row : null)
+
+    // Notes, photos and the spectrum have no capsule to style and no capsule
+    // opacity to set.
+    readonly property bool styled: !root.onNote && !root.onPhoto && !root.onSpectrum
 
     // Only a print has a chin to write in.
     readonly property bool captioned: root.onPhoto
@@ -82,8 +90,8 @@ Item {
         readonly property bool leftFits:
             root.box.x - root.gap - card.width >= Theme.desktopGutter
 
-        // A deck on the bottom edge has no side: the card goes above.
-        readonly property bool above: root.deck && root.row.edge === "bottom"
+        // Anything on the bottom edge has no side: the card goes above.
+        readonly property bool above: (root.deck || root.strip) && root.row.edge === "bottom"
 
         x: card.above ? Math.max(Theme.desktopGutter, root.box.x + Theme.desktopGutter)
             : card.rightFits ? root.box.x + root.box.width + root.gap
@@ -157,7 +165,7 @@ Item {
             // The same choice as dragging the corner handle.
 
             Text {
-                visible: !root.deck
+                visible: !root.deck && !root.strip
                 text: Tr.t("Shape")
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.fontSizeLabel
@@ -166,11 +174,11 @@ Item {
             }
 
             Row {
-                visible: !root.deck
+                visible: !root.deck && !root.strip
                 spacing: 8
 
                 Repeater {
-                    model: root.deck ? []
+                    model: root.deck || root.strip ? []
                         : DesktopService.familiesFor(root.moduleId, DesktopService.themeOf(root.row))
 
                     Rectangle {
@@ -211,10 +219,11 @@ Item {
             //
             // For a note: a grid cell or one of the three edges. Picking an
             // edge moves the note to that edge's deck; for a deck, it moves the
-            // whole deck.
+            // whole deck. The spectrum goes the same way, to an edge without
+            // one.
 
             Text {
-                visible: root.onNote
+                visible: root.onNote || root.onSpectrum
                 text: Tr.t("Where")
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.fontSizeLabel
@@ -223,25 +232,34 @@ Item {
             }
 
             Row {
-                visible: root.onNote
+                visible: root.onNote || root.onSpectrum
                 spacing: 8
 
                 Repeater {
-                    model: root.onNote ? [
-                        { id: "grid", label: Tr.t("Grid"), icon: "󰕰" },
+                    model: (root.onNote || root.onSpectrum ? [
+                        { id: "grid", label: Tr.t("Grid"), icon: "󰕰" }
+                    ] : []).concat(root.onNote || root.onSpectrum ? [
                         { id: "left", label: Tr.t("Left"), icon: "󰞕" },
                         { id: "right", label: Tr.t("Right"), icon: "󰞘" },
                         { id: "bottom", label: Tr.t("Bottom"), icon: "󰞖" }
-                    ] : []
+                    ] : [])
 
                     Rectangle {
                         id: whereTile
 
                         required property var modelData
 
-                        readonly property bool current: root.deck
+                        readonly property bool current: root.deck || root.strip
                             ? root.row.edge === whereTile.modelData.id
                             : whereTile.modelData.id === "grid"
+
+                        // An edge that already has a spectrum takes no second.
+                        readonly property bool taken: root.onSpectrum && !whereTile.current
+                            && whereTile.modelData.id !== "grid"
+                            && !DesktopService.spectrumTakes(DesktopService.nameOf(root.row),
+                                whereTile.modelData.id)
+
+                        opacity: whereTile.taken ? 0.4 : 1
 
                         width: 64
                         height: 48
@@ -277,9 +295,18 @@ Item {
                             gesturePolicy: TapHandler.ReleaseWithinBounds
                             onTapped: {
                                 const where = whereTile.modelData.id
-                                if (whereTile.current)
+                                if (whereTile.current || whereTile.taken)
                                     return
                                 const name = DesktopService.nameOf(root.row)
+                                if (root.onSpectrum) {
+                                    if (where === "grid")
+                                        DesktopService.spectrumToGrid(root.key, name)
+                                    else if (root.strip)
+                                        DesktopService.setSpectrumEdge(root.key, name, where)
+                                    else
+                                        DesktopService.spectrumToEdge(root.key, name, where)
+                                    return
+                                }
                                 if (root.deck) {
                                     if (where === "grid")
                                         return
@@ -291,6 +318,190 @@ Item {
                         }
                     }
                 }
+            }
+
+            // ── THE SPECTRUM'S LOOK ─────────────────────────────────────────
+            //
+            // Each tile is a sample of this strip with that one thing changed,
+            // drawn from a fixed spectrum so it shows in silence too. Every
+            // change lands on the strip at once.
+
+            Heading {
+                visible: root.onSpectrum
+                text: Tr.t("Look")
+            }
+
+            Row {
+                visible: root.onSpectrum
+                spacing: 6
+
+                Repeater {
+                    model: root.onSpectrum ? DesktopService.spectrumLooks : []
+
+                    SpectrumTile {
+                        required property var modelData
+
+                        current: root.looks.look === modelData.id
+                        look: modelData.id
+                        onChosen: DesktopService.setSpectrum(root.key, { look: modelData.id })
+                    }
+                }
+            }
+
+            Heading {
+                visible: root.onSpectrum
+                text: Tr.t("Fill")
+            }
+
+            Row {
+                visible: root.onSpectrum
+                spacing: 6
+
+                Repeater {
+                    model: root.onSpectrum ? DesktopService.spectrumFills : []
+
+                    SpectrumTile {
+                        required property var modelData
+
+                        current: root.looks.fill === modelData.id
+                        fillStyle: modelData.id
+                        onChosen: DesktopService.setSpectrum(root.key, { fill: modelData.id })
+                    }
+                }
+            }
+
+            Text {
+                visible: root.onSpectrum
+                width: parent.width
+                text: {
+                    const look = DesktopService.spectrumLooks.find(entry => entry.id === root.looks.look)
+                    const fill = DesktopService.spectrumFills.find(entry => entry.id === root.looks.fill)
+                    return [look, fill].filter(entry => entry).map(entry => Tr.t(entry.label)).join(" · ")
+                }
+                elide: Text.ElideRight
+                font.family: Theme.fontFamily
+                font.pixelSize: Theme.fontSizeLabel
+                color: Theme.textMuted
+            }
+
+            Heading {
+                visible: root.onSpectrum
+                text: root.looks.fill === "blend" ? Tr.t("From the edge") : Tr.t("Colour")
+            }
+
+            ColourRow {
+                visible: root.onSpectrum
+                field: "color"
+            }
+
+            Heading {
+                visible: root.onSpectrum && root.looks.fill === "blend"
+                text: Tr.t("To the tip")
+            }
+
+            ColourRow {
+                visible: root.onSpectrum && root.looks.fill === "blend"
+                field: "color2"
+            }
+
+            Heading {
+                visible: root.onSpectrum
+                text: Tr.t("Size")
+            }
+
+            Measure {
+                visible: root.strip
+                label: Tr.t("Height")
+                field: "reach"
+            }
+
+            Measure {
+                visible: root.onSpectrum
+                label: Tr.t("Bars")
+                field: "bar"
+            }
+
+            Measure {
+                visible: root.onSpectrum
+                label: Tr.t("Gap")
+                field: "gap"
+            }
+
+            Heading {
+                visible: root.onSpectrum
+                text: Tr.t("Lows")
+            }
+
+            Row {
+                visible: root.onSpectrum
+                spacing: 8
+
+                Repeater {
+                    model: root.onSpectrum ? [
+                        { id: "corners", label: Tr.t("At the corners") },
+                        { id: "along", label: Tr.t("Along the edge") }
+                    ] : []
+
+                    Rectangle {
+                        id: lowsTile
+
+                        required property var modelData
+
+                        readonly property bool current: root.looks.lows === lowsTile.modelData.id
+
+                        width: 138
+                        height: 34
+                        radius: Theme.radiusSmall
+                        color: lowsTile.current ? Theme.islandSurfaceHover : "transparent"
+                        border.color: lowsTile.current ? Theme.accent : Theme.hairline
+                        border.width: 1
+
+                        Text {
+                            anchors.centerIn: parent
+                            text: lowsTile.modelData.label
+                            font.family: Theme.fontFamily
+                            font.pixelSize: Theme.fontSizeLabel
+                            color: lowsTile.current ? Theme.text : Theme.textMuted
+                        }
+
+                        HoverHandler { cursorShape: Qt.PointingHandCursor }
+
+                        TapHandler {
+                            gesturePolicy: TapHandler.ReleaseWithinBounds
+                            onTapped: DesktopService.setSpectrum(root.key, { lows: lowsTile.modelData.id })
+                        }
+                    }
+                }
+            }
+
+            Item {
+                visible: root.onSpectrum
+                width: parent.width
+                height: 28
+
+                Heading {
+                    anchors.left: parent.left
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: Tr.t("Peaks")
+                }
+
+                ToggleSwitch {
+                    anchors.right: parent.right
+                    anchors.verticalCenter: parent.verticalCenter
+                    checked: root.looks.peaks
+                    onToggled: checked => DesktopService.setSpectrum(root.key, { peaks: checked })
+                }
+            }
+
+            SliderRow {
+                visible: root.onSpectrum
+                width: parent.width
+                height: 34
+                icon: "󰊸"
+                value: root.looks.opacity
+                from: DesktopService.spectrumRanges.opacity.from
+                to: DesktopService.spectrumRanges.opacity.to
+                onMoved: value => DesktopService.setSpectrum(root.key, { opacity: value })
             }
 
             // ── ALIGNMENT ───────────────────────────────────────────────────
@@ -667,7 +878,7 @@ Item {
             // as a live clock face.
 
             Text {
-                visible: root.moduleId !== "notes"
+                visible: root.moduleId !== "notes" && !root.onSpectrum
                 text: Tr.t("Face")
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.fontSizeLabel
@@ -676,7 +887,7 @@ Item {
             }
 
             Row {
-                visible: root.moduleId !== "notes"
+                visible: root.moduleId !== "notes" && !root.onSpectrum
                 spacing: 8
 
                 Repeater {
@@ -849,6 +1060,183 @@ Item {
                 }
             }
 
+        }
+    }
+
+    // ── PIECES ──────────────────────────────────────────────────────────────
+
+    component Heading: Text {
+        font.family: Theme.fontFamily
+        font.pixelSize: Theme.fontSizeLabel
+        font.weight: Font.DemiBold
+        color: Theme.textMuted
+    }
+
+    // This strip with one thing changed, as a tile.
+    component SpectrumTile: Rectangle {
+        id: tile
+
+        property bool current: false
+        property string look: root.looks.look
+        property string fillStyle: root.looks.fill
+
+        signal chosen()
+
+        width: 50
+        height: 44
+        radius: Theme.radiusSmall
+        color: tile.current ? Theme.islandSurfaceHover : "transparent"
+        border.color: tile.current ? Theme.accent : Theme.hairline
+        border.width: 1
+
+        SpectrumBars {
+            anchors.fill: parent
+            anchors.margins: 6
+            sample: true
+            style: tile.look
+            fillStyle: tile.fillStyle
+            color: root.looks.color
+            color2: root.looks.color2
+            barWidth: 4
+            gap: 2
+            floorLength: 1
+            lowsAt: "along"
+            peaks: root.looks.peaks
+        }
+
+        HoverHandler { cursorShape: Qt.PointingHandCursor }
+
+        TapHandler {
+            gesturePolicy: TapHandler.ReleaseWithinBounds
+            onTapped: tile.chosen()
+        }
+    }
+
+    // As the cursor's colour is chosen: Palette, the accent, which follows the
+    // wallpaper, then the fixed colours.
+    component ColourRow: Flow {
+        id: colours
+
+        property string field: "color"
+        readonly property string chosen: colours.field === "color"
+            ? root.looks.colorName : root.looks.color2Name
+
+        function choose(value: string): void {
+            DesktopService.setSpectrum(root.key, { [colours.field]: value })
+        }
+
+        width: parent.width
+        spacing: 6
+
+        // The palette's, ringed thicker as the cursor's is: it is the live
+        // accent, not a colour.
+        Rectangle {
+            id: palette
+
+            readonly property bool current: colours.chosen === "palette"
+
+            width: paletteRow.implicitWidth + 20
+            height: 26
+            radius: height / 2
+            color: "transparent"
+            border.color: palette.current ? Theme.accent : Theme.hairline
+            border.width: 1
+
+            Row {
+                id: paletteRow
+
+                anchors.centerIn: parent
+                spacing: 6
+
+                Rectangle {
+                    anchors.verticalCenter: parent.verticalCenter
+                    width: 14
+                    height: 14
+                    radius: 7
+                    color: Theme.accent
+                    border.color: Theme.accentText
+                    border.width: 2
+                }
+
+                Text {
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: Tr.t("Palette")
+                    font.family: Theme.fontFamily
+                    font.pixelSize: Theme.fontSizeLabel
+                    color: palette.current ? Theme.accent : Theme.text
+                }
+            }
+
+            HoverHandler { cursorShape: Qt.PointingHandCursor }
+
+            TapHandler {
+                gesturePolicy: TapHandler.ReleaseWithinBounds
+                onTapped: colours.choose("palette")
+            }
+        }
+
+        Repeater {
+            model: Theme.fixedColours
+
+            Rectangle {
+                id: swatch
+
+                required property var modelData
+
+                readonly property bool current: colours.chosen === swatch.modelData.id
+
+                width: 26
+                height: 26
+                radius: 13
+                color: swatch.modelData.id
+                border.color: swatch.current ? Theme.accent : Theme.hairline
+                border.width: swatch.current ? 2 : 1
+
+                HoverHandler { cursorShape: Qt.PointingHandCursor }
+
+                TapHandler {
+                    gesturePolicy: TapHandler.ReleaseWithinBounds
+                    onTapped: colours.choose(swatch.modelData.id)
+                }
+            }
+        }
+    }
+
+    // One of the sizes, in pixels, beside its name.
+    component Measure: Item {
+        id: measure
+
+        property string label: ""
+        property string field: ""
+        readonly property var range: DesktopService.spectrumRanges[measure.field]
+
+        width: parent.width
+        height: 30
+
+        Text {
+            id: name
+
+            anchors.left: parent.left
+            anchors.verticalCenter: parent.verticalCenter
+            width: 52
+            text: measure.label
+            elide: Text.ElideRight
+            font.family: Theme.fontFamily
+            font.pixelSize: Theme.fontSizeLabel
+            color: Theme.textMuted
+        }
+
+        SliderRow {
+            anchors.left: name.right
+            anchors.right: parent.right
+            anchors.leftMargin: 8
+            anchors.verticalCenter: parent.verticalCenter
+            height: 26
+            value: root.looks[measure.field]
+            from: measure.range.from
+            to: measure.range.to
+            unit: " px"
+            onMoved: value => DesktopService.setSpectrum(root.key, { [measure.field]: value })
         }
     }
 }

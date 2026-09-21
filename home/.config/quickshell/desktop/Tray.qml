@@ -17,7 +17,8 @@ import "../components"
 // smallest family it offers, which is the face it lands with. Drag one onto
 // the grid, or click it to place it on the first free cell, and change its
 // shape there; drop a widget on the card to remove it. Every module is offered
-// regardless of its current state.
+// regardless of its current state. Notes and the spectrum also land on an
+// edge when let go against one.
 //
 // The ghost (the face at full size while dragged) lives on the board rather
 // than here, so it can leave the card.
@@ -160,6 +161,8 @@ EditTray {
                 DeckService.receiving = ""
                 if (edge !== "" && moduleId === "notes")
                     DesktopService.addDeck(onScreen, edge)
+                else if (edge !== "" && moduleId === "spectrum")
+                    DesktopService.addSpectrum(onScreen, edge)
                 else if (spot)
                     DesktopService.add(moduleId, spot.screen, spot.col, spot.row)
             }
@@ -187,11 +190,14 @@ EditTray {
             DeckService.receiving = ""
             return
         }
-        // A notes piece against an edge is a deck there, not a square.
-        const edge = root.pulling === "notes"
+        // A notes piece against an edge is a deck there, and a spectrum the
+        // bars along it if it has none yet; anywhere else, a square.
+        const edged = root.pulling === "notes" || root.pulling === "spectrum"
+        const edge = edged
             ? DeckService.edgeAt(pointer.x, pointer.y, root.board.width, root.board.height) : ""
         DeckService.receivingScreen = name
-        DeckService.receiving = edge
+        DeckService.receiving = root.pulling !== "spectrum" || DesktopService.spectrumTakes(name, edge)
+            ? edge : ""
         if (edge !== "") {
             DesktopService.landing = null
             return

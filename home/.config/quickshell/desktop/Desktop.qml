@@ -241,6 +241,17 @@ PanelWindow {
             Behavior on height { enabled: slide.enabled; NumberAnimation { duration: Theme.durationFast; easing.type: Theme.easing } }
         }
 
+        // The spectra, under the widgets. Each runs past the board to the
+        // screen's own edge.
+        Repeater {
+            model: DesktopService.spectrumKeysOn(root.screenName)
+
+            EdgeSpectrum {
+                board: surface
+                screenName: root.screenName
+            }
+        }
+
         // One widget per key: a Repeater given a new array rebuilds every
         // delegate. The rows change on every drop; the keys only on add and
         // remove.

@@ -31,6 +31,9 @@ import "../theme"
 // row with `edge` and a `notes` list instead of a cell. A note is shown in
 // one place at a time. `DeckService` holds the deck geometry.
 //
+// The spectrum is the same: a widget on the grid, or sound bars along the
+// whole of an edge — a row with `edge` and no `notes`, one per edge.
+//
 // Every row carries the screen it is on, and every board has a grid of its
 // own, so a cell means nothing without a screen to go with it: the functions
 // below that take one take it first.
@@ -102,7 +105,8 @@ Singleton {
             updates: ["2x2", "4x2"],                pet: ["2x2", "4x2"],
             games: ["2x2", "4x2"],                  calendar: ["2x2", "4x2", "4x4"],
             notes: ["2x2", "4x2", "4x4", "8x2"],    tasks: ["2x2", "4x2", "4x4"],
-            clock: ["2x2", "4x2", "8x2"],           photo: ["2x2", "4x2", "4x4", "8x2"]
+            clock: ["2x2", "4x2", "8x2"],           photo: ["2x2", "4x2", "4x4", "8x2"],
+            spectrum: ["4x2", "8x2", "4x4"]
         },
         analogue: {
             media: ["2x2", "4x2", "4x4"],           timer: ["2x2", "4x2"],
@@ -114,7 +118,8 @@ Singleton {
             updates: ["2x2", "4x2"],                pet: ["2x2", "4x2"],
             games: ["2x2", "4x2"],                  calendar: ["2x2", "4x2", "4x4"],
             notes: ["2x2", "4x2", "4x4", "8x2"],    tasks: ["2x2", "4x2", "4x4"],
-            clock: ["2x2", "4x2", "4x4", "8x2"],    photo: ["2x2", "4x2", "4x4", "8x2"]
+            clock: ["2x2", "4x2", "4x4", "8x2"],    photo: ["2x2", "4x2", "4x4", "8x2"],
+            spectrum: ["4x2", "8x2", "4x4"]
         }
     })
 
@@ -355,12 +360,23 @@ Singleton {
 
     property var widgets: root.normalise(SettingsService.desktopWidgets)
 
-    function isDeck(widget: var): bool {
+    // A row on an edge rather than on a cell: a deck of notes, or a spectrum.
+    function isEdge(widget: var): bool {
         return widget && typeof widget.edge === "string" && widget.edge !== ""
     }
 
+    function isDeck(widget: var): bool {
+        return root.isEdge(widget) && widget.id !== "spectrum"
+    }
+
+    // A spectrum on an edge; one on the grid is a square like any widget.
+    function isSpectrum(widget: var): bool {
+        return root.isEdge(widget) && widget.id === "spectrum"
+    }
+
     readonly property var decks: root.widgets.filter(widget => root.isDeck(widget))
-    readonly property var squares: root.widgets.filter(widget => !root.isDeck(widget))
+    readonly property var spectra: root.widgets.filter(widget => root.isSpectrum(widget))
+    readonly property var squares: root.widgets.filter(widget => !root.isEdge(widget))
 
     // Picks up external changes (reset, profile switch, manual edits). Our
     // own writes echo back with the same value, which is harmless.
@@ -395,6 +411,7 @@ Singleton {
     // had, not an equal one.
     property var keys: ({})
     property var deckKeys: ({})
+    property var spectrumKeys: ({})
 
     function keysOn(name: string): var {
         return root.keys[name] ?? []
@@ -404,8 +421,13 @@ Singleton {
         return root.deckKeys[name] ?? []
     }
 
+    function spectrumKeysOn(name: string): var {
+        return root.spectrumKeys[name] ?? []
+    }
+
     onShownChanged: root.syncKeys()
     onShownDecksChanged: root.syncKeys()
+    onSpectraChanged: root.syncKeys()
     onBoardsChanged: root.syncKeys()
     Component.onCompleted: root.syncKeys()
 
@@ -421,6 +443,7 @@ Singleton {
     function syncKeys(): void {
         root.keys = root.sameOrNew(root.keys, root.sortByScreen(root.shown))
         root.deckKeys = root.sameOrNew(root.deckKeys, root.sortByScreen(root.shownDecks))
+        root.spectrumKeys = root.sameOrNew(root.spectrumKeys, root.sortByScreen(root.spectra))
     }
 
     function sortByScreen(list: var): var {
@@ -476,6 +499,8 @@ Singleton {
     // measured so the mask never lags a frame behind. A square is drawn at its
     // spot on this board (`spots`).
     function geometry(widget: var, boardWidth: real, boardHeight: real): var {
+        if (root.isSpectrum(widget))
+            return root.spectrumBox(root.nameOf(widget), widget, boardWidth, boardHeight)
         if (root.isDeck(widget)) {
             const count = root.deckNotes(widget).length
             return DeckService.stripBox(widget.edge, count,
@@ -869,6 +894,204 @@ Singleton {
         root.placeNote(noteKey, root.nameOf(deck), deck.edge)
     }
 
+    // ── SPECTRUM ────────────────────────────────────────────────────────────
+    //
+    // Sound bars along a whole edge, one per edge. The box runs to the
+    // screen's own edge, past the dock's band, so it is measured from the
+    // board out by the insets: the bottom from corner to corner, a side from
+    // under the bar to the bottom — or to the top of the bottom's bars, which
+    // keep the corner, so the two never cross.
+
+    function spectrumBox(name: string, row: var, boardWidth: real, boardHeight: real): var {
+        const reach = root.spectrumOf(row).reach
+        const left = -root.insets.left
+        const width = boardWidth + root.insets.left + root.insets.right
+        const height = boardHeight + root.insets.bottom
+        if (row.edge === "bottom")
+            return { x: left, y: height - reach, width: width, height: reach }
+        const bottom = root.spectrumOn(name, "bottom")
+        return {
+            x: row.edge === "right" ? left + width - reach : left,
+            y: 0, width: reach,
+            height: bottom !== null ? height - root.spectrumOf(bottom).reach : height
+        }
+    }
+
+    // ── THE SPECTRUM'S LOOK ─────────────────────────────────────────────────
+    //
+    // Each spectrum's own, on its row, set from its inspector, on the grid and
+    // on an edge alike. A field that is absent or out of range is the
+    // default. A colour is "palette", the accent, which follows the
+    // wallpaper, or one of `Theme.fixedColours`, which does not.
+    //
+    //   look     rounded · square · segments · dots · wave
+    //   fill     fade (solid at the edge, faint at the tip) · solid · blend
+    //            (from `color` at the edge to `color2` at full reach)
+    //   color    the bars', "palette" by default; `color2` the far end of a
+    //            blend, white by default
+    //   reach    how far in from the edge at full level, in px (an edge's; a
+    //            square is as tall as its shape)
+    //   bar      a bar's width; `gap` the space between two
+    //   lows     corners (mirrored along the bottom, from the bottom up a
+    //            side) · along (from the start of the edge to its end)
+    //   peaks    a cap at each band's recent highest, falling slowly
+    //   opacity  0–100 (a square's has no capsule, so this is the bars' there
+    //            too)
+
+    readonly property var spectrumLooks: [
+        { id: "rounded",  label: "Rounded columns" },
+        { id: "square",   label: "Square columns" },
+        { id: "segments", label: "Segments" },
+        { id: "dots",     label: "Dots" },
+        { id: "wave",     label: "Wave" }
+    ]
+
+    readonly property var spectrumFills: [
+        { id: "fade",  label: "Fading to the tip" },
+        { id: "solid", label: "Solid" },
+        { id: "blend", label: "Two colours" }
+    ]
+
+    readonly property var spectrumRanges: ({
+        reach: { from: 60, to: 400 },
+        bar: { from: 2, to: 24 },
+        gap: { from: 1, to: 16 },
+        opacity: { from: 20, to: 100 }
+    })
+
+    // "palette" or one of the fixed colours; anything else is `fallback`.
+    function spectrumColourName(value: var, fallback: string): string {
+        return value === "palette" || Theme.fixedColours.some(entry => entry.id === value)
+            ? value : fallback
+    }
+
+    function spectrumColour(name: string): color {
+        return name === "palette" ? Theme.accent : Qt.color(name)
+    }
+
+    function spectrumOf(row: var): var {
+        const own = row ?? ({})
+        const pick = (value, list, fallback) =>
+            list.some(entry => (entry.id ?? entry) === value) ? value : fallback
+        const within = (field, fallback) => {
+            const range = root.spectrumRanges[field]
+            const value = own[field]
+            return typeof value === "number"
+                ? Math.max(range.from, Math.min(range.to, Math.round(value))) : fallback
+        }
+        return {
+            look: pick(own.look, root.spectrumLooks, "rounded"),
+            fill: pick(own.fill, root.spectrumFills, "fade"),
+            colorName: root.spectrumColourName(own.color, "palette"),
+            color2Name: root.spectrumColourName(own.color2, "#ffffff"),
+            color: root.spectrumColour(root.spectrumColourName(own.color, "palette")),
+            color2: root.spectrumColour(root.spectrumColourName(own.color2, "#ffffff")),
+            reach: within("reach", Theme.spectrumReach),
+            bar: within("bar", Theme.spectrumBar),
+            gap: within("gap", Theme.spectrumGap),
+            lows: pick(own.lows, ["corners", "along"], "corners"),
+            peaks: own.peaks === true,
+            opacity: within("opacity", 100)
+        }
+    }
+
+    // Gone under a fullscreen window, and with `spectrumOnEmpty` also on any
+    // workspace that has windows — asked of the workspace the screen is
+    // showing, as the edges' deck is. Gone, it does not listen either.
+    function spectrumAwayOn(name: string): bool {
+        if (DockService.coveredOn(name))
+            return true
+        if (!SettingsService.spectrumOnEmpty)
+            return false
+        const workspace = HyprlandService.activeOn(name)
+        return workspace > 0 && HyprlandService.occupiedIds.indexOf(workspace) >= 0
+    }
+
+    // On the grid or on an edge.
+    function setSpectrum(key: string, changes: var): void {
+        const row = root.entryOf(key)
+        if (row && row.id === "spectrum")
+            root.update(key, changes)
+    }
+
+    function spectrumOn(name: string, edge: string): var {
+        return root.spectra.find(row => row.edge === edge && root.nameOf(row) === name) ?? null
+    }
+
+    // Whether a spectrum can go on `edge` of `name`: an edge, and not one
+    // that has one already, its own included.
+    function spectrumTakes(name: string, edge: string): bool {
+        return root.edges.indexOf(edge) >= 0 && root.spectrumOn(name, edge) === null
+    }
+
+    // The bottom first, then the sides; "" when all three have one.
+    function freeSpectrumEdge(name: string): string {
+        return ["bottom", "left", "right"].find(edge => root.spectrumOn(name, edge) === null) ?? ""
+    }
+
+    // Tray tile dropped on an edge, or clicked (`edge` empty: the first free
+    // one). Returns the new key, or "" when there is no room.
+    function addSpectrum(name: string, edge = ""): string {
+        const on = edge !== "" ? edge : root.freeSpectrumEdge(name)
+        if (!root.spectrumTakes(name, on))
+            return ""
+        const made = { key: root.newKey("spectrum"), id: "spectrum", edge: on }
+        const screen = root.screenField(name)
+        if (screen !== null)
+            made.screen = screen
+        root.write(root.widgets.concat([made]))
+        return made.key
+    }
+
+    function setSpectrumEdge(key: string, name: string, edge: string): void {
+        if (!root.isSpectrum(root.entryOf(key)) || !root.spectrumTakes(name, edge))
+            return
+        root.update(key, { edge: edge, screen: root.screenField(name) })
+    }
+
+    // Between the grid and an edge, as a note goes, keeping the key and the
+    // look. What only one of the two has is dropped: a square's place, shape,
+    // face, style and capsule opacity; an edge's height and bar opacity.
+    function spectrumToEdge(key: string, name: string, edge: string): void {
+        const widget = root.entryOf(key)
+        if (!widget || widget.id !== "spectrum" || root.isEdge(widget)
+                || !root.spectrumTakes(name, edge))
+            return
+        if (root.selected === key)
+            root.selected = ""
+        const next = Object.assign({}, widget, { edge: edge })
+        for (const field of ["col", "row", "family", "theme", "style", "opacity", "screen"])
+            delete next[field]
+        const screen = root.screenField(name)
+        if (screen !== null)
+            next.screen = screen
+        root.write(root.widgets.map(row => row.key === key ? next : row))
+    }
+
+    // At `col`/`row` or the nearest free fit, or the first free one without
+    // a cell. False when the grid has no room.
+    function spectrumToGrid(key: string, name: string, col = -1, row = -1): bool {
+        const widget = root.entryOf(key)
+        if (!root.isSpectrum(widget))
+            return false
+        const familyId = root.familiesFor("spectrum")[0] ?? "4x2"
+        const spot = col >= 0
+            ? root.nearestFree(name, col, row, familyId, "")
+            : root.firstFree(name, familyId, "")
+        if (!spot)
+            return false
+        if (root.selected === key)
+            root.selected = ""
+        const next = Object.assign({}, widget, { col: spot.col, row: spot.row, family: familyId })
+        for (const field of ["edge", "reach", "opacity", "screen"])
+            delete next[field]
+        const screen = root.screenField(name)
+        if (screen !== null)
+            next.screen = screen
+        root.write(root.widgets.map(entry => entry.key === key ? next : entry))
+        return true
+    }
+
     // Drop: the target cell on the target screen, or the nearest free fit
     // there; otherwise unchanged. A drop on another screen is the same call
     // with another name, which is the whole of dragging across.
@@ -963,9 +1186,9 @@ Singleton {
     ]
 
     function styleOf(widget: var): string {
-        // Notes draw their own paper and photos are their picture, so both
-        // are always bare.
-        if (widget && (widget.id === "notes" || widget.id === "photo"))
+        // Notes draw their own paper, photos are their picture and the
+        // spectrum is its bars, so all three are always bare.
+        if (widget && (widget.id === "notes" || widget.id === "photo" || widget.id === "spectrum"))
             return "bare"
         const own = widget ? widget.style : ""
         return own && root.styles.some(style => style.id === own)

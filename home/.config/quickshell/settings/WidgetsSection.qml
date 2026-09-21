@@ -139,6 +139,23 @@ SettingsSection {
                 }
             }
         }
+
+        SettingGroup {
+            title: Tr.t("Spectrum")
+            note: Tr.t("Sound bars from whatever is playing, on the grid or along an edge.")
+            hint: Tr.t("The bars leave when a window opens on the workspace and come back when the last one closes, and stop listening meanwhile. Off, they stay under the windows.")
+
+            SettingRow {
+                label: Tr.t("Only on an empty workspace")
+                reading: SettingsService.spectrumOnEmpty
+                    ? Tr.t("Gone while a window is open") : Tr.t("Under the windows")
+
+                ToggleSwitch {
+                    checked: SettingsService.spectrumOnEmpty
+                    onToggled: checked => SettingsService.set("spectrumOnEmpty", checked)
+                }
+            }
+        }
     }
 
     // ── THE WIDGETS ─────────────────────────────────────────────────────────

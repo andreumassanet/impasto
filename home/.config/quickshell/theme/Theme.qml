@@ -179,6 +179,40 @@ QtObject {
     // Where the notch meets the screen edge.
     readonly property int radiusNotch: 6
 
+    // ── FIXED COLOURS ───────────────────────────────────────────────────────
+    //
+    // For what can be told to keep one colour whatever the palette does (the
+    // cursor, the sound bars); "palette" beside them is the accent.
+    readonly property var fixedColours: [
+        { id: "#000000", label: "Black" },
+        { id: "#ffffff", label: "White" },
+        { id: "#e5484d", label: "Red" },
+        { id: "#f76b15", label: "Orange" },
+        { id: "#f5c518", label: "Yellow" },
+        { id: "#46a758", label: "Green" },
+        { id: "#3b82f6", label: "Blue" },
+        { id: "#8b5cf6", label: "Purple" },
+        { id: "#e93d82", label: "Pink" }
+    ]
+
+    // ── SPECTRUM ────────────────────────────────────────────────────────────
+    //
+    // Sound bars along a screen edge, as they are placed: a bar
+    // `spectrumBar` wide with `spectrumGap` between, reaching `spectrumReach`
+    // in from the edge at full level and `spectrumFloor` in silence. Each strip
+    // can change the three. Solid at the edge, fading to `spectrumTip` at the
+    // end.
+    readonly property int spectrumBar: 10
+    readonly property int spectrumGap: 6
+    readonly property int spectrumReach: 170
+    readonly property int spectrumFloor: 3
+    readonly property real spectrumBase: 0.95
+    readonly property real spectrumTip: 0.25
+
+    // cava reports linear amplitude; a fractional power keeps quiet passages
+    // visible.
+    readonly property real spectrumCurve: 0.55
+
     // ── SHADOW ──────────────────────────────────────────────────────────────
     //
     // Shared by Hyprland's `decoration:shadow` (CompositorService) and the

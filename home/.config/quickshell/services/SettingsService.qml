@@ -77,6 +77,7 @@ Singleton {
     readonly property alias captureKind: config.captureKind
     readonly property alias notesHandwriting: config.notesHandwriting
     readonly property alias deckOnEmpty: config.deckOnEmpty
+    readonly property alias spectrumOnEmpty: config.spectrumOnEmpty
     readonly property alias workspaceCount: config.workspaceCount
     readonly property alias workspaceMax: config.workspaceMax
     readonly property alias motionScale: config.motionScale
@@ -537,6 +538,9 @@ Singleton {
 
         // Show edge note decks only on empty workspaces.
         property bool deckOnEmpty: false
+
+        // Show the spectrum only on empty workspaces.
+        property bool spectrumOnEmpty: false
 
 
         // Dots always shown, and the total number of workspaces. Workspaces

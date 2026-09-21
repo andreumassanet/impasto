@@ -22,6 +22,9 @@ Item {
     property int value: 0
     property int from: 0
     property int to: 100
+
+    // What the reading is counted in.
+    property string unit: "%"
     property bool available: true
     property bool dimmed: false
 
@@ -81,7 +84,7 @@ Item {
             // Theme.text rather than accentText: the fill only reaches the
             // reading at 100%.
             Text {
-                text: `${root.value}%`
+                text: `${root.value}${root.unit}`
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.fontSizeSmall
                 font.weight: Font.DemiBold

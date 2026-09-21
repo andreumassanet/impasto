@@ -32,8 +32,8 @@ Singleton {
     //   bar      whether it can go on the bar (board, deck and arcade live on
     //            the desktop and behind their panels instead)
     //   desk     false for the one module with no desktop face
-    //   width    detail size
-    //   height
+    //   width    detail size; none for the spectrum, which has no detail and
+    //   height   lives only on the desktop, on the grid or along an edge
     //
     // The chip look is global (`SettingsService.chipShape`, `chipFigure`);
     // desktop faces are listed per theme in `DesktopService.faces`.
@@ -57,6 +57,7 @@ Singleton {
         { id: "notes",         name: "Notes",         bar: false, width: 356, height: 150 },
         { id: "tasks",         name: "Tasks",         bar: false, width: 356, height: 150 },
         { id: "photo",         name: "Photo",         bar: false, width: 356, height: 150 },
+        { id: "spectrum",      name: "Spectrum",      bar: false, width: 0,   height: 0 },
         { id: "clock",         name: "Clock",         bar: false,
           width: SettingsService.clockShowsDate ? 240 : 150, height: Theme.capsuleHeight }
     ]

@@ -145,8 +145,10 @@ Item {
 
     // Without a capsule the contents get a drop shadow to stay readable on the
     // wallpaper. `layer.enabled` rather than a MultiEffect `source`: a
-    // Repeater's delegate never renders into another item's source.
-    layer.enabled: root.onPicture
+    // Repeater's delegate never renders into another item's source. Not the
+    // spectrum, which is drawn as it is on an edge, and whose layer would be
+    // drawn again on every one of cava's frames.
+    layer.enabled: root.onPicture && root.moduleId !== "spectrum"
     layer.effect: MultiEffect {
         shadowEnabled: true
         shadowBlur: 1
@@ -218,8 +220,8 @@ Item {
             DesktopService.landing = null
             DeckService.receiving = ""
             // Dropped on the tray, it is removed; a note dropped on a screen
-            // edge joins that edge's deck; otherwise it goes to the cell under
-            // the pointer. `place` falls back to the nearest free cell or the
+            // edge joins that edge's deck, and a spectrum becomes the bars
+            // along it; otherwise it goes to the cell under the pointer. `place` falls back to the nearest free cell or the
             // original one, and the binding above moves it there.
             const pointer = root.board.mapFromItem(
                 null, drag.centroid.scenePosition.x, drag.centroid.scenePosition.y)
@@ -228,6 +230,10 @@ Item {
                 return
             }
             const edge = root.edgeUnder(pointer.x, pointer.y)
+            if (edge !== "" && root.moduleId === "spectrum") {
+                DesktopService.spectrumToEdge(root.key, root.screenName, edge)
+                return
+            }
             if (edge !== "") {
                 DesktopService.noteToEdge(root.key, root.screenName, edge)
                 return
@@ -238,12 +244,16 @@ Item {
         }
     }
 
-    // A note held against a screen edge is headed for that edge's deck; the
-    // deck's surface highlights it.
+    // A note held against a screen edge is headed for that edge's deck, and
+    // a spectrum for the bars along it when it has none; the deck's surface
+    // highlights it.
     function edgeUnder(x: real, y: real): string {
-        if (root.moduleId !== "notes")
+        if (root.moduleId !== "notes" && root.moduleId !== "spectrum")
             return ""
-        return DeckService.edgeAt(x, y, root.board.width, root.board.height)
+        const edge = DeckService.edgeAt(x, y, root.board.width, root.board.height)
+        if (root.moduleId === "spectrum" && !DesktopService.spectrumTakes(root.screenName, edge))
+            return ""
+        return edge
     }
 
     // Shows the landing cell while dragging. None over the tray (removal) or

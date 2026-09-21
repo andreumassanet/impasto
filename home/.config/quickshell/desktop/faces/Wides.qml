@@ -50,7 +50,8 @@ Item {
         calendar: calendarWide,
         notes: notesWide,
         tasks: tasksWide,
-        photo: photoWide
+        photo: photoWide,
+        spectrum: spectrumWide
     })
 
     Loader {
@@ -947,5 +948,12 @@ Item {
         id: githubWide
 
         GithubFace { ink: root.ink; family: "4x2" }
+    }
+
+    // The bars in a capsule; see `SpectrumFace`.
+    Component {
+        id: spectrumWide
+
+        SpectrumFace { ink: root.ink; row: root.row; family: "4x2" }
     }
 }

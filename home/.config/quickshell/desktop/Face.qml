@@ -16,8 +16,8 @@ import "./faces/analogue"
 // Picks the face for a module, a family (size) and a theme. Modern has one
 // registry per family, falling back within that registry for modules without a
 // row; Analogue has a single registry whose faces lay themselves out at any
-// size. Notes always use NoteFace. Faces read their colours from the widget's
-// resolved `ink`.
+// size. Notes always use NoteFace, and the spectrum is its bars in either
+// theme. Faces read their colours from the widget's resolved `ink`.
 Item {
     id: root
 
@@ -31,7 +31,8 @@ Item {
     // an empty frame.
     property var row: null
 
-    readonly property bool analogue: root.theme === "analogue" && root.moduleId !== "notes"
+    readonly property bool analogue: root.theme === "analogue"
+        && root.moduleId !== "notes" && root.moduleId !== "spectrum"
 
     Loader {
         anchors.fill: parent
