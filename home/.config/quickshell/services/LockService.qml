@@ -74,7 +74,7 @@ Singleton {
 
     readonly property string shotDirectory:
         `${Quickshell.env("XDG_RUNTIME_DIR") || "/tmp"}/quickshell`
-    readonly property string shotPath: `${root.shotDirectory}/lock.png`
+    readonly property string shotPath: `${root.shotDirectory}/lock.jpg`
 
     // Bumped per capture so the Image source changes and Qt does not serve
     // the previous lock's cached frame.
@@ -151,10 +151,12 @@ Singleton {
     }
 
     // grim hangs instead of failing when the output is already powered off,
-    // and the lock only goes up in `onExited`, hence the timeout.
+    // and the lock only goes up in `onExited`, hence the timeout. JPEG, since
+    // the picture is shown blurred and PNG takes seconds over a painting on a
+    // large or doubled screen.
     readonly property Process capture: Process {
         command: ["sh", "-c",
-            `mkdir -p '${root.shotDirectory}' && timeout 2 grim '${root.shotPath}'`]
+            `mkdir -p '${root.shotDirectory}' && timeout 2 grim -t jpeg -q 90 '${root.shotPath}'`]
 
         // Lock whether or not the screenshot worked.
         onExited: (code, status) => {
