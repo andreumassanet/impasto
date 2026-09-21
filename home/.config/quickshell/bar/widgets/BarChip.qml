@@ -104,8 +104,10 @@ Item {
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
         onClicked: {
-            if (root.button)
+            if (root.button && root.door.panel)
                 ModuleService.togglePanel(root.door.panel)
+            else if (root.button)
+                root.door.action()
             // The player with no player open has nothing to open onto.
             else if (ModuleService.has(root.moduleId))
                 ModuleService.activate(root.moduleId)

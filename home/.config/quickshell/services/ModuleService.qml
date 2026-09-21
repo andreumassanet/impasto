@@ -20,7 +20,8 @@ import "../theme"
 //
 // A module is a chip on the bar that opens a detail in the island. Detail
 // sizes are declared here because the island has to reach that size before
-// the detail exists. A button has no detail; it opens one of the panels.
+// the detail exists. A button has no detail; it opens one of the panels, or
+// the capture surface.
 //
 // Adding a module: a file in bar/modules, a row in `catalogue` and a line in
 // Module.qml. Adding a button: a row in `buttons`.
@@ -66,11 +67,17 @@ Singleton {
 
     // ── BUTTONS ─────────────────────────────────────────────────────────────
     //
-    // Open one of the island's panels. Same glyphs as the control centre's
-    // shortcuts. Alone in a capsule, a button is drawn as a circle.
+    // Open one of the island's panels, or run an action. Same glyphs as the
+    // control centre's shortcuts. Alone in a capsule, a button is drawn as a
+    // circle.
+    //
+    // Capture is what the capture key does: the photo is taken at once, so
+    // whatever the island has open is in it.
     readonly property var buttons: ({
         launcher: { name: "Search",         glyph: "󰍉", panel: "launcher" },
         overview: { name: "Overview",       glyph: "󰕰", panel: "overview" },
+        capture:  { name: "Capture",        glyph: "󰹑",
+                    action: () => CaptureService.open("", "", "", 0) },
         controls: { name: "Control centre", glyph: "󰨚", panel: "controls" },
         session:  { name: "Session",        glyph: "󰐥", panel: "session" }
     })
@@ -343,6 +350,8 @@ Singleton {
     // on the bus, pacman-contrib installed). Not a preference; placement is
     // the layout's job.
     function has(id: string): bool {
+        if (id === "capture")
+            return CaptureService.can("grim")
         if (root.isButton(id))
             return true
         switch (id) {
