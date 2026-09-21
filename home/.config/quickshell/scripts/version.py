@@ -2,18 +2,19 @@
 # ╭──────────────────────────────────────────────────────────────────────────╮
 # │                                                                          │
 # │   V E R S I O N                                                          │
-# │   the checkout this desk was installed from · what it has waiting        │
+# │   the checkout impasto was installed from · what it has waiting          │
 # │                                                                          │
 # │   github.com/andreumassanet/impasto                                      │
 # │                                                                          │
 # ╰──────────────────────────────────────────────────────────────────────────╯
 
-"""Compare the checkout this desk was installed from with its remote.
+"""Compare what was installed from a checkout with that checkout's remote.
 
 The checkout is told, never looked for: `setup sync` records its path and the
-shell passes it in. `check` fetches first and `status` answers from what was
-fetched before. The fetch never asks for anything — no terminal prompt, no ssh
-password — so a remote needing credentials is offline rather than a wait.
+version it copied, and the shell passes both in. `check` fetches first and
+`status` answers from what was fetched before. The fetch never asks for
+anything — no terminal prompt, no ssh password — so a remote needing
+credentials is offline rather than a wait.
 
 Nothing is pulled and nothing is installed: the update runs in a terminal the
 shell opens.
@@ -48,7 +49,15 @@ def out(result):
     return result.stdout.strip() if result is not None and result.returncode == 0 else ""
 
 
-def report(repo, fetch):
+def installed_commit(repo, version):
+    """The commit `setup sync` recorded, or "" when this checkout lacks it."""
+    name = version.removesuffix("-dirty")
+    if not name or name == "unknown":
+        return ""
+    return out(git(repo, "rev-parse", "--verify", "--quiet", f"{name}^{{commit}}"))
+
+
+def report(repo, fetch, version=""):
     if not repo or out(git(repo, "rev-parse", "--is-inside-work-tree")) != "true":
         return {"available": False}
 
@@ -80,13 +89,21 @@ def report(repo, fetch):
     if len(counts) == 2 and all(count.isdigit() for count in counts):
         answer["ahead"] = int(counts[0])
         answer["behind"] = int(counts[1])
+
+    # Waiting is counted from what was installed: a pull that landed and an
+    # install that stopped leave HEAD current and the desk behind it.
+    base = installed_commit(repo, version) or "HEAD"
+    if base != "HEAD":
+        waiting = out(git(repo, "rev-list", "--count", f"{base}..{upstream}"))
+        if waiting.isdigit():
+            answer["behind"] = int(waiting)
     if answer["behind"] == 0:
         return answer
 
     answer["commits"] = [
         {"hash": line.split("\t", 1)[0], "subject": line.split("\t", 1)[1]}
         for line in out(git(repo, "log", f"--max-count={LISTED}",
-                            "--pretty=%h\t%s", f"HEAD..{upstream}")).splitlines()
+                            "--pretty=%h\t%s", f"{base}..{upstream}")).splitlines()
         if "\t" in line]
     # What the version figure would read after the update: the remote's own
     # describe, in the shape `setup` records this one in.
@@ -98,11 +115,12 @@ def report(repo, fetch):
 def main():
     verb = sys.argv[1] if len(sys.argv) > 1 else "status"
     repo = sys.argv[2] if len(sys.argv) > 2 else ""
+    version = sys.argv[3] if len(sys.argv) > 3 else ""
     if verb not in ("status", "check"):
         print(f"Unknown verb: {verb}", file=sys.stderr)
         print(json.dumps({"available": False}))
         return
-    print(json.dumps(report(repo, verb == "check")))
+    print(json.dumps(report(repo, verb == "check", version)))
 
 
 if __name__ == "__main__":

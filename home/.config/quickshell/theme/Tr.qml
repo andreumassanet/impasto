@@ -837,10 +837,10 @@ QtObject {
             "% in use": "% en uso",
             "since boot": "desde el arranque",
 
-            "This desk itself, not the packages it runs.":
-                "El escritorio en sí, no los paquetes que usa.",
-            "Update pulls the checkout this desk was installed from and runs the installer again in a terminal, so its questions and your password stay visible; the desk reloads when it lands and this window closes with it.":
-                "Actualizar descarga el repositorio del que se instaló este escritorio y vuelve a ejecutar el instalador en una terminal, para que sus preguntas y tu contraseña se vean; el escritorio se recarga al terminar y esta ventana se cierra con él.",
+            "impasto itself, not the packages it runs.":
+                "impasto en sí, no los paquetes que usa.",
+            "Update pulls the checkout impasto was installed from and runs the installer again in a terminal, where its questions and your password stay visible.":
+                "Actualizar descarga el repositorio del que se instaló impasto y vuelve a ejecutar el instalador en una terminal, donde se ven sus preguntas y tu contraseña.",
             "Check for updates": "Buscar actualizaciones",
             "Check": "Buscar",
             "Checking…": "Buscando…",

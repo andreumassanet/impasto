@@ -207,8 +207,8 @@ SettingsSection {
 
         SettingGroup {
             title: Tr.t("Updates")
-            note: Tr.t("This desk itself, not the packages it runs.")
-            hint: Tr.t("Update pulls the checkout this desk was installed from and runs the installer again in a terminal, so its questions and your password stay visible; the desk reloads when it lands and this window closes with it.")
+            note: Tr.t("impasto itself, not the packages it runs.")
+            hint: Tr.t("Update pulls the checkout impasto was installed from and runs the installer again in a terminal, where its questions and your password stay visible.")
 
             SettingRow {
                 label: Tr.t("Check for updates")

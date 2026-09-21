@@ -28,8 +28,8 @@ Singleton {
     // ── WHAT IS INSTALLED ───────────────────────────────────────────────────
     //
     // The version, the branch it came from, and the checkout it was copied
-    // out of, a line each. Missing until the first sync, and without the
-    // third line on a desk last synced by an older installer.
+    // out of, a line each. Missing until the first sync; the third line only
+    // where the installer records it.
 
     readonly property FileView file: FileView {
         path: `${Quickshell.env("XDG_STATE_HOME") || Quickshell.env("HOME") + "/.local/state"}/impasto/version`
@@ -65,20 +65,25 @@ Singleton {
     property var commits: []
     // 0 until the first answer.
     property real checkedAt: 0
+    // The installed version that answer was for: a sync that changes it
+    // makes the answer stale however recent.
+    property string checkedFor: ""
 
     function check(): void {
         if (root.checking || root.repo === "")
             return
         root.checking = true
+        root.checkedFor = root.version
         root.query.command = [Quickshell.shellPath("scripts/version.py"),
-                              "check", root.repo]
+                              "check", root.repo, root.version]
         root.query.running = true
     }
 
     // What opening the page asks for: the network only when the last answer
     // is old enough to be worth another.
     function checkStale(): void {
-        if (root.checkedAt <= 0 || Date.now() - root.checkedAt > root.freshness)
+        if (root.checkedAt <= 0 || root.checkedFor !== root.version
+                || Date.now() - root.checkedAt > root.freshness)
             root.check()
     }
 
