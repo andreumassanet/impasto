@@ -344,7 +344,7 @@ FocusScope {
             border.color: Theme.islandBorder
             border.width: 1
 
-            // A sweep flashes the well and says what it paid.
+            // A sweep flashes the well and says what it paid, over the stack.
             Connections {
                 target: root
 
@@ -357,6 +357,7 @@ FocusScope {
             Rectangle {
                 id: flash
 
+                z: 1
                 anchors.fill: parent
                 radius: parent.radius
                 color: Theme.indicator
@@ -377,6 +378,7 @@ FocusScope {
             Pop {
                 id: paidFor
 
+                z: 1
                 anchors.horizontalCenter: parent.horizontalCenter
                 y: parent.height * 0.4
                 tint: Theme.indicator
