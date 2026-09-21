@@ -58,10 +58,9 @@ Singleton {
         window: "A window"
     })
 
-    // The running take's shape, or the one set for the next.
+    // The running take's shape, or the screen the next one takes.
     readonly property string subject: root.shapeNames[
-        root.recording ? root.shape : SettingsService.recorderShape]
-        ?? root.shapeNames.screen
+        root.recording ? root.shape : "screen"] ?? root.shapeNames.screen
 
     readonly property string display: {
         const total = Math.max(0, root.seconds)
@@ -131,10 +130,6 @@ Singleton {
         root.action.running = true
     }
 
-    // Handled in `shell.qml`, which opens the capture surface; calling
-    // CaptureService directly would create a dependency cycle.
-    signal surfaceRequested(string shape, int after)
-
     function stop(): void {
         if (!root.recording)
             return
@@ -142,16 +137,13 @@ Singleton {
         root.action.running = true
     }
 
-    // Shared by the key and the tile. For any shape but the whole screen it
-    // opens the capture surface in video mode; the take starts when the
-    // surface closes.
-    function toggle(after: int): void {
+    // Shared by the key, the tile and the bar: the screen with the keyboard,
+    // at once. A region or a window is the capture surface's, in video mode.
+    function toggle(): void {
         if (root.recording)
             root.stop()
-        else if (SettingsService.recorderShape === "screen")
-            root.startAt("screen", "")
         else
-            root.surfaceRequested(SettingsService.recorderShape, after)
+            root.startAt("screen", "")
     }
 
     // File size; the detail calls this only while it is on screen.

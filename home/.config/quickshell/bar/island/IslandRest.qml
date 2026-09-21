@@ -104,7 +104,7 @@ Item {
             cursorShape: Qt.PointingHandCursor
             onClicked: {
                 if (segment.activityId === "recorder")
-                    RecorderService.toggle(CaptureService.settle)
+                    RecorderService.toggle()
                 else
                     ModuleService.activate(segment.activityId)
             }

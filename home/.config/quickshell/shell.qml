@@ -475,15 +475,12 @@ ShellRoot {
         onPressed: root.capture("region", "text")
     }
 
-    // Toggles a recording. In region mode it opens the surface instead (see
-    // the connections below).
     GlobalShortcut {
         name: "record"
         description: "Start or stop recording the screen"
         onPressed: {
-            const wasOpen = root.island?.expanded ?? false
             root.island?.close()
-            RecorderService.toggle(wasOpen ? CaptureService.settle : 0)
+            RecorderService.toggle()
         }
     }
 
@@ -497,14 +494,6 @@ ShellRoot {
 
         function onRecordRequested(shape: string, geometry: string): void {
             RecorderService.startAt(shape, geometry)
-        }
-    }
-
-    Connections {
-        target: RecorderService
-
-        function onSurfaceRequested(shape: string, after: int): void {
-            CaptureService.open(shape, "video", "", after)
         }
     }
 

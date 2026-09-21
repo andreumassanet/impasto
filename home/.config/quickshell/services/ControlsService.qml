@@ -272,7 +272,7 @@ Singleton {
             active: RecorderService.recording
             available: RecorderService.available
             closes: true
-            action: () => RecorderService.toggle(CaptureService.settle)
+            action: () => RecorderService.toggle()
         },
         Toggle {
             key: "clearClipboard"; icon: "󰅍"; label: "Clear clipboard"

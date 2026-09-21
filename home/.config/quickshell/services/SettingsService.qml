@@ -73,7 +73,6 @@ Singleton {
     readonly property alias userAvatar: config.userAvatar
     readonly property alias doNotDisturb: config.doNotDisturb
     readonly property alias recorderAudio: config.recorderAudio
-    readonly property alias recorderShape: config.recorderShape
     readonly property alias captureShape: config.captureShape
     readonly property alias captureKind: config.captureKind
     readonly property alias notesHandwriting: config.notesHandwriting
@@ -280,7 +279,7 @@ Singleton {
         "displays", "lidPolicy",
         "userName", "userAvatar", "language", "keyboard", "weatherPlace", "githubUser",
         "doNotDisturb", "nightLight", "nightTemperature",
-        "recorderAudio", "recorderShape", "captureShape", "captureKind"
+        "recorderAudio", "captureShape", "captureKind"
     ]
 
     // A Store never read from disk: its initialisers are the defaults.
@@ -520,8 +519,6 @@ Singleton {
         // Persisted so silent mode survives a restart.
         property bool doNotDisturb: false
 
-        // Same shape names as the capture surface.
-        property string recorderShape: "screen"
         property bool recorderAudio: false
 
         // The capture surface reopens on its last shape and kind. The
