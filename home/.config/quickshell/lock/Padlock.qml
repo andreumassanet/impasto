@@ -30,7 +30,10 @@ Item {
     implicitWidth: 20
     implicitHeight: 24
 
+    // Drawn a pixel high: the shackle's arc is lighter than the body, so the
+    // glyph centred by its box reads low.
     Shape {
+        y: -1
         width: 20
         height: 24
         preferredRendererType: Shape.CurveRenderer
@@ -56,7 +59,7 @@ Item {
 
     Rectangle {
         x: 1
-        y: 11
+        y: 10
         width: 18
         height: 13
         radius: 4

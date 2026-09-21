@@ -82,12 +82,15 @@ Item {
         topRightRadius: 0
     }
 
+    // Centred as the bar centres its own: half the notch's pad above, half
+    // below.
     Item {
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.bottom: parent.bottom
+        anchors.bottomMargin: Theme.barTopMargin / 2
         anchors.top: parent.top
-        anchors.topMargin: Theme.barTopMargin
+        anchors.topMargin: Theme.barTopMargin / 2
 
         Padlock {
             anchors.centerIn: parent

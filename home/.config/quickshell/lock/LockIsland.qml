@@ -115,7 +115,8 @@ Item {
 
     // ── CONTENT ─────────────────────────────────────────────────────────────
     //
-    // Centred below the notch's pad, where the bar centres its own.
+    // Centred as the bar centres its own: half the notch's pad above, half
+    // below.
 
     Item {
         id: content
@@ -123,8 +124,9 @@ Item {
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.bottom: parent.bottom
+        anchors.bottomMargin: root.notchPad / 2
         anchors.top: parent.top
-        anchors.topMargin: root.notchPad
+        anchors.topMargin: root.notchPad / 2
 
         FaceRing {
             anchors.centerIn: parent
