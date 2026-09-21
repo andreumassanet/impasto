@@ -91,8 +91,8 @@ else
 fi
 
 # Columns to draw in: what the terminal has, and never past the width of this
-# file's own header boxes. Nought where the output is not a terminal, and a
-# rule there is the short one it has always been.
+# file's own header boxes. Nought where the output is not a terminal, where a
+# rule is short.
 width() {
     local size
     if (( ! ATTY )); then printf 0; return 0; fi
@@ -182,7 +182,7 @@ Options:
   --skip-packages     install, update: leave the packages alone
   --skip-system       install, update: leave / alone
   --skip-plugins      install, update: do not build the plugins
-  --skip-extras       install, update: leave the programs below alone
+  --skip-extras       install, update: leave the extras above alone
   --aur-helper NAME   yay or paru. The one installed is used, and when there
                       is neither, this one is built from the AUR (yay if unset)
   --noconfirm         answer every question with its default
@@ -1134,9 +1134,9 @@ verb_check() {
 #
 # `./setup` with nothing after it, at a terminal, is this: the verbs, and for
 # install a screen of what it may leave out, which is the --skip flags with
-# somewhere to press them. Every other way in is untouched — a script, an
-# unattended `--noconfirm` and the first boot of the install medium never see
-# it, and choosing here only composes the same command line by hand.
+# somewhere to press them. A script, an unattended `--noconfirm` and the first
+# boot of the install medium never see it, and choosing here only composes the
+# same command line by hand.
 
 CURSOR_HIDDEN=0
 DRAWN=0
@@ -1256,7 +1256,11 @@ parts() {
     local -a helpers=(yay paru)
     pacman=$(names "$REPO/packages/pacman.txt" | wc -l)
     aur=$(names "$REPO/packages/aur.txt" | wc -l)
-    case $HELPER in paru) helper=1 ;; esac
+    # The one installed, as `aur_helper` would pick it.
+    case $HELPER in
+        paru) helper=1 ;;
+        '')   if ! command -v yay >/dev/null && command -v paru >/dev/null; then helper=1; fi ;;
+    esac
     while :; do
         redraw
         line "  ${TEXT}what to install${OFF}   $FAINT·   space toggles, enter installs$OFF"
@@ -1267,7 +1271,7 @@ parts() {
                 packages) note="$pacman from the repositories, $aur from the AUR" ;;
                 system)   note='sddm, unless this machine already has one' ;;
                 plugins)  note='shake to find · glass on the windows' ;;
-                extras)   note='Thunar, VSCodium, Vesktop, Spotify, dark GTK, your face' ;;
+                extras)   note='Thunar, VSCodium, Vesktop, Spotify, GTK, your face' ;;
             esac
             if (( on[i] )); then box="$ACCENT◉$OFF"; else box="$FAINT○$OFF"; fi
             if (( i == at )); then
@@ -1318,7 +1322,7 @@ interactive() {
     # shellcheck disable=SC2086
     set -- $size
     rows=${1:-0}
-    if [[ ! -t 0 ]] || (( ! ATTY || rows < 20 || $(width) < 40 )); then
+    if [[ ! -t 0 ]] || (( ! ATTY || rows < 20 || $(width) < 76 )); then
         usage
         return 0
     fi
