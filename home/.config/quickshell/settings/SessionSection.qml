@@ -16,6 +16,7 @@ import Quickshell.Widgets
 import "../theme"
 import "../services"
 import "../components"
+import "../lock"
 
 // The lock screen and the idle policy. The shell locks through
 // ext-session-lock and shows the blurred desktop behind the lock. The blur
@@ -158,6 +159,63 @@ SettingsSection {
                 placeholder: AccountService.systemName
                 value: SettingsService.userName
                 onEdited: text => SettingsService.set("userName", text)
+            }
+        }
+
+        // Each tile is the lock's own clock, drawn small over the wallpaper.
+        SettingGroup {
+            title: Tr.t("Clock")
+            note: Tr.t("The login screen always draws it stacked.")
+            hint: Tr.t("The login screen runs before anyone has signed in, so it cannot read your settings.")
+
+            SettingTiles {
+                label: Tr.t("Style")
+
+                Repeater {
+                    model: [
+                        { id: "stacked", label: "Stacked" },
+                        { id: "inline", label: "Inline" }
+                    ]
+
+                    PreviewTile {
+                        id: clockTile
+
+                        required property var modelData
+
+                        stageHeight: 120
+                        caption: Tr.t(clockTile.modelData.label)
+                        selected: SettingsService.lockClock === clockTile.modelData.id
+                        onPicked: SettingsService.set("lockClock", clockTile.modelData.id)
+
+                        Image {
+                            id: clockGround
+
+                            anchors.fill: parent
+                            source: WallpaperService.currentWallpaper
+                                ? `file://${WallpaperService.currentWallpaper}` : ""
+                            fillMode: Image.PreserveAspectCrop
+                            visible: false
+                            asynchronous: true
+                            sourceSize.width: 320
+                        }
+
+                        MultiEffect {
+                            anchors.fill: parent
+                            source: clockGround
+                            visible: clockGround.status === Image.Ready
+                            blurEnabled: true
+                            blur: 1
+                            blurMax: 16
+                        }
+
+                        LockClock {
+                            anchors.centerIn: parent
+                            style: clockTile.modelData.id
+                            at: new Date(2026, 0, 1, 9, 41)
+                            scale: clockTile.modelData.id === "stacked" ? 0.17 : 0.2
+                        }
+                    }
+                }
             }
         }
 

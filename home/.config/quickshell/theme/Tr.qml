@@ -771,6 +771,12 @@ QtObject {
             "The preview uses the wallpaper, since the lock screen's own capture is taken when it locks. It applies the same blur with the capsule on top, so you can judge how it reads.":
                 "La vista previa usa el fondo, porque la captura de la pantalla de bloqueo se toma al bloquear. Aplica el mismo desenfoque con la cápsula encima, para que veas cómo se lee.",
             "No wallpaper to show": "No hay fondo que mostrar",
+            "The login screen always draws it stacked.":
+                "La pantalla de inicio siempre lo dibuja apilado.",
+            "The login screen runs before anyone has signed in, so it cannot read your settings.":
+                "La pantalla de inicio aparece antes de que nadie haya entrado, así que no puede leer tus ajustes.",
+            "Stacked": "Apilado",
+            "Inline": "En línea",
             "Type to unlock": "Escribe para desbloquear",
 
             "When you leave it alone": "Cuando lo dejas quieto",

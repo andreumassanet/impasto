@@ -255,6 +255,11 @@ QtObject {
     readonly property string fontFamily: root.fontOf(SettingsService.fontFamily)
     readonly property string fontMono: root.fontOf(SettingsService.fontMono)
 
+    // Type drawn very large: Inter's display cut, tighter and finer at that
+    // size, when the family is Inter; any other family as it is.
+    readonly property string fontDisplay: root.fontFamily === "Inter"
+        ? root.fontOf("Inter Display, Inter") : root.fontFamily
+
     // Script face for the shell's own name, shipped with it.
     readonly property string fontSignature:
         root.fontOf(`Grape Nuts, Georgia, ${root.fontFamily}`)

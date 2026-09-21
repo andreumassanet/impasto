@@ -42,6 +42,36 @@ Singleton {
     // the desktop; `locked` falls after it.
     property bool leaving: false
 
+    // Two stages, shared by every screen: at rest the clock alone, awake the
+    // account, the field and the power buttons. A key or a click wakes it,
+    // Escape or a while untouched puts it back.
+    property bool awake: false
+
+    // How long an awake screen waits untouched before going back to its
+    // clock.
+    readonly property int awakeFor: 30000
+
+    function rouse(): void {
+        if (!root.locked || root.leaving)
+            return
+        root.awake = true
+        root.drowse.restart()
+    }
+
+    // Surfaces clear their field when this falls.
+    function rest(): void {
+        root.drowse.stop()
+        root.awake = false
+        root.failed = false
+        root.message = ""
+    }
+
+    readonly property Timer drowse: Timer {
+        interval: root.awakeFor
+        // A password being checked is not a screen left alone.
+        onTriggered: root.authenticating ? root.drowse.restart() : root.rest()
+    }
+
     readonly property string shotDirectory:
         `${Quickshell.env("XDG_RUNTIME_DIR") || "/tmp"}/quickshell`
     readonly property string shotPath: `${root.shotDirectory}/lock.png`
@@ -70,6 +100,7 @@ Singleton {
         root.message = ""
         root.failed = false
         root.leaving = false
+        root.rest()
         root.faceScanning = false
         root.faceMatched = false
         root.faceCheck.running = true
@@ -304,8 +335,7 @@ Singleton {
                 root.face.abort()
             root.faceHoldTimer.stop()
             root.locked = false
-            root.message = ""
-            root.failed = false
+            root.rest()
             root.forget()
             root.unlocked()
         }

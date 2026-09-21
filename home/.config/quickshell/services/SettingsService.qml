@@ -68,6 +68,7 @@ Singleton {
     readonly property alias clipboardImages: config.clipboardImages
     readonly property alias clipboardWipeOnLock: config.clipboardWipeOnLock
     readonly property alias lockBlur: config.lockBlur
+    readonly property alias lockClock: config.lockClock
     readonly property alias userName: config.userName
     readonly property alias userAvatar: config.userAvatar
     readonly property alias doNotDisturb: config.doNotDisturb
@@ -515,6 +516,10 @@ Singleton {
 
         // Enough to make text unreadable, no more.
         property int lockBlur: 32
+
+        // "stacked", hours over minutes as the login screen draws them, or
+        // "inline".
+        property string lockClock: "stacked"
 
         // Empty means read from the system: the passwd full name and
         // `~/.face` (`AccountService`).
