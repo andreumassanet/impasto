@@ -60,9 +60,21 @@ Item {
     }
 
     // The pointer moving is somebody there, and a reason to look for a face;
-    // a click wakes the screen as a key does.
+    // a click wakes the screen as a key does. Qt sends a hover at the resting
+    // position whenever the scene repaints, so only a pointer that has moved
+    // counts.
     HoverHandler {
-        onPointChanged: LockService.wake()
+        property point last: Qt.point(-1, -1)
+
+        onPointChanged: {
+            const at = point.position
+            const moved = last.x >= 0 && Math.abs(at.x - last.x) + Math.abs(at.y - last.y)
+                > Qt.styleHints.startDragDistance
+            if (last.x < 0 || moved)
+                last = at
+            if (moved)
+                LockService.wake()
+        }
     }
 
     TapHandler {
