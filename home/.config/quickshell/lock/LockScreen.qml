@@ -23,12 +23,10 @@ WlSessionLock {
     locked: LockService.locked
 
     // Published so anything waiting for the screen to be covered has a real
-    // signal to wait on.
-    Binding {
-        target: LockService
-        property: "secure"
-        value: root.secure
-    }
+    // signal to wait on. A handler and not a `Binding` child: the lock's
+    // default property is its surface, and a child declared beside it binds
+    // nothing.
+    onSecureStateChanged: LockService.secure = root.secure
 
     WlSessionLockSurface {
         id: surface
