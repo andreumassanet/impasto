@@ -8,7 +8,7 @@
 // ╰──────────────────────────────────────────────────────────────────────────╯
 
 import QtQuick
-import QtQuick.Shapes
+import QtQuick.Effects
 
 import "components"
 
@@ -16,53 +16,42 @@ import "components"
 // load. `sddm`, `userModel`, `sessionModel` and `keyboard` are context
 // properties.
 
-// Same layout as the shell's lock screen, over a painting instead of the
-// desktop. Account, session and power controls are the only additions.
+// The lock screen over a painting instead of the desktop, blurred the same
+// way. At rest the clock alone; a key or a click wakes it, and the account,
+// the field and the power and session controls come in underneath. Escape or
+// a while untouched sends them away again.
 Rectangle {
     id: root
 
     color: Theme.island
 
     // ── BACKGROUND ──────────────────────────────────────────────────────────
+    //
+    // Blurred like the lock screen's desktop, and darkened as a whole: the
+    // painting is bright strokes edge to edge, and black capsules on a bright
+    // ground read as holes.
 
     Image {
+        id: painting
+
         anchors.fill: parent
         source: "background.jpg"
         fillMode: Image.PreserveAspectCrop
         asynchronous: false
         cache: true
+        visible: false
         sourceSize.width: root.width
         sourceSize.height: root.height
     }
 
-    // Radial darkening behind the text only: the painting is mid-toned and
-    // busy, so neither white nor black text reads on it directly.
-    Shape {
+    MultiEffect {
         anchors.fill: parent
-        opacity: 0.92
-
-        ShapePath {
-            strokeColor: "transparent"
-            fillGradient: RadialGradient {
-                centerX: root.width / 2
-                centerY: root.height * 0.52
-                centerRadius: Math.max(root.width, root.height) * 0.42
-                focalX: centerX
-                focalY: centerY
-
-                GradientStop { position: 0.0; color: "#d9000000" }
-                GradientStop { position: 0.45; color: "#a6000000" }
-                GradientStop { position: 0.78; color: "#40000000" }
-                GradientStop { position: 1.0; color: "#00000000" }
-            }
-
-            startX: 0
-            startY: 0
-            PathLine { x: root.width; y: 0 }
-            PathLine { x: root.width; y: root.height }
-            PathLine { x: 0; y: root.height }
-            PathLine { x: 0; y: 0 }
-        }
+        source: painting
+        blurEnabled: true
+        blur: 1
+        blurMax: 64
+        brightness: -0.28
+        saturation: -0.15
     }
 
     // ── STATE ───────────────────────────────────────────────────────────────
@@ -70,6 +59,7 @@ Rectangle {
     property bool authenticating: false
     property bool failed: false
     property string message: ""
+    property bool opened: false
 
     function attempt(password: string): void {
         if (root.authenticating)
@@ -77,7 +67,7 @@ Rectangle {
         root.authenticating = true
         root.failed = false
         root.message = ""
-        sddm.login(who.userName, password, session.currentIndex)
+        sddm.login(account.userName, password, session.currentIndex)
     }
 
     Connections {
@@ -86,6 +76,7 @@ Rectangle {
         function onLoginSucceeded(): void {
             root.authenticating = false
             root.message = ""
+            root.opened = true
         }
 
         // The field clears itself; clearing it here would fight its shake.
@@ -100,7 +91,57 @@ Rectangle {
         }
     }
 
-    // ── CLOCK AND LOGIN ─────────────────────────────────────────────────────
+    // ── STAGES ──────────────────────────────────────────────────────────────
+
+    // 0 at rest, 1 awake.
+    property bool awake: false
+    property real stage: root.awake ? 1 : 0
+
+    Behavior on stage {
+        NumberAnimation { duration: Theme.durationMorph; easing.type: Theme.easing }
+    }
+
+    function rouse(): void {
+        root.awake = true
+        drowse.restart()
+    }
+
+    function rest(): void {
+        drowse.stop()
+        account.expanded = false
+        session.expanded = false
+        account.clear()
+        root.failed = false
+        root.message = ""
+        root.awake = false
+    }
+
+    // A screen left untouched goes back to its clock, unless a password is
+    // being checked.
+    Timer {
+        id: drowse
+
+        interval: 30000
+        onTriggered: root.authenticating ? drowse.restart() : root.rest()
+    }
+
+    TapHandler {
+        onTapped: {
+            root.rouse()
+            account.claim()
+        }
+    }
+
+    // ── ISLAND ──────────────────────────────────────────────────────────────
+
+    Island {
+        opened: root.opened
+    }
+
+    // ── CLOCK ───────────────────────────────────────────────────────────────
+    //
+    // The lock screen's numbers: just above the middle at rest; awake, it
+    // rises under the island and steps back a little for the account.
 
     property date now: new Date()
 
@@ -112,80 +153,84 @@ Rectangle {
         onTriggered: root.now = new Date()
     }
 
-    // Positions match the lock screen: clock above centre, field at a fixed
-    // distance from the bottom, account just above the field. Anchored rather
-    // than one Column because the gaps differ.
-
-    Column {
+    Item {
         id: face
 
-        anchors.centerIn: parent
-        anchors.verticalCenterOffset: -60
-        spacing: 4
+        readonly property real restY: Math.round((root.height - clock.height) / 2 - 40)
+        readonly property real awakeY: Math.min(face.restY, 170)
 
-        Text {
-            anchors.horizontalCenter: parent.horizontalCenter
-            text: Qt.formatDateTime(root.now, "HH:mm")
-            font.family: Theme.fontFamily
-            font.pixelSize: Theme.fontSizeClock
-            font.weight: Font.Light
-            color: Theme.text
+        anchors.horizontalCenter: parent.horizontalCenter
+        y: face.restY + (face.awakeY - face.restY) * root.stage
+        width: clock.width
+        height: clock.height
+        scale: 1 - 0.1 * root.stage
+        transformOrigin: Item.Top
+
+        layer.enabled: true
+        layer.effect: MultiEffect {
+            shadowEnabled: true
+            shadowBlur: 1
+            shadowOpacity: 0.45
+            shadowVerticalOffset: 3
+            shadowColor: Theme.island
         }
 
-        Text {
-            anchors.horizontalCenter: parent.horizontalCenter
-            text: Qt.formatDateTime(root.now, "dddd d MMMM")
-            font.family: Theme.fontFamily
-            font.pixelSize: Theme.fontSizeLarge
-            color: Theme.text
-            opacity: 0.75
+        Clock {
+            id: clock
+            now: root.now
         }
     }
 
-    UserPicker {
-        id: who
+    // ── ACCOUNT ─────────────────────────────────────────────────────────────
+
+    // Invisible at rest by opacity, never `visible`: the field inside holds
+    // the keyboard from the start, so the first key is its first character.
+    AccountPill {
+        id: account
 
         anchors.horizontalCenter: parent.horizontalCenter
-        anchors.bottom: field.top
-        anchors.bottomMargin: 26
+        anchors.bottom: parent.bottom
+        anchors.bottomMargin: 60 - 24 * (1 - root.stage)
+        opacity: root.stage
         z: 2
 
         users: userModel
         currentIndex: userModel.lastIndex
-
-        // Switching account discards the half-typed password.
-        onChosen: {
-            field.clear()
-            root.failed = false
-            root.message = ""
-            field.claim()
-        }
-    }
-
-    PasswordField {
-        id: field
-
-        anchors.horizontalCenter: parent.horizontalCenter
-        anchors.bottom: parent.bottom
-        anchors.bottomMargin: 104
-        z: 1
-
         authenticating: root.authenticating
         failed: root.failed
         message: root.message
         capsLock: keyboard.capsLock
 
-        onSubmitted: root.attempt(password)
+        onSubmitted: password => root.attempt(password)
+        onWoke: root.rouse()
 
-        // `failed` is bound from here, so the field only signals; assigning
-        // it inside the field would break the binding.
+        // `failed` is bound from here, so the pill only signals; assigning it
+        // inside would break the binding.
         onDismissed: {
             root.failed = false
             root.message = ""
         }
 
+        // Switching account discards the half-typed password.
+        onChosen: {
+            account.clear()
+            root.failed = false
+            root.message = ""
+            account.claim()
+        }
+
+        // A list open closes first; otherwise the screen goes back to rest.
+        onEscaped: {
+            if (account.expanded || session.expanded) {
+                account.expanded = false
+                session.expanded = false
+                return
+            }
+            root.rest()
+        }
+
         // Focused from the start: the first key press is the first character.
-        Component.onCompleted: field.claim()
+        Component.onCompleted: account.claim()
     }
 
     // ── BATTERY ─────────────────────────────────────────────────────────────
@@ -213,13 +258,16 @@ Rectangle {
 
     // ── POWER AND SESSION ───────────────────────────────────────────────────
     //
-    // Power bottom left, as on the lock screen; session bottom right.
+    // Power bottom left, as on the lock screen; session bottom right. Only
+    // while awake.
 
     PowerRow {
         anchors.left: parent.left
         anchors.leftMargin: Theme.barTopMargin + 6
         anchors.bottom: parent.bottom
         anchors.bottomMargin: Theme.barTopMargin + 6
+        opacity: root.stage
+        visible: opacity > 0
 
         canReboot: sddm.canReboot
         canPowerOff: sddm.canPowerOff
@@ -235,18 +283,10 @@ Rectangle {
         anchors.rightMargin: Theme.barTopMargin + 6
         anchors.bottom: parent.bottom
         anchors.bottomMargin: Theme.barTopMargin + 6
+        opacity: root.stage
+        visible: opacity > 0
 
         sessions: sessionModel
         currentIndex: sessionModel.lastIndex
-    }
-
-    // ── ESCAPE ──────────────────────────────────────────────────────────────
-    //
-    // Escape collapses whatever is open.
-
-    focus: true
-    Keys.onEscapePressed: {
-        who.expanded = false
-        session.expanded = false
     }
 }

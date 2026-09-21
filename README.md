@@ -136,19 +136,24 @@ hatched from an egg. Nothing dies, and a week away costs nothing.
 ## Lock and login
 
 <p align="center">
-  <img src=".github/assets/lock-and-login.jpg" alt="The lock screen over the blurred desk, and the SDDM login screen over a painting of brush strokes — the same clock, the same face, the same field" width="100%">
+  <img src=".github/assets/lock-and-login.jpg" alt="The lock screen over the blurred desk, and the SDDM login screen over a blurred painting — the same island, the same clock, the same pill" width="100%">
 </p>
 
 **The shell locks the session itself**, over the blurred desk, and the login
 screen is the same lock with the desk taken away: an SDDM theme with the same
-clock, the same face and the same field. The face is your initials, or a
-picture of yours at `/var/lib/impasto/faces/<username>.face.icon`.
+island, the same clock and the same pill, over a blurred painting. Both rest on
+the clock alone. Any key brings in your account and the field, and is already
+the first letter of your password; Escape sends them away again. The clock is
+stacked or on one line, in Settings → Session → Lock screen, and the login
+screen always stacks it. The face is your initials, or a picture of yours at
+`/var/lib/impasto/faces/<username>.face.icon`.
 
 **With an infrared camera, the lock opens for your face.** Touch a key or the
-pointer and a ring turns around your picture while the camera looks, closes
-green, and the blur lifts off the desk. It is its own conversation beside the
-password, so a face it does not know never costs you a try, and the login
-screen still asks for the password after a boot.
+pointer and the island grows under the camera, a ring turns around its
+padlock while it looks, closes green, the padlock opens and the blur lifts off
+the desk. It is its own conversation beside the password, so a face it does
+not know never costs you a try, and the login screen still asks for the
+password after a boot.
 
 ## Settings
 

@@ -44,6 +44,7 @@ QtObject {
     readonly property int radiusMedium: 12
     readonly property int radiusLarge: 18
     readonly property int radiusPill: 999
+    readonly property int radiusNotch: 6
 
     // ── TYPE ────────────────────────────────────────────────────────────────
 
@@ -67,11 +68,16 @@ QtObject {
     readonly property string fontMono:
         root.fontOf("JetBrainsMono Nerd Font, monospace")
 
+    // Inter's display cut, for the clock.
+    readonly property string fontDisplay:
+        root.fontOf("Inter Display, Inter, Cantarell, sans-serif")
+
     readonly property int fontSizeSmall: 11
     readonly property int fontSizeRegular: 13
     readonly property int fontSizeMedium: 14
     readonly property int fontSizeLarge: 16
-    readonly property int fontSizeClock: 92
+    readonly property int fontSizeDate: 26
+    readonly property int fontSizeClock: 300
 
     // ── MOTION ──────────────────────────────────────────────────────────────
 
