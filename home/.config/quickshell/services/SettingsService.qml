@@ -222,7 +222,8 @@ Singleton {
 
     // Modules allowed beside the time on the island while running. One left
     // out still works on the bar; it just doesn't take a side of the island.
-    readonly property var besideDefaults: ["recorder", "timer", "media"]
+    // A recording is always there, and is not on this list.
+    readonly property var besideDefaults: ["timer", "media"]
 
     function beside(id: string): bool {
         const kept = config.islandActivities

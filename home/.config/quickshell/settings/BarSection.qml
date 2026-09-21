@@ -208,7 +208,7 @@ SettingsSection {
         SettingGroup {
             title: Tr.t("Beside the time")
             note: Tr.t("What is running sits either side of the time, two at most.")
-            hint: Tr.t("A recording comes first, then a countdown, then media; click the recording dot to stop it. Anything kept off the island still works from its chip on the bar.")
+            hint: Tr.t("A recording is always there and comes first; click its dot to stop it. Then a countdown, then media, and either still works from its chip on the bar when kept off the island.")
 
             Repeater {
                 model: SettingsService.besideDefaults

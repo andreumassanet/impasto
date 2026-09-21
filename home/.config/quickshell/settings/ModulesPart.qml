@@ -26,7 +26,7 @@ ColumnLayout {
     SettingGroup {
         title: Tr.t("Chips")
         note: Tr.t("Every piece on the bar follows these unless it was given its own.")
-        hint: Tr.t("Icon shows the module's symbol; Ring draws its gauge (charge, volume, countdown) as a circle around the symbol. The figure is the value itself, and On hover shows it only while the pointer is over the chip.")
+        hint: Tr.t("Icon shows the module's symbol; Ring draws the gauge of a module that measures something (charge, volume, a countdown) as a circle around it, and the rest keep their symbol. The figure is the value itself, and On hover shows it only while the pointer is over the chip.")
 
         SettingTiles {
             label: Tr.t("Shape")

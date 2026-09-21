@@ -20,8 +20,6 @@ import "../../components"
 Item {
     id: root
 
-    property bool compact: false
-
     implicitWidth: holder.implicitWidth
     implicitHeight: holder.implicitHeight
 
@@ -33,40 +31,7 @@ Item {
     Loader {
         id: holder
         anchors.fill: parent
-        sourceComponent: root.compact ? chip : detail
-    }
-
-    Component {
-        id: chip
-
-        Item {
-            Item {
-                id: mark
-
-                anchors.left: parent.left
-                anchors.verticalCenter: parent.verticalCenter
-                width: Theme.capsuleHeight
-                height: Theme.capsuleHeight
-
-                // An empty ring: a link is on or off, and the glyph already
-                // says which.
-                RingIndicator {
-                    anchors.fill: parent
-                    thickness: 2.5
-                    progress: 0
-                    trackColor: Theme.indicatorDim
-                    fillColor: Theme.indicator
-
-                    Text {
-                        anchors.centerIn: parent
-                        text: NetworkService.icon
-                        font.family: Theme.fontMono
-                        font.pixelSize: Math.round(Theme.capsuleHeight * 0.4)
-                        color: NetworkService.online ? Theme.indicator : Theme.textMuted
-                    }
-                }
-            }
-        }
+        sourceComponent: detail
     }
 
     Component {

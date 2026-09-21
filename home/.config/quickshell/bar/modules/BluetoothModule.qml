@@ -20,46 +20,13 @@ import "../../components"
 Item {
     id: root
 
-    property bool compact: false
-
     implicitWidth: holder.implicitWidth
     implicitHeight: holder.implicitHeight
 
     Loader {
         id: holder
         anchors.fill: parent
-        sourceComponent: root.compact ? chip : detail
-    }
-
-    Component {
-        id: chip
-
-        Item {
-            Item {
-                id: mark
-
-                anchors.left: parent.left
-                anchors.verticalCenter: parent.verticalCenter
-                width: Theme.capsuleHeight
-                height: Theme.capsuleHeight
-
-                RingIndicator {
-                    anchors.fill: parent
-                    thickness: 2.5
-                    progress: 0
-                    trackColor: Theme.indicatorDim
-
-                    Text {
-                        anchors.centerIn: parent
-                        text: BluetoothService.icon
-                        font.family: Theme.fontMono
-                        font.pixelSize: Math.round(Theme.capsuleHeight * 0.4)
-                        color: BluetoothService.enabled
-                            ? Theme.indicator : Theme.textMuted
-                    }
-                }
-            }
-        }
+        sourceComponent: detail
     }
 
     Component {

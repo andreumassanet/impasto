@@ -12,15 +12,12 @@ import QtQuick.Layouts
 
 import "../../theme"
 import "../../services"
-import "../../components"
 
 // Condition glyph and temperature on the chip; the detail adds the location,
 // feels-like and the next hours. Shows the reading's age, since it comes from
 // the network.
 Item {
     id: root
-
-    property bool compact: false
 
     implicitWidth: holder.implicitWidth
     implicitHeight: holder.implicitHeight
@@ -39,37 +36,7 @@ Item {
     Loader {
         id: holder
         anchors.fill: parent
-        sourceComponent: root.compact ? chip : detail
-    }
-
-    Component {
-        id: chip
-
-        Item {
-            Item {
-                id: mark
-
-                anchors.left: parent.left
-                anchors.verticalCenter: parent.verticalCenter
-                width: Theme.capsuleHeight
-                height: Theme.capsuleHeight
-
-                RingIndicator {
-                    anchors.fill: parent
-                    thickness: 2.5
-                    progress: 0
-                    trackColor: Theme.indicatorDim
-
-                    Text {
-                        anchors.centerIn: parent
-                        text: WeatherService.available ? WeatherService.glyph : "󰅤"
-                        font.family: Theme.fontMono
-                        font.pixelSize: Math.round(Theme.capsuleHeight * 0.42)
-                        color: Theme.indicator
-                    }
-                }
-            }
-        }
+        sourceComponent: detail
     }
 
     Component {

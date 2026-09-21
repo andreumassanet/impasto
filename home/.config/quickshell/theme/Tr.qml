@@ -199,8 +199,8 @@ QtObject {
                 "Se muestra en la isla en reposo, y más grande en el vistazo.",
             "What is running sits either side of the time, two at most.":
                 "Lo que está en marcha va a los lados de la hora, dos como mucho.",
-            "A recording comes first, then a countdown, then media; click the recording dot to stop it. Anything kept off the island still works from its chip on the bar.":
-                "Primero va la grabación, luego la cuenta atrás y luego la música; haz clic en el punto de grabación para pararla. Lo que no va en la isla sigue funcionando desde su pieza en la barra.",
+            "A recording is always there and comes first; click its dot to stop it. Then a countdown, then media, and either still works from its chip on the bar when kept off the island.":
+                "La grabación siempre está y va primero; haz clic en su punto para pararla. Luego la cuenta atrás y luego la música, y las dos siguen funcionando desde su pieza en la barra si no van en la isla.",
             "On the island while it runs": "En la isla mientras está en marcha",
             "Only where its chip is put": "Solo donde esté su pieza",
 
@@ -215,8 +215,8 @@ QtObject {
             "The bar": "La barra",
             "While it runs": "Mientras está en marcha",
             "Nothing to set: it is drawn one way.": "Nada que ajustar: se dibuja de una sola forma.",
-            "Icon shows the module's symbol; Ring draws its gauge (charge, volume, countdown) as a circle around the symbol. The figure is the value itself, and On hover shows it only while the pointer is over the chip.":
-                "Icono muestra el símbolo del módulo; Anillo dibuja su indicador (carga, volumen, cuenta atrás) como un círculo alrededor del símbolo. La cifra es el valor en sí, y Al pasar solo la muestra mientras el cursor está sobre la pieza.",
+            "Icon shows the module's symbol; Ring draws the gauge of a module that measures something (charge, volume, a countdown) as a circle around it, and the rest keep their symbol. The figure is the value itself, and On hover shows it only while the pointer is over the chip.":
+                "Icono muestra el símbolo del módulo; Anillo dibuja el indicador de los módulos que miden algo (carga, volumen, una cuenta atrás) como un círculo a su alrededor, y los demás se quedan con su símbolo. La cifra es el valor en sí, y Al pasar solo la muestra mientras el cursor está sobre la pieza.",
             "Icon": "Icono",
             "Ring": "Anillo",
             "The symbol alone, small.": "El símbolo solo, pequeño.",
@@ -246,7 +246,6 @@ QtObject {
             "Network": "Red",
             "Weather": "Tiempo",
             "Updates": "Actualizaciones",
-            "Recorder": "Grabadora",
             "Pet": "Mascota",
             "Games": "Juegos",
             "Calendar": "Calendario",

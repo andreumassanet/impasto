@@ -228,6 +228,15 @@ ShellRoot {
         }
     }
 
+    // The bar's settings button, which closes the window it opened.
+    Connections {
+        target: ModuleService
+
+        function onSettingsRequested(): void {
+            root.toggleSettings()
+        }
+    }
+
     // Optional clipboard wipe on lock. Joined here so neither service depends
     // on the other. Password-manager copies are never stored in the first
     // place; this covers everything else.
@@ -322,16 +331,18 @@ ShellRoot {
         onPressed: LockService.lock()
     }
 
+    // An open panel holds the keyboard exclusively, which beats a normal
+    // window, so the island closes first or the window cannot be typed in.
+    function toggleSettings(): void {
+        if (!settingsWindow.shown)
+            root.island?.close()
+        settingsWindow.toggle()
+    }
+
     GlobalShortcut {
         name: "settings"
         description: "Open the settings window"
-        // An open panel holds the keyboard exclusively, which beats a normal
-        // window, so the island closes first or the window cannot be typed in.
-        onPressed: {
-            if (!settingsWindow.shown)
-                root.island?.close()
-            settingsWindow.toggle()
-        }
+        onPressed: root.toggleSettings()
     }
 
     GlobalShortcut {

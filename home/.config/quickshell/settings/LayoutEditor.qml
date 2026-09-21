@@ -31,27 +31,29 @@ import "../bar/modules"
 Item {
     id: root
 
-    // `{ id, shape, figure }` per piece (`SettingsService.barItems`).
-    readonly property var leftItems: SettingsService.barItems("left")
-    readonly property var rightItems: SettingsService.barItems("right")
+    // `{ id, shape, figure }` per piece (`SettingsService.barItems`), less
+    // any piece no longer in the catalogue and the split it leaves loose, so
+    // the next write drops both.
+    readonly property var leftItems: SettingsService.tidy(SettingsService.barItems("left")
+        .filter(item => ModuleService.placeable(item.id)))
+    readonly property var rightItems: SettingsService.tidy(SettingsService.barItems("right")
+        .filter(item => ModuleService.placeable(item.id)))
 
-    // Three groups: modules that can be a ring or a symbol, symbol-only
-    // pieces (calendar, bell, panel buttons), then the workspace strip and
-    // the split. The shape setting only applies to the first group.
+    // Four groups: modules that measure (a ring or a symbol), modules that
+    // read out a state or a count (a symbol), the buttons, then the workspace
+    // strip and the split. The shape setting only applies to the first group.
     readonly property var catalogueGroups: {
-        const either = []
-        const symbol = []
+        const gauges = []
+        const readings = []
         for (const entry of ModuleService.catalogue) {
             if (!entry.bar)
                 continue
             if (ModuleService.ringed.indexOf(entry.id) >= 0)
-                either.push(entry.id)
+                gauges.push(entry.id)
             else
-                symbol.push(entry.id)
+                readings.push(entry.id)
         }
-        for (const id of Object.keys(ModuleService.buttons))
-            symbol.push(id)
-        return [either, symbol, ["workspaces", "split"]]
+        return [gauges, readings, Object.keys(ModuleService.buttons), ["workspaces", "split"]]
     }
 
     readonly property var catalogueIds:

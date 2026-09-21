@@ -39,6 +39,9 @@ Item {
     readonly property bool button: ModuleService.isButton(root.moduleId)
     readonly property var door: ModuleService.buttons[root.moduleId] ?? null
 
+    Component.onCompleted: ModuleService.watch(root.moduleId, true)
+    Component.onDestruction: ModuleService.watch(root.moduleId, false)
+
     readonly property bool open: root.button
         ? ModuleService.shownPanel === root.door.panel
         : ModuleService.openId === root.moduleId

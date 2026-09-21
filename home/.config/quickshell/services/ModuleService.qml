@@ -18,13 +18,14 @@ import "../theme"
 // The bar's catalogue: what each module is, its glyph and figure, whether this
 // machine can show it, and which detail is open.
 //
-// A module is a chip on the bar that opens a detail in the island. Detail
-// sizes are declared here because the island has to reach that size before
-// the detail exists. A button has no detail; it opens one of the panels, or
-// the capture surface.
+// A piece on the bar is a module or a button. A module tells you something:
+// it always has a figure, and a click opens its detail in the island. A
+// button does something: a symbol with no figure that opens a panel or runs
+// an action. Detail sizes are declared here because the island has to reach
+// that size before the detail exists.
 //
 // Adding a module: a file in bar/modules, a row in `catalogue` and a line in
-// Module.qml. Adding a button: a row in `buttons`.
+// Module.qml. Adding a button: a door in ControlsService, or a row here.
 Singleton {
     id: root
 
@@ -52,7 +53,6 @@ Singleton {
         { id: "updates",       name: "Updates",       bar: true,  width: 356, height: 132 },
         { id: "pet",           name: "Pet",           bar: true,  width: 380, height: 172 },
         { id: "games",         name: "Games",         bar: false, width: 380, height: 150 },
-        { id: "recorder",      name: "Recorder",      bar: true,  width: 356, height: 150 },
         { id: "calendar",      name: "Calendar",      bar: true,  width: 340, height: 330 },
         { id: "notes",         name: "Notes",         bar: false, width: 356, height: 150 },
         { id: "tasks",         name: "Tasks",         bar: false, width: 356, height: 150 },
@@ -67,23 +67,68 @@ Singleton {
 
     // ── BUTTONS ─────────────────────────────────────────────────────────────
     //
-    // Open one of the island's panels, or run an action. Same glyphs as the
-    // control centre's shortcuts. Alone in a capsule, a button is drawn as a
-    // circle.
+    // Every door of the control centre can go on the bar, under its name and
+    // glyph, and so can the control centre itself and the capture surface.
+    // Not the statistics or the pet: on the bar those are modules, and a
+    // button beside them would be the same piece without its figure. Alone in
+    // a capsule, a button is drawn as a circle.
+    //
+    // On the bar an id is a button before it is a module; notes and games are
+    // modules only on the desktop.
     //
     // Capture is what the capture key does: the photo is taken at once, so
     // whatever the island has open is in it.
-    readonly property var buttons: ({
-        launcher: { name: "Search",         glyph: "󰍉", panel: "launcher" },
-        overview: { name: "Overview",       glyph: "󰕰", panel: "overview" },
-        capture:  { name: "Capture",        glyph: "󰹑",
-                    action: () => CaptureService.open("", "", "", 0) },
-        controls: { name: "Control centre", glyph: "󰨚", panel: "controls" },
-        session:  { name: "Session",        glyph: "󰐥", panel: "session" }
-    })
+    readonly property var buttonIds: ["launcher", "overview", "controls", "capture",
+        "appearance", "notes", "board", "games", "keys", "packages", "settings", "session"]
+
+    readonly property var buttons: {
+        const out = {}
+        for (const id of root.buttonIds) {
+            if (id === "controls") {
+                out[id] = { name: "Control centre", glyph: "󰨚", panel: "controls" }
+                continue
+            }
+            if (id === "capture") {
+                out[id] = { name: "Capture", glyph: "󰹑",
+                            action: () => CaptureService.open("", "", "", 0) }
+                continue
+            }
+            const door = ControlsService.door(id)
+            if (door === null)
+                continue
+            // The one door with no panel is the settings window.
+            out[id] = door.panel !== ""
+                ? { name: door.label, glyph: door.icon, panel: door.panel }
+                : { name: door.label, glyph: door.icon, action: () => root.settingsRequested() }
+        }
+        return out
+    }
 
     function isButton(id: string): bool {
         return root.buttons[id] !== undefined
+    }
+
+    // Whether an id from a saved layout is still a piece: one taken out of
+    // the catalogue is dropped rather than drawn as something else.
+    function placeable(id: string): bool {
+        return id === "workspaces" || id === "split" || root.isButton(id)
+            || root.catalogue.some(item => item.id === id && item.bar)
+    }
+
+    // A reading that polls keeps polling while a piece on the bar shows it,
+    // in either shape.
+    function watch(id: string, on: bool): void {
+        if (id === "weather") {
+            if (on)
+                WeatherService.subscribe()
+            else
+                WeatherService.release()
+        } else if (id === "updates") {
+            if (on)
+                UpdatesService.subscribe()
+            else
+                UpdatesService.release()
+        }
     }
 
     // Buttons cannot see the island, so they ask here and the bar listens.
@@ -97,13 +142,16 @@ Singleton {
 
     property string shownPanel: ""
 
+    // The settings window is not an island panel; shell.qml opens it.
+    signal settingsRequested()
+
     // ── CHIP SHAPE ──────────────────────────────────────────────────────────
     //
-    // Modules with a ring face. A ring is a gauge, so the bell, with nothing
-    // to measure, keeps its symbol; on/off links get an empty ring.
+    // Modules with a ring face: those whose reading fills from empty to full.
+    // A state or a count (the network, the bell, the date, the pending
+    // updates) has nothing to fill, so it keeps its symbol in either shape.
     readonly property var ringed: ["media", "timer", "claude", "battery", "volume",
-        "brightness", "network", "bluetooth", "weather", "stats", "updates",
-        "pet", "recorder"]
+        "brightness", "stats", "pet"]
 
     // A piece's own shape when it has one, the bar's when it does not.
     function shapeOf(id: string, own: var): string {
@@ -146,8 +194,6 @@ Singleton {
             return "󰍛"
         case "calendar":
             return "󰃭"
-        case "recorder":
-            return RecorderService.recording ? "󰑊" : "󰕧"
         }
         return ""
     }
@@ -181,8 +227,6 @@ Singleton {
             return `${StatsService.cpu.toFixed(0)}%`
         case "pet":
             return PetService.hatched ? `Lv ${PetService.level}` : "Egg"
-        case "recorder":
-            return RecorderService.recording ? RecorderService.display : "REC"
         case "network":
             return NetworkService.connectionName
         case "bluetooth":
@@ -211,7 +255,7 @@ Singleton {
         return 0
     }
 
-    // Warnings (low battery, hot CPU, recording) use the fixed indicator
+    // Warnings (low battery, hot CPU) use the fixed indicator
     // hues; everything else is plain text colour.
     function tintOf(id: string): color {
         switch (id) {
@@ -229,8 +273,6 @@ Singleton {
             if (StatsService.cpu >= 70)
                 return Theme.indicatorWarn
             break
-        case "recorder":
-            return RecorderService.recording ? Theme.indicatorBad : Theme.textMuted
         case "timer":
             return TimerService.running ? TimerService.tint : Theme.text
         case "claude":
@@ -242,16 +284,14 @@ Singleton {
     // ── VISIBILITY ──────────────────────────────────────────────────────────
     //
     // A placed piece always shows; the player says "Nothing playing" rather
-    // than disappearing. Timer, recorder and player can instead be set to show
+    // than disappearing. The timer and the player can instead be set to show
     // only while running (`when: "running"`).
-    readonly property var runners: ["timer", "recorder", "media"]
+    readonly property var runners: ["timer", "media"]
 
     function runs(id: string): bool {
         switch (id) {
         case "timer":
             return TimerService.running
-        case "recorder":
-            return RecorderService.recording
         case "media":
             return MediaService.playing
         }
@@ -267,11 +307,12 @@ Singleton {
     // ── ACTIVITIES ──────────────────────────────────────────────────────────
     //
     // Up to two running activities shown beside the time, most urgent first:
-    // recording, countdown, music. Each can be kept off the island
-    // (`SettingsService.beside`) without affecting its module.
+    // recording, countdown, music. A countdown or music can be kept off the
+    // island (`SettingsService.beside`) without affecting its module; a
+    // recording cannot, since it has no module and nothing else on screen.
     readonly property var activities: {
         const list = []
-        if (RecorderService.recording && SettingsService.beside("recorder"))
+        if (RecorderService.recording)
             list.push("recorder")
         if (TimerService.running && SettingsService.beside("timer"))
             list.push("timer")
@@ -398,9 +439,6 @@ Singleton {
             return PetService.ready
         case "games":
             return GamesService.ready
-        case "recorder":
-            // Needs an encoder.
-            return RecorderService.available
         case "notes":
             return NotesService.ready
         case "tasks":

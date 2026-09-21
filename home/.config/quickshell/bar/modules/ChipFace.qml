@@ -33,7 +33,8 @@ Item {
     // capsule outline; alone and closed, it is the capsule.
     property bool alone: false
 
-    readonly property bool ring: root.shape === "ring"
+    // Only a module that measures has a ring, whatever shape is asked for.
+    readonly property bool ring: root.shape === "ring" && ModuleService.ringed.indexOf(root.moduleId) >= 0
     readonly property string value: ModuleService.valueOf(root.moduleId)
     readonly property bool figured: root.value !== ""
     readonly property int size: Math.round(Theme.capsuleHeight * 0.44)
