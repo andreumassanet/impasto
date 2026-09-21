@@ -589,9 +589,12 @@ verb_packages() {
     section pacman
     mapfile -t want < <(names "$REPO/packages/pacman.txt")
     mapfile -t missing < <(pacman -T "${want[@]}" || true)
+    # With the system upgraded in the same transaction: against a stale
+    # database a new name is not found, and a file moving between packages
+    # (hyprpm out of hyprland) needs both at once.
     if (( ${#missing[@]} )); then
         say "missing: ${missing[*]}"
-        act sudo pacman -S --needed "${yes[@]}" "${missing[@]}"
+        act sudo pacman -Syu --needed "${yes[@]}" "${missing[@]}"
     else
         say "all ${#want[@]} installed"
     fi
