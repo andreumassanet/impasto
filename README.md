@@ -51,7 +51,7 @@ is running sits either side of the time, and every module on the bar opens into
 the island rather than into a popup of its own.
 
 <p align="center">
-  <img src=".github/assets/island-details.jpg" alt="Module details in the island: the player, the battery, Claude Code's usage, the processor and memory, the recorder, the Wi-Fi list, the weather, the pet, the volume, the month with task dots, the tasks, a countdown and the GitHub wall" width="100%">
+  <img src=".github/assets/island-details.jpg" alt="Module details in the island: the player, the battery, Claude Code's usage, the processor and memory, the volume, the Wi-Fi list, the weather, the pet, the month with task dots, the tasks, a countdown and the GitHub wall" width="100%">
 </p>
 
 ## The bar
@@ -62,9 +62,17 @@ the island rather than into a popup of its own.
 
 **Three styles, one layout.** Pieces are dragged out of a catalogue onto a
 picture of the bar, then drawn grouped round the island, spread to the edges, or
-all inside one capsule. Each shows its symbol or its ring, with its figure
+all inside one capsule. A module tells you something and opens its detail; a
+button opens something — any panel the control centre does, the capture
+surface, or Settings. Each shows its symbol or its ring, with its figure
 always, never or under the pointer — two settings for the whole bar, and any
 piece can have a look of its own.
+
+**On more than one screen, every screen gets the whole bar**, and the island is
+live on the one you are typing on. Each screen keeps widgets and notes of its
+own and the dock is on all of them, a workspace number brings that workspace to
+the screen you are on, and the brightness keys dim that screen — an external
+monitor over DDC/CI.
 
 ## The launcher and the dock
 
@@ -93,7 +101,9 @@ opens that widget's own look — for a photo widget, the picture of your own it
 holds.
 
 **Two themes on the same modules**: *Modern* is a figure with a caption,
-*Analogue* draws each one as an object, and either is a choice per widget.
+*Analogue* draws each one as an object, and either is a choice per widget. A
+spectrum of whatever is playing sits on the grid as bare bars, or runs along a
+whole edge under the windows.
 
 <p align="center">
   <img src=".github/assets/repaint.gif" alt="The wallpaper changing three times, and the bar, the widgets, the terminal and the system monitor repainting with each one" width="100%">
@@ -125,18 +135,19 @@ month wherever a month is drawn.
 ## Games and pets
 
 <p align="center">
-  <img src=".github/assets/games-and-pets.jpg" alt="Tetris and Flood Colors played in the island, and the pets' page with Pip out and the rest of the family waiting" width="100%">
+  <img src=".github/assets/games-and-pets.jpg" alt="Tetris and Whack-a-Mole played in the island, and the pets' page with Pip out and the rest of the family waiting" width="100%">
 </p>
 
 **Eleven small games, played in the island** — `SUPER + G` opens a shelf, and
 the island becomes the board. **A family of five small creatures lives on the
 bar**: one out at a time, earning levels from being fed and played with, each
-hatched from an egg. Nothing dies, and a week away costs nothing.
+hatched from an egg and drawn in one of four styles. Nothing dies, and a week
+away costs nothing.
 
 ## Lock and login
 
 <p align="center">
-  <img src=".github/assets/lock-and-login.jpg" alt="The lock screen over the blurred desk, and the SDDM login screen over a blurred painting — the same island, the same clock, the same pill" width="100%">
+  <img src=".github/assets/lock-and-login.jpg" alt="The lock screen resting on its clock over the blurred desk, the island growing round the padlock while it looks for a face, and the SDDM login screen over a blurred painting — the same island, clock and pill" width="100%">
 </p>
 
 **The shell locks the session itself**, over the blurred desk, and the login
@@ -158,7 +169,7 @@ password after a boot.
 ## Settings
 
 <p align="center">
-  <img src=".github/assets/settings.jpg" alt="Two pages of the settings window: the bar arranged on a picture of it, and the appearance with the wallpaper transitions and the greeting scenes" width="100%">
+  <img src=".github/assets/settings.jpg" alt="Two pages of the settings window: the bar arranged on a picture of it from a catalogue of modules and buttons, and the desktop's module settings with the pet drawn in its four styles" width="100%">
 </p>
 
 **Settings is the one panel that is not the island** — an ordinary window where
@@ -178,17 +189,18 @@ cd ~/impasto
 ./setup install
 ```
 
-It installs the packages, oh-my-zsh, everything in `home/` into your home and
-everything in `system/` into `/`, the two Hyprland plugins and the vector
-cursor, and the login screen, switched on unless your machine already uses
-another display manager. It sets up Thunar, VSCodium, Vesktop and Spotify, dark GTK
+It installs the packages it is missing — upgrading the system in the same step,
+as Arch asks — oh-my-zsh, everything in `home/` into your home and everything
+in `system/` into `/`, the two Hyprland plugins and the vector cursor, and the
+login screen, switched on unless your machine already uses another display
+manager. It sets up Thunar, VSCodium, Vesktop and Spotify, dark GTK
 applications, and what opens which kind of file — leaving alone any your
 machine already has an answer for. Where there is an infrared camera it
-installs howdy-next and asks to enrol your face. It asks for your password through sudo for
-pacman, for the copy into `/`, and to let spicetify patch Spotify. A program
-that is open, or a Spotify you have never started, is skipped with the reason
-and set up by the next `update`. After that they follow the wallpaper on their
-own; Spotify from its next start.
+installs howdy-next and asks to enrol your face. It asks for your password
+through sudo for pacman, for the copy into `/`, and to let spicetify patch
+Spotify. A program that is open, or a Spotify you have never started, is
+skipped with the reason and set up by the next `update`. After that they follow
+the wallpaper on their own; Spotify from its next start.
 
 Run `./setup` with nothing after it and it asks instead: the verbs on one
 screen, and what an install may leave out on the next, which is the flags below
@@ -251,6 +263,7 @@ rather than failing.
 | 💬 | Chat | [Vesktop](https://github.com/Vencord/Vesktop) |
 | 🎧 | Player | [Spotify](https://www.spotify.com) · [spicetify](https://spicetify.app) |
 | 🌐 | Browser | [Zen](https://zen-browser.app) |
+| 🔆 | Monitor brightness | [ddcutil](https://www.ddcutil.com) |
 | 🔑 | Login screen | [SDDM](https://github.com/sddm/sddm) |
 | 👤 | Face unlock | [howdy-next](https://codeberg.org/nathawat/howdy-next) |
 
