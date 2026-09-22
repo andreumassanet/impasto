@@ -91,7 +91,9 @@ Item {
                         anchors.fill: parent
 
                         Repeater {
-                            model: weather.hoursAhead
+                            model: ScriptModel {
+                                values: weather.hoursAhead
+                            }
 
                             Item {
                                 id: block
@@ -516,7 +518,10 @@ Item {
                     }
 
                     Repeater {
-                        model: agenda.due.slice(0, 2)
+                        model: ScriptModel {
+                            values: agenda.due.slice(0, 2)
+                            objectProp: "key"
+                        }
 
                         TaskRow {
                             required property var modelData
@@ -710,7 +715,10 @@ Item {
                     spacing: 2
 
                     Repeater {
-                        model: TasksService.queue.slice(0, 6)
+                        model: ScriptModel {
+                            values: TasksService.queue.slice(0, 6)
+                            objectProp: "key"
+                        }
 
                         TaskRow {
                             required property var modelData

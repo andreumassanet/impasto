@@ -9,6 +9,7 @@
 
 import QtQuick
 import QtQuick.Layouts
+import Quickshell
 import Quickshell.Widgets
 
 import Quickshell.Services.Notifications
@@ -95,7 +96,9 @@ Card {
             visible: NotificationService.history.length > 0
             clip: true
             spacing: 6
-            model: NotificationService.history
+            model: ScriptModel {
+                values: NotificationService.history
+            }
 
             delegate: Rectangle {
                 id: entry

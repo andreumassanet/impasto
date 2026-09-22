@@ -115,7 +115,10 @@ Card {
         }
 
         Repeater {
-            model: dayPage.due
+            model: ScriptModel {
+                values: dayPage.due
+                objectProp: "key"
+            }
 
             TaskRow {
                 required property var modelData

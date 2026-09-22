@@ -341,7 +341,9 @@ Item {
                     anchors.fill: parent
 
                     Repeater {
-                        model: weather.hoursAhead
+                        model: ScriptModel {
+                            values: weather.hoursAhead
+                        }
 
                         Item {
                             id: block
@@ -421,7 +423,9 @@ Item {
                     spacing: 2
 
                     Repeater {
-                        model: UpdatesService.available ? UpdatesService.packages.slice(0, 4) : []
+                        model: ScriptModel {
+                            values: UpdatesService.available ? UpdatesService.packages.slice(0, 4) : []
+                        }
 
                         Text {
                             required property var modelData
@@ -467,7 +471,10 @@ Item {
                     spacing: 3
 
                     Repeater {
-                        model: BluetoothService.connectedDevices.slice(0, 3)
+                        model: ScriptModel {
+                            values: BluetoothService.connectedDevices.slice(0, 3)
+                            comparisonMode: ObjectComparison.Identity
+                        }
 
                         Text {
                             required property var modelData
@@ -906,7 +913,10 @@ Item {
                     spacing: 2
 
                     Repeater {
-                        model: TasksService.queue.slice(0, 3)
+                        model: ScriptModel {
+                            values: TasksService.queue.slice(0, 3)
+                            objectProp: "key"
+                        }
 
                         TaskRow {
                             required property var modelData

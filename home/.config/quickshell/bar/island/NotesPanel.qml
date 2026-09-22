@@ -9,6 +9,7 @@
 
 import QtQuick
 import QtQuick.Layouts
+import Quickshell
 
 import "../../theme"
 import "../../services"
@@ -126,7 +127,10 @@ FocusScope {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 clip: true
-                model: page.cards
+                model: ScriptModel {
+                    values: page.cards
+                    objectProp: "key"
+                }
                 cellWidth: root.cardWidth + root.gap
                 cellHeight: root.cardHeight + root.gap
                 boundsBehavior: Flickable.StopAtBounds

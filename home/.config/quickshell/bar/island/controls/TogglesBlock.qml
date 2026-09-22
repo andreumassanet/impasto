@@ -9,6 +9,7 @@
 
 import QtQuick
 import QtQuick.Layouts
+import Quickshell
 
 import "../../../theme"
 import "../../../services"
@@ -118,7 +119,9 @@ Item {
                 (page.height - (root.rows - 1) * Theme.centreGutter) / root.rows
 
             Repeater {
-                model: page.slice
+                model: ScriptModel {
+                    values: page.slice
+                }
 
                 QuickTile {
                     id: tile

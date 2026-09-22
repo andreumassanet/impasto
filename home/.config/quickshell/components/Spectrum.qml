@@ -32,7 +32,7 @@ Item {
     property real barSpacing: 2
 
     // Sized from its own bars, so layouts can place it exactly.
-    readonly property int barCount: CavaService.values.length
+    readonly property int barCount: CavaService.barCount
 
     implicitWidth: root.barCount > 0
         ? root.barCount * root.barWidth + (root.barCount - 1) * root.barSpacing
@@ -43,16 +43,20 @@ Item {
         anchors.fill: parent
         spacing: root.barSpacing
 
+        // A fixed count, each bar reading its own value: a model of the values
+        // themselves would rebuild every bar on every cava frame.
         Repeater {
-            model: CavaService.values
+            model: root.barCount
 
             Rectangle {
-                required property real modelData
+                required property int index
+
+                readonly property real value: CavaService.values[index] ?? 0
 
                 Layout.preferredWidth: root.barWidth
                 Layout.preferredHeight: root.active
                     ? Math.max(root.minimum,
-                        root.height * Math.pow(Math.max(0, modelData), root.curve))
+                        root.height * Math.pow(Math.max(0, value), root.curve))
                     : root.minimum
                 Layout.alignment: Qt.AlignVCenter
                 radius: width / 2

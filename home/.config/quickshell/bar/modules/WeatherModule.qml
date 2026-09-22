@@ -9,6 +9,7 @@
 
 import QtQuick
 import QtQuick.Layouts
+import Quickshell
 
 import "../../theme"
 import "../../services"
@@ -117,7 +118,9 @@ Item {
                     anchors.fill: parent
 
                     Repeater {
-                        model: root.hoursAhead
+                        model: ScriptModel {
+                            values: root.hoursAhead
+                        }
 
                         Item {
                             id: block

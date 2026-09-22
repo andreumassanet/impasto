@@ -9,6 +9,7 @@
 
 import QtQuick
 import QtQuick.Layouts
+import Quickshell
 
 import "../../theme"
 import "../../services"
@@ -157,7 +158,9 @@ ColumnLayout {
                 width: list.width
 
                 Repeater {
-                    model: root.entries
+                    model: ScriptModel {
+                        values: root.entries
+                    }
 
                     Item {
                         id: entry

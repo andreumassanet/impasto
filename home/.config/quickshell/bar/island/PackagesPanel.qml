@@ -9,6 +9,7 @@
 
 import QtQuick
 import QtQuick.Layouts
+import Quickshell
 
 import "../../theme"
 import "../../services"
@@ -40,11 +41,6 @@ ColumnLayout {
     Component.onDestruction: {
         UpdatesService.release()
         PackagesService.query = ""
-    }
-
-    onRowsChanged: {
-        list.currentIndex = 0
-        list.positionViewAtBeginning()
     }
 
     function move(delta: int): void {
@@ -176,7 +172,16 @@ ColumnLayout {
             anchors.fill: parent
             clip: true
             spacing: 2
-            model: root.rows
+            model: ScriptModel {
+                values: root.rows
+
+                // Back to the top once the rows have landed, not when the list
+                // changes: a row inserted above the selection would shift it.
+                onValuesChanged: {
+                    list.currentIndex = 0
+                    list.positionViewAtBeginning()
+                }
+            }
             boundsBehavior: Flickable.StopAtBounds
             currentIndex: 0
 

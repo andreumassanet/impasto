@@ -9,6 +9,7 @@
 
 import QtQuick
 import QtQuick.Layouts
+import Quickshell
 
 import "../../theme"
 import "../../services"
@@ -74,7 +75,9 @@ Item {
             Component.onCompleted: BrightnessService.refresh()
 
             Repeater {
-                model: BrightnessService.dimmable
+                model: ScriptModel {
+                    values: BrightnessService.dimmable
+                }
 
                 RowLayout {
                     id: row

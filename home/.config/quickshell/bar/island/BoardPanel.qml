@@ -9,6 +9,7 @@
 
 import QtQuick
 import QtQuick.Layouts
+import Quickshell
 
 import "../../theme"
 import "../../services"
@@ -269,7 +270,10 @@ FocusScope {
                                 anchors.topMargin: 10
                                 clip: true
                                 spacing: 6
-                                model: lane.cards
+                                model: ScriptModel {
+                                    values: lane.cards
+                                    objectProp: "key"
+                                }
                                 boundsBehavior: Flickable.StopAtBounds
 
                                 // New, at the top of the first lane: an empty

@@ -8,6 +8,7 @@
 // ╰──────────────────────────────────────────────────────────────────────────╯
 
 import QtQuick
+import Quickshell
 import Quickshell.Widgets
 
 import "../theme"
@@ -601,7 +602,10 @@ Item {
                 spacing: 4
 
                 Repeater {
-                    model: root.deck ? NotesService.live : []
+                    model: ScriptModel {
+                        values: root.deck ? NotesService.live : []
+                        objectProp: "key"
+                    }
 
                     Rectangle {
                         id: tickRow

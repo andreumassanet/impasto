@@ -51,12 +51,6 @@ ColumnLayout {
     // size the island for the last search and then resize it.
     Component.onDestruction: LauncherService.query = ""
 
-    // Something is always selected, so Enter always runs a result.
-    onResultsChanged: {
-        resultList.currentIndex = 0
-        resultList.positionViewAtBeginning()
-    }
-
     // Wraps around at both ends.
     function move(delta: int): void {
         const count = root.results.length
@@ -209,7 +203,17 @@ ColumnLayout {
         Layout.fillHeight: true
         clip: true
         spacing: LauncherService.rowSpacing
-        model: root.results
+        model: ScriptModel {
+            values: root.results
+
+            // Back to the top once the rows have landed, not when the list
+            // changes: a row inserted above the selection would shift it.
+            // Something is always selected, so Enter always runs a result.
+            onValuesChanged: {
+                resultList.currentIndex = 0
+                resultList.positionViewAtBeginning()
+            }
+        }
         boundsBehavior: Flickable.StopAtBounds
         // The delegate paints the selection itself; no separate highlight.
         currentIndex: 0

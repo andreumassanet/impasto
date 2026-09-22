@@ -244,7 +244,9 @@ PanelWindow {
         // The spectra, under the widgets. Each runs past the board to the
         // screen's own edge.
         Repeater {
-            model: DesktopService.spectrumKeysOn(root.screenName)
+            model: ScriptModel {
+                values: DesktopService.spectrumKeysOn(root.screenName)
+            }
 
             EdgeSpectrum {
                 board: surface
@@ -256,7 +258,9 @@ PanelWindow {
         // delegate. The rows change on every drop; the keys only on add and
         // remove.
         Repeater {
-            model: DesktopService.keysOn(root.screenName)
+            model: ScriptModel {
+                values: DesktopService.keysOn(root.screenName)
+            }
 
             Widget {
                 board: surface

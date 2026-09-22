@@ -56,7 +56,9 @@ ColumnLayout {
     }
 
     Repeater {
-        model: DockService.pinned
+        model: ScriptModel {
+            values: DockService.pinned
+        }
 
         Item {
             id: kept
@@ -209,7 +211,9 @@ ColumnLayout {
         Layout.preferredHeight: Math.min(root.offered.length, 6) * 34
         visible: root.offered.length > 0
         clip: true
-        model: root.offered
+        model: ScriptModel {
+            values: root.offered
+        }
         boundsBehavior: Flickable.StopAtBounds
 
         delegate: Rectangle {

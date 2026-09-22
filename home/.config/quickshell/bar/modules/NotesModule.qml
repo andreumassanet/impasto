@@ -9,6 +9,7 @@
 
 import QtQuick
 import QtQuick.Layouts
+import Quickshell
 
 import "../../theme"
 import "../../services"
@@ -98,7 +99,10 @@ Item {
 
             // The last three, most recently edited first.
             Repeater {
-                model: NotesService.live.slice(0, 3)
+                model: ScriptModel {
+                    values: NotesService.live.slice(0, 3)
+                    objectProp: "key"
+                }
 
                 Rectangle {
                     id: row

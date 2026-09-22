@@ -9,6 +9,7 @@
 
 import QtQuick
 import QtQuick.Layouts
+import Quickshell
 
 import "../../theme"
 import "../../services"
@@ -84,7 +85,9 @@ Item {
 
             // The last three, most recent first.
             Repeater {
-                model: GamesService.ranked.slice(0, 3)
+                model: ScriptModel {
+                    values: GamesService.ranked.slice(0, 3)
+                }
 
                 RowLayout {
                     id: row

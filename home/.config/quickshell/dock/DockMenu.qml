@@ -9,6 +9,7 @@
 
 import QtQuick
 import QtQuick.Layouts
+import Quickshell
 
 import "../theme"
 import "../services"
@@ -92,7 +93,10 @@ Item {
         // ── WINDOWS ─────────────────────────────────────────────────────────
 
         Repeater {
-            model: root.item.windows
+            model: ScriptModel {
+                values: root.item.windows
+                objectProp: "address"
+            }
 
             Rectangle {
                 id: window

@@ -278,7 +278,10 @@ ColumnLayout {
                         // ── WINDOWS ─────────────────────────────────────────
 
                         Repeater {
-                            model: cell.windows
+                            model: ScriptModel {
+                                values: cell.windows
+                                objectProp: "address"
+                            }
 
                             Item {
                                 id: thumb

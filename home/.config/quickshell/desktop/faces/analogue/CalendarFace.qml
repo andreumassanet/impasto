@@ -387,7 +387,10 @@ Item {
                     }
 
                     Repeater {
-                        model: agenda.due.slice(0, 2)
+                        model: ScriptModel {
+                            values: agenda.due.slice(0, 2)
+                            objectProp: "key"
+                        }
 
                         TaskRow {
                             required property var modelData

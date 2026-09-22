@@ -9,6 +9,7 @@
 
 import QtQuick
 import QtQuick.Layouts
+import Quickshell
 
 import "../../theme"
 import "../../services"
@@ -100,7 +101,10 @@ Item {
             // Soonest first. The tick completes a task in place; the rest of
             // the row opens it.
             Repeater {
-                model: TasksService.queue.slice(0, 3)
+                model: ScriptModel {
+                    values: TasksService.queue.slice(0, 3)
+                    objectProp: "key"
+                }
 
                 TaskRow {
                     required property var modelData

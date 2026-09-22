@@ -9,6 +9,7 @@
 
 import QtQuick
 import QtQuick.Layouts
+import Quickshell
 
 import "../../theme"
 import "../../services"
@@ -57,7 +58,9 @@ ColumnLayout {
                     spacing: 3
 
                     Repeater {
-                        model: StatsService.cores
+                        model: ScriptModel {
+                            values: StatsService.cores
+                        }
 
                         Rectangle {
                             required property real modelData
@@ -214,7 +217,9 @@ ColumnLayout {
                     }
 
                     Repeater {
-                        model: StatsService.disks
+                        model: ScriptModel {
+                            values: StatsService.disks
+                        }
 
                         ColumnLayout {
                             id: disk

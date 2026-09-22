@@ -9,6 +9,7 @@
 
 import QtQuick
 import QtQuick.Layouts
+import Quickshell
 
 import "../theme"
 
@@ -49,7 +50,9 @@ Item {
         spacing: 0
 
         Repeater {
-            model: root.rows
+            model: ScriptModel {
+                values: root.rows
+            }
 
             Rectangle {
                 id: row

@@ -9,6 +9,7 @@
 
 import QtQuick
 import QtQuick.Layouts
+import Quickshell
 
 import "../../theme"
 import "../../services"
@@ -76,7 +77,9 @@ ColumnLayout {
         // Panel buttons, in the order settings keeps them. Settings sends its
         // own request; the rest are panel names.
         Repeater {
-            model: ControlsService.shownDoors
+            model: ScriptModel {
+                values: ControlsService.shownDoors
+            }
 
             IconButton {
                 required property var modelData
@@ -176,7 +179,9 @@ ColumnLayout {
         // drop. Ids change only when a block is added or removed, so the snap
         // animates and a playing track or a scrolled list survives a drag.
         Repeater {
-            model: ControlsService.keys
+            model: ScriptModel {
+                values: ControlsService.keys
+            }
 
             Block {
                 board: surface

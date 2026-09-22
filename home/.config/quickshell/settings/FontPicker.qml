@@ -9,6 +9,7 @@
 
 import QtQuick
 import QtQuick.Layouts
+import Quickshell
 
 import "../theme"
 
@@ -50,7 +51,9 @@ Rectangle {
             Layout.fillWidth: true
             Layout.fillHeight: true
             clip: true
-            model: root.families
+            model: ScriptModel {
+                values: root.families
+            }
             boundsBehavior: Flickable.StopAtBounds
             currentIndex: root.families.indexOf(root.preferred)
 

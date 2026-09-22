@@ -9,6 +9,7 @@
 
 import QtQuick
 import QtQuick.Layouts
+import Quickshell
 
 import "../../theme"
 import "../../services"
@@ -104,7 +105,10 @@ ColumnLayout {
         visible: root.listed.length > 0
         clip: true
         spacing: 4
-        model: root.listed
+        model: ScriptModel {
+            values: root.listed
+            comparisonMode: ObjectComparison.Identity
+        }
         boundsBehavior: Flickable.StopAtBounds
 
         delegate: Rectangle {

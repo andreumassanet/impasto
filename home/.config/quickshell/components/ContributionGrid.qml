@@ -8,6 +8,7 @@
 // ╰──────────────────────────────────────────────────────────────────────────╯
 
 import QtQuick
+import Quickshell
 
 import "../theme"
 
@@ -61,7 +62,9 @@ Item {
         spacing: root.spacing
 
         Repeater {
-            model: root.shownWeeks
+            model: ScriptModel {
+                values: root.shownWeeks
+            }
 
             // One week; `modelData` is its seven levels.
             Column {

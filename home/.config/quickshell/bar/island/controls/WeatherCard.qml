@@ -9,6 +9,7 @@
 
 import QtQuick
 import QtQuick.Layouts
+import Quickshell
 
 import "../../../theme"
 import "../../../services"
@@ -175,7 +176,9 @@ Card {
             visible: root.showAhead && WeatherService.ahead.length > 0
 
             Repeater {
-                model: WeatherService.ahead
+                model: ScriptModel {
+                    values: WeatherService.ahead
+                }
 
                 // A filling Item holding a centred Column: `Layout.fillWidth`
                 // and `Layout.alignment` on the same item conflict, since an

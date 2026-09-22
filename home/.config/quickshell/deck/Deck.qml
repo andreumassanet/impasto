@@ -181,7 +181,9 @@ PanelWindow {
     Instantiator {
         id: strips
 
-        model: DeckService.decksOn(root.screenName)
+        model: ScriptModel {
+            values: DeckService.decksOn(root.screenName)
+        }
 
         delegate: Region {
             required property var modelData
@@ -255,7 +257,9 @@ PanelWindow {
         // Repeater given a new array rebuilds every delegate, and the rows are
         // a new array on every write, which would destroy the grip mid-drag.
         Repeater {
-            model: DesktopService.deckKeysOn(root.screenName)
+            model: ScriptModel {
+                values: DesktopService.deckKeysOn(root.screenName)
+            }
 
             Item {
                 id: deck
@@ -388,7 +392,9 @@ PanelWindow {
                 }
 
                 Repeater {
-                    model: deck.noteKeys
+                    model: ScriptModel {
+                        values: deck.noteKeys
+                    }
 
                     Item {
                         id: tab

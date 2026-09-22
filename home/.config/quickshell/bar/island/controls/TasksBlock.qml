@@ -9,6 +9,7 @@
 
 import QtQuick
 import QtQuick.Layouts
+import Quickshell
 
 import "../../../theme"
 import "../../../services"
@@ -158,7 +159,10 @@ Card {
         }
 
         Repeater {
-            model: TasksService.queue.slice(0, root.capacity)
+            model: ScriptModel {
+                values: TasksService.queue.slice(0, root.capacity)
+                objectProp: "key"
+            }
 
             TaskRow {
                 required property var modelData

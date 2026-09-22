@@ -9,6 +9,7 @@
 
 import QtQuick
 import QtQuick.Layouts
+import Quickshell
 
 import "../../theme"
 import "../../services"
@@ -111,7 +112,10 @@ ColumnLayout {
         visible: NetworkService.networks.length > 0
         clip: true
         spacing: 4
-        model: NetworkService.networks
+        model: ScriptModel {
+            values: NetworkService.networks
+            objectProp: "ssid"
+        }
         boundsBehavior: Flickable.StopAtBounds
 
         delegate: Rectangle {

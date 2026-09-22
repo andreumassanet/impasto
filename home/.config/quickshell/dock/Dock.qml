@@ -298,7 +298,10 @@ PanelWindow {
         }
 
         Repeater {
-            model: DockService.items
+            model: ScriptModel {
+                values: DockService.items
+                objectProp: "key"
+            }
 
             DockItem {
                 capsule: shelf

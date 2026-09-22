@@ -9,6 +9,7 @@
 
 import QtQuick
 import QtQuick.Effects
+import Quickshell
 
 import "../../theme"
 import "../../services"
@@ -52,7 +53,9 @@ Row {
     spacing: root.chromeless ? 14 : Theme.capsuleSpacing
 
     Repeater {
-        model: root.groups
+        model: ScriptModel {
+            values: root.groups
+        }
 
         Group {
             required property var modelData
@@ -155,7 +158,9 @@ Row {
                 height: Theme.capsuleHeight
 
                 Repeater {
-                    model: group.items
+                    model: ScriptModel {
+                        values: group.items
+                    }
 
                     BarChip {
                         required property var modelData

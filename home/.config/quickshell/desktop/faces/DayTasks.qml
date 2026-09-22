@@ -9,6 +9,7 @@
 
 import QtQuick
 import QtQuick.Layouts
+import Quickshell
 
 import "../../theme"
 import "../../services"
@@ -119,7 +120,10 @@ Item {
             clip: true
             spacing: 4
             boundsBehavior: Flickable.StopAtBounds
-            model: root.due
+            model: ScriptModel {
+                values: root.due
+                objectProp: "key"
+            }
 
             delegate: TaskRow {
                 required property var modelData

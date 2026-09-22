@@ -9,6 +9,7 @@
 
 import QtQuick
 import QtQuick.Layouts
+import Quickshell
 
 import "../theme"
 import "../services"
@@ -224,7 +225,9 @@ Rectangle {
             Layout.preferredHeight: root.expanded ? 220 : 0
             clip: true
             spacing: 1
-            model: root.matches
+            model: ScriptModel {
+                values: root.matches
+            }
             boundsBehavior: Flickable.StopAtBounds
 
             delegate: Rectangle {

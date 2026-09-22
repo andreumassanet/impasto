@@ -9,6 +9,7 @@
 
 import QtQuick
 import QtQuick.Layouts
+import Quickshell
 
 import "../../../theme"
 import "../../../services"
@@ -81,7 +82,9 @@ Card {
         }
 
         Repeater {
-            model: root.rows >= 2 ? GamesService.ranked.slice(0, 3) : []
+            model: ScriptModel {
+                values: root.rows >= 2 ? GamesService.ranked.slice(0, 3) : []
+            }
 
             RowLayout {
                 id: row

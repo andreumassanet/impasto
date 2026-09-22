@@ -111,7 +111,9 @@ Item {
                     anchors.fill: parent
 
                     Repeater {
-                        model: band.hoursAhead
+                        model: ScriptModel {
+                            values: band.hoursAhead
+                        }
 
                         Item {
                             id: block

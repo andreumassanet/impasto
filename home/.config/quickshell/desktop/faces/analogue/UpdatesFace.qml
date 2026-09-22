@@ -44,7 +44,9 @@ Instrument {
             spacing: 1
 
             Repeater {
-                model: (UpdatesService.packages ?? []).slice(0, 2)
+                model: ScriptModel {
+                    values: (UpdatesService.packages ?? []).slice(0, 2)
+                }
 
                 Text {
                     required property var modelData

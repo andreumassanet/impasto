@@ -9,6 +9,7 @@
 
 import QtQuick
 import QtQuick.Layouts
+import Quickshell
 
 import "../theme"
 import "../services"
@@ -22,7 +23,9 @@ ColumnLayout {
     spacing: 10
 
     Repeater {
-        model: PetService.family
+        model: ScriptModel {
+            values: PetService.family
+        }
 
         Rectangle {
             id: member

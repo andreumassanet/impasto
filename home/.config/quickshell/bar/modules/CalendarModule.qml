@@ -234,7 +234,10 @@ Item {
                     }
 
                     Repeater {
-                        model: page.due.slice(0, 2)
+                        model: ScriptModel {
+                            values: page.due.slice(0, 2)
+                            objectProp: "key"
+                        }
 
                         Rectangle {
                             id: row

@@ -210,7 +210,9 @@ Item {
             spacing: 16
 
             Repeater {
-                model: root.readings
+                model: ScriptModel {
+                    values: root.readings
+                }
 
                 Row {
                     required property var modelData

@@ -72,7 +72,9 @@ Instrument {
             visible: !face.large
 
             Repeater {
-                model: face.ahead
+                model: ScriptModel {
+                    values: face.ahead
+                }
 
                 Item {
                     id: block
