@@ -58,8 +58,30 @@ Singleton {
         }
     }
 
-    readonly property Timer expiry: Timer {
-        onTriggered: root.dismiss()
+    // Each notification expires on its own clock from arrival, shown or not:
+    // one nobody closes would otherwise stay alive for the whole session.
+    // Expiring it closes it, so the island lets go through `closing` below.
+    readonly property Component lifetime: Component {
+        Timer {
+            running: true
+        }
+    }
+
+    function expireLater(notification: var): void {
+        const timeout = root.timeoutFor(notification)
+        if (timeout <= 0)
+            return
+        const timer = root.lifetime.createObject(root, { interval: timeout })
+        const done = () => {
+            if (timer)
+                timer.destroy()
+        }
+        timer.triggered.connect(() => {
+            if (notification)
+                notification.expire()
+            done()
+        })
+        notification.closed.connect(done)
     }
 
     // An application can close its own notification while the island is
@@ -83,23 +105,53 @@ Singleton {
 
     // Closing a notification destroys the object, so the history keeps a copy
     // of what the list draws rather than the notification itself. Pixels sent
-    // in a hint are served by that object and go with it; a path outlives it.
+    // in a hint are served by that object, so an entry carrying them keeps it
+    // alive with a lock until the entry leaves the history.
     function record(notification: var): var {
-        const image = notification.image
+        const pixels = notification.image.startsWith("image://qsimage/")
         return {
             id: notification.id,
             summary: notification.summary,
             body: notification.body,
             appName: notification.appName,
-            image: image.startsWith("image://qsimage/") ? "" : image,
-            urgency: notification.urgency
+            image: notification.image,
+            urgency: notification.urgency,
+            lock: pixels ? root.retainer.createObject(root, { object: notification }) : null
         }
     }
 
+    readonly property Component retainer: Component {
+        RetainableLock {
+            locked: true
+        }
+    }
+
+    // Every change to the history comes through here, so no entry leaves it
+    // still holding its notification. One still open is closed with it:
+    // dismissed when the user took it away, expired when the limit pushed it
+    // out.
+    function keep(next: var, dismissed: bool): void {
+        for (const entry of root.history) {
+            if (next.includes(entry))
+                continue
+            if (entry.lock)
+                entry.lock.destroy()
+            const open = root.server.trackedNotifications.values.find(n => n.id === entry.id)
+            if (open) {
+                if (dismissed)
+                    open.dismiss()
+                else
+                    open.expire()
+            }
+        }
+        root.history = next
+    }
+
     function present(notification: var): void {
-        root.history = [root.record(notification)]
+        root.keep([root.record(notification)]
             .concat(root.history)
-            .slice(0, root.historyLimit)
+            .slice(0, root.historyLimit), false)
+        root.expireLater(notification)
 
         // Critical notifications ignore do-not-disturb.
         const isCritical = notification.urgency === NotificationUrgency.Critical
@@ -112,20 +164,11 @@ Singleton {
             return
 
         root.current = notification
-
-        const timeout = root.timeoutFor(notification)
-        root.expiry.stop()
-        if (timeout > 0) {
-            root.expiry.interval = timeout
-            root.expiry.start()
-        }
-
         root.arrived(notification)
     }
 
     // Takes it off the island without telling the application it was acted on.
     function dismiss(): void {
-        root.expiry.stop()
         root.current = null
     }
 
@@ -137,11 +180,11 @@ Singleton {
     }
 
     function clearHistory(): void {
-        root.history = []
+        root.keep([], true)
     }
 
     function remove(entry: var): void {
-        root.history = root.history.filter(other => other !== entry)
+        root.keep(root.history.filter(other => other !== entry), true)
         if (root.current && root.current.id === entry.id)
             root.dismiss()
     }
