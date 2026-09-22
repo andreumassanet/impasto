@@ -327,6 +327,21 @@ FocusScope {
                     writing.forceActiveFocus()
             }
 
+            function toTitle(): void {
+                heading.forceActiveFocus()
+                heading.cursorPosition = heading.length
+            }
+
+            // The whole band above the line is the title's: a press anywhere on
+            // it writes there, at the end.
+            MouseArea {
+                width: sheet.width
+                height: Theme.panelPadding + divider.y
+                cursorShape: Qt.IBeamCursor
+                enabled: !sheet.archived
+                onPressed: sheet.toTitle()
+            }
+
             ColumnLayout {
                 anchors.fill: parent
                 anchors.margins: Theme.panelPadding
@@ -351,9 +366,11 @@ FocusScope {
                         enabled: !sheet.archived
 
                         onTextEdited: NotesService.update(sheet.key, { title: heading.text })
-                        // Enter moves on to the body.
+                        // Enter, Tab or Down moves on to the body.
                         Keys.onReturnPressed: writing.forceActiveFocus()
                         Keys.onEnterPressed: writing.forceActiveFocus()
+                        Keys.onTabPressed: writing.forceActiveFocus()
+                        Keys.onDownPressed: writing.forceActiveFocus()
 
                         Text {
                             anchors.verticalCenter: parent.verticalCenter
@@ -373,6 +390,8 @@ FocusScope {
                 }
 
                 Rectangle {
+                    id: divider
+
                     Layout.fillWidth: true
                     Layout.preferredHeight: 1
                     color: Theme.paperLine
@@ -395,10 +414,13 @@ FocusScope {
                             scroller.contentY = rectangle.y + rectangle.height - scroller.height
                     }
 
+                    // At least the room's height, so a press anywhere below
+                    // the text writes at its end.
                     TextEdit {
                         id: writing
 
                         width: scroller.width
+                        height: Math.max(writing.contentHeight, scroller.height)
                         wrapMode: TextEdit.Wrap
                         textFormat: TextEdit.PlainText
                         font.family: Theme.fontHand
@@ -414,6 +436,24 @@ FocusScope {
                                 NotesService.update(sheet.key, { text: writing.text })
                         }
                         onCursorRectangleChanged: scroller.follow(writing.cursorRectangle)
+
+                        // Back to the title: Shift+Tab, or Up on the first line.
+                        // Not Backspace at the start: held to clear the body, it
+                        // would go on into the title.
+                        Keys.onUpPressed: event => {
+                            if (writing.cursorRectangle.y < writing.cursorRectangle.height)
+                                sheet.toTitle()
+                            else
+                                event.accepted = false
+                        }
+                        Keys.onPressed: event => {
+                            const backtab = event.key === Qt.Key_Backtab
+                                || (event.key === Qt.Key_Tab && (event.modifiers & Qt.ShiftModifier))
+                            if (backtab) {
+                                sheet.toTitle()
+                                event.accepted = true
+                            }
+                        }
 
                         Text {
                             visible: writing.text === ""
