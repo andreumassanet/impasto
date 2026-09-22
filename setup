@@ -28,6 +28,8 @@ ROOT=${ROOT%/}
 DRY=0
 NOCONFIRM=0
 WATCH=0
+RESTORE=0
+FILES_ARGS=()
 QUIET=0
 HELPER=
 SKIP_PACKAGES=0
@@ -173,6 +175,9 @@ Usage: ./setup <command> [options]
   face        unlock the lock screen with your face, where there is an
               infrared camera: installs howdy-next and enrols you
 
+  files       the installed files you have edited or deleted, and each one
+              put back: files [list | restore | reset | keep] [path…], paths
+              as list prints them, under $HOME
   check       the syntax checks CI runs
   help        this
 
@@ -188,10 +193,13 @@ Options:
   --noconfirm         answer every question with its default
   -n, --dry-run       say what would change, and change nothing
   -w, --watch         sync: copy again every time a file under home/ is saved
+  --restore           install, update, sync, system: put back the installed
+                      files that were deleted here
 
 What lands in $HOME and / is a copy. A file edited in place is kept, and the
-repository's version is written beside it as <name>.new; whatever was in the
-way the first time is moved to ~/.local/state/impasto/backups.
+repository's version is written beside it as <name>.new; a file deleted here
+stays deleted until --restore; whatever was in the way the first time is moved
+to ~/.local/state/impasto/backups.
 EOF
 }
 
@@ -259,6 +267,7 @@ ask() {
 #   - a different file in the way the first time is moved to the backups;
 #   - a file unchanged since it was installed is replaced;
 #   - a file edited in place is kept, and the new version written as .new;
+#   - a file deleted after it was installed stays deleted, until --restore;
 #   - a file removed from the repository is deleted only if unedited;
 #   - a file setup did not install is never touched (e.g. generated themes).
 #
@@ -366,7 +375,7 @@ tidy() {
 # $1 tree, $2 destination, $3 manifest, $4 display prefix.
 deploy() {
     local tree=$1 target=$2 manifest=$3 shown=$4
-    local rel src dst want have was said=0
+    local rel src dst want have was said=0 declined=0
     read_manifest "$manifest"
     AFTER=()
     while IFS= read -r rel; do
@@ -381,6 +390,10 @@ deploy() {
             keep_aside "$dst" "$tree/$rel"; put "$src" "$dst"
             say "replaced $shown$rel — the link that was there is in the backups"; said=1
         elif [[ ! -e $dst ]]; then
+            if [[ -n ${BEFORE[$rel]:-} ]] && (( ! RESTORE )); then
+                declined=$(( declined + 1 ))    # installed once, deleted since
+                continue
+            fi
             put "$src" "$dst"; say "new      $shown$rel"; said=1
         else
             have=$(digest "$dst")
@@ -412,6 +425,11 @@ deploy() {
         fi
     done
 
+    if (( declined )); then
+        local verb=sync
+        if [[ $tree == system ]]; then verb=system; fi
+        say "skipped  $declined deleted here — ./setup $verb --restore puts them back"; said=1
+    fi
     write_manifest "$manifest"
     if (( ! said && ! QUIET )); then say 'nothing to do'; fi
 }
@@ -475,6 +493,89 @@ reload_shell() {
 # since it (with -dirty when the working tree has edits).
 version() {
     git -C "$REPO" describe --tags --always --dirty 2>/dev/null || echo unknown
+}
+
+# ── YOUR CHANGES ────────────────────────────────────────────────────────────
+#
+# What Settings → System shows and acts on, for the files under $HOME: the
+# installed files deleted since, and the ones edited since, each with whether
+# a newer version waits beside it as .new.
+#
+#   list      JSON: { "deleted": [path…], "edited": [{ "path", "waiting" }…] }
+#   restore   puts a deleted file back
+#   reset     the repository's version over yours, yours kept in the backups
+#   keep      yours stays, and the version beside it is taken as seen
+
+json_string() {
+    local text=${1//\\/\\\\}
+    text=${text//\"/\\\"}
+    printf '"%s"' "$text"
+}
+
+verb_files() {
+    local action=${FILES_ARGS[0]:-list} manifest=$STATE/home.manifest rel
+    local -a paths=("${FILES_ARGS[@]:1}")
+    read_manifest "$manifest"
+    case $action in
+        list)    files_list ;;
+        restore|reset|keep)
+            (( ${#paths[@]} )) || fail "files $action takes the paths list prints"
+            AFTER=()
+            for rel in "${!BEFORE[@]}"; do AFTER[$rel]=${BEFORE[$rel]}; done
+            for rel in "${paths[@]}"; do files_one "$action" "$rel"; done
+            write_manifest "$manifest" ;;
+        *)       fail "files takes list, restore, reset or keep" ;;
+    esac
+}
+
+files_list() {
+    local -A have=()
+    local rel sum path line first=1
+    local -a present=()
+    for rel in "${!BEFORE[@]}"; do
+        if [[ -f $REPO/home/$rel && -f $HOME/$rel ]]; then present+=("$HOME/$rel"); fi
+    done
+    if (( ${#present[@]} )); then
+        while IFS= read -r line; do
+            sum=${line%% *}; path=${line#*  }
+            have[${path#"$HOME/"}]=$sum
+        done < <(printf '%s\0' "${present[@]}" | xargs -0 sha256sum)
+    fi
+    printf '{"deleted": ['
+    while IFS= read -r rel; do
+        [[ -f $REPO/home/$rel && ! -e $HOME/$rel ]] || continue
+        (( first )) || printf ', '; first=0
+        json_string "$rel"
+    done < <(printf '%s\n' "${!BEFORE[@]}" | sort)
+    printf '], "edited": ['
+    first=1
+    while IFS= read -r rel; do
+        [[ ${have[$rel]} != "${BEFORE[$rel]}" ]] || continue
+        [[ ${have[$rel]} != "$(digest "$REPO/home/$rel")" ]] || continue
+        (( first )) || printf ', '; first=0
+        printf '{"path": %s, "waiting": %s}' "$(json_string "$rel")" \
+            "$([[ -f $HOME/$rel.new ]] && echo true || echo false)"
+    done < <(printf '%s\n' "${!have[@]}" | sort)
+    printf ']}\n'
+}
+
+files_one() {
+    local action=$1 rel=$2 src=$REPO/home/$2 dst=$HOME/$2
+    [[ -n ${BEFORE[$rel]:-} && -f $src ]] || { say "not      ~/$rel — not a file setup installed"; return 0; }
+    case $action in
+        restore)
+            [[ ! -e $dst ]] || { say "left     ~/$rel — it is there"; return 0; }
+            put "$src" "$dst"; say "restored ~/$rel" ;;
+        reset)
+            if [[ -e $dst ]]; then keep_aside "$dst" "home/$rel"; fi
+            put "$src" "$dst"
+            act rm -f "$dst.new"
+            say "restored ~/$rel — yours is in $BACKUPS" ;;
+        keep)
+            act rm -f "$dst.new"
+            say "kept     ~/$rel" ;;
+    esac
+    AFTER[$rel]=$(digest "$src")
 }
 
 verb_sync() {
@@ -1376,9 +1477,11 @@ main() {
             --noconfirm)     NOCONFIRM=1 ;;
             -n|--dry-run)    DRY=1 ;;
             -w|--watch)      WATCH=1 ;;
+            --restore)       RESTORE=1 ;;
             -h|--help)       usage; exit 0 ;;
             -*)              fail "unknown option: $1 (./setup help)" ;;
-            *)               [[ -z $verb ]] || fail "one command at a time: $verb, or $1"; verb=$1 ;;
+            *)               if [[ $verb == files ]]; then FILES_ARGS+=("$1")
+                             else [[ -z $verb ]] || fail "one command at a time: $verb, or $1"; verb=$1; fi ;;
         esac
         shift
     done
@@ -1407,6 +1510,7 @@ main() {
         thunar)    verb_thunar ;;
         vesktop)   verb_vesktop ;;
         face)      verb_face ;;
+        files)     verb_files ;;
         check)     verb_check ;;
         help|-h|--help) usage ;;
         *)         fail "unknown command: $verb (./setup help)" ;;

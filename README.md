@@ -230,7 +230,9 @@ runs `update` in a terminal.
 **Nothing is linked: `setup` copies**, and remembers what it wrote. A file of
 yours already in the way is moved to `~/.local/state/impasto/backups/` first; a
 file you edit afterwards is left alone, with the new version beside it as
-`<name>.new`. Editing the repository itself? `./setup sync` copies it onto the
+`<name>.new`, and one you delete stays deleted — the wallpapers you do not want,
+say. Settings → System lists both, each with a button to put impasto's version
+back. Editing the repository itself? `./setup sync` copies it onto the
 desk, and `./setup sync --watch` keeps doing it on every save.
 
 Every package is listed in `packages/pacman.txt` and `packages/aur.txt`, grouped

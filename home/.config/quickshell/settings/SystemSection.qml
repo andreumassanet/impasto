@@ -9,6 +9,7 @@
 
 import QtQuick
 import QtQuick.Layouts
+import Quickshell
 
 import "../theme"
 import "../services"
@@ -77,6 +78,35 @@ SettingsSection {
             + Tr.t(VersionService.behind === 1 ? "commit waiting" : "commits waiting")
     }
 
+    // One line on the changed files, or that there are none.
+    readonly property string changes: {
+        const bits = []
+        const edited = VersionService.edited.length
+        const deleted = VersionService.deleted.length
+        if (edited > 0)
+            bits.push(`${edited} ${Tr.t(edited === 1 ? "file edited" : "files edited")}`)
+        if (deleted > 0)
+            bits.push(`${deleted} ${Tr.t(deleted === 1 ? "file deleted" : "files deleted")}`)
+        return bits.length > 0 ? bits.join(" · ") : Tr.t("Every file as installed")
+    }
+
+    // The edited files past the first few are behind "Show all".
+    readonly property int shownEdits: 6
+    property bool everyEdit: false
+
+    // Deleted paths by the folder they were in, `{ folder, paths }`.
+    readonly property var folders: {
+        const by = {}
+        for (const path of VersionService.deleted) {
+            const cut = path.lastIndexOf("/")
+            const folder = cut < 0 ? "" : path.slice(0, cut)
+            if (!by[folder])
+                by[folder] = []
+            by[folder].push(path)
+        }
+        return Object.keys(by).sort().map(folder => ({ folder: folder, paths: by[folder] }))
+    }
+
     function spell(seconds: int): string {
         const days = Math.floor(seconds / 86400)
         const hours = Math.floor((seconds % 86400) / 3600)
@@ -140,7 +170,12 @@ SettingsSection {
 
         // The remote is asked when the page opens, and only when the last
         // answer is old enough to be worth another.
-        onVisibleChanged: if (visible) VersionService.checkStale()
+        onVisibleChanged: {
+            if (!visible)
+                return
+            VersionService.checkStale()
+            VersionService.listFiles()
+        }
 
         // Strings missing from `Tr.qml` fall back to English.
         SettingGroup {
@@ -296,6 +331,166 @@ SettingsSection {
                     font.family: Theme.fontFamily
                     font.pixelSize: Theme.fontSizeSmall
                     color: Theme.textMuted
+                }
+            }
+        }
+
+        // The installed files changed here, each with its way back. Deleted
+        // files are gathered by folder: forty wallpapers are one line.
+        SettingGroup {
+            title: Tr.t("Changed files")
+            note: Tr.t("impasto's own files, as you left them.")
+            hint: Tr.t("Updates leave a file you deleted deleted, and a file you edited as you edited it, with any newer version beside it as .new. Restore puts impasto's version back; yours, if there was one, is kept in ~/.local/state/impasto/backups.")
+
+            SettingRow {
+                label: Tr.t("Changed files")
+                reading: root.changes
+                locked: !root.checkout
+                reason: Tr.t("No checkout to restore from")
+
+                PillButton {
+                    visible: VersionService.deleted.length > 1
+                    text: Tr.t("Restore all")
+                    icon: "󰑓"
+                    enabled: !VersionService.changing
+                    implicitWidth: 112
+                    implicitHeight: 30
+                    onClicked: VersionService.changeFiles("restore", VersionService.deleted)
+                }
+            }
+
+            SettingBlock {
+                visible: root.folders.length > 0
+
+                Text {
+                    text: Tr.t("DELETED")
+                    font.family: Theme.fontFamily
+                    font.pixelSize: Theme.fontSizeLabel
+                    font.weight: Font.DemiBold
+                    font.letterSpacing: 0.6
+                    color: Theme.textMuted
+                }
+
+                Repeater {
+                    model: ScriptModel {
+                        values: root.folders
+                        objectProp: "folder"
+                    }
+
+                    RowLayout {
+                        id: folder
+
+                        required property var modelData
+
+                        Layout.fillWidth: true
+                        spacing: 10
+
+                        Text {
+                            Layout.fillWidth: true
+                            text: folder.modelData.paths.length === 1
+                                ? `~/${folder.modelData.paths[0]}` : `~/${folder.modelData.folder}/`
+                            elide: Text.ElideMiddle
+                            font.family: Theme.fontMono
+                            font.pixelSize: Theme.fontSizeSmall
+                            color: Theme.text
+                        }
+
+                        Text {
+                            visible: folder.modelData.paths.length > 1
+                            text: `${folder.modelData.paths.length} ${Tr.t("files")}`
+                            font.family: Theme.fontFamily
+                            font.pixelSize: Theme.fontSizeSmall
+                            color: Theme.textMuted
+                        }
+
+                        PillButton {
+                            text: Tr.t("Restore")
+                            enabled: !VersionService.changing
+                            implicitHeight: 26
+                            onClicked: VersionService.changeFiles("restore", folder.modelData.paths)
+                        }
+                    }
+                }
+            }
+
+            SettingBlock {
+                visible: VersionService.edited.length > 0
+
+                Text {
+                    text: Tr.t("EDITED")
+                    font.family: Theme.fontFamily
+                    font.pixelSize: Theme.fontSizeLabel
+                    font.weight: Font.DemiBold
+                    font.letterSpacing: 0.6
+                    color: Theme.textMuted
+                }
+
+                Repeater {
+                    model: ScriptModel {
+                        values: root.everyEdit ? VersionService.edited
+                            : VersionService.edited.slice(0, root.shownEdits)
+                        objectProp: "path"
+                    }
+
+                    RowLayout {
+                        id: file
+
+                        required property var modelData
+
+                        Layout.fillWidth: true
+                        spacing: 10
+
+                        Text {
+                            Layout.fillWidth: true
+                            text: `~/${file.modelData.path}`
+                            elide: Text.ElideMiddle
+                            font.family: Theme.fontMono
+                            font.pixelSize: Theme.fontSizeSmall
+                            color: Theme.text
+                        }
+
+                        Text {
+                            visible: file.modelData.waiting
+                            text: Tr.t("newer version waiting")
+                            font.family: Theme.fontFamily
+                            font.pixelSize: Theme.fontSizeSmall
+                            color: Theme.accent
+                        }
+
+                        PillButton {
+                            visible: file.modelData.waiting
+                            text: Tr.t("Keep mine")
+                            enabled: !VersionService.changing
+                            implicitHeight: 26
+                            onClicked: VersionService.changeFiles("keep", [file.modelData.path])
+                        }
+
+                        PillButton {
+                            text: file.modelData.waiting ? Tr.t("Use the new one") : Tr.t("Reset")
+                            active: file.modelData.waiting
+                            enabled: !VersionService.changing
+                            implicitHeight: 26
+                            onClicked: VersionService.changeFiles("reset", [file.modelData.path])
+                        }
+                    }
+                }
+
+                Text {
+                    visible: VersionService.edited.length > root.shownEdits
+                    text: root.everyEdit ? Tr.t("Show fewer")
+                        : `${Tr.t("Show all")} ${VersionService.edited.length}`
+                    font.family: Theme.fontFamily
+                    font.pixelSize: Theme.fontSizeSmall
+                    color: more.containsMouse ? Theme.accent : Theme.textMuted
+
+                    MouseArea {
+                        id: more
+                        anchors.fill: parent
+                        anchors.margins: -4
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: root.everyEdit = !root.everyEdit
+                    }
                 }
             }
         }

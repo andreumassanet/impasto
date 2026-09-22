@@ -137,4 +137,77 @@ Singleton {
                                  "sh", "-c", PackagesService.holdScript, "sh",
                                  `${root.repo}/setup`, "update"])
     }
+
+    // ── YOUR CHANGES ────────────────────────────────────────────────────────
+    //
+    // The installed files under $HOME deleted or edited since, as `setup
+    // files list` finds them against its manifest. Asked when the page opens,
+    // and again whenever the manifest is rewritten, which every action and
+    // every sync ends with.
+
+    // Paths under $HOME.
+    property var deleted: []
+    // `{ path, waiting }`: waiting when a newer version is beside it as .new.
+    property var edited: []
+    // An action is running; cleared when the manifest it rewrites changes.
+    property bool changing: false
+
+    readonly property FileView manifest: FileView {
+        path: `${Quickshell.env("XDG_STATE_HOME") || Quickshell.env("HOME") + "/.local/state"}/impasto/home.manifest`
+        printErrors: false
+        watchChanges: true
+        onFileChanged: {
+            root.changing = false
+            root.listFiles()
+        }
+    }
+
+    readonly property Process lister: Process {
+        stdout: StdioCollector {
+            onStreamFinished: {
+                try {
+                    const found = JSON.parse(text)
+                    root.deleted = found.deleted ?? []
+                    root.edited = found.edited ?? []
+                } catch (error) {
+                    console.warn("Cannot parse the changed files:", error)
+                }
+            }
+        }
+    }
+
+    // Asked before the version file is read, the list waits for it.
+    property bool listWanted: false
+    onRepoChanged: {
+        if (root.listWanted && root.repo !== "")
+            root.listFiles()
+    }
+
+    function listFiles(): void {
+        root.listWanted = root.repo === ""
+        if (root.repo === "" || root.lister.running)
+            return
+        root.lister.command = [`${root.repo}/setup`, "files", "list"]
+        root.lister.running = true
+    }
+
+    // Detached for the update's reason: putting back one of the shell's own
+    // files reloads it, and a child of this shell would go with the reload.
+    function changeFiles(action: string, paths: var): void {
+        if (root.repo === "" || root.changing || paths.length === 0)
+            return
+        root.changing = true
+        root.settle.restart()
+        Quickshell.execDetached([`${root.repo}/setup`, "files", action].concat(paths))
+    }
+
+    // An action that failed before rewriting the manifest must not leave the
+    // buttons stopped.
+    readonly property Timer settle: Timer {
+        interval: 5000
+        onTriggered: {
+            root.changing = false
+            root.listFiles()
+        }
+    }
 }

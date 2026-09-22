@@ -860,6 +860,28 @@ QtObject {
             "WHAT IS WAITING": "LO QUE ESPERA",
             "more": "más",
 
+            "Changed files": "Archivos cambiados",
+            "impasto's own files, as you left them.":
+                "Los archivos de impasto, tal como los dejaste.",
+            "Updates leave a file you deleted deleted, and a file you edited as you edited it, with any newer version beside it as .new. Restore puts impasto's version back; yours, if there was one, is kept in ~/.local/state/impasto/backups.":
+                "Las actualizaciones no vuelven a poner un archivo que borraste, ni tocan uno que editaste: si hay una versión nueva, la dejan al lado como .new. Restaurar vuelve a poner la versión de impasto; la tuya, si la había, se guarda en ~/.local/state/impasto/backups.",
+            "No checkout to restore from": "No hay repositorio del que restaurar",
+            "Every file as installed": "Todo como se instaló",
+            "file edited": "archivo editado",
+            "files edited": "archivos editados",
+            "file deleted": "archivo borrado",
+            "files deleted": "archivos borrados",
+            "Restore all": "Restaurar todo",
+            "Restore": "Restaurar",
+            "DELETED": "BORRADOS",
+            "EDITED": "EDITADOS",
+            "files": "archivos",
+            "newer version waiting": "hay una versión nueva",
+            "Keep mine": "Quedarme la mía",
+            "Use the new one": "Usar la nueva",
+            "Show all": "Ver los",
+            "Show fewer": "Ver menos",
+
             "Only the profile in use. The others are left as they were.":
                 "Solo el perfil en uso. Los demás se quedan como estaban.",
             "Reset returns every setting in this profile to its default, clears the compositor overrides and reloads Hyprland. Machine settings such as screens, name, picture and language are kept, and there is no undo.":
