@@ -156,8 +156,10 @@ island, the same clock and the same pill, over a blurred painting. Both rest on
 the clock alone. Any key brings in your account and the field, and is already
 the first letter of your password; Escape sends them away again. The clock is
 stacked or on one line, in Settings → Session → Lock screen, and the login
-screen always stacks it. The face is your initials, or a picture of yours at
-`/var/lib/impasto/faces/<username>.face.icon`.
+screen always stacks it. The picture and the name are your account's, and
+Settings → Session changes them for both screens at once: drop an image on the
+card and it is made square and kept where the login screen reads it; type a
+name and it becomes the account's full name.
 
 **With an infrared camera, the lock opens for your face.** Touch a key or the
 pointer and the island grows under the camera, a ring turns around its

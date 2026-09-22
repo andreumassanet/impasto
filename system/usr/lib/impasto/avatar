@@ -1,0 +1,60 @@
+#!/usr/bin/env bash
+# ╭──────────────────────────────────────────────────────────────────────────╮
+# │                                                                          │
+# │   A V A T A R                                                            │
+# │   the account picture · set or clear it, for the user who asks           │
+# │                                                                          │
+# │   github.com/andreumassanet/impasto                                      │
+# │                                                                          │
+# ╰──────────────────────────────────────────────────────────────────────────╯
+
+# Run as root by pkexec, never directly: pkexec says who asked in PKEXEC_UID,
+# and only that user's picture is written. It lands where the login screen and
+# the lock screen both read it, /var/lib/impasto/faces/<user>.face.icon.
+#
+# The picture comes in on stdin, already read and made square by the user who
+# asked: this never opens a path, so it cannot be used to copy a file only root
+# can read into a place everyone can. It takes a PNG and nothing larger than
+# the limit below.
+#
+#   set     a PNG on stdin becomes the picture
+#   clear   the picture goes
+
+set -u
+export LANG=C LC_ALL=C
+
+FACES=/var/lib/impasto/faces
+LIMIT=2097152
+
+uid=${PKEXEC_UID:-}
+if [[ -z $uid ]]; then
+    echo 'run through pkexec' >&2
+    exit 2
+fi
+user=$(id -nu "$uid" 2>/dev/null) || { echo "no user $uid" >&2; exit 2; }
+target=$FACES/$user.face.icon
+
+case ${1:-} in
+    set)
+        install -d -m 755 "$FACES"
+        staged=$(mktemp "$FACES/.$user.XXXXXX") || exit 1
+        trap 'rm -f "$staged"' EXIT
+        head -c $(( LIMIT + 1 )) > "$staged"
+        size=$(stat -c %s "$staged")
+        if (( size == 0 || size > LIMIT )); then
+            echo 'not a picture this size' >&2
+            exit 1
+        fi
+        if [[ $(head -c 8 "$staged" | od -An -tx1 | tr -d ' \n') != 89504e470d0a1a0a ]]; then
+            echo 'not a PNG' >&2
+            exit 1
+        fi
+        chmod 644 "$staged"
+        mv -f "$staged" "$target"
+        trap - EXIT ;;
+    clear)
+        rm -f "$target" ;;
+    *)
+        echo 'avatar set < picture.png | clear' >&2
+        exit 2 ;;
+esac

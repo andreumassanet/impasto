@@ -136,6 +136,7 @@ cpio
 # ── LOGIN SCREEN ────────────────────────────────────────────────────────────
 
 sddm                         # ./setup system
+accountsservice              # the account's full name, which both screens show
 
 
 # ── FACE UNLOCK ─────────────────────────────────────────────────────────────

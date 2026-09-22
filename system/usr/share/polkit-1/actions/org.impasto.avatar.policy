@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ╭──────────────────────────────────────────────────────────────────────────╮
+  │                                                                          │
+  │   O R G . I M P A S T O . A V A T A R                                    │
+  │   polkit · who may set and clear their own account picture               │
+  │                                                                          │
+  │   github.com/andreumassanet/impasto                                      │
+  │                                                                          │
+  ╰──────────────────────────────────────────────────────────────────────────╯
+-->
+<!DOCTYPE policyconfig PUBLIC "-//freedesktop//DTD PolicyKit Policy Configuration 1.0//EN"
+ "http://www.freedesktop.org/standards/PolicyKit/1/policyconfig.dtd">
+<policyconfig>
+  <vendor>impasto</vendor>
+  <vendor_url>https://github.com/andreumassanet/impasto</vendor_url>
+
+  <!-- The asking user's own picture, as AccountsService lets the active user
+       change their own data without a password. -->
+  <action id="org.impasto.avatar.set">
+    <description>Set your account picture</description>
+    <message>Authentication is required to set your account picture</message>
+    <defaults>
+      <allow_any>no</allow_any>
+      <allow_inactive>no</allow_inactive>
+      <allow_active>yes</allow_active>
+    </defaults>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/lib/impasto/avatar</annotate>
+    <annotate key="org.freedesktop.policykit.exec.argv1">set</annotate>
+  </action>
+
+  <action id="org.impasto.avatar.clear">
+    <description>Clear your account picture</description>
+    <message>Authentication is required to clear your account picture</message>
+    <defaults>
+      <allow_any>no</allow_any>
+      <allow_inactive>no</allow_inactive>
+      <allow_active>yes</allow_active>
+    </defaults>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/lib/impasto/avatar</annotate>
+    <annotate key="org.freedesktop.policykit.exec.argv1">clear</annotate>
+  </action>
+</policyconfig>

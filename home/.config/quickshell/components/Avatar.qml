@@ -11,6 +11,7 @@ import QtQuick
 import Quickshell.Widgets
 
 import "../theme"
+import "../services"
 
 // A round picture, or initials when there is none (the common case: most
 // machines have no `~/.face`).
@@ -36,7 +37,9 @@ Item {
             id: picture
 
             anchors.fill: parent
-            source: root.source !== "" ? `file://${root.source}` : ""
+            // The revision is a fragment: a new key for the image cache, and
+            // the same file read, so a picture replaced in place shows.
+            source: root.source !== "" ? `file://${root.source}#${AccountService.revision}` : ""
             visible: root.source !== "" && picture.status === Image.Ready
             fillMode: Image.PreserveAspectCrop
             asynchronous: true

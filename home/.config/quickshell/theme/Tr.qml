@@ -757,12 +757,7 @@ QtObject {
 
             // ── SESSION ─────────────────────────────────────────────────────
             "You": "Tú",
-            "Left empty, both come from your account, as on the login screen.":
-                "Si los dejas vacíos, ambos salen de tu cuenta, igual que en la pantalla de inicio.",
-            "The name defaults to the account's full name (set with chfn) and the picture to ~/.face or AccountsService. Click the picture or drop an image on the card to change it.":
-                "El nombre es por defecto el nombre completo de la cuenta (se cambia con chfn) y la foto, ~/.face o la de AccountsService. Haz clic en la foto o suelta una imagen sobre la tarjeta para cambiarla.",
             "Picture": "Foto",
-            "— the account's own": "— la de la cuenta",
             "Click it, or drop an image here": "Haz clic, o suelta una imagen aquí",
             "Choose a picture": "Elige una foto",
             "Name": "Nombre",
@@ -912,6 +907,15 @@ QtObject {
             "Face %1": "Cara %1",
             "%1 face": "%1 cara",
             "%1 faces": "%1 caras",
+
+            "Your account's name and picture, on the lock and login screens.":
+                "El nombre y la foto de tu cuenta, en la pantalla de bloqueo y en la de inicio de sesión.",
+            "The name is your account's full name, and the picture is kept where the login screen reads it too, made square. Click the picture or drop an image on the card to change it.":
+                "El nombre es el nombre completo de tu cuenta, y la foto se guarda, recortada en cuadrado, donde también la lee la pantalla de inicio de sesión. Haz clic en la foto o suelta una imagen en la tarjeta para cambiarla.",
+            "Saving…": "Guardando…",
+            "The picture was not changed": "La foto no se cambió",
+            "The lock screen only, until ./setup system": "Solo en el bloqueo, hasta ./setup system",
+            "On the lock and login screens": "En el bloqueo y en el inicio de sesión",
 
             "Only the profile in use. The others are left as they were.":
                 "Solo el perfil en uso. Los demás se quedan como estaban.",

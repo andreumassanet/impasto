@@ -65,8 +65,7 @@ SettingsSection {
         nameFilters: ["Images (*.png *.jpg *.jpeg *.webp *.bmp)"]
         onAccepted: {
             const url = String(picker.selectedFile)
-            SettingsService.set("userAvatar",
-                url.startsWith("file://") ? url.slice(7) : url)
+            AccountService.setPicture(url.startsWith("file://") ? url.slice(7) : url)
         }
     }
 
@@ -82,8 +81,8 @@ SettingsSection {
 
         SettingGroup {
             title: Tr.t("You")
-            note: Tr.t("Left empty, both come from your account, as on the login screen.")
-            hint: Tr.t("The name defaults to the account's full name (set with chfn) and the picture to ~/.face or AccountsService. Click the picture or drop an image on the card to change it.")
+            note: Tr.t("Your account's name and picture, on the lock and login screens.")
+            hint: Tr.t("The name is your account's full name, and the picture is kept where the login screen reads it too, made square. Click the picture or drop an image on the card to change it.")
 
             // Click the picture to choose a file, or drop an image on the row.
             Item {
@@ -152,12 +151,17 @@ SettingsSection {
                         Layout.alignment: Qt.AlignVCenter
                         label: Tr.t("Picture")
                         reading: {
-                            if (SettingsService.userAvatar !== "")
-                                return SettingsService.userAvatar
-                            if (AccountService.systemAvatar !== "")
-                                return `${AccountService.systemAvatar} ${Tr.t("— the account's own")}`
-                            return Tr.t("Click it, or drop an image here")
+                            if (AccountService.busy === "picture")
+                                return Tr.t("Saving…")
+                            if (AccountService.failure !== "")
+                                return Tr.t("The picture was not changed")
+                            if (AccountService.avatar === "")
+                                return Tr.t("Click it, or drop an image here")
+                            if (SettingsService.userAvatar !== "" || !AccountService.shared)
+                                return Tr.t("The lock screen only, until ./setup system")
+                            return Tr.t("On the lock and login screens")
                         }
+                        alarm: AccountService.failure !== "" && AccountService.busy === ""
                     }
 
                     PillButton {
@@ -167,7 +171,9 @@ SettingsSection {
                         implicitWidth: 92
                         implicitHeight: 30
                         visible: SettingsService.userAvatar !== ""
-                        onClicked: SettingsService.set("userAvatar", "")
+                            || (AccountService.shared && AccountService.systemAvatar !== "")
+                        enabled: AccountService.busy === ""
+                        onClicked: AccountService.clearPicture()
                     }
                 }
 
@@ -180,17 +186,19 @@ SettingsSection {
                         if (event.urls.length === 0)
                             return
                         const url = String(event.urls[0])
-                        SettingsService.set("userAvatar",
-                            url.startsWith("file://") ? url.slice(7) : url)
+                        AccountService.setPicture(url.startsWith("file://") ? url.slice(7) : url)
                     }
                 }
             }
 
+            // The account's full name where AccountsService can change it;
+            // otherwise a name for the lock screen alone, as before.
             SettingField {
                 label: Tr.t("Name")
-                placeholder: AccountService.systemName
-                value: SettingsService.userName
-                onEdited: text => SettingsService.set("userName", text)
+                placeholder: AccountService.user
+                value: SettingsService.userName !== "" || !AccountService.accounts
+                    ? SettingsService.userName : AccountService.fullName
+                onEdited: text => AccountService.setName(text)
             }
         }
 
