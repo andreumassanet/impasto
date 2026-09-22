@@ -10,6 +10,7 @@
 import QtQuick
 
 import "../../../services"
+import ".."
 
 // The Analogue theme's registry: one row per module. A single registry rather
 // than one per family, because each face scales itself to the family it is
@@ -43,7 +44,8 @@ Item {
         bluetooth: bluetoothFace,
         pet: creatureFace,
         games: gamesFace,
-        photo: photoFace
+        photo: photoFace,
+        tray: trayFace
     })
 
     Loader {
@@ -69,4 +71,5 @@ Item {
     Component { id: creatureFace;   CreatureFace   { family: root.family; ink: root.ink } }
     Component { id: gamesFace;      GamesFace      { family: root.family; ink: root.ink } }
     Component { id: photoFace;      PhotoFace      { family: root.family; ink: root.ink; row: root.row } }
+    Component { id: trayFace;       TrayFace       { family: root.family; ink: root.ink; row: root.row } }
 }

@@ -51,7 +51,8 @@ Item {
         notes: notesWide,
         tasks: tasksWide,
         photo: photoWide,
-        spectrum: spectrumWide
+        spectrum: spectrumWide,
+        tray: trayWide
     })
 
     Loader {
@@ -955,5 +956,12 @@ Item {
         id: spectrumWide
 
         SpectrumFace { ink: root.ink; row: root.row; family: "4x2" }
+    }
+
+    // The status notifier icons in the widget's capsule; see `TrayFace`.
+    Component {
+        id: trayWide
+
+        TrayFace { ink: root.ink; row: root.row; family: "4x2" }
     }
 }

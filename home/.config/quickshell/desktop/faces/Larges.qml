@@ -40,7 +40,8 @@ Item {
         notes: notesLarge,
         tasks: tasksLarge,
         photo: photoLarge,
-        spectrum: spectrumLarge
+        spectrum: spectrumLarge,
+        tray: trayLarge
     })
 
     // The three stats traces. Functions rather than an array model: a model
@@ -755,5 +756,12 @@ Item {
         id: spectrumLarge
 
         SpectrumFace { ink: root.ink; row: root.row; family: "4x4" }
+    }
+
+    // The status notifier icons in the widget's capsule; see `TrayFace`.
+    Component {
+        id: trayLarge
+
+        TrayFace { ink: root.ink; row: root.row; family: "4x4" }
     }
 }

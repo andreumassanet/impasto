@@ -19,12 +19,16 @@ Item {
     property bool present: false
     property var hostScreen: null
 
+    // How tall the icon row is. The bar's capsule height on the bar, grown by
+    // the desktop's tray face to fill its larger cell.
+    property int iconSpace: Theme.capsuleHeight
+
     // Which item's menu is open; null while closed.
     property var menuItem: null
     property Item menuAnchor: null
 
     implicitWidth: trayRow.implicitWidth
-    implicitHeight: Theme.capsuleHeight
+    implicitHeight: root.iconSpace
 
     Row {
         id: trayRow
@@ -39,12 +43,12 @@ Item {
                 required property var modelData
 
                 width: icon.width + 8
-                height: Theme.capsuleHeight
+                height: root.iconSpace
 
                 Image {
                     id: icon
                     anchors.centerIn: parent
-                    width: Math.round(Theme.capsuleHeight * 0.56)
+                    width: Math.round(root.iconSpace * 0.56)
                     height: width
                     source: modelData.icon
                     sourceSize.width: width * 2
@@ -55,7 +59,7 @@ Item {
                 Rectangle {
                     anchors.centerIn: parent
                     width: parent.width - 4
-                    height: Theme.capsuleHeight - 8
+                    height: root.iconSpace - 8
                     radius: height / 2
                     color: Theme.islandSurfaceHover
                     opacity: trayMouse.containsMouse ? 1 : 0
@@ -94,7 +98,9 @@ Item {
                 }
             }
 
-            onCountChanged: root.present = tiles.count > 0
+            onCountChanged: {
+                root.present = tiles.count > 0
+            }
         }
     }
 
@@ -141,7 +147,7 @@ Item {
             readonly property point anchor: {
                 if (!root.menuAnchor) return Qt.point(0, 0)
                 const p = root.menuAnchor.mapToItem(null, 0, 0)
-                return Qt.point(p.x, p.y + Theme.capsuleHeight + 4)
+                return Qt.point(p.x, p.y + root.iconSpace + 4)
             }
 
             TrayMenuLevel {

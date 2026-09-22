@@ -33,7 +33,8 @@ Item {
         github: githubBand,
         notes: notesBand,
         photo: photoBand,
-        spectrum: spectrumBand
+        spectrum: spectrumBand,
+        tray: trayBand
     })
 
     Loader {
@@ -186,5 +187,12 @@ Item {
         id: spectrumBand
 
         SpectrumFace { ink: root.ink; row: root.row; family: "8x2" }
+    }
+
+    // The status notifier icons in the widget's capsule; see `TrayFace`.
+    Component {
+        id: trayBand
+
+        TrayFace { ink: root.ink; row: root.row; family: "8x2" }
     }
 }
