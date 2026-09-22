@@ -651,7 +651,6 @@ PLUGINS_PENDING=$STATE/plugins-pending
 # an empty line, which it takes as yes.
 plugin() {
     if ! hyprpm list 2>/dev/null | grep -q "$1"; then
-        act hyprpm update
         act hyprpm add "$2" </dev/null
     fi
     act hyprpm enable "$1"
@@ -699,9 +698,19 @@ verb_plugins() {
     fi
     say 'building shake to find and glass: your password, once'
     if (( ! DRY )); then hold_sudo; fi
+    # The headers first, and a rebuild of what is there when Hyprland has
+    # changed under it, even by a package rebuild of the same version.
+    act hyprpm update
     plugin dynamic-cursors https://github.com/virtcode/hypr-dynamic-cursors
     plugin hyprglass https://github.com/hyprnux/hyprglass
     act hyprpm reload
+    # hyprpm keys its headers on Hyprland's commit alone, so a rebuild of the
+    # same version against new libraries keeps stale ones and every plugin is
+    # refused, while `reload` still reports success. Only the list says so.
+    if (( ! DRY )) && hyprctl plugin list 2>/dev/null | grep -q '^no plugins loaded'; then
+        act hyprpm update -f
+        act hyprpm reload
+    fi
     release_sudo
     act rm -f "$PLUGINS_PENDING"
 }
