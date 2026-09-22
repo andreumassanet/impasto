@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+# ╭──────────────────────────────────────────────────────────────────────────╮
+# │                                                                          │
+# │   F A C E                                                                │
+# │   face unlock models · list, add and remove, for the user who asks       │
+# │                                                                          │
+# │   github.com/andreumassanet/impasto                                      │
+# │                                                                          │
+# ╰──────────────────────────────────────────────────────────────────────────╯
+
+# Run as root by pkexec, never directly: pkexec says who asked in PKEXEC_UID,
+# and only that user's models are listed or changed. The polkit policy beside
+# it lets the active user list without a password and asks for theirs to add
+# or remove (/usr/share/polkit-1/actions/org.impasto.face.policy).
+#
+#   list            one line per model: id,YYYY-MM-DD HH:MM:SS,label
+#   add [label]     looks at the camera and stores a model
+#   remove <id>     removes one model
+
+set -u
+export LANG=C LC_ALL=C
+
+uid=${PKEXEC_UID:-}
+if [[ -z $uid ]]; then
+    echo 'run through pkexec' >&2
+    exit 2
+fi
+user=$(id -nu "$uid" 2>/dev/null) || { echo "no user $uid" >&2; exit 2; }
+
+case ${1:-} in
+    list)
+        # Nothing and a failure when there are none; both mean none.
+        howdy list --plain -U "$user" 2>/dev/null | grep -E '^[0-9]+,'
+        exit 0 ;;
+    add)
+        # howdy refuses a slash, a backslash or a control character.
+        label=$(printf '%s' "${2:-}" | tr -d '/\\[:cntrl:]' | cut -c1-24)
+        if [[ -n $label ]]; then
+            exec howdy add --plain -y -U "$user" "$label"
+        fi
+        exec howdy add --plain -y -U "$user" ;;
+    remove)
+        [[ ${2:-} =~ ^[0-9]+$ ]] || { echo 'remove takes a model id' >&2; exit 2; }
+        exec howdy remove -y -U "$user" "$2" ;;
+    *)
+        echo 'face list | add [label] | remove <id>' >&2
+        exit 2 ;;
+esac

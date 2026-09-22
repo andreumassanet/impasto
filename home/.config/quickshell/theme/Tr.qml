@@ -882,6 +882,37 @@ QtObject {
             "Show all": "Ver los",
             "Show fewer": "Ver menos",
 
+            "Face unlock": "Desbloqueo facial",
+            "The lock screen only, with the infrared camera.":
+                "Solo en la pantalla de bloqueo, con la cámara de infrarrojos.",
+            "howdy keeps the faces where only root can read them, so adding or removing one asks for your password. The login screen, sudo and polkit still ask for the password.":
+                "howdy guarda las caras donde solo root puede leerlas, así que añadir o quitar una pide tu contraseña. La pantalla de inicio de sesión, sudo y polkit siguen pidiendo la contraseña.",
+            "Needs an infrared camera": "Necesita una cámara de infrarrojos",
+            "Set up": "Configurar",
+            "Finish setting up": "Terminar de configurar",
+            "Add a face": "Añadir una cara",
+            "Confirm with your password, then look at the camera":
+                "Confirma con tu contraseña y mira a la cámara",
+            "FACES": "CARAS",
+            "Try it": "Probar",
+            "Try": "Probar",
+            "Looking…": "Mirando…",
+            "Recognised": "Reconocida",
+            "Not recognised": "No reconocida",
+            "Not set up": "Sin configurar",
+            "Half set up": "A medio configurar",
+            "Adding a face…": "Añadiendo una cara…",
+            "Removing…": "Quitando…",
+            "Face added": "Cara añadida",
+            "No face seen — try with more light": "No se vio ninguna cara: prueba con más luz",
+            "More than one face in view": "Hay más de una cara a la vista",
+            "Too dark for the camera": "Demasiado oscuro para la cámara",
+            "The face was not added": "No se añadió la cara",
+            "No face yet": "Ninguna cara todavía",
+            "Face %1": "Cara %1",
+            "%1 face": "%1 cara",
+            "%1 faces": "%1 caras",
+
             "Only the profile in use. The others are left as they were.":
                 "Solo el perfil en uso. Los demás se quedan como estaban.",
             "Reset returns every setting in this profile to its default, clears the compositor overrides and reloads Hyprland. Machine settings such as screens, name, picture and language are kept, and there is no undo.":

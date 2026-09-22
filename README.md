@@ -164,7 +164,8 @@ pointer and the island grows under the camera, a ring turns around its
 padlock while it looks, closes green, the padlock opens and the blur lifts off
 the desk. It is its own conversation beside the password, so a face it does
 not know never costs you a try, and the login screen still asks for the
-password after a boot.
+password after a boot. Settings → Session lists the faces it knows, adds
+another, removes one, and lets you try it without locking.
 
 ## Settings
 

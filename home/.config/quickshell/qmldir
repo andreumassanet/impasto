@@ -19,6 +19,7 @@ singleton BrightnessService  1.0 services/BrightnessService.qml
 singleton OsdService         1.0 services/OsdService.qml
 singleton MediaService       1.0 services/MediaService.qml
 singleton NotificationService 1.0 services/NotificationService.qml
+singleton FaceService        1.0 services/FaceService.qml
 singleton LockService        1.0 services/LockService.qml
 singleton WeatherService     1.0 services/WeatherService.qml
 singleton SessionService     1.0 services/SessionService.qml

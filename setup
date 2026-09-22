@@ -1179,7 +1179,7 @@ verb_face() {
         || refuse 'howdy could not be configured' || return
     say "camera   $camera"
     if (( ! DRY )) && sudo howdy list >/dev/null 2>&1; then
-        say 'kept     the face already enrolled · sudo howdy add for another'
+        say 'kept     the face already enrolled · Settings → Session adds another'
     elif (( NOCONFIRM )) || [[ ! -t 0 ]]; then
         refuse 'enrolling needs you in front of the camera' || return
     elif ask 'enrol your face now? look straight at the camera'; then

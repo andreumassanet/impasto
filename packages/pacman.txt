@@ -140,7 +140,7 @@ sddm                         # ./setup system
 
 # ── FACE UNLOCK ─────────────────────────────────────────────────────────────
 
-v4l-utils                    # v4l2-ctl, which ./setup face finds the infrared camera with
+v4l-utils                    # v4l2-ctl, which ./setup face and Settings find the infrared camera with
 
 
 # ── DEVELOPMENT ─────────────────────────────────────────────────────────────

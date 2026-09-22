@@ -11,6 +11,7 @@ import QtQuick
 import QtQuick.Dialogs
 import QtQuick.Effects
 import QtQuick.Layouts
+import Quickshell
 import Quickshell.Widgets
 
 import "../theme"
@@ -27,6 +28,35 @@ SettingsSection {
 
     // The visible part; set by `SettingsPanel`.
     property string tab: ""
+
+    // One line on face unlock: what is missing, what is happening, or how
+    // many faces there are.
+    readonly property string faceReading: {
+        if (!FaceService.known)
+            return Tr.t("Checking…")
+        if (!FaceService.camera)
+            return ""
+        if (!FaceService.installed)
+            return Tr.t("Not set up")
+        if (!FaceService.wired)
+            return Tr.t("Half set up")
+        if (FaceService.busy === "adding")
+            return Tr.t("Adding a face…")
+        if (FaceService.busy === "removing")
+            return Tr.t("Removing…")
+        switch (FaceService.outcome) {
+        case "added": return Tr.t("Face added")
+        case "no face": return Tr.t("No face seen — try with more light")
+        case "several faces": return Tr.t("More than one face in view")
+        case "too dark": return Tr.t("Too dark for the camera")
+        case "failed": return Tr.t("The face was not added")
+        }
+        const count = FaceService.faces.length
+        if (!FaceService.listed)
+            return ""
+        return count === 0 ? Tr.t("No face yet")
+            : Tr.t(count === 1 ? "%1 face" : "%1 faces").arg(count)
+    }
 
     FileDialog {
         id: picker
@@ -47,6 +77,8 @@ SettingsSection {
         Layout.fillWidth: true
         visible: root.tab === "lock"
         spacing: root.spacing
+
+        onVisibleChanged: if (visible) FaceService.refresh()
 
         SettingGroup {
             title: Tr.t("You")
@@ -289,6 +321,163 @@ SettingsSection {
                             color: Theme.textMuted
                         }
                     }
+                }
+            }
+        }
+
+        // Face unlock: what the machine has, the faces howdy keeps, and trying
+        // one the way the lock does. Everything that needs root goes through
+        // FaceService's helper, which asks for the password itself.
+        SettingGroup {
+            title: Tr.t("Face unlock")
+            note: Tr.t("The lock screen only, with the infrared camera.")
+            hint: Tr.t("howdy keeps the faces where only root can read them, so adding or removing one asks for your password. The login screen, sudo and polkit still ask for the password.")
+
+            SettingRow {
+                label: Tr.t("Face unlock")
+                reading: root.faceReading
+                alarm: FaceService.outcome !== "" && FaceService.outcome !== "added"
+                locked: FaceService.known && !FaceService.camera
+                reason: Tr.t("Needs an infrared camera")
+
+                PillButton {
+                    visible: FaceService.known && FaceService.camera
+                    text: !FaceService.installed ? Tr.t("Set up")
+                        : !FaceService.wired ? Tr.t("Finish setting up")
+                        : Tr.t("Add a face")
+                    icon: "󰄀"
+                    active: true
+                    enabled: FaceService.busy === "" && !FaceService.installer.running
+                    implicitWidth: 136
+                    implicitHeight: 30
+                    onClicked: {
+                        if (!FaceService.installed)
+                            FaceService.install("face")
+                        else if (!FaceService.wired)
+                            FaceService.install("system")
+                        else
+                            FaceService.add()
+                    }
+                }
+            }
+
+            // The scan, the lock's own ring. The password dialog comes first,
+            // and the camera only once it is answered.
+            SettingBlock {
+                visible: FaceService.busy === "adding"
+
+                Item {
+                    Layout.fillWidth: true
+                    implicitHeight: 176
+
+                    FaceRing {
+                        id: scanRing
+
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        anchors.top: parent.top
+                        anchors.topMargin: 8
+                        diameter: 108
+                        scanning: FaceService.busy === "adding"
+                        shown: 1
+                    }
+
+                    Padlock {
+                        anchors.centerIn: scanRing
+                        scale: 1.5
+                    }
+
+                    Text {
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        anchors.bottom: parent.bottom
+                        text: Tr.t("Confirm with your password, then look at the camera")
+                        font.family: Theme.fontFamily
+                        font.pixelSize: Theme.fontSizeMedium
+                        color: Theme.text
+                    }
+                }
+            }
+
+            SettingBlock {
+                visible: FaceService.ready && FaceService.faces.length > 0
+                    && FaceService.busy !== "adding"
+
+                Text {
+                    text: Tr.t("FACES")
+                    font.family: Theme.fontFamily
+                    font.pixelSize: Theme.fontSizeLabel
+                    font.weight: Font.DemiBold
+                    font.letterSpacing: 0.6
+                    color: Theme.textMuted
+                }
+
+                Repeater {
+                    model: ScriptModel {
+                        values: FaceService.faces
+                        objectProp: "id"
+                    }
+
+                    RowLayout {
+                        id: kept
+
+                        required property var modelData
+                        required property int index
+
+                        Layout.fillWidth: true
+                        spacing: 10
+
+                        Text {
+                            text: "󰄀"
+                            font.family: Theme.fontMono
+                            font.pixelSize: 14
+                            color: Theme.accent
+                        }
+
+                        // howdy names an unlabelled model "Model #n"; the
+                        // page counts them instead.
+                        Text {
+                            Layout.fillWidth: true
+                            text: /^Model #\d+$/.test(kept.modelData.label)
+                                ? Tr.t("Face %1").arg(kept.index + 1) : kept.modelData.label
+                            elide: Text.ElideRight
+                            font.family: Theme.fontFamily
+                            font.pixelSize: Theme.fontSizeSmall
+                            color: Theme.text
+                        }
+
+                        Text {
+                            text: Qt.formatDate(new Date(kept.modelData.added.replace(" ", "T")), "d MMM yyyy")
+                            font.family: Theme.fontFamily
+                            font.pixelSize: Theme.fontSizeSmall
+                            color: Theme.textMuted
+                        }
+
+                        PillButton {
+                            text: Tr.t("Remove")
+                            enabled: FaceService.busy === ""
+                            implicitHeight: 26
+                            onClicked: FaceService.remove(kept.modelData.id)
+                        }
+                    }
+                }
+            }
+
+            // The lock's own conversation, so a match here is a match there.
+            SettingRow {
+                visible: FaceService.ready && FaceService.faces.length > 0
+                    && FaceService.busy !== "adding"
+                label: Tr.t("Try it")
+                reading: FaceService.trial === "looking" ? Tr.t("Looking…")
+                    : FaceService.trial === "matched" ? Tr.t("Recognised")
+                    : FaceService.trial === "missed" ? Tr.t("Not recognised") : ""
+                alarm: FaceService.trial === "missed"
+
+                PillButton {
+                    text: Tr.t("Try")
+                    icon: "󰄄"
+                    enabled: FaceService.trial !== "looking" && FaceService.busy === ""
+                    implicitWidth: 112
+                    implicitHeight: 30
+                    onClicked: FaceService.tryFace()
                 }
             }
         }

@@ -108,6 +108,7 @@ Singleton {
         root.faceScanning = false
         root.faceMatched = false
         root.faceCheck.running = true
+        FaceService.refresh()
         root.shotReady = false
         // Capture first, surface second — and only once the island has
         // closed, or the screenshot shows the panel the lock came from.
@@ -249,8 +250,11 @@ Singleton {
     // A PAM service of its own, `impasto-face`, beside the password and never
     // inside `login`: a face that is not recognised does not count against
     // the password's attempts, and the password never waits for the camera.
-    // Ready where `./setup system` put the service and `./setup face` put howdy.
-    property bool faceReady: false
+    // Ready where `./setup system` put the service and `./setup face` put howdy,
+    // and a face has been enrolled — when the list could be read at all.
+    property bool facePam: false
+    readonly property bool faceReady: root.facePam
+        && (!FaceService.listed || FaceService.faces.length > 0)
 
     // From howdy's first message, which is the camera coming on, until the
     // scan ends. A refusal with nothing said first is howdy declining to look
@@ -289,7 +293,7 @@ Singleton {
     readonly property Process faceCheck: Process {
         command: ["sh", "-c",
             "test -f /etc/pam.d/impasto-face && test -f /usr/lib/security/pam_howdy.so"]
-        onExited: code => root.faceReady = code === 0
+        onExited: code => root.facePam = code === 0
     }
 
     readonly property PamContext face: PamContext {

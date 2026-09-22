@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ╭──────────────────────────────────────────────────────────────────────────╮
+  │                                                                          │
+  │   O R G . I M P A S T O . F A C E                                        │
+  │   polkit · who may list, add and remove their own face                   │
+  │                                                                          │
+  │   github.com/andreumassanet/impasto                                      │
+  │                                                                          │
+  ╰──────────────────────────────────────────────────────────────────────────╯
+-->
+<!DOCTYPE policyconfig PUBLIC "-//freedesktop//DTD PolicyKit Policy Configuration 1.0//EN"
+ "http://www.freedesktop.org/standards/PolicyKit/1/policyconfig.dtd">
+<policyconfig>
+  <vendor>impasto</vendor>
+  <vendor_url>https://github.com/andreumassanet/impasto</vendor_url>
+
+  <!-- Listing reads nothing but the asking user's own models, so Settings can
+       show them without a prompt. -->
+  <action id="org.impasto.face.list">
+    <description>List your face unlock models</description>
+    <message>Authentication is required to list your face unlock models</message>
+    <defaults>
+      <allow_any>no</allow_any>
+      <allow_inactive>no</allow_inactive>
+      <allow_active>yes</allow_active>
+    </defaults>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/lib/impasto/face</annotate>
+    <annotate key="org.freedesktop.policykit.exec.argv1">list</annotate>
+  </action>
+
+  <!-- A face added is a way into the session, so adding or removing one asks
+       for the user's own password, kept for a few minutes. -->
+  <action id="org.impasto.face.add">
+    <description>Add a face to unlock with</description>
+    <message>Authentication is required to add a face to unlock with</message>
+    <defaults>
+      <allow_any>no</allow_any>
+      <allow_inactive>no</allow_inactive>
+      <allow_active>auth_self_keep</allow_active>
+    </defaults>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/lib/impasto/face</annotate>
+    <annotate key="org.freedesktop.policykit.exec.argv1">add</annotate>
+  </action>
+
+  <action id="org.impasto.face.remove">
+    <description>Remove a face you unlock with</description>
+    <message>Authentication is required to remove a face you unlock with</message>
+    <defaults>
+      <allow_any>no</allow_any>
+      <allow_inactive>no</allow_inactive>
+      <allow_active>auth_self_keep</allow_active>
+    </defaults>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/lib/impasto/face</annotate>
+    <annotate key="org.freedesktop.policykit.exec.argv1">remove</annotate>
+  </action>
+</policyconfig>

@@ -116,7 +116,7 @@ Item {
           blurb: Tr.t("Your account, the lock screen and idle behaviour."),
           tabs: [{ id: "lock", label: Tr.t("Lock screen") },
                  { id: "idle", label: Tr.t("When you leave") }],
-          keywords: "session lock blur password suspend security idle timeout sleep screen off dpms away never lock after avatar picture name account clock stacked inline face unlock howdy camera",
+          keywords: "session lock blur password suspend security idle timeout sleep screen off dpms away never lock after avatar picture name account clock stacked inline face unlock howdy camera face unlock howdy camera infrared enrol enroll scan faces recognise",
           page: sessionPage },
 
         { id: "system", category: "session", icon: "󰍛", label: Tr.t("System"),
