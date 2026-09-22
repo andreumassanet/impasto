@@ -95,6 +95,7 @@ Item {
         ? null : (root.listOf(root.pickedSide)[root.pickedIndex] ?? null)
     readonly property bool pickedModule: root.picked !== null
         && root.picked.id !== "workspaces" && root.picked.id !== "split"
+        && root.picked.id !== "tray"
         && !ModuleService.isButton(root.picked.id)
 
     function pick(side: string, index: int): void {
@@ -165,6 +166,9 @@ Item {
             } else if (item.id === "workspaces") {
                 flush()
                 out.push({ kind: "workspaces", items: [piece] })
+            } else if (item.id === "tray") {
+                flush()
+                out.push({ kind: "tray", items: [piece] })
             } else {
                 chips.push(piece)
             }
@@ -178,6 +182,8 @@ Item {
             return Tr.t("Workspaces")
         if (id === "split")
             return Tr.t("Split")
+        if (id === "tray")
+            return Tr.t("System tray")
         if (ModuleService.isButton(id))
             return Tr.t(ModuleService.buttons[id].name)
         return Tr.t(ModuleService.entry(id).name)
@@ -746,10 +752,11 @@ Item {
                 Loader {
                     id: strip
 
-                    active: group.kind === "workspaces"
+                    active: group.kind === "workspaces" || group.kind === "tray"
                     sourceComponent: Strip {
                         side: lane.side
                         place: group.items[0].index
+                        entryId: group.kind
                     }
                 }
             }
@@ -867,12 +874,13 @@ Item {
         property string side: ""
         property int place: -1
         property bool ghost: false
+        property string entryId: "workspaces"
 
         readonly property bool isTile: visible
         readonly property bool isGap: false
-        readonly property string entryId: "workspaces"
 
-        width: workspaces.implicitWidth
+        width: stripTile.entryId === "workspaces"
+            ? workspaces.implicitWidth : trayCapsule.implicitWidth
         height: Theme.capsuleHeight
 
         WorkspacesWidget {
@@ -880,6 +888,29 @@ Item {
 
             anchors.fill: parent
             chromeless: root.chromeless
+            visible: stripTile.entryId === "workspaces"
+        }
+
+        Rectangle {
+            id: trayCapsule
+
+            visible: stripTile.entryId === "tray"
+            implicitWidth: trayGlyph.implicitWidth + 24
+            height: Theme.capsuleHeight
+            radius: height / 2
+            color: "transparent"
+            border.color: Theme.islandBorder
+            border.width: 1
+
+            Text {
+                id: trayGlyph
+
+                anchors.centerIn: parent
+                text: "󰀻"
+                font.family: Theme.fontMono
+                font.pixelSize: Theme.fontSizeSmall
+                color: Theme.textMuted
+            }
         }
 
         Rectangle {
@@ -902,7 +933,8 @@ Item {
         property string ownFigure: ""
         property bool ghost: false
 
-        readonly property bool module: piece.entryId !== "workspaces" && piece.entryId !== "split"
+        readonly property bool module: piece.entryId !== "workspaces"
+            && piece.entryId !== "split" && piece.entryId !== "tray"
 
         width: piece.module ? lone.width
             : piece.entryId === "split" ? 10 : (pieceStrip.item ? pieceStrip.item.width : 0)
@@ -937,9 +969,10 @@ Item {
         Loader {
             id: pieceStrip
 
-            active: piece.entryId === "workspaces"
+            active: piece.entryId === "workspaces" || piece.entryId === "tray"
             sourceComponent: Strip {
                 ghost: true
+                entryId: piece.entryId
             }
         }
     }

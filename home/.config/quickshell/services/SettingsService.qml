@@ -94,6 +94,7 @@ Singleton {
     readonly property alias keyboard: config.keyboard
     readonly property alias displays: config.displays
     readonly property alias keys: config.keys
+    readonly property alias extraBinds: config.extraBinds
     readonly property alias launcherPrefixes: config.launcherPrefixes
     readonly property alias cursorColor: config.cursorColor
     readonly property alias cursorSize: config.cursorSize
@@ -150,7 +151,7 @@ Singleton {
     // `split` starts a new capsule; neither is a module.
     readonly property var barDefaults: ({
         left: ["workspaces"],
-        right: ["notifications", "network", "bluetooth", "volume", "battery"]
+        right: ["notifications", "network", "bluetooth", "volume", "battery", "tray"]
     })
 
     // An entry is a bare id, or `{ id, shape, figure, when }` when the piece
@@ -592,6 +593,21 @@ Singleton {
         // then complete. `ShortcutService` writes it to keys.tsv, which the
         // Lua config reads.
         property var keys: ({})
+
+        // ── EXTRA BINDS ─────────────────────────────────────────────────
+        //
+        // Binds added in Settings → Keys, beyond the fixed set. Each entry is
+        // self-contained and its `description` keys it everywhere:
+        //
+        //   description   "Custom · <name>", shown under the Custom group
+        //   kind          "shell" fires one of shell.qml's GlobalShortcuts,
+        //                 "command" runs what `target` says
+        //   target        the global's name, or the command to run
+        //   combination   the profile's combination; "" leaves it unbound
+        //
+        // `ShortcutService` writes them to keys.tsv beside the profile keys,
+        // and the Lua config binds the ones with a combination.
+        property var extraBinds: []
 
         // Launcher sigil overrides, keyed by mode id; absent means the
         // default in `launcherPrefixDefaults`.

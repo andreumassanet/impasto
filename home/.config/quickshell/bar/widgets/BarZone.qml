@@ -12,6 +12,7 @@ import QtQuick.Effects
 
 import "../../theme"
 import "../../services"
+import "../modules"
 
 // One side of the bar: the layout's ids drawn as capsules. The workspaces get
 // a capsule of their own; everything else shares one until a `split` starts
@@ -27,6 +28,8 @@ Row {
     // Inside the one capsule, where the band is already the ground.
     property bool chromeless: false
 
+    // The bar's screen, for windows the tray opens (menus).
+    property var hostScreen: null
     readonly property var groups: {
         const out = []
         let chips = []
@@ -41,6 +44,9 @@ Row {
             } else if (item.id === "workspaces") {
                 flush()
                 out.push({ kind: "workspaces", items: [] })
+            } else if (item.id === "tray") {
+                flush()
+                out.push({ kind: "tray", items: [] })
             } else {
                 chips.push(item)
             }
@@ -60,6 +66,7 @@ Row {
             kind: modelData.kind
             items: modelData.items
             chromeless: root.chromeless
+            hostScreen: root.hostScreen
         }
     }
 
@@ -69,15 +76,17 @@ Row {
         property string kind: "chips"
         property var items: []
         property bool chromeless: false
+        property var hostScreen: null
 
         readonly property bool workspaces: group.kind === "workspaces"
+        readonly property bool tray: group.kind === "tray"
 
         // The items this machine has. A capsule with none (no battery, no
         // backlight on a desktop) is not drawn.
         readonly property var present:
             group.items.filter(item => ModuleService.shows(item.id, item.when))
 
-        readonly property bool alone: !group.workspaces && group.present.length === 1
+        readonly property bool alone: !group.workspaces && !group.tray && group.present.length === 1
 
         // A ring alone is its own outline; a capsule border a pixel outside it
         // would smudge. Not when its figure is always shown, which makes it a
@@ -93,10 +102,16 @@ Row {
 
         readonly property int pad: group.chromeless || group.alone ? 0 : 4
 
-        visible: group.workspaces || group.present.length > 0
+        visible: group.workspaces
+            ? strip.item
+            : group.tray
+                ? (trayStrip.item ? trayStrip.item.present : false)
+                : group.present.length > 0
         width: group.workspaces
             ? (strip.item ? strip.item.implicitWidth : 0)
-            : chips.implicitWidth + 2 * group.pad
+            : group.tray
+                ? (trayStrip.item ? trayStrip.item.implicitWidth + 2 * group.pad : 0)
+                : chips.implicitWidth + 2 * group.pad
         height: Theme.capsuleHeight
 
         // Per-capsule shadow. In the one-capsule style the bar casts a single
@@ -167,6 +182,18 @@ Row {
                         ownWhen: modelData.when ?? ""
                         alone: group.alone
                     }
+                }
+            }
+
+            Loader {
+                id: trayStrip
+
+                active: group.tray
+                x: group.pad
+                height: Theme.capsuleHeight
+
+                sourceComponent: TrayModule {
+                    hostScreen: group.hostScreen
                 }
             }
         }

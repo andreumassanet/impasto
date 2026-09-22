@@ -32,6 +32,10 @@ Item {
     property string description: ""
     property string label: ""
 
+    // A custom bind can be deleted, with a confirm first, like a profile.
+    property bool removable: false
+    property bool asking: false
+
     readonly property string current: ShortcutService.current(root.description)
 
     // A mouse button: shown, and not opened.
@@ -138,6 +142,35 @@ Item {
                             root.begin()
                     }
                 }
+            }
+
+            // Removing a custom bind. Built-in ones cannot; their rows stay
+            // and can be unbound instead. The trash opens a confirm, since
+            // deleting has no undo.
+            IconButton {
+                visible: root.removable && !root.asking
+                icon: "󰆴"
+                iconSize: 13
+                onClicked: {
+                    root.editing = false
+                    root.asking = true
+                }
+            }
+
+            PillButton {
+                visible: root.removable && root.asking
+                text: Tr.t("Delete")
+                icon: "󰆴"
+                onClicked: {
+                    root.asking = false
+                    ShortcutService.removeCustom(root.description)
+                }
+            }
+
+            PillButton {
+                visible: root.removable && root.asking
+                text: Tr.t("Keep")
+                onClicked: root.asking = false
             }
         }
 
@@ -258,6 +291,18 @@ Item {
                         ? Theme.fontFamily : Theme.fontMono
                     font.pixelSize: Theme.fontSizeLabel
                     color: root.clash !== "" ? Theme.yellow : Theme.textMuted
+                }
+
+                PillButton {
+                    text: Tr.t("Unbind")
+                    implicitWidth: 88
+                    implicitHeight: 28
+                    enabled: root.current !== ""
+                    opacity: enabled ? 1 : 0.4
+                    onClicked: {
+                        ShortcutService.rebind(root.description, "")
+                        root.editing = false
+                    }
                 }
 
                 PillButton {

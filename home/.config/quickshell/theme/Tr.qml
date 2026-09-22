@@ -729,6 +729,31 @@ QtObject {
                 "Ventanas, espacios, las teclas multimedia, apagar la pantalla — se cambian igual y se guardan en el mismo perfil.",
             "The shell writes these to a file keybinds.lua reads, so applying a change reloads Hyprland. Mouse bindings are shown but cannot be rebound here.":
                 "El shell los escribe en un archivo que lee keybinds.lua, así que aplicar un cambio recarga Hyprland. Los atajos del ratón se muestran, pero no se pueden reasignar aquí.",
+            "The ones you add": "Las que añades",
+            "Binds you add yourself — a command, or one of the shell's own actions.":
+                "Atajos que añades tú: un comando, o una de las acciones propias del shell.",
+            "A bind starts unbound; click its combination to give it a key, or Unbind to clear it. Deleting removes it for good.":
+                "Un atajo empieza sin asignar; haz clic en su combinación para darle una tecla, o en Desvincular para vaciarla. Borrarlo lo elimina para siempre.",
+            "Add a binding": "Añadir un atajo",
+            "A key you add yourself runs a command or opens one of the shell's own actions.":
+                "Una tecla que añades tú mismo ejecuta un comando o abre una de las acciones propias del shell.",
+            "The binding starts unbound; give it a key on its row once it appears. Binds you add belong to the profile in use and can be removed again.":
+                "El atajo empieza sin asignar; dale una tecla en su fila cuando aparezca. Los atajos que añades pertenecen al perfil en uso y se pueden volver a quitar.",
+            "Unbind": "Desvincular",
+            "The name shown on the row": "El nombre que se ve en la fila",
+            "What it does": "Qué hace",
+            "A shell action": "Una acción del shell",
+            "Command to run": "Comando a ejecutar",
+            "Which shell action": "Qué acción del shell",
+            "For example: kitty -e htop": "Por ejemplo: kitty -e htop",
+            "For example: the launcher": "Por ejemplo: el lanzador",
+            "Run a command": "Ejecutar un comando",
+            "Choose an action…": "Elige una acción…",
+            "Give it a name.": "Ponle un nombre.",
+            "Write the command to run.": "Escribe el comando a ejecutar.",
+            "Pick one of the shell's own actions.":
+                "Elige una de las acciones propias del shell.",
+            "Add": "Añadir",
             "Find a key or an action": "Busca una tecla o una acción",
             "No binding matches that": "Ningún atajo coincide",
             "Utilities": "Utilidades",

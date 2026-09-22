@@ -14,7 +14,8 @@
       "notifications",
       "network",
       "volume",
-      "battery"
+      "battery",
+      "tray"
     ],
     "chipShape": "icon",
     "chipFigure": "off",

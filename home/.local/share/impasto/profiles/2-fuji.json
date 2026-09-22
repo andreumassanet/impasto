@@ -25,7 +25,8 @@
       {
         "id": "pet",
         "shape": "ring"
-      }
+      },
+      "tray"
     ],
     "chipShape": "icon",
     "chipFigure": "off",

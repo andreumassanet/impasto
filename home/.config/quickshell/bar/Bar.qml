@@ -438,7 +438,7 @@ PanelWindow {
 
                 Behavior on color { ColorAnimation { duration: Theme.durationFast } }
 
-                // Clicking the band opens the island. The sides sit above it and
+// Clicking the band opens the island. The sides sit above it and
                 // take their own clicks.
                 MouseArea {
                     anchors.fill: parent
@@ -548,6 +548,7 @@ PanelWindow {
 
                 entries: SettingsService.barItems("left")
                 chromeless: root.unified
+                hostScreen: root.screen
                 x: (root.unified ? root.bodyX + root.hostedInset
                     : root.spread ? root.edgeMargin
                     : root.islandLeft - Theme.capsuleSpacing - leftZone.width) - sides.x
@@ -568,6 +569,7 @@ PanelWindow {
 
                 entries: SettingsService.barItems("right")
                 chromeless: root.unified
+                hostScreen: root.screen
                 x: (root.unified ? root.bodyX + root.bodyWidth - root.hostedInset - rightZone.width
                     : root.spread ? root.width - root.edgeMargin - rightZone.width
                     : root.islandRight + Theme.capsuleSpacing) - sides.x

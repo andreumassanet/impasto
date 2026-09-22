@@ -19,28 +19,40 @@ local mainMod = "SUPER"
 -- (description<TAB>combination, empty = unbound) and reloads Hyprland when
 -- they change. Descriptions are the keys, so renaming one drops its binding
 -- from every profile. The combinations below are the fallback.
+--
+-- A line from a bind added in Settings → Keys carries two more fields:
+-- description<TAB>combination<TAB>kind<TAB>target. The Lua config has no
+-- declaration for it, so it is bound from here at the end.
 local function profile_keys()
     local state = os.getenv("XDG_STATE_HOME") or (os.getenv("HOME") .. "/.local/state")
-    local keys  = {}
-    local file  = io.open(state .. "/quickshell/keys.tsv")
+    local combinations = {}
+    local customs      = {}
+    local file         = io.open(state .. "/quickshell/keys.tsv")
     if not file then
-        return keys
+        return combinations, customs
     end
     for line in file:lines() do
-        local description, combination = line:match("^([^#\t][^\t]*)\t(.*)$")
+        local description, combination, kind, target =
+            line:match("^([^#\t][^\t]*)\t([^\t]*)\t([^\t]*)\t(.*)$")
+        if not description then
+            description, combination = line:match("^([^#\t][^\t]*)\t(.*)$")
+        end
         if description then
-            keys[description] = combination
+            combinations[description] = combination or ""
+            if kind then
+                customs[description] = { kind = kind, target = target or "" }
+            end
         end
     end
     file:close()
-    return keys
+    return combinations, customs
 end
 
-local keys = profile_keys()
+local combinations, customs = profile_keys()
 
 -- `hl.bind`, on the profile's combination for this description.
 local function bind(combination, action, options)
-    local chosen = keys[options.description]
+    local chosen = combinations[options.description]
     if chosen == nil then
         chosen = combination
     end
@@ -322,3 +334,24 @@ hl.bind("switch:on:Lid Switch",  hl.dsp.global("quickshell:lidClosed"),
         { locked = true, description = "Session · The laptop lid was closed" })
 hl.bind("switch:off:Lid Switch", hl.dsp.global("quickshell:lidOpened"),
         { locked = true, description = "Session · The laptop lid was opened" })
+
+
+-- ── ADDED IN SETTINGS ───────────────────────────────────────────────────────
+
+-- Custom binds (Settings → Keys → Add a binding) that are not among the
+-- declarations above, so `bind()` never saw them. A `shell` kind fires one of
+-- shell.qml's GlobalShortcuts; a `command` kind runs what it targets. Only
+-- those with a profile combination are bound, so an unbound one stays that
+-- way until the user gives it a key.
+for description, custom in pairs(customs) do
+    local combination = combinations[description] or ""
+    if combination ~= "" and custom.target ~= "" then
+        local action
+        if custom.kind == "shell" then
+            action = hl.dsp.global("quickshell:" .. custom.target)
+        else
+            action = hl.dsp.exec_cmd(custom.target)
+        end
+        hl.bind(combination, action, { description = description })
+    end
+end
