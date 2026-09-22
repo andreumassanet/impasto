@@ -291,6 +291,20 @@ files_in() {
 
 declare -A BEFORE=() AFTER=() LOOKED=() GONE=()
 
+# One writer at a time: `files`, run from Settings, and a `sync --watch` both
+# read the manifest, change it and write it back.
+MANIFEST_LOCK=
+manifest_lock() {
+    if (( DRY )); then return 0; fi
+    mkdir -p "$STATE"
+    exec {MANIFEST_LOCK}>"$STATE/manifest.lock"
+    flock "$MANIFEST_LOCK"
+}
+manifest_unlock() {
+    if [[ -n $MANIFEST_LOCK ]]; then exec {MANIFEST_LOCK}>&-; fi
+    MANIFEST_LOCK=
+}
+
 read_manifest() {
     BEFORE=()
     [[ -f $1 ]] || return 0
@@ -318,9 +332,11 @@ put() {
 # Moves whatever was in the way into the backups. Files under / are copied
 # instead, since the backup directory belongs to this user.
 keep_aside() {
-    local dst=$1 name=$2
+    local dst=$1 name=$2 n=1
     if (( DRY )); then return 0; fi
     mkdir -p "$(dirname "$BACKUPS/$name")"
+    # Two runs in one second share the directory: never over a kept file.
+    while [[ -e $BACKUPS/$name ]]; do name=${2}.$n; n=$(( n + 1 )); done
     if [[ -n $SUDO ]]; then $SUDO cat "$dst" > "$BACKUPS/$name"; else mv "$dst" "$BACKUPS/$name"; fi
 }
 
@@ -376,6 +392,7 @@ tidy() {
 deploy() {
     local tree=$1 target=$2 manifest=$3 shown=$4
     local rel src dst want have was said=0 declined=0
+    manifest_lock
     read_manifest "$manifest"
     AFTER=()
     while IFS= read -r rel; do
@@ -431,6 +448,7 @@ deploy() {
         say "skipped  $declined deleted here — ./setup $verb --restore puts them back"; said=1
     fi
     write_manifest "$manifest"
+    manifest_unlock
     if (( ! said && ! QUIET )); then say 'nothing to do'; fi
 }
 
@@ -515,15 +533,19 @@ json_string() {
 verb_files() {
     local action=${FILES_ARGS[0]:-list} manifest=$STATE/home.manifest rel
     local -a paths=("${FILES_ARGS[@]:1}")
-    read_manifest "$manifest"
     case $action in
-        list)    files_list ;;
+        list)
+            read_manifest "$manifest"
+            files_list ;;
         restore|reset|keep)
             (( ${#paths[@]} )) || fail "files $action takes the paths list prints"
+            manifest_lock
+            read_manifest "$manifest"
             AFTER=()
             for rel in "${!BEFORE[@]}"; do AFTER[$rel]=${BEFORE[$rel]}; done
             for rel in "${paths[@]}"; do files_one "$action" "$rel"; done
-            write_manifest "$manifest" ;;
+            write_manifest "$manifest"
+            manifest_unlock ;;
         *)       fail "files takes list, restore, reset or keep" ;;
     esac
 }
@@ -543,13 +565,14 @@ files_list() {
     fi
     printf '{"deleted": ['
     while IFS= read -r rel; do
-        [[ -f $REPO/home/$rel && ! -e $HOME/$rel ]] || continue
+        [[ -n $rel && -f $REPO/home/$rel && ! -e $HOME/$rel ]] || continue
         (( first )) || printf ', '; first=0
         json_string "$rel"
     done < <(printf '%s\n' "${!BEFORE[@]}" | sort)
     printf '], "edited": ['
     first=1
     while IFS= read -r rel; do
+        [[ -n $rel ]] || continue
         [[ ${have[$rel]} != "${BEFORE[$rel]}" ]] || continue
         [[ ${have[$rel]} != "$(digest "$REPO/home/$rel")" ]] || continue
         (( first )) || printf ', '; first=0
@@ -561,16 +584,21 @@ files_list() {
 
 files_one() {
     local action=$1 rel=$2 src=$REPO/home/$2 dst=$HOME/$2
-    [[ -n ${BEFORE[$rel]:-} && -f $src ]] || { say "not      ~/$rel — not a file setup installed"; return 0; }
+    [[ -n $rel && -n ${BEFORE[$rel]:-} && -f $src ]] || { say "not      ~/$rel — not a file setup installed"; return 0; }
     case $action in
         restore)
             [[ ! -e $dst ]] || { say "left     ~/$rel — it is there"; return 0; }
             put "$src" "$dst"; say "restored ~/$rel" ;;
         reset)
-            if [[ -e $dst ]]; then keep_aside "$dst" "home/$rel"; fi
-            put "$src" "$dst"
-            act rm -f "$dst.new"
-            say "restored ~/$rel — yours is in $BACKUPS" ;;
+            if [[ -e $dst ]] && [[ $(digest "$dst") != "$(digest "$src")" ]]; then
+                keep_aside "$dst" "home/$rel"
+                put "$src" "$dst"
+                say "restored ~/$rel — yours is in $BACKUPS"
+            else
+                put "$src" "$dst"
+                say "restored ~/$rel"
+            fi
+            act rm -f "$dst.new" ;;
         keep)
             act rm -f "$dst.new"
             say "kept     ~/$rel" ;;

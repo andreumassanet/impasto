@@ -86,14 +86,21 @@ Singleton {
     // The list has been read at least once since the machine was ready.
     property bool listed: false
 
+    // Taken only from a list that exited cleanly: pkexec refused says nothing
+    // about the faces, and an empty list would switch the lock's face off.
+    property var heard: []
+
     readonly property Process lister: Process {
         command: ["pkexec", "/usr/lib/impasto/face", "list"]
         stdout: StdioCollector {
-            onStreamFinished: {
-                root.faces = text.split("\n").filter(line => /^\d+,/.test(line)).map(root.parse)
-                root.listed = true
-            }
+            onStreamFinished: root.heard = text.split("\n").filter(line => /^\d+,/.test(line)).map(root.parse)
         }
+        onExited: code => Qt.callLater(() => {
+            if (code !== 0)
+                return
+            root.faces = root.heard
+            root.listed = true
+        })
     }
 
     // One CSV line: an id, the time, and a label quoted only when it has to be.

@@ -35,8 +35,9 @@ Singleton {
     property bool shared: false
     // A change is on its way; "name" or "picture".
     property string busy: ""
-    // Why the last change did not happen, or "".
+    // Why the last change did not happen, or "", and which it was.
     property string failure: ""
+    property string failedKind: ""
 
     readonly property string name: SettingsService.userName !== ""
         ? SettingsService.userName
@@ -101,15 +102,27 @@ Singleton {
         onExited: Qt.callLater(root.settle)
     }
 
+    // The copy kept in settings goes only once the account has the change:
+    // a write refused leaves the lock showing what it showed before.
     function settle(): void {
-        if (root.busy === "picture" && root.failure === "")
-            root.revision += 1
+        const kind = root.busy
+        if (root.failure === "") {
+            if (kind === "picture") {
+                root.revision += 1
+                SettingsService.set("userAvatar", "")
+            } else if (kind === "name") {
+                SettingsService.set("userName", "")
+            }
+        } else {
+            root.failedKind = kind
+        }
         root.busy = ""
         root.read()
     }
 
     function write(kind: string, args: var): void {
         root.failure = ""
+        root.failedKind = ""
         root.busy = kind
         root.writer.command = [root.script].concat(args)
         root.writer.running = true
@@ -124,7 +137,6 @@ Singleton {
                 restart()
                 return
             }
-            SettingsService.set("userName", "")
             root.write("name", ["name", root.pendingName])
         }
     }
@@ -145,13 +157,15 @@ Singleton {
         }
         if (root.writer.running)
             return
-        SettingsService.set("userAvatar", "")
         root.write("picture", ["picture", path])
     }
 
     function clearPicture(): void {
-        SettingsService.set("userAvatar", "")
-        if (root.shared && !root.writer.running)
+        if (!root.shared) {
+            SettingsService.set("userAvatar", "")
+            return
+        }
+        if (!root.writer.running)
             root.write("picture", ["picture", "--clear"])
     }
 }

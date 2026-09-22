@@ -82,6 +82,14 @@ Singleton {
             done()
         })
         notification.closed.connect(done)
+        // An application that updates its notification in place (a progress
+        // bar, a volume) starts its clock again.
+        const again = () => {
+            if (timer)
+                timer.restart()
+        }
+        notification.summaryChanged.connect(again)
+        notification.bodyChanged.connect(again)
     }
 
     // An application can close its own notification while the island is

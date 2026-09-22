@@ -100,7 +100,7 @@ def set_name(name):
         return "AccountsService is not running"
     done = subprocess.run(
         ["busctl", "call", "org.freedesktop.Accounts", path,
-         "org.freedesktop.Accounts.User", "SetRealName", "s", name.strip()],
+         "org.freedesktop.Accounts.User", "SetRealName", "s", "--", name.strip()],
         capture_output=True, text=True, timeout=10)
     return None if done.returncode == 0 else done.stderr.strip() or "not changed"
 

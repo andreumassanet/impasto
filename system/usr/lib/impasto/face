@@ -36,7 +36,7 @@ case ${1:-} in
         # howdy refuses a slash, a backslash or a control character.
         label=$(printf '%s' "${2:-}" | tr -d '/\\[:cntrl:]' | cut -c1-24)
         if [[ -n $label ]]; then
-            exec howdy add --plain -y -U "$user" "$label"
+            exec howdy add --plain -y -U "$user" -- "$label"
         fi
         exec howdy add --plain -y -U "$user" ;;
     remove)

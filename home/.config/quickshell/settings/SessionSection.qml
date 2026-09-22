@@ -153,7 +153,7 @@ SettingsSection {
                         reading: {
                             if (AccountService.busy === "picture")
                                 return Tr.t("Saving…")
-                            if (AccountService.failure !== "")
+                            if (AccountService.failedKind === "picture")
                                 return Tr.t("The picture was not changed")
                             if (AccountService.avatar === "")
                                 return Tr.t("Click it, or drop an image here")
@@ -161,7 +161,7 @@ SettingsSection {
                                 return Tr.t("The lock screen only, until ./setup system")
                             return Tr.t("On the lock and login screens")
                         }
-                        alarm: AccountService.failure !== "" && AccountService.busy === ""
+                        alarm: AccountService.failedKind === "picture"
                     }
 
                     PillButton {
@@ -196,7 +196,11 @@ SettingsSection {
             SettingField {
                 label: Tr.t("Name")
                 placeholder: AccountService.user
-                value: SettingsService.userName !== "" || !AccountService.accounts
+                // While it is written, what was typed, so the field never
+                // jumps back to the old name under the hand.
+                value: AccountService.busy === "name" || AccountService.namePause.running
+                    ? AccountService.pendingName
+                    : SettingsService.userName !== "" || !AccountService.accounts
                     ? SettingsService.userName : AccountService.fullName
                 onEdited: text => AccountService.setName(text)
             }
