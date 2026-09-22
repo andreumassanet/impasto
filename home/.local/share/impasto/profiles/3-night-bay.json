@@ -20,7 +20,8 @@
       "network",
       "bluetooth",
       "volume",
-      "battery"
+      "battery",
+      "tray"
     ],
     "chipShape": "ring",
     "chipFigure": "hover",

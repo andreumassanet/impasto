@@ -50,7 +50,8 @@ Item {
         calendar: calendarSquare,
         notes: notesSquare,
         tasks: tasksSquare,
-        photo: photoSquare
+        photo: photoSquare,
+        tray: traySquare
     })
 
     Loader {
@@ -540,5 +541,12 @@ Item {
                 color: root.ink.text
             }
         }
+    }
+
+    // The status notifier icons in the widget's capsule; see `TrayFace`.
+    Component {
+        id: traySquare
+
+        TrayFace { ink: root.ink; row: root.row; family: "2x2" }
     }
 }

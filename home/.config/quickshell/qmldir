@@ -94,6 +94,7 @@ StyleSwatch      1.0 components/StyleSwatch.qml
 EditTray         1.0 components/EditTray.qml
 Sticky           1.0 components/Sticky.qml
 PopMenu          1.0 components/PopMenu.qml
+TrayMenuLevel    1.0 components/TrayMenuLevel.qml
 
 Bar              1.0 bar/Bar.qml
 Deck             1.0 deck/Deck.qml
@@ -133,6 +134,7 @@ PetModule        1.0 bar/modules/PetModule.qml
 GamesModule      1.0 bar/modules/GamesModule.qml
 NotesModule      1.0 bar/modules/NotesModule.qml
 NotificationsModule 1.0 bar/modules/NotificationsModule.qml
+TrayModule      1.0 bar/modules/TrayModule.qml
 ChipFace         1.0 bar/modules/ChipFace.qml
 
 SettingsWindow        1.0 settings/SettingsWindow.qml

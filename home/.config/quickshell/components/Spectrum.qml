@@ -43,16 +43,20 @@ Item {
         anchors.fill: parent
         spacing: root.barSpacing
 
+        // An integer model, not `CavaService.values`: cava replaces that
+        // array every frame, and a JS array model would destroy and recreate
+        // every delegate on each replacement. With an integer model the bars
+        // are built once and only their height bindings re-evaluate.
         Repeater {
-            model: CavaService.values
+            model: root.barCount
 
             Rectangle {
-                required property real modelData
+                required property int index
 
                 Layout.preferredWidth: root.barWidth
                 Layout.preferredHeight: root.active
                     ? Math.max(root.minimum,
-                        root.height * Math.pow(Math.max(0, modelData), root.curve))
+                        root.height * Math.pow(Math.max(0, CavaService.values[root.index] ?? 0), root.curve))
                     : root.minimum
                 Layout.alignment: Qt.AlignVCenter
                 radius: width / 2

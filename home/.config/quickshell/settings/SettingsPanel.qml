@@ -108,8 +108,9 @@ Item {
         { id: "keys", category: "desk", icon: "󰌌", label: Tr.t("Keys"),
           blurb: Tr.t("Every keybinding, the shell's and Hyprland's."),
           tabs: [{ id: "shell", label: Tr.t("The shell's own") },
-                 { id: "compositor", label: Tr.t("The compositor's") }],
-          keywords: "keys shortcut binding hotkey super rebind",
+                 { id: "compositor", label: Tr.t("The compositor's") },
+                 { id: "custom", label: Tr.t("The ones you add") }],
+          keywords: "keys shortcut binding hotkey super rebind unbind add remove custom command run action added",
           page: keysPage },
 
         { id: "session", category: "session", icon: "󰌾", label: Tr.t("Session"),

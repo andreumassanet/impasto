@@ -62,6 +62,59 @@ Singleton {
 
     readonly property var keys: SettingsService.keys
 
+    // ── CUSTOM BINDS ──────────────────────────────────────────────────────
+    //
+    // Binds added in Settings → Keys. Copied out of settings like the bar's
+    // rows (`Array.from`), because JsonAdapter returns lists as Qt sequences
+    // and the callers must never mutate the stored objects: every change
+    // writes a fresh list. The description is unique, so it is the bind's key
+    // here and in keys.tsv, exactly like the built-in ones.
+    readonly property var customs: {
+        const kept = SettingsService.extraBinds ?? []
+        return Array.from(kept).map(entry => ({
+            description: entry.description ?? "",
+            kind: entry.kind ?? "command",
+            target: entry.target ?? "",
+            combination: entry.combination ?? ""
+        }))
+    }
+
+    function customOf(description: string): var {
+        const entry = root.customs.find(custom => custom.description === description)
+        return entry ?? null
+    }
+
+    // Creates an unbound binding and returns its description, "" for a form
+    // that would add nothing. A repeating name gets a number, since the
+    // description keys the whole table and must stay unique.
+    function addCustom(name: string, kind: string, target: string): string {
+        const label = root.flat(name)
+        if (label === "" || root.flat(target) === "")
+            return ""
+        if (kind !== "shell" && kind !== "command")
+            return ""
+        let description = `Custom · ${label}`
+        for (let n = 2; root.index[description]; n++)
+            description = `Custom · ${label} ${n}`
+        const next = root.customs.slice()
+        next.push({ description: description, kind: kind,
+                    target: root.flat(target), combination: "" })
+        SettingsService.set("extraBinds", next)
+        return description
+    }
+
+    function removeCustom(description: string): void {
+        const next = root.customs.filter(custom => custom.description !== description)
+        SettingsService.set("extraBinds", next)
+    }
+
+    function setCustom(description: string, changes: var): void {
+        const next = root.customs.map(custom =>
+            custom.description === description
+                ? Object.assign({}, custom, changes) : custom)
+        SettingsService.set("extraBinds", next)
+    }
+
     // ── TABLE ───────────────────────────────────────────────────────────────
     //
     // Every bind with the profile's combination: the compositor's in config
@@ -88,6 +141,8 @@ Singleton {
         }
         for (const item of root.catalogue)
             add(item.description, "")
+        for (const custom of root.customs)
+            add(custom.description, custom.combination)
         for (const description in kept)
             add(description, "")
         return rows
@@ -122,26 +177,38 @@ Singleton {
     }
 
     // Writes the whole table, since a profile built from defaults has no keys
-    // stored yet. Refused until the bind list has been read.
+    // stored yet. Refused until the bind list has been read. Custom binds
+    // keep their combination in `extraBinds`; everything else in the `keys`
+    // map, so the two need never stay in sync. An empty combination unbinds.
     function rebind(description: string, combination: string): void {
-        if (combination === "" || !root.index[description]
-                || HyprlandService.binds.length === 0)
+        if (!root.index[description] || HyprlandService.binds.length === 0)
             return
+        if (root.customOf(description)) {
+            root.setCustom(description, { combination: combination })
+            return
+        }
         const next = ({})
-        for (const row of root.table)
+        for (const row of root.table) {
+            if (root.customOf(row.description))
+                continue
             next[row.description] = row.description === description
                 ? combination : row.combination
+        }
         SettingsService.set("keys", next)
     }
 
     // ── KEYS.TSV ────────────────────────────────────────────────────────────
     //
     // `description<TAB>combination` per line, since the Lua config cannot
-    // parse JSON. Empty for a profile with no keys of its own.
+    // parse JSON. A custom bind's line adds `TAB kind TAB target`, which the
+    // Lua config turns into a dispatcher it has no declaration for. Empty for
+    // a profile with no keys of its own.
     readonly property string keysHeader:
-        "# The keys of the profile in use: a bind's description, a tab, and its\n"
-        + "# combination, empty for none. Written by the shell from Settings → Keys\n"
-        + "# and read by hypr/modules/keybinds.lua, so an edit here is overwritten.\n"
+        "# The keys of the profile in use, plus the binds added in Settings →\n"
+        + "# Keys. A bind's description, a tab, and its combination, empty for\n"
+        + "# none; a bind that was added then carries a tab, its kind and what\n"
+        + "# it targets. Written by the shell from Settings → Keys and read by\n"
+        + "# hypr/modules/keybinds.lua, so an edit here is overwritten.\n"
 
     function flat(text: string): string {
         return String(text).replace(/[\t\r\n]+/g, " ").trim()
@@ -153,6 +220,11 @@ Singleton {
         for (const description in kept) {
             if (typeof kept[description] === "string")
                 lines.push(`${root.flat(description)}\t${root.flat(kept[description])}`)
+        }
+        for (const custom of root.customs) {
+            if (custom.combination !== "")
+                lines.push(`${root.flat(custom.description)}\t${root.flat(custom.combination)}`
+                    + `\t${root.flat(custom.kind)}\t${root.flat(custom.target)}`)
         }
         return lines.length === 0 ? "" : root.keysHeader + lines.join("\n") + "\n"
     }

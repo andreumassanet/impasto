@@ -40,8 +40,32 @@ Item {
         notes: notesLarge,
         tasks: tasksLarge,
         photo: photoLarge,
-        spectrum: spectrumLarge
+        spectrum: spectrumLarge,
+        tray: trayLarge
     })
+
+    // The three stats traces. Functions rather than an array model: a model
+    // literal is re-evaluated whenever the stats change, and a new array
+    // model would destroy and recreate every delegate on each poll.
+    function traceLabel(index: int): string {
+        return ["Processor", "Memory", "Network"][index] ?? ""
+    }
+
+    function traceReading(index: int): string {
+        return [
+            `${StatsService.cpu.toFixed(0)}%`,
+            StatsService.bytes(StatsService.memoryUsed),
+            StatsService.rate(StatsService.networkDown)
+        ][index] ?? ""
+    }
+
+    function traceSeries(index: int): var {
+        return [
+            StatsService.cpuHistory,
+            StatsService.memoryHistory,
+            StatsService.downHistory
+        ][index] ?? []
+    }
 
     Loader {
         anchors.fill: parent
@@ -167,21 +191,16 @@ Item {
                     spacing: 10
 
                     Repeater {
-                        model: [
-                            { title: "Processor", reading: `${StatsService.cpu.toFixed(0)}%`,
-                              series: StatsService.cpuHistory },
-                            { title: "Memory",
-                              reading: `${StatsService.bytes(StatsService.memoryUsed)}`,
-                              series: StatsService.memoryHistory },
-                            { title: "Network",
-                              reading: StatsService.rate(StatsService.networkDown),
-                              series: StatsService.downHistory }
-                        ]
+                        model: 3
 
                         Item {
                             id: trace
 
-                            required property var modelData
+                            required property int index
+
+                            readonly property string title: root.traceLabel(trace.index)
+                            readonly property string reading: root.traceReading(trace.index)
+                            readonly property var series: root.traceSeries(trace.index)
 
                             width: parent.width
                             height: (parent.height - 20) / 3
@@ -191,7 +210,7 @@ Item {
 
                                 anchors.left: parent.left
                                 anchors.top: parent.top
-                                text: trace.modelData.title
+                                text: trace.title
                                 font.family: Theme.fontFamily
                                 font.pixelSize: Theme.fontSizeLabel
                                 color: root.ink.muted
@@ -200,7 +219,7 @@ Item {
                             Text {
                                 anchors.right: parent.right
                                 anchors.top: parent.top
-                                text: trace.modelData.reading
+                                text: trace.reading
                                 font.family: Theme.fontMono
                                 font.pixelSize: Theme.fontSizeLabel
                                 color: root.ink.text
@@ -212,7 +231,7 @@ Item {
                                 anchors.top: traceTitle.bottom
                                 anchors.bottom: parent.bottom
                                 anchors.topMargin: 2
-                                values: trace.modelData.series
+                                values: trace.series
                                 stroke: root.ink.accent
                             }
                         }
@@ -737,5 +756,12 @@ Item {
         id: spectrumLarge
 
         SpectrumFace { ink: root.ink; row: root.row; family: "4x4" }
+    }
+
+    // The status notifier icons in the widget's capsule; see `TrayFace`.
+    Component {
+        id: trayLarge
+
+        TrayFace { ink: root.ink; row: root.row; family: "4x4" }
     }
 }
