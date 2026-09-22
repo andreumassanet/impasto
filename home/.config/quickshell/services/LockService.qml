@@ -56,12 +56,16 @@ Singleton {
             return
         root.awake = true
         root.drowse.restart()
+        root.wake()
     }
 
-    // Surfaces clear their field when this falls.
+    // Surfaces clear their field when this falls, and a scan under way stops.
     function rest(): void {
         root.drowse.stop()
         root.awake = false
+        if (root.face.active)
+            root.face.abort()
+        root.faceScanning = false
         root.failed = false
         root.message = ""
     }
@@ -255,8 +259,9 @@ Singleton {
     property bool faceMatched: false
     signal faceMissed()
 
-    // A scan starts on a key, the pointer or the lid, never on its own: the
-    // camera would otherwise find the face that has just locked the screen.
+    // A scan starts only on an awake screen — on waking it, by a key, a click
+    // or the lid, or on the pointer while it is — never on its own: the camera would otherwise
+    // find the face that has just locked the screen.
     // A miss rests long enough for its shake to be seen, and after three only
     // Enter on an empty field asks again.
     readonly property int faceRest: 1500
@@ -269,7 +274,7 @@ Singleton {
     readonly property int faceHold: 650
 
     function wake(): void {
-        if (root.faceMisses >= root.faceTries || Date.now() < root.faceQuietUntil)
+        if (!root.awake || root.faceMisses >= root.faceTries || Date.now() < root.faceQuietUntil)
             return
         root.scan()
     }
@@ -295,7 +300,7 @@ Singleton {
         onCompleted: result => {
             const looked = root.faceScanning
             root.faceScanning = false
-            if (!root.locked || root.leaving)
+            if (!root.locked || root.leaving || !root.awake)
                 return
             if (result === PamResult.Success) {
                 root.faceMatched = true

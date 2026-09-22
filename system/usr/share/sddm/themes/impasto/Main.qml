@@ -200,6 +200,7 @@ Rectangle {
         failed: root.failed
         message: root.message
         capsLock: keyboard.capsLock
+        awake: root.awake
 
         onSubmitted: password => root.attempt(password)
         onWoke: root.rouse()

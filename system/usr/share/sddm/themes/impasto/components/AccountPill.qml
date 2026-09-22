@@ -28,6 +28,7 @@ Item {
     property bool failed: false
     property string message: ""
     property bool capsLock: false
+    property bool awake: false
 
     signal submitted(string password)
     // A failure is bound from outside, so the pill only asks for it to go.
@@ -294,12 +295,14 @@ Item {
                 // the field clears and the clock comes back.
                 Keys.onEscapePressed: root.escaped()
 
-                // The key still reaches the field, so the first character is
-                // kept.
+                // The key that wakes the screen only opens it and types
+                // nothing; once awake, keys reach the field.
                 Keys.onPressed: event => {
-                    if (event.key !== Qt.Key_Shift && event.key !== Qt.Key_CapsLock)
-                        root.woke()
-                    event.accepted = false
+                    if (event.key === Qt.Key_Shift || event.key === Qt.Key_CapsLock
+                            || event.key === Qt.Key_Escape)
+                        return
+                    event.accepted = !root.awake
+                    root.woke()
                 }
             }
 

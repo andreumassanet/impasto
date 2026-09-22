@@ -59,8 +59,8 @@ Item {
         }
     }
 
-    // The pointer moving is somebody there, and a reason to look for a face;
-    // a click wakes the screen as a key does. Qt sends a hover at the resting
+    // The pointer moving on an awake screen is a reason to look for a face
+    // again; a click wakes the screen as a key does. Qt sends a hover at the resting
     // position whenever the scene repaints, so only a pointer that has moved
     // counts.
     HoverHandler {
@@ -79,7 +79,6 @@ Item {
 
     TapHandler {
         onTapped: {
-            LockService.wake()
             LockService.rouse()
             account.claim()
         }

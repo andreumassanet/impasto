@@ -207,13 +207,14 @@ Item {
                 }
 
                 // Any other key is somebody there and wakes the screen, bar
-                // Shift and Caps Lock on their own; the key still reaches the
-                // field, so the first character is kept.
+                // Shift and Caps Lock on their own. The key that wakes it only
+                // opens it and types nothing; once awake, keys reach the field.
                 Keys.onPressed: event => {
-                    LockService.wake()
-                    if (event.key !== Qt.Key_Shift && event.key !== Qt.Key_CapsLock)
-                        LockService.rouse()
-                    event.accepted = false
+                    if (event.key === Qt.Key_Shift || event.key === Qt.Key_CapsLock
+                            || event.key === Qt.Key_Escape)
+                        return
+                    event.accepted = !LockService.awake
+                    LockService.rouse()
                 }
             }
 
