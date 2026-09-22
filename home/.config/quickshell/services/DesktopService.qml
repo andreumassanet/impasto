@@ -869,12 +869,38 @@ Singleton {
         }
         const notes = root.deckNotes(other).concat(
             root.deckNotes(deck).filter(note => root.deckNotes(other).indexOf(note) < 0))
+        const merged = { notes: notes }
+        if (deck.takesNew === true)
+            merged.takesNew = true
         if (root.selected === key)
             root.selected = other.key
         root.write(root.widgets
             .filter(widget => widget.key !== key)
             .map(widget => widget.key === other.key
-                ? Object.assign({}, widget, { notes: notes }) : widget))
+                ? Object.assign({}, widget, merged) : widget))
+    }
+
+    // The one deck new notes land on, if any: `takesNew` on its row, cleared
+    // from every other deck when set, and gone with the deck when it empties.
+    function setTakesNew(key: string, on: bool): void {
+        if (!root.isDeck(root.entryOf(key)))
+            return
+        root.write(root.widgets.map(widget => {
+            if (!root.isDeck(widget))
+                return widget
+            const next = Object.assign({}, widget)
+            if (on && widget.key === key)
+                next.takesNew = true
+            else
+                delete next.takesNew
+            return next
+        }))
+    }
+
+    function noteAdded(noteKey: string): void {
+        const deck = root.decks.find(widget => widget.takesNew === true)
+        if (deck)
+            root.placeNote(noteKey, root.nameOf(deck), deck.edge)
     }
 
     // A note ticked on or off a deck from the inspector.

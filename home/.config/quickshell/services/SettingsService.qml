@@ -621,6 +621,8 @@ Singleton {
         //   screen   as above
         //   edge     "left", "right" or "bottom"
         //   notes    the note keys on it, in order along the edge
+        //   along    where on the edge, 0 to 1 from its first corner
+        //   takesNew true on the one deck new notes land on
         property var desktopWidgets: []
 
         // Defaults for widgets without their own: a theme from

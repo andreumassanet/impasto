@@ -372,6 +372,7 @@ QtObject {
             "Grid": "Cuadrícula",
             "Along the edge": "A lo largo del borde",
             "Which notes": "Qué notas",
+            "New notes land here": "Las notas nuevas van aquí",
             "Which note": "Qué nota",
             "The newest": "La más reciente",
             "New note": "Nota nueva",

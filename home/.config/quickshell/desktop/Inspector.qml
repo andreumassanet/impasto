@@ -567,6 +567,25 @@ Item {
             // For a deck: every note, ticked on or off this edge, in the order
             // ticked. Ticking a note here moves it from wherever it was.
 
+            Item {
+                visible: root.deck
+                width: parent.width
+                height: 28
+
+                Heading {
+                    anchors.left: parent.left
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: Tr.t("New notes land here")
+                }
+
+                ToggleSwitch {
+                    anchors.right: parent.right
+                    anchors.verticalCenter: parent.verticalCenter
+                    checked: root.deck && root.row.takesNew === true
+                    onToggled: checked => DesktopService.setTakesNew(root.key, checked)
+                }
+            }
+
             Text {
                 visible: root.deck
                 text: Tr.t("Which notes")

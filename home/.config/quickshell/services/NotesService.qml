@@ -141,6 +141,7 @@ Singleton {
             edited: now,
             archived: false
         }]))
+        DesktopService.noteAdded(key)
         root.added(key)
         return key
     }
