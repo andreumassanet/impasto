@@ -22,6 +22,7 @@ imagemagick                  # the palette board
 python                       # every backend in scripts/
 git                          # setup's own clones, ./setup cursors, lazy.nvim
 grim                         # the capture's photograph, and the lock screen's
+dbus                         # dbus-monitor, which hears logind about to sleep
 wl-clipboard                 # copying, and the clipboard's history
 gtk3                         # gtk-launch, which the launcher opens applications with
 libnotify                    # notify-send, which the timer rings with

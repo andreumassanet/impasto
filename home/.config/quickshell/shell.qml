@@ -54,6 +54,8 @@ ShellRoot {
         void SunsetService.available
         // Arms the idle monitors.
         void IdleService.lockAfter
+        // Holds every sleep until the lock is up.
+        void SessionService.sleepPending
         // Seeds the example profiles on a first install.
         void ProfileService.arrived
     }
@@ -278,13 +280,14 @@ ShellRoot {
         onPressed: MonitorService.lid(true)
     }
 
-    // Opening the lid is somebody sitting down, and the lock looks for them.
+    // Opening the lid is somebody sitting down: it wakes the lock, which
+    // looks for them.
     GlobalShortcut {
         name: "lidOpened"
         description: "The laptop lid was opened"
         onPressed: {
             MonitorService.lid(false)
-            LockService.wake()
+            LockService.rouse()
         }
     }
 
