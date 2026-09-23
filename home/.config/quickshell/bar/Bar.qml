@@ -358,7 +358,11 @@ PanelWindow {
             Item {
                 id: caster
 
+                // Attached, the layer runs above the screen by the blur's reach and
+                // the shapes run up into it, so the blur reads the notch as going on
+                // past the edge and the shadow keeps its weight up to the top.
                 anchors.fill: parent
+                anchors.topMargin: -caster.pad
                 opacity: Theme.shadowOpacity
 
                 layer.enabled: true
@@ -369,12 +373,13 @@ PanelWindow {
                 }
 
                 readonly property int spread: Theme.shadowBarSpread
+                readonly property int pad: SettingsService.islandAttached ? Theme.shadowBarRange : 0
 
                 Rectangle {
                     x: band.x - caster.spread
                     y: band.y - caster.spread
                     width: band.width + 2 * caster.spread
-                    height: band.height + 2 * caster.spread
+                    height: band.height + 2 * caster.spread + caster.pad
                     radius: band.radius + caster.spread
                     topLeftRadius: band.topLeftRadius > 0 ? band.topLeftRadius + caster.spread : 0
                     topRightRadius: band.topRightRadius > 0 ? band.topRightRadius + caster.spread : 0
@@ -386,27 +391,62 @@ PanelWindow {
                     x: root.islandLeft - caster.spread
                     y: island.y - caster.spread
                     width: island.width + 2 * caster.spread
-                    height: island.height + 2 * caster.spread
+                    height: island.height + 2 * caster.spread + caster.pad
                     radius: island.radius + caster.spread
                     topLeftRadius: island.topLeftRadius > 0 ? island.topLeftRadius + caster.spread : 0
                     topRightRadius: island.topRightRadius > 0 ? island.topRightRadius + caster.spread : 0
                     color: Theme.shadowColor
                 }
 
+                // The fillets grown by the spread as the rectangles are: the same
+                // centre, a radius short by the spread, and a strip for the top
+                // edge moved up by it. Past the tip the strip runs on along the
+                // edge and fades out, or the shadow down the curve stops square
+                // where the curve meets the edge.
                 Repeater {
                     model: [notchLeft, notchRight]
 
-                    NotchFillet {
+                    Item {
                         required property var modelData
 
                         x: modelData.x
-                        y: modelData.y
+                        y: caster.pad + modelData.y
                         width: modelData.width
                         height: modelData.height
                         visible: modelData.visible
                         opacity: modelData.opacity
-                        mirrored: modelData.mirrored
-                        color: Theme.shadowColor
+
+                        Rectangle {
+                            y: -caster.pad
+                            width: parent.width
+                            height: caster.pad + caster.spread
+                            color: Theme.shadowColor
+                        }
+
+                        Rectangle {
+                            id: tail
+
+                            readonly property bool mirrored: parent.modelData.mirrored
+
+                            x: mirrored ? -width : parent.width
+                            y: -caster.pad
+                            width: parent.width * 2
+                            height: caster.pad + caster.spread
+                            gradient: Gradient {
+                                orientation: Gradient.Horizontal
+                                GradientStop { position: 0; color: tail.mirrored ? "transparent" : Theme.shadowColor }
+                                GradientStop { position: 1; color: tail.mirrored ? Theme.shadowColor : "transparent" }
+                            }
+                        }
+
+                        NotchFillet {
+                            x: parent.modelData.mirrored ? 0 : caster.spread
+                            y: caster.spread
+                            width: Math.max(0, parent.width - caster.spread)
+                            height: Math.max(0, parent.height - caster.spread)
+                            mirrored: parent.modelData.mirrored
+                            color: Theme.shadowColor
+                        }
                     }
                 }
 
@@ -477,7 +517,7 @@ PanelWindow {
             radius: band.radius
             topLeftRadius: band.topLeftRadius
             topRightRadius: band.topRightRadius
-            visible: root.unified && !island.paper
+            visible: root.unified && !island.paper && !SettingsService.islandAttached
             color: "transparent"
             border.width: 1
             border.color: root.islandTaken ? Theme.islandBorder : "transparent"
@@ -524,6 +564,20 @@ PanelWindow {
             anchors.top: parent.top
             visible: SettingsService.islandAttached
             color: island.surfaceColor
+        }
+
+        // Attached, the hairline runs down the fillets and round the shape, and
+        // not along the screen edge. In one capsule only while the island has
+        // the band, as `outline` above.
+        NotchOutline {
+            visible: SettingsService.islandAttached && !island.paper
+            shapeLeft: root.shapeLeft
+            shapeRight: root.shapeRight
+            shapeHeight: root.unified ? band.height : island.height
+            radius: island.radius
+            color: !root.unified || root.islandTaken ? Theme.islandBorder : "transparent"
+
+            Behavior on color { ColorAnimation { duration: Theme.durationMedium } }
         }
 
         // ── SIDES ───────────────────────────────────────────────────────────────

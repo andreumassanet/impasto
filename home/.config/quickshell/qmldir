@@ -66,6 +66,7 @@ ContributionGrid 1.0 components/ContributionGrid.qml
 Sparkline        1.0 components/Sparkline.qml
 Spectrum         1.0 components/Spectrum.qml
 NotchFillet      1.0 components/NotchFillet.qml
+NotchOutline     1.0 components/NotchOutline.qml
 ClaudeMark       1.0 components/ClaudeMark.qml
 PaletteBoard     1.0 components/PaletteBoard.qml
 PetFace          1.0 components/PetFace.qml

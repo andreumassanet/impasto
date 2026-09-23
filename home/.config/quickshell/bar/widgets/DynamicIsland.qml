@@ -308,9 +308,10 @@ Rectangle {
 
     // No hairline in the one-capsule style: at rest the island's edges run
     // through the band's interior, and while growing the band is the outer
-    // edge. `Bar.qml` draws the outline over both.
+    // edge. `Bar.qml` draws the outline over both. Attached, `Bar.qml` draws
+    // it too, down the fillets and open along the screen edge.
     readonly property bool inBand: root.hosted
-    border.width: root.paper || root.inBand ? 0 : 1
+    border.width: root.paper || root.inBand || SettingsService.islandAttached ? 0 : 1
     clip: true
 
     // Attached, the upper corners go square: the curve is added outside the
