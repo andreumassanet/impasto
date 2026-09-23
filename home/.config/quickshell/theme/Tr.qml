@@ -215,6 +215,11 @@ QtObject {
             "The bar": "La barra",
             "While it runs": "Mientras está en marcha",
             "Nothing to set: it is drawn one way.": "Nada que ajustar: se dibuja de una sola forma.",
+            "Rings": "Anillos",
+            "Numbers": "Números",
+            "Roman": "Romanos",
+            "Kanji": "Kanji",
+            "Greek": "Griego",
             "Icon shows the module's symbol; Ring draws the gauge of a module that measures something (charge, volume, a countdown) as a circle around it, and the rest keep their symbol. The figure is the value itself, and On hover shows it only while the pointer is over the chip.":
                 "Icono muestra el símbolo del módulo; Anillo dibuja el indicador de los módulos que miden algo (carga, volumen, una cuenta atrás) como un círculo a su alrededor, y los demás se quedan con su símbolo. La cifra es el valor en sí, y Al pasar solo la muestra mientras el cursor está sobre la pieza.",
             "Icon": "Icono",

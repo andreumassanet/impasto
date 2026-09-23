@@ -282,52 +282,9 @@ SettingsSection {
         title: Tr.t("Workspaces")
         note: Tr.t("The shown workspaces are always drawn; the rest, up to the available count, appear only while they have windows.")
 
-        // Kept slots solid, the rest hollow (shown only while occupied).
         SettingBlock {
-            Rectangle {
-                Layout.alignment: Qt.AlignHCenter
-                implicitWidth: strip.implicitWidth + 24
-                implicitHeight: 28
-                radius: Theme.radiusPill
-                color: Theme.island
-                border.color: Theme.islandBorder
-                border.width: 1
-
-                Row {
-                    id: strip
-
-                    anchors.centerIn: parent
-                    spacing: 8
-
-                    Repeater {
-                        model: SettingsService.workspaceMax
-
-                        Rectangle {
-                            required property int index
-
-                            readonly property bool focused: index === 0
-                            readonly property bool kept:
-                                index < SettingsService.workspaceCount
-
-                            anchors.verticalCenter: parent.verticalCenter
-                            width: focused ? 22 : 6
-                            height: 6
-                            radius: height / 2
-                            color: focused ? Theme.accent
-                                : (kept ? Theme.indicatorDim : "transparent")
-                            border.color: Theme.indicatorDim
-                            border.width: kept ? 0 : 1
-                            opacity: kept ? 1 : 0.45
-
-                            Behavior on width {
-                                NumberAnimation {
-                                    duration: Theme.durationMedium
-                                    easing.type: Theme.easing
-                                }
-                            }
-                        }
-                    }
-                }
+            WorkspaceStyles {
+                Layout.fillWidth: true
             }
         }
 

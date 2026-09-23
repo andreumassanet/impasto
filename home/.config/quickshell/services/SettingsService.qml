@@ -80,6 +80,7 @@ Singleton {
     readonly property alias spectrumOnEmpty: config.spectrumOnEmpty
     readonly property alias workspaceCount: config.workspaceCount
     readonly property alias workspaceMax: config.workspaceMax
+    readonly property alias workspaceStyle: config.workspaceStyle
     readonly property alias motionScale: config.motionScale
     readonly property alias motionCurve: config.motionCurve
     readonly property alias animationPreset: config.animationPreset
@@ -239,6 +240,18 @@ Singleton {
     readonly property var chipShapes: [
         { id: "icon", label: "Icon", note: "The symbol alone, small." },
         { id: "ring", label: "Ring", note: "The gauge, in a circle." }
+    ]
+
+    // How the workspace strip draws a workspace: shapes first, then the
+    // number written out.
+    readonly property var workspaceStyles: [
+        { id: "dots", label: "Dots" },
+        { id: "bars", label: "Bars" },
+        { id: "rings", label: "Rings" },
+        { id: "numbers", label: "Numbers" },
+        { id: "roman", label: "Roman" },
+        { id: "kanji", label: "Kanji" },
+        { id: "greek", label: "Greek" }
     ]
 
     readonly property var chipFigures: [
@@ -540,6 +553,9 @@ Singleton {
         // past `workspaceCount` still show while occupied.
         property int workspaceCount: 5
         property int workspaceMax: 10
+        // How the strip draws each workspace: a shape (`dots`, `bars`, `rings`)
+        // or its number written out (`numbers`, `roman`, `kanji`, `greek`).
+        property string workspaceStyle: "dots"
 
         // Percentage. 100 is the designed speed; 0 disables animation.
         property int motionScale: 100

@@ -154,6 +154,7 @@ ProfilesPart          1.0 settings/ProfilesPart.qml
 ControlsSection       1.0 settings/ControlsSection.qml
 FontPicker            1.0 settings/FontPicker.qml
 LayoutPicker          1.0 settings/LayoutPicker.qml
+WorkspaceStyles       1.0 settings/WorkspaceStyles.qml
 ShortcutRow           1.0 settings/ShortcutRow.qml
 
 MediaCard        1.0 bar/island/controls/MediaCard.qml

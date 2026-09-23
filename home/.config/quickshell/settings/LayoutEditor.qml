@@ -421,10 +421,17 @@ Item {
                     }
                 }
 
-                // Buttons, the strip and splits have no look to set.
+                // The strip's look is its style, for the whole bar.
+                WorkspaceStyles {
+                    Layout.fillWidth: true
+                    visible: root.picked !== null && root.picked.id === "workspaces"
+                }
+
+                // Buttons and splits have no look to set.
                 Text {
                     Layout.fillWidth: true
                     visible: !root.pickedModule
+                        && !(root.picked !== null && root.picked.id === "workspaces")
                     text: Tr.t("Nothing to set: it is drawn one way.")
                     font.family: Theme.fontFamily
                     font.pixelSize: Theme.fontSizeLabel
