@@ -177,6 +177,34 @@ QtObject {
 
     function loadClients(): void { root.clientsProcess.running = true }
 
+    readonly property Timer refreshSoon: Timer {
+        interval: 30
+        onTriggered: {
+            root.refresh()
+            if (root.watchClients || root.clients.length > 0)
+                root.loadClients()
+        }
+    }
+
+    readonly property Timer clientsSoon: Timer {
+        interval: 30
+        onTriggered: root.loadClients()
+    }
+
+    function retitle(data: string): void {
+        const comma = data.indexOf(",")
+        if (comma < 0)
+            return
+        const address = `0x${data.slice(0, comma)}`
+        const title = data.slice(comma + 1)
+        const index = root.clients.findIndex(client => client.address === address)
+        if (index < 0 || root.clients[index].title === title)
+            return
+        const next = root.clients.slice()
+        next[index] = Object.assign({}, next[index], { title: title })
+        root.clients = next
+    }
+
     function clientsOn(workspaceId: int): var {
         return root.clients.filter(client => client.workspace.id === workspaceId)
     }
@@ -303,22 +331,22 @@ QtObject {
         target: Hyprland
 
         function onRawEvent(event): void {
+            // Hyprland sends most events twice, plain and v2; only one of
+            // each pair is handled, and a burst becomes one query.
             switch (event.name) {
-            case "workspace":
             case "workspacev2":
-            case "createworkspace":
             case "createworkspacev2":
-            case "destroyworkspace":
             case "destroyworkspacev2":
             case "openwindow":
             case "closewindow":
-            case "movewindow":
             case "movewindowv2":
-            case "windowtitle":
+                root.refreshSoon.restart()
+                break
+            // `ADDRESS,TITLE`. A spinner in a terminal's title sends one a
+            // second, so the title is written into the list already held
+            // rather than asked for again.
             case "windowtitlev2":
-                root.refresh()
-                if (root.watchClients || root.clients.length > 0)
-                    root.loadClients()
+                root.retitle(String(event.data))
                 break
             // `MONITOR,WORKSPACE`, sent whenever the keyboard changes screen.
             case "focusedmon":
@@ -339,12 +367,10 @@ QtObject {
                 break
             // Focus changes only affect the client list, and only watchers
             // need it; skipping it otherwise saves a process per alt-tab.
-            case "activewindow":
             case "activewindowv2":
-                if (event.name === "activewindowv2")
-                    root.focusedAddress = event.data === "" ? "" : `0x${event.data}`
+                root.focusedAddress = event.data === "" ? "" : `0x${event.data}`
                 if (root.watchClients)
-                    root.loadClients()
+                    root.clientsSoon.restart()
                 break
             }
         }
