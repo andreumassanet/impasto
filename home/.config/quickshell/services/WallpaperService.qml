@@ -101,6 +101,8 @@ QtObject {
                 root.currentProcess.running = true
             } else {
                 console.warn("Could not apply wallpaper:", root.asked)
+                // the warning alone only reaches the log
+                OsdService.requested("󰀦", "Could not apply wallpaper", -1)
                 // `apply` named it already: read back what is really up
                 root.asked = ""
                 root.currentProcess.running = true

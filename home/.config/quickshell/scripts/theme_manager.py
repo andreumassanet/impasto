@@ -3986,9 +3986,14 @@ def set_wallpaper(chosen, transition="wipe"):
         command = ["awww", "img", image_path, "--transition-type", transition,
                    "--transition-duration", "1"]
         try:
-            subprocess.run(command, capture_output=True, timeout=15)
+            result = subprocess.run(command, capture_output=True, timeout=15)
         except (OSError, subprocess.SubprocessError) as error:
             sys.stderr.write(f"awww failed: {error}\n")
+            return False
+        if result.returncode != 0:
+            stderr = result.stderr.decode(errors="replace").strip()
+            sys.stderr.write(f"awww failed: {stderr or f'exit {result.returncode}'}\n")
+            return False
 
     if motion:
         start_motion(motion, delay=1)
