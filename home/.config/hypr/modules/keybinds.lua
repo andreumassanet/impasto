@@ -103,13 +103,26 @@ local function float_centred()
     hl.dispatch(hl.dsp.window.center())
 end
 
+-- The split is dwindle's. Master turns its stack to the next side instead;
+-- scrolling has no split, and the key does nothing there.
+local function flip_split()
+    local workspace = hl.get_active_workspace()
+    local layout = workspace and workspace.tiled_layout
+    if layout == "dwindle" then
+        hl.dispatch(hl.dsp.layout("togglesplit"))
+    elseif layout == "master" then
+        hl.dispatch(hl.dsp.layout("orientationnext"))
+    end
+end
+
 bind(mainMod .. " + Q",           hl.dsp.window.close(), { description = "Windows · Close the focused window" })
 bind(mainMod .. " + SHIFT + Q",   hl.dsp.window.kill(),  { description = "Windows · Kill the focused window" })
 bind(mainMod .. " + F",           hl.dsp.window.fullscreen({ mode = "fullscreen", action = "toggle" }), { description = "Windows · Full screen" })
 bind(mainMod .. " + ALT + F",     hl.dsp.window.fullscreen({ mode = "maximized", action = "toggle" }),  { description = "Windows · Maximise, keeping the bar" })
 bind(mainMod .. " + ALT + Space", float_centred,          { description = "Windows · Float or tile the window" })
 bind(mainMod .. " + P",           hl.dsp.window.pseudo(), { description = "Windows · Toggle pseudo-tiling" })
-bind(mainMod .. " + J",           hl.dsp.layout("togglesplit"), { description = "Windows · Flip the split direction" })
+bind(mainMod .. " + J",           flip_split,             { description = "Windows · Flip the split direction" })
+bind(mainMod .. " + SHIFT + L",   hl.dsp.global("quickshell:layout"), { description = "Windows · Cycle the layout" })
 
 -- · move focus
 bind(mainMod .. " + left",  hl.dsp.focus({ direction = "l" }), { description = "Windows · Focus the window left" })

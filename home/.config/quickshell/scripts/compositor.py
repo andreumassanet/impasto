@@ -41,6 +41,8 @@ OPTIONS = [
     ("general:gaps_in", "gaps"),
     ("general:gaps_out", "gaps"),
     ("general:border_size", "int"),
+    # dwindle, master or scrolling, for every workspace.
+    ("general:layout", "str"),
     ("decoration:rounding", "int"),
     ("decoration:active_opacity", "float"),
     ("decoration:inactive_opacity", "float"),

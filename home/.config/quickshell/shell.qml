@@ -410,6 +410,12 @@ ShellRoot {
     }
 
     GlobalShortcut {
+        name: "layout"
+        description: "Cycle the layout"
+        onPressed: CompositorService.cycleLayout()
+    }
+
+    GlobalShortcut {
         name: "packages"
         description: "Open the packages"
         onPressed: root.island?.toggle("packages")

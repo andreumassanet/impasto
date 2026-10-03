@@ -378,6 +378,7 @@ QtObject {
             "on the wallpaper": "en el fondo",
             "Nothing on the wallpaper yet": "Nada en el fondo todavía",
             "Hide the widgets": "Ocultar los widgets",
+            "Window layout": "Disposición de ventanas",
             "Off the wallpaper until you show them again": "Fuera del fondo hasta que los vuelvas a mostrar",
             "Look": "Aspecto",
             "Every widget follows these unless it was given a look of its own.":
@@ -608,8 +609,8 @@ QtObject {
 
             "How Hyprland draws every window, this one included.":
                 "Cómo dibuja Hyprland cada ventana, esta incluida.",
-            "The preview below is live and at full size. The border stays at zero because gaps and rounding already separate windows; the inner gap applies to each side of a window, so two windows sit twice that apart.":
-                "La vista previa de abajo es en vivo y a tamaño real. El borde se queda en cero porque los huecos y el redondeo ya separan las ventanas; el hueco interior se aplica a cada lado de una ventana, así que entre dos queda el doble.",
+            "Dwindle splits the space each new window lands in, Master keeps one large window beside a stack, and Scrolling lays windows in a row wider than the screen. The preview below is live and at full size. The border stays at zero because gaps and rounding already separate windows; the inner gap applies to each side of a window, so two windows sit twice that apart.":
+                "Dwindle parte el hueco donde cae cada ventana nueva, Master deja una ventana grande junto a una pila y Scrolling pone las ventanas en una fila más ancha que la pantalla. La vista previa de abajo es en vivo y a tamaño real. El borde se queda en cero porque los huecos y el redondeo ya separan las ventanas; el hueco interior se aplica a cada lado de una ventana, así que entre dos queda el doble.",
             "Window rounding": "Redondeo de ventanas",
             "Border width": "Grosor del borde",
             "Inner gap": "Hueco interior",

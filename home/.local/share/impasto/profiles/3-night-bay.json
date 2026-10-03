@@ -182,6 +182,7 @@
       "Windows · Float or tile the window": "SUPER + ALT + Space",
       "Windows · Toggle pseudo-tiling": "SUPER + P",
       "Windows · Flip the split direction": "SUPER + J",
+      "Windows · Cycle the layout": "SUPER + SHIFT + L",
       "Windows · Focus the window left": "SUPER + left",
       "Windows · Focus the window right": "SUPER + right",
       "Windows · Focus the window up": "SUPER + up",

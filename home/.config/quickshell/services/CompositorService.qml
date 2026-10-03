@@ -135,6 +135,28 @@ Singleton {
         onExited: root.load()
     }
 
+    // ── LAYOUT ──────────────────────────────────────────────────────────────
+    //
+    // How tiled windows are placed, for every workspace at once. It rides the
+    // store like any other option; the key cycles it and says which it chose.
+    readonly property var windowLayouts: [
+        { id: "dwindle",   label: "Dwindle",   icon: "󰕴" },
+        { id: "master",    label: "Master",    icon: "󰛾" },
+        { id: "scrolling", label: "Scrolling", icon: "󰕬" }
+    ]
+
+    // The store first: Hyprland's answer lags a push, and a quick second
+    // press would cycle from the old value.
+    readonly property string windowLayout:
+        root.store?.["general:layout"] ?? root.value("general:layout", "dwindle")
+
+    function cycleLayout(): void {
+        const ids = root.windowLayouts.map(entry => entry.id)
+        const next = root.windowLayouts[(ids.indexOf(root.windowLayout) + 1) % ids.length]
+        root.remember("general:layout", next.id)
+        OsdService.requested(next.icon, `${Tr.t("Layout")} · ${Tr.t(next.label)}`, -1)
+    }
+
     // ── ANIMATIONS ──────────────────────────────────────────────────────────
     //
     // `animations.lua` only enables animations; the preset is pushed from
