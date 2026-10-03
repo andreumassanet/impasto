@@ -322,6 +322,12 @@ Singleton {
             }
         },
         Toggle {
+            key: "game"; icon: "󰺵"; label: "Game mode"
+            detail: SettingsService.gameMode ? "No effects" : "Off"
+            active: SettingsService.gameMode
+            action: () => SettingsService.set("gameMode", !SettingsService.gameMode)
+        },
+        Toggle {
             key: "screenshot"; icon: "󰹑"; label: "Capture"
             detail: "Photo or video"
             available: CaptureService.can("grim")

@@ -50,6 +50,7 @@ Singleton {
         { name: "keys",           label: "Keys",                 description: "Shell · Show every key" },
         { name: "zen",            label: "Zen",                  description: "Shell · Hide or show the bar" },
         { name: "widgets",        label: "Hide the widgets",     description: "Shell · Hide or show the desktop widgets" },
+        { name: "game",           label: "Game mode",            description: "Shell · Turn game mode on or off" },
         { name: "layout",         label: "Window layout",        description: "Windows · Cycle the layout" },
         { name: "packages",       label: "Packages",             description: "Shell · Open the packages" },
         { name: "clipboard",      label: "Clipboard history",    description: "Shell · Open the clipboard history" },

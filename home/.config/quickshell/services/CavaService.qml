@@ -45,7 +45,15 @@ Singleton {
 
     property int watchers: 0
 
-    readonly property bool active: root.watchers > 0
+    // Game mode stops it too. Stopped, the bars fall flat rather than freeze.
+    readonly property bool active: root.watchers > 0 && !SettingsService.gameMode
+
+    onActiveChanged: {
+        if (!root.active) {
+            root.bands = new Array(root.bandCount).fill(0)
+            root.peaks = new Array(root.bandCount).fill(0)
+        }
+    }
 
     // Mean of the bars as a single level, for the player's ring chip. Raised
     // to 0.55 because cava reports linear amplitude and loudness is perceived
@@ -93,9 +101,5 @@ Singleton {
 
     function release(): void {
         root.watchers = Math.max(0, root.watchers - 1)
-        if (root.watchers === 0) {
-            root.bands = new Array(root.bandCount).fill(0)
-            root.peaks = new Array(root.bandCount).fill(0)
-        }
     }
 }

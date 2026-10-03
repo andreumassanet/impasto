@@ -487,6 +487,22 @@ SettingsSection {
         visible: root.tab === "motion"
 
         SettingGroup {
+            title: Tr.t("Game mode")
+            note: Tr.t("Everything still, for a game or a slow machine.")
+            hint: Tr.t("Stops the shell's animations, the spectrum and the pet, and turns off Hyprland's animations, blur, shadow and glass. The settings below are kept and come back when it is turned off.")
+
+            SettingRow {
+                label: Tr.t("Game mode")
+                reading: ShortcutService.current("Shell · Turn game mode on or off")
+
+                ToggleSwitch {
+                    checked: SettingsService.gameMode
+                    onToggled: checked => SettingsService.set("gameMode", checked)
+                }
+            }
+        }
+
+        SettingGroup {
             title: Tr.t("The shell")
             note: Tr.t("The island, its panels, the chips — everything Qt draws.")
 

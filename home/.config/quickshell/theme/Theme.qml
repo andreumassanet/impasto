@@ -432,7 +432,10 @@ QtObject {
 
     // ── MOTION ──────────────────────────────────────────────────────────────
 
-    readonly property real motion: SettingsService.motionScale / 100
+    // Game mode stills the shell whatever the pace says: nothing morphs and
+    // nothing loops while it is on.
+    readonly property real motion: SettingsService.gameMode ? 0 : SettingsService.motionScale / 100
+    readonly property bool lively: !SettingsService.gameMode
 
     readonly property var easingCurves: [
         { id: "OutCubic", label: "Smooth",  type: Easing.OutCubic },

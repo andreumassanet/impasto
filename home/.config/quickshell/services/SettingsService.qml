@@ -35,6 +35,7 @@ Singleton {
     readonly property alias barStyle: config.barStyle
     readonly property alias barEverywhere: config.barEverywhere
     readonly property alias barHidden: config.barHidden
+    readonly property alias gameMode: config.gameMode
     readonly property alias barLeft: config.barLeft
     readonly property alias barRight: config.barRight
     readonly property alias islandSummary: config.islandSummary
@@ -309,6 +310,7 @@ Singleton {
         "userName", "userAvatar", "language", "keyboard", "weatherPlace", "githubUser",
         "emojiTone",
         "doNotDisturb", "nightLight", "nightTemperature", "barHidden", "desktopHidden",
+        "gameMode",
         "recorderAudio", "captureShape", "captureKind"
     ]
 
@@ -486,6 +488,10 @@ Singleton {
         // Zen: the bar off the screen and its band given to the windows; the
         // island still comes down for what it has to show.
         property bool barHidden: false
+
+        // Game mode: no animations, blur, shadow or glass on the compositor,
+        // over whatever the rest of the settings say.
+        property bool gameMode: false
 
         // Three shadows, one per layer: Hyprland's under the windows, the
         // shell's under the bar and the dock, and under the desk's widgets.

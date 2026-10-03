@@ -147,7 +147,7 @@ Item {
                 Behavior on radius { NumberAnimation { duration: Theme.durationFast } }
 
                 SequentialAnimation on opacity {
-                    running: !segment.hovered
+                    running: !segment.hovered && Theme.lively
                     loops: Animation.Infinite
                     onRunningChanged: if (!running) parent.opacity = 1
                     NumberAnimation { to: 0.4; duration: 900; easing.type: Theme.easing }

@@ -94,7 +94,7 @@ Item {
         // 33⅓ rpm. A RotationAnimator runs on the render thread, and only while
         // the widget is visible.
         RotationAnimator on rotation {
-            running: root.playing && root.visible
+            running: root.playing && root.visible && Theme.lively
             from: 0
             to: 360
             duration: 1800

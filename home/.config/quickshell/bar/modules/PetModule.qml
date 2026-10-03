@@ -88,7 +88,7 @@ Item {
                     // Idle bob; a hop pauses it for its own length.
                     SequentialAnimation {
                         id: bob
-                        running: !hop.running && PetService.mood !== "asleep"
+                        running: !hop.running && PetService.mood !== "asleep" && Theme.lively
                         loops: Animation.Infinite
 
                         NumberAnimation {

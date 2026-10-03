@@ -95,6 +95,8 @@ Singleton {
 
     function applyStore(): void {
         const kept = Object.assign({}, root.store ?? ({}), root.keyboard ?? ({}))
+        if (SettingsService.gameMode)
+            kept["decoration:blur:enabled"] = "false"
         if (Object.keys(kept).length === 0) {
             root.load()
             return
@@ -157,6 +159,25 @@ Singleton {
         OsdService.requested(next.icon, `${Tr.t("Layout")} · ${Tr.t(next.label)}`, -1)
     }
 
+    // ── GAME MODE ───────────────────────────────────────────────────────────
+    //
+    // No animations, blur, shadow or glass, each push reading it over its own
+    // setting. Turning it off reloads instead: blur nobody has set lives in
+    // look.lua, and only a reload reads it back.
+    readonly property bool gameMode: SettingsService.gameMode
+
+    onGameModeChanged: {
+        if (!root.gameMode) {
+            root.reloader.running = true
+            return
+        }
+        root.applyAnimations()
+        root.applyShadow()
+        root.applyGlass()
+        root.applyGround()
+        root.applyStore()
+    }
+
     // ── ANIMATIONS ──────────────────────────────────────────────────────────
     //
     // `animations.lua` only enables animations; the preset is pushed from
@@ -164,7 +185,7 @@ Singleton {
     // so no window animates on a mix of old and new curves.
     function applyAnimations(): void {
         root.animator.command = ["hyprctl", "eval",
-                                 Motion.chunk(SettingsService.animationPreset)]
+            Motion.chunk(SettingsService.gameMode ? "off" : SettingsService.animationPreset)]
         root.animator.running = true
     }
 
@@ -184,11 +205,11 @@ Singleton {
     // disable the glass. While glass is on, the decoration stays enabled but
     // invisible (range 0, alpha 0).
     function shadowChunk(): string {
-        const drawn = SettingsService.windowShadow
+        const drawn = SettingsService.windowShadow && !SettingsService.gameMode
         const alpha = drawn ? Math.round(Theme.shadowOpacity * 255)
                                   .toString(16).padStart(2, "0") : "00"
         return `hl.config({ decoration = { shadow = { `
-             + `enabled = ${drawn || SettingsService.windowGlass}, `
+             + `enabled = ${drawn || root.glassOn()}, `
              + `range = ${drawn ? Theme.shadowRange : 0}, render_power = 3, `
              + `color = "rgba(000000${alpha})" } } })`
     }
@@ -386,13 +407,18 @@ Singleton {
     function applyGlass(): void {
         root.glassSetter.command = ["hyprctl", "eval",
             `if hl.plugin.hyprglass ~= nil then hl.plugin.hyprglass.config({ enabled = ${
-                SettingsService.windowGlass ? "true" : "false"} }) end`]
+                root.glassOn() ? "true" : "false"} }) end`]
         root.glassSetter.running = true
     }
 
     readonly property Process glassSetter: Process {}
 
     readonly property bool windowGlass: SettingsService.windowGlass
+    // A function, not a binding: the game mode's handler pushes before a
+    // binding on the same change would have caught up.
+    function glassOn(): bool {
+        return SettingsService.windowGlass && !SettingsService.gameMode
+    }
 
     // Glass depends on the shadow decoration (see `shadowChunk`).
     onWindowGlassChanged: {
@@ -412,9 +438,9 @@ Singleton {
     function applyGround(): void {
         root.groundSetter.command = ["hyprctl", "eval",
             `hl.layer_rule({ name = "impasto-bar-blur", match = { namespace = "^(impasto-bar)$" }, blur = true, ignore_alpha = 0.12, enabled = ${
-                Theme.solid ? "false" : "true"} }) `
+                Theme.solid || SettingsService.gameMode ? "false" : "true"} }) `
             + `hl.layer_rule({ name = "impasto-dock-blur", match = { namespace = "^(impasto-dock)$" }, blur = true, ignore_alpha = 0.12, enabled = ${
-                root.dockSeeThrough ? "true" : "false"} })`]
+                root.dockSeeThrough && !SettingsService.gameMode ? "true" : "false"} })`]
         root.groundSetter.running = true
     }
 

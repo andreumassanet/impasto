@@ -54,7 +54,7 @@ Item {
 
     // Blink timing is part of the character, not a motion token.
     SequentialAnimation {
-        running: root.lively && !root.asleep && !root.egg
+        running: root.lively && Theme.lively && !root.asleep && !root.egg
         loops: Animation.Infinite
         // Stopped mid-blink, the eyes would stay half shut.
         onRunningChanged: if (!running) root.blink = 1

@@ -23,6 +23,7 @@ import "./dock"
 import "./lock"
 import "./services"
 import "./settings"
+import "./theme"
 
 // Entry point: the windows, the services that must start at boot, and the
 // wiring between services that may not reference each other.
@@ -407,6 +408,16 @@ ShellRoot {
         name: "widgets"
         description: "Hide or show the desktop widgets"
         onPressed: SettingsService.set("desktopHidden", !SettingsService.desktopHidden)
+    }
+
+    GlobalShortcut {
+        name: "game"
+        description: "Turn game mode on or off"
+        onPressed: {
+            const on = !SettingsService.gameMode
+            SettingsService.set("gameMode", on)
+            OsdService.requested("󰺵", Tr.t(on ? "Game mode on" : "Game mode off"), -1)
+        }
     }
 
     GlobalShortcut {

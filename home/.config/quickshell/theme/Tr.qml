@@ -462,6 +462,12 @@ QtObject {
             "Output": "Salida",
             "Notch": "Notch",
             "Shadows": "Sombras",
+            "Game mode": "Modo juego",
+            "Game mode on": "Modo juego activado",
+            "Game mode off": "Modo juego desactivado",
+            "Everything still, for a game or a slow machine.": "Todo quieto, para jugar o en un equipo lento.",
+            "Stops the shell's animations, the spectrum and the pet, and turns off Hyprland's animations, blur, shadow and glass. The settings below are kept and come back when it is turned off.":
+                "Para las animaciones del shell, el espectro y la mascota, y apaga las animaciones, el desenfoque, la sombra y el cristal de Hyprland. Los ajustes de abajo se conservan y vuelven al desactivarlo.",
             "Capture": "Capturar",
             "Annotate": "Anotar",
             "Read text": "Leer texto",
