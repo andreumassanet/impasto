@@ -109,7 +109,7 @@ ShaderEffect {
     // A running shell keeps a shader by its URL across reloads, so a changed
     // shader needs a URL it has not seen: raise `revision` with every
     // recompile.
-    readonly property int revision: 2
+    readonly property int revision: 3
     fragmentShader: `${Qt.resolvedUrl("spectrum.frag.qsb")}?r=${root.revision}`
 
     // Subscribed at most once, whatever `listening` does in between.

@@ -80,14 +80,14 @@ float peak(int index) {
 float bandAt(float position) {
     float place = clamp(position, 0.0, 1.0) * 63.0;
     int below = int(floor(place));
-    int above = min(63, below + 1);
+    int above = below < 63 ? below + 1 : 63;
     return mix(band(below), band(above), place - float(below));
 }
 
 float peakAt(float position) {
     float place = clamp(position, 0.0, 1.0) * 63.0;
     int below = int(floor(place));
-    int above = min(63, below + 1);
+    int above = below < 63 ? below + 1 : 63;
     return mix(peak(below), peak(above), place - float(below));
 }
 
