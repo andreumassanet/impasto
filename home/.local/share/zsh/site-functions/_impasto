@@ -1,0 +1,20 @@
+#compdef impasto
+# ╭──────────────────────────────────────────────────────────────────────────╮
+# │                                                                          │
+# │   _ I M P A S T O                                                        │
+# │   zsh completion · asks impasto itself what comes next                   │
+# │                                                                          │
+# │   github.com/andreumassanet/impasto                                      │
+# │                                                                          │
+# ╰──────────────────────────────────────────────────────────────────────────╯
+
+# The candidates come from `impasto complete`, which reads the command's own
+# table and, for keys, palettes and machines, the running shell; so this
+# never falls behind the command.
+local -a candidates
+candidates=(${(f)"$(impasto complete ${words[2,CURRENT-1]} 2>/dev/null)"})
+if [[ ${words[2]} == wallpaper && ${words[3]} == set ]]; then
+    _files
+elif (( ${#candidates} )); then
+    compadd -a candidates
+fi

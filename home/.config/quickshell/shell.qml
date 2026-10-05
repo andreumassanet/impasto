@@ -576,48 +576,12 @@ ShellRoot {
 
     // ── IPC ─────────────────────────────────────────────────────────────────
     //
-    // Every palette push hangs off WallpaperService.applied, which only fires
-    // inside this process. External callers (Thunar's "Set as Wallpaper")
-    // come in here instead of running theme_manager.py directly:
+    // Everything the impasto command and `qs ipc call` can reach. Every
+    // palette push hangs off WallpaperService.applied, which only fires
+    // inside this process, so Thunar's "Set as Wallpaper" comes in here too:
     //   qs ipc call wallpaper set <path>
-    IpcHandler {
-        target: "wallpaper"
-
-        function set(path: string): string {
-            if (!path)
-                return "usage: qs ipc call wallpaper set <path>"
-            WallpaperService.apply(path)
-            return path
-        }
-    }
-
-    // `./setup sync` calls this once every file has landed. The reload the
-    // shell starts on its own when a file changes can begin before the last
-    // one is written, and then never sees it:
-    //   qs ipc call shell reload
-    // The same two switches as the keys, for anything else to bind.
-    IpcHandler {
-        target: "bar"
-
-        function toggle(): void {
-            SettingsService.set("barHidden", !SettingsService.barHidden)
-        }
-    }
-
-    IpcHandler {
-        target: "widgets"
-
-        function toggle(): void {
-            SettingsService.set("desktopHidden", !SettingsService.desktopHidden)
-        }
-    }
-
-    IpcHandler {
-        target: "shell"
-
-        function reload(): void {
-            Quickshell.reload(false)
-        }
+    Commands {
+        island: root.island
     }
 
 }

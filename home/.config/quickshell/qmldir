@@ -213,3 +213,4 @@ NightLightDetail 1.0 bar/island/NightLightDetail.qml
 BrightnessDetail 1.0 bar/island/BrightnessDetail.qml
 TrayMenuPanel    1.0 bar/island/TrayMenuPanel.qml
 BluetoothDetail  1.0 bar/island/BluetoothDetail.qml
+Commands         1.0 Commands.qml

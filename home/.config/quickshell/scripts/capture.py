@@ -306,7 +306,7 @@ def finish(source, geometry, destination):
     if not text:
         report(to="text", characters=0)
         return
-    report(to="text", characters=len(text), copied=copy("--", text))
+    report(to="text", characters=len(text), text=text, copied=copy("--", text))
 
 
 def drop(source):

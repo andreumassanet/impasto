@@ -1,0 +1,461 @@
+#!/usr/bin/env python3
+# ╭──────────────────────────────────────────────────────────────────────────╮
+# │                                                                          │
+# │   I M P A S T O                                                          │
+# │   the shell from a terminal, a script or an assistant                    │
+# │                                                                          │
+# │   github.com/andreumassanet/impasto                                      │
+# │                                                                          │
+# ╰──────────────────────────────────────────────────────────────────────────╯
+
+"""Drive the impasto shell: timers, notes, tasks, panels, machines and more.
+
+Every command answers with one line of JSON, `{"ok": true, ...}` or
+`{"error": "..."}`, indented when a person is reading it in a terminal, and
+exits 1 on an error, so a script or an assistant can read what happened and
+go on. The commands are calls to the running shell over Quickshell's IPC
+(`qs ipc call <target> <verb> <args>`); this only spells them out.
+"""
+
+import json
+import os
+import shutil
+import subprocess
+import sys
+import time
+
+# noun → verb → (ipc target, ipc function, positional arguments, flags, help)
+# A positional ending in "..." takes the rest of the words, one with a "?"
+# may be left out, and one of choices (a|b) defaults in the shell. Flags are
+# passed in the order listed, empty when not given.
+COMMANDS = {
+    "status": {
+        "": ("status", "get", [], [], "everything at once: timer, music, notes, tasks, machines, looks"),
+    },
+    "timer": {
+        "start": ("timer", "start", ["duration", "label?..."], [], "start a countdown: 25m, 1h30m, 90s, 10:00"),
+        "pause": ("timer", "pause", [], [], "pause it"),
+        "resume": ("timer", "resume", [], [], "carry on"),
+        "cancel": ("timer", "cancel", [], [], "stop it"),
+        "": ("timer", "get", [], [], "what is left"),
+    },
+    "note": {
+        "add": ("note", "add", ["text..."], ["--title", "--tint"], "a new note; --tint yellow|pink|blue|green|orange|purple"),
+        "list": ("note", "list", [], [], "every note that is not archived, newest first"),
+        "get": ("note", "get", ["key"], [], "one note"),
+        "append": ("note", "append", ["key", "text..."], [], "add a line to a note"),
+        "archive": ("note", "archive", ["key"], [], "put it away"),
+        "remove": ("note", "remove", ["key"], [], "delete it"),
+    },
+    "task": {
+        "add": ("task", "add", ["text..."], ["--due", "--state", "--notes"],
+                "a new task; --due today|tomorrow|fri|12 oct|+3|2026-10-12, --state todo|doing|done"),
+        "list": ("task", "list", [], ["--state"], "every task, or those in one state"),
+        "done": ("task", "done", ["key"], [], "mark it done"),
+        "move": ("task", "move", ["key", "state"], [], "to todo, doing or done"),
+        "due": ("task", "due", ["key", "when?..."], [], "set its date; nothing clears it"),
+        "remove": ("task", "remove", ["key"], [], "delete it"),
+    },
+    "open": {
+        "": ("panel", "open", ["panel"], [], "open a panel of the island (impasto panels lists them)"),
+    },
+    "close": {
+        "": ("panel", "close", [], [], "close the island"),
+    },
+    "panels": {
+        "": ("panel", "list", [], [], "the panels impasto open can open"),
+    },
+    "vm": {
+        "list": ("machine", "list", [], [], "the virtual machines, and which run"),
+        "start": ("machine", "start", ["name"], [], "boot one, without a window"),
+        "open": ("machine", "open", ["name"], [], "its window"),
+        "pause": ("machine", "pause", ["name"], [], "freeze it"),
+        "resume": ("machine", "resume", ["name"], [], "carry on"),
+        "stop": ("machine", "stop", ["name"], [], "shut it down, as its power button does"),
+        "kill": ("machine", "kill", ["name"], [], "end it at once"),
+    },
+    "media": {
+        "play": ("media", "play", [], [], "play what the player has"),
+        "pause": ("media", "pause", [], [], "pause it"),
+        "toggle": ("media", "toggle", [], [], "play or pause"),
+        "next": ("media", "next", [], [], "the next track"),
+        "prev": ("media", "prev", [], [], "the previous track"),
+        "": ("media", "get", [], [], "what is playing"),
+    },
+    "game": {
+        "": ("game", "set", ["on|off|toggle"], [], "game mode: no animations, blur, shadow or glass"),
+    },
+    "layout": {
+        "": ("layout", "set", ["dwindle|master|scrolling|next"], [], "how windows are tiled"),
+    },
+    "focus": {
+        "": ("focus", "set", ["on|off|toggle"], [], "do not disturb"),
+    },
+    "nightlight": {
+        "": ("nightlight", "set", ["on|off|toggle"], [], "the warm screen"),
+    },
+    "bar": {
+        "": ("bar", "toggle", [], [], "hide or show the bar"),
+    },
+    "widgets": {
+        "": ("widgets", "toggle", [], [], "hide or show the desktop widgets"),
+    },
+    "volume": {
+        "set": ("volume", "set", ["percent"], [], "0 to 100"),
+        "mute": ("volume", "mute", ["on|off|toggle"], [], "mute the output"),
+        "": ("volume", "get", [], [], "the volume, and whether it is muted"),
+    },
+    "brightness": {
+        "set": ("brightness", "set", ["percent"], [], "0 to 100"),
+        "": ("brightness", "get", [], [], "the screen's brightness"),
+    },
+    "theme": {
+        "list": ("theme", "list", [], [], "the palettes, and which is on"),
+        "set": ("theme", "set", ["id"], [], "change the palette; adaptive follows the wallpaper"),
+    },
+    "wallpaper": {
+        "set": ("wallpaper", "set", ["path"], [], "change the wallpaper, and the palette with it"),
+        "list": ("wallpaper", "list", [], [], "the wallpapers there are"),
+        "random": ("wallpaper", "random", [], [], "another one, at random"),
+    },
+    "say": {
+        "": ("osd", "say", ["text..."], ["--icon"], "a message on the island for a moment"),
+    },
+    "lock": {
+        "": ("lock", "lock", [], [], "lock the screen"),
+    },
+    "reload": {
+        "": ("shell", "reload", [], [], "reload the shell"),
+    },
+}
+
+# Answered here, some without the shell at all.
+LOCAL = {
+    "capture screen": "a shot of the focused screen to a file; prints its path",
+    "capture text": "the text on the focused screen, read with tesseract",
+    "capture region|window": "the capture surface, to pick one by hand",
+    "watch [--interval s]": "a line of JSON for each change: a timer ending, a track, a machine…",
+    "version": "impasto's version, as ./setup last installed it",
+}
+
+STATES = ["todo", "doing", "done"]
+SWITCH = ["on", "off", "toggle"]
+
+EXAMPLES = """\
+examples:
+  impasto timer start 25m Pomodoro
+  impasto note add "Buy bread" --tint green
+  impasto task add "Review the pull request" --due tomorrow
+  impasto task list --state todo
+  impasto task done task-muvd69it   (keys come from task list)
+  impasto open machines
+  impasto vm start fedora-43-Workstation
+  impasto layout scrolling
+  impasto say "Build finished"
+  impasto capture screen
+  impasto watch
+  impasto status"""
+
+
+def usage(noun=None):
+    nouns = [noun] if noun in COMMANDS else list(COMMANDS)
+    lines = ["usage: impasto <command> [arguments] [--flags]", ""]
+    for name in nouns:
+        for verb, (_, _, positionals, flags, text) in COMMANDS[name].items():
+            words = " ".join([name] + ([verb] if verb else [])
+                             + [f"[{p.rstrip('.').rstrip('?')}]" if "?" in p or "|" in p
+                                else f"<{p.rstrip('.')}>" for p in positionals]
+                             + [f"[{f} …]" for f in flags])
+            lines.append(f"  {words:<46} {text}")
+    if noun not in COMMANDS:
+        lines += [f"  {name:<46} {text}" for name, text in LOCAL.items()]
+        lines += ["", "Every answer is one line of JSON, {\"ok\": true, ...} or {\"error\": \"...\"};",
+                  "an error exits 1. Keys of notes and tasks come from their list.", "", EXAMPLES]
+    return "\n".join(lines)
+
+
+def answer(payload, failed=False):
+    pretty = sys.stdout.isatty()
+    print(json.dumps(payload, indent=2 if pretty else None, ensure_ascii=False))
+    sys.exit(1 if failed else 0)
+
+
+def parse(arguments):
+    """The IPC target, function and its arguments, from the words given."""
+    noun = arguments[0]
+    verbs = COMMANDS.get(noun)
+    if verbs is None:
+        answer({"error": f"no command {noun!r}; impasto help lists them"}, True)
+    rest = arguments[1:]
+    if rest and rest[0] in verbs and rest[0] != "":
+        verb, rest = rest[0], rest[1:]
+    elif rest and "set" in verbs and not verbs.get("", (0, 0, ["x"]))[2]:
+        # A value after a noun that only reads sets it: `impasto volume 40`.
+        verb = "set"
+    elif "" in verbs:
+        verb = ""
+    else:
+        answer({"error": f"{noun} needs one of: {', '.join(v for v in verbs if v)}"}, True)
+    target, function, positionals, flags, _ = verbs[verb]
+
+    given = {}
+    words = []
+    index = 0
+    while index < len(rest):
+        word = rest[index]
+        if word in flags:
+            if index + 1 >= len(rest):
+                answer({"error": f"{word} needs a value"}, True)
+            given[word] = rest[index + 1]
+            index += 2
+        elif word.startswith("--") and word not in ("--",):
+            answer({"error": f"{noun} {verb} takes no {word}".replace("  ", " ")}, True)
+        else:
+            words.append(word)
+            index += 1
+
+    values = []
+    for position, name in enumerate(positionals):
+        if name.endswith("..."):
+            values.append(" ".join(words[position:]))
+            words = words[:position]
+            break
+        values.append(words[position] if position < len(words) else "")
+    else:
+        if len(words) > len(positionals):
+            answer({"error": f"too many words for {noun} {verb}".replace("  ", " ")}, True)
+    required = [name for name in positionals if "?" not in name and "|" not in name]
+    for name, value in zip(positionals, values):
+        if name in required and value == "":
+            answer({"error": f"{noun} {verb} needs <{name.rstrip('.')}>".replace("  ", " ")}, True)
+    values += [given.get(flag, "") for flag in flags]
+    return target, function, values
+
+
+def call(target, function, values=()):
+    """One call to the running shell, as a payload; never exits."""
+    if not shutil.which("qs"):
+        return {"error": "quickshell (qs) is not installed"}
+    try:
+        result = subprocess.run(["qs", "ipc", "call", target, function, *values],
+                                capture_output=True, text=True, timeout=15)
+    except (OSError, subprocess.SubprocessError) as error:
+        return {"error": str(error)}
+    if result.returncode != 0:
+        detail = (result.stderr or result.stdout).strip().splitlines()
+        message = detail[-1] if detail else "the call failed"
+        if "running instances" in message.lower() or "no running" in message.lower():
+            message = "the shell is not running"
+        return {"error": message}
+    text = result.stdout.strip()
+    if not text:
+        return {"ok": True}
+    # qs reports a missing target, function or argument on stdout, and exits 0.
+    if text.endswith("not found.") and not text.startswith("{"):
+        return {"error": f"{text} The shell may be older than this command; impasto reload"}
+    if text.startswith(("Too few arguments", "Too many arguments")):
+        return {"error": text.splitlines()[0]}
+    try:
+        return json.loads(text)
+    except ValueError:
+        return {"ok": True, "result": text}
+
+
+# ── ANSWERED HERE ───────────────────────────────────────────────────────────
+
+
+def version():
+    state = os.environ.get("XDG_STATE_HOME") or os.path.expanduser("~/.local/state")
+    try:
+        with open(os.path.join(state, "impasto", "version"), encoding="utf-8") as source:
+            lines = source.read().split("\n")
+    except OSError:
+        answer({"error": "no version: impasto was not installed with ./setup"}, True)
+    answer({"ok": True, "version": lines[0].strip(),
+            "branch": (lines[1] if len(lines) > 1 else "").strip()})
+
+
+def capture_script():
+    config = os.environ.get("XDG_CONFIG_HOME") or os.path.expanduser("~/.config")
+    return os.path.join(config, "quickshell", "scripts", "capture.py")
+
+
+def focused_screen():
+    try:
+        result = subprocess.run(["hyprctl", "activeworkspace", "-j"], capture_output=True,
+                                text=True, timeout=5)
+        return json.loads(result.stdout).get("monitor", "")
+    except (OSError, subprocess.SubprocessError, ValueError):
+        return ""
+
+
+def capture(arguments):
+    """screen and text are taken here with the shell's own capture script;
+    region and window open the capture surface, which needs a hand."""
+    kind = arguments[0] if arguments else ""
+    if kind in ("region", "window"):
+        payload = call("capture", "open", [kind])
+        answer(payload, "error" in payload)
+    if kind not in ("screen", "text"):
+        answer({"error": "capture screen, text, region or window"}, True)
+    script = capture_script()
+    if not os.path.isfile(script):
+        answer({"error": "the shell's capture script is missing"}, True)
+    screen = focused_screen()
+    grabbed = subprocess.run([script, "grab"] + (["--output", screen] if screen else []),
+                             capture_output=True, text=True, timeout=30)
+    try:
+        shot = json.loads(grabbed.stdout.strip().splitlines()[-1])
+    except (ValueError, IndexError):
+        answer({"error": "the screen could not be grabbed"}, True)
+    if shot.get("error"):
+        answer({"error": shot["error"]}, True)
+    finished = subprocess.run([script, "finish", shot["path"], "--to",
+                               "file" if kind == "screen" else "text"],
+                              capture_output=True, text=True, timeout=120)
+    try:
+        report = json.loads(finished.stdout.strip().splitlines()[-1])
+    except (ValueError, IndexError):
+        answer({"error": "the capture did not finish"}, True)
+    if report.get("error"):
+        answer({"error": report["error"]}, True)
+    if kind == "screen":
+        answer({"ok": True, "path": report.get("path", ""), "copied": report.get("copied", False)})
+    answer({"ok": True, "text": report.get("text", ""), "copied": report.get("copied", False)})
+
+
+def events(before, after):
+    """What changed between two statuses, as events."""
+    found = []
+    old, new = before.get("timer"), after.get("timer")
+    if not old and new:
+        found.append({"event": "timer.started", "label": new.get("label", ""), "left": new.get("left", "")})
+    elif old and not new:
+        ended = old.get("left", "") in ("0:00", "0:01", "0:02")
+        found.append({"event": "timer.finished" if ended else "timer.cancelled",
+                      "label": old.get("label", "")})
+    elif old and new and old.get("paused") != new.get("paused"):
+        found.append({"event": "timer.paused" if new.get("paused") else "timer.resumed",
+                      "label": new.get("label", "")})
+
+    old, new = before.get("media") or {}, after.get("media") or {}
+    if new.get("title") and (new.get("title"), new.get("artist")) != (old.get("title"), old.get("artist")):
+        found.append({"event": "media.track", "title": new["title"], "artist": new.get("artist", "")})
+    elif old and new and old.get("playing") != new.get("playing"):
+        found.append({"event": "media.playing" if new.get("playing") else "media.paused",
+                      "title": new.get("title", "")})
+    elif old and not new:
+        found.append({"event": "media.stopped"})
+
+    old, new = set(before.get("machines") or []), set(after.get("machines") or [])
+    found += [{"event": "machine.started", "name": name} for name in sorted(new - old)]
+    found += [{"event": "machine.stopped", "name": name} for name in sorted(old - new)]
+
+    for key in ("notes", "tasks", "palette", "wallpaper", "layout", "game", "focus",
+                "nightLight", "volume", "muted", "brightness"):
+        if before.get(key) != after.get(key):
+            found.append({"event": f"{key}.changed", "value": after.get(key)})
+    return found
+
+
+def watch(arguments):
+    """Read the status every interval and print what changed, line by line,
+    until interrupted; the first line is the status itself."""
+    interval = 1.0
+    if "--interval" in arguments:
+        at = arguments.index("--interval")
+        try:
+            interval = max(0.25, float(arguments[at + 1]))
+        except (IndexError, ValueError):
+            answer({"error": "--interval takes seconds"}, True)
+
+    def emit(payload):
+        payload["at"] = time.strftime("%Y-%m-%dT%H:%M:%S")
+        print(json.dumps(payload, ensure_ascii=False), flush=True)
+
+    last = None
+    try:
+        while True:
+            status = call("status", "get")
+            if "error" in status:
+                if last is not False:
+                    emit({"event": "shell.gone", "error": status["error"]})
+                last = False
+            elif last is None or last is False:
+                emit(dict({"event": "status"}, **{k: v for k, v in status.items() if k != "ok"}))
+                last = status
+            else:
+                for event in events(last, status):
+                    emit(event)
+                last = status
+            time.sleep(interval)
+    except (KeyboardInterrupt, BrokenPipeError):
+        sys.exit(0)
+
+
+def complete(words):
+    """Candidates for the next word, for the shell's completion."""
+    def keys(target):
+        payload = call(target, "list", [""] if target == "task" else [])
+        rows = payload.get("notes") or payload.get("tasks") or payload.get("machines") or []
+        return [row.get("key") or row.get("name") for row in rows]
+
+    choices = []
+    if not words:
+        choices = list(COMMANDS) + ["capture", "watch", "version", "help"]
+    elif words[0] == "capture" and len(words) == 1:
+        choices = ["screen", "text", "region", "window"]
+    elif words[0] == "watch":
+        choices = ["--interval"]
+    elif words[0] == "help" and len(words) == 1:
+        choices = list(COMMANDS)
+    elif words[0] in COMMANDS:
+        noun, verbs = words[0], COMMANDS[words[0]]
+        rest = words[1:]
+        if not rest:
+            choices = [verb for verb in verbs if verb]
+            single = verbs.get("", (0, 0, []))[2]
+            if single and "|" in single[0]:
+                choices += single[0].split("|")
+            if noun == "open":
+                choices += call("panel", "list").get("panels", [])
+        else:
+            verb = rest[0]
+            if noun == "note" and verb in ("get", "append", "archive", "remove") and len(rest) == 1:
+                choices = keys("note")
+            elif noun == "task" and verb in ("done", "move", "due", "remove") and len(rest) == 1:
+                choices = keys("task")
+            elif noun == "task" and verb == "move" and len(rest) == 2:
+                choices = STATES
+            elif noun == "task" and rest[-1] == "--state":
+                choices = STATES
+            elif noun == "note" and rest[-1] == "--tint":
+                choices = ["yellow", "pink", "blue", "green", "orange", "purple"]
+            elif noun == "vm" and len(rest) == 1 and verb != "list":
+                choices = keys("machine")
+            elif noun == "theme" and verb == "set" and len(rest) == 1:
+                choices = [row["id"] for row in call("theme", "list").get("palettes", [])]
+            elif noun == "volume" and verb == "mute":
+                choices = SWITCH
+            elif verb in verbs:
+                choices = list(verbs[verb][3])
+    print("\n".join(choice for choice in choices if choice))
+
+
+def main():
+    arguments = sys.argv[1:]
+    if not arguments or arguments[0] in ("help", "-h", "--help"):
+        print(usage(arguments[1] if len(arguments) > 1 else None))
+        return
+    local = {"version": lambda: version(), "capture": lambda: capture(arguments[1:]),
+             "watch": lambda: watch(arguments[1:]), "complete": lambda: complete(arguments[1:])}
+    if arguments[0] in local:
+        local[arguments[0]]()
+        return
+    target, function, values = parse(arguments)
+    payload = call(target, function, values)
+    answer(payload, "error" in payload)
+
+
+if __name__ == "__main__":
+    main()
