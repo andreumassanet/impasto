@@ -458,6 +458,7 @@ QtObject {
             "Power": "Energía",
             "Focus": "Concentración",
             "Microphone": "Micrófono",
+            "Camera": "Cámara",
             "Airplane": "Modo avión",
             "Output": "Salida",
             "Notch": "Notch",

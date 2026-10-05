@@ -33,8 +33,13 @@ Item {
     // never lands on a summary that opened under it.
     readonly property bool busy: leading.hovered || trailing.hovered
 
+    // What did not fit takes a slot at the trailing end; the time keeps
+    // the middle of the rest.
+    readonly property int spare: ModuleService.overflow > 0 ? ModuleService.overflowWidth : 0
+
     ClockModule {
         anchors.centerIn: parent
+        anchors.horizontalCenterOffset: -root.spare / 2
         width: root.activities.length > 0 ? ModuleService.clockCore : parent.width
         height: Theme.capsuleHeight
     }
@@ -54,11 +59,33 @@ Item {
         id: trailing
 
         anchors.right: parent.right
+        anchors.rightMargin: root.spare
         width: ModuleService.activitySide
         height: parent.height
         visible: root.activities.length > 0
         activityId: root.split ? (root.activities[0] ?? "") : (root.activities[1] ?? "")
         part: root.split ? "figure" : "both"
+    }
+
+    // How many more are running than fit; the glance lists them.
+    Rectangle {
+        anchors.right: parent.right
+        anchors.rightMargin: 8
+        anchors.verticalCenter: parent.verticalCenter
+        visible: ModuleService.overflow > 0
+        width: ModuleService.overflowWidth - 6
+        height: 18
+        radius: height / 2
+        color: Theme.islandSurface
+
+        Text {
+            anchors.centerIn: parent
+            text: `+${ModuleService.overflow}`
+            font.family: Theme.fontFamily
+            font.pixelSize: Theme.fontSizeLabel
+            font.weight: Font.DemiBold
+            color: Theme.textMuted
+        }
     }
 
     component Segment: Item {

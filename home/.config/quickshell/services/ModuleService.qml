@@ -331,7 +331,7 @@ Singleton {
     // without affecting its module; so can the privacy mark, which has no
     // module, and the service behind it is not built while it is off. A
     // recording cannot, since nothing else on screen shows or stops it.
-    readonly property var activities: {
+    readonly property var running: {
         const list = []
         if (RecorderService.recording)
             list.push("recorder")
@@ -341,11 +341,18 @@ Singleton {
             list.push("timer")
         if (MediaService.playing && SettingsService.beside("media"))
             list.push("media")
-        // Always there when kept, so it is last: the others come and go.
-        if (SettingsService.beside("workspace"))
-            list.push("workspace")
-        return list.slice(0, 2)
+        return list
     }
+
+    // The workspace is always there when kept, so it is last: the others
+    // come and go.
+    readonly property var activities: (SettingsService.beside("workspace")
+        ? root.running.concat(["workspace"]) : root.running).slice(0, 2)
+
+    // What is running but did not fit, counted at the island's trailing end.
+    // The workspace never counts: it is not something that started.
+    readonly property int overflow: Math.max(0, root.running.length - 2)
+    readonly property int overflowWidth: 30
 
     // Resting width. Alone, the time keeps the catalogue width; with
     // activities it shrinks to fit and each side gets a slot. One activity
@@ -376,6 +383,7 @@ Singleton {
     readonly property int restWidth: root.activities.length === 0
         ? root.entry("clock").width
         : root.clockCore + 2 * root.activitySide
+            + (root.overflow > 0 ? root.overflowWidth : 0)
 
     // The glance the island opens under a resting pointer: with a player,
     // the cover, the controls and the time large beside them; without one,
@@ -390,7 +398,7 @@ Singleton {
 
     // The widths fit a 24-hour time; a longer format (seconds, AM/PM) widens
     // the glance by what it adds, measured at the glance's type.
-    readonly property int summaryWidth: (MediaService.available ? 500 : 390)
+    readonly property int summaryWidth: (root.glanceList ? 560 : root.glanceOne !== "" ? 500 : 390)
         + Math.max(0, Math.ceil(root.timeMetrics.advanceWidth(
             Qt.formatTime(new Date(2000, 0, 1, 20, 48, 58), SettingsService.clockFormat))
             - root.timeMetrics.advanceWidth("20:48")))
@@ -399,7 +407,32 @@ Singleton {
         font.pixelSize: 62
         font.weight: Font.Black
     }
-    readonly property int summaryHeight: MediaService.available ? 150 : 118
+    readonly property int summaryHeight: root.glanceList
+        ? 2 * root.glanceMargin + root.glanceRows.length * root.glanceRow
+        : root.glanceOne !== "" ? 150 : 118
+
+    // One thing running has the glance to itself, drawn large; two or more
+    // are listed, one row each, in the island's order, the music with its
+    // controls.
+    // Its own count, not the island's: a countdown kept off the island
+    // still shows here. The privacy mark does not, since its service is not
+    // built while it is off.
+    readonly property var glanceRows: {
+        const list = []
+        if (RecorderService.recording)
+            list.push("recorder")
+        if (SettingsService.beside("privacy") && PrivacyService.active)
+            list.push("privacy")
+        if (TimerService.running)
+            list.push("timer")
+        if (MediaService.available)
+            list.push("media")
+        return list
+    }
+    readonly property bool glanceList: root.glanceRows.length > 1
+    readonly property string glanceOne: root.glanceRows.length === 1 ? root.glanceRows[0] : ""
+    readonly property int glanceMargin: 19
+    readonly property int glanceRow: 38
 
     // ── OPEN DETAIL ─────────────────────────────────────────────────────────
     //

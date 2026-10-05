@@ -13,13 +13,16 @@ import Quickshell.Widgets
 
 import "../../theme"
 import "../../services"
+import "../../components"
 
-// The glance, in two faces. With a player: the cover large, the track and its
-// three controls, and the time large at the far end with the day and the date
-// under it. Without one: the time large with the weather on a small line under
-// it, where the weather is already asked for, and at the far end five days of
-// the week with today in the middle. The controls are the only things on it to
-// press; a click anywhere else is the control centre.
+// The glance, in three faces. With one thing running, it large: the cover
+// or its mark in a square, what it is, its controls, and the time large at
+// the far end with the day and the date under it. With more, a row for each,
+// the music with its controls, and the time at the far end. With nothing:
+// the time large with the weather on a small line under it, where the
+// weather is already asked for, and at the far end five days of the week
+// with today in the middle. The controls are the only things on it to press;
+// a click anywhere else is the control centre.
 Item {
     id: root
 
@@ -31,49 +34,264 @@ Item {
     Component.onCompleted: MediaService.subscribe()
     Component.onDestruction: MediaService.release()
 
-    readonly property bool media: MediaService.available
+    readonly property bool listed: ModuleService.glanceList
+    readonly property string one: ModuleService.glanceOne
     readonly property var locale: Qt.locale(SettingsService.language)
 
-    readonly property int margin: 19
+    readonly property int margin: ModuleService.glanceMargin
 
-    // ── WITH A PLAYER ───────────────────────────────────────────────────────
+    // What is in use, each in its fixed colour, as the island marks it.
+    readonly property var privacyMarks: [
+        { on: PrivacyService.microphone, glyph: "󰍬", tint: Theme.privacyMicrophone },
+        { on: PrivacyService.cameraOn,   glyph: "󰄀", tint: Theme.privacyCamera },
+        { on: PrivacyService.screen,     glyph: "󰍹", tint: Theme.privacyScreen }
+    ].filter(mark => mark.on)
+    readonly property string privacyName: Tr.t(PrivacyService.microphone ? "Microphone"
+        : PrivacyService.cameraOn ? "Camera" : "Screen")
+
+    // ── EVERYTHING RUNNING ──────────────────────────────────────────────────
 
     Item {
         anchors.fill: parent
-        visible: root.media
+        visible: root.listed
 
-        ClippingRectangle {
+        Column {
+            x: root.margin + 4
+            anchors.verticalCenter: parent.verticalCenter
+
+            Repeater {
+                model: ModuleService.glanceRows
+
+                Row {
+                    id: row
+
+                    required property string modelData
+
+                    height: ModuleService.glanceRow
+                    spacing: 12
+
+                    // The mark, in a fixed slot so the names line up.
+                    Item {
+                        anchors.verticalCenter: parent.verticalCenter
+                        width: 24
+                        height: 24
+
+                        Rectangle {
+                            anchors.centerIn: parent
+                            visible: row.modelData === "recorder"
+                            width: 10
+                            height: 10
+                            radius: 5
+                            color: Theme.indicatorBad
+                        }
+
+                        Row {
+                            anchors.centerIn: parent
+                            visible: row.modelData === "privacy"
+                            spacing: 2
+
+                            Repeater {
+                                model: root.privacyMarks
+
+                                Text {
+                                    required property var modelData
+
+                                    text: modelData.glyph
+                                    font.family: Theme.fontMono
+                                    font.pixelSize: Theme.fontSizeMedium
+                                    color: modelData.tint
+                                }
+                            }
+                        }
+
+                        RingIndicator {
+                            anchors.centerIn: parent
+                            visible: row.modelData === "timer"
+                            width: 16
+                            height: 16
+                            thickness: 2
+                            progress: TimerService.progress
+                            trackColor: Theme.indicatorDim
+                            fillColor: TimerService.tint
+                        }
+
+                        ClippingRectangle {
+                            anchors.fill: parent
+                            visible: row.modelData === "media"
+                            radius: width * Theme.pictureCorner
+                            color: rowArt.visible ? "transparent" : Theme.surfaceHoverIn(QsWindow.window)
+
+                            Image {
+                                id: rowArt
+
+                                anchors.fill: parent
+                                source: row.modelData === "media" ? MediaService.artUrl : ""
+                                visible: source != "" && status === Image.Ready
+                                fillMode: Image.PreserveAspectCrop
+                                asynchronous: true
+                                sourceSize.width: 48
+                                sourceSize.height: 48
+                            }
+                        }
+                    }
+
+                    Text {
+                        anchors.verticalCenter: parent.verticalCenter
+                        width: Math.min(implicitWidth, 150)
+                        elide: Text.ElideRight
+                        text: row.modelData === "recorder" ? Tr.t("Recording")
+                            : row.modelData === "privacy" ? root.privacyName
+                            : row.modelData === "timer" ? Tr.t("Timer")
+                            : (MediaService.title || MediaService.identity)
+                        font.family: Theme.fontFamily
+                        font.pixelSize: Theme.fontSizeRegular
+                        font.weight: Font.DemiBold
+                        color: Theme.text
+                    }
+
+                    Text {
+                        anchors.verticalCenter: parent.verticalCenter
+                        width: Math.min(implicitWidth, 110)
+                        elide: Text.ElideRight
+                        text: row.modelData === "recorder" ? RecorderService.display
+                            : row.modelData === "privacy" ? PrivacyService.who
+                            : row.modelData === "timer" ? TimerService.display
+                            : MediaService.artist
+                        font.family: row.modelData === "recorder" || row.modelData === "timer"
+                            ? Theme.fontMono : Theme.fontFamily
+                        font.pixelSize: Theme.fontSizeRegular
+                        color: Theme.textMuted
+                    }
+
+                    Row {
+                        anchors.verticalCenter: parent.verticalCenter
+                        visible: row.modelData === "media"
+                        spacing: 2
+
+                        Control {
+                            glyph: "󰒮"
+                            size: 14
+                            live: MediaService.canPrevious
+                            onPressed: MediaService.previous()
+                        }
+
+                        Control {
+                            glyph: MediaService.playing ? "󰏤" : "󰐊"
+                            size: 16
+                            live: MediaService.canToggle
+                            onPressed: MediaService.toggle()
+                        }
+
+                        Control {
+                            glyph: "󰒭"
+                            size: 14
+                            live: MediaService.canNext
+                            onPressed: MediaService.next()
+                        }
+                    }
+                }
+            }
+        }
+
+        Clock {
+            anchors.right: parent.right
+            anchors.rightMargin: root.margin + 4
+            anchors.verticalCenter: parent.verticalCenter
+            align: Text.AlignRight
+            timeSize: 62
+        }
+    }
+
+    // ── ONE THING ───────────────────────────────────────────────────────────
+
+    Item {
+        anchors.fill: parent
+        visible: root.one !== ""
+
+        Item {
             id: cover
 
             x: root.margin
             anchors.verticalCenter: parent.verticalCenter
             width: parent.height - 2 * root.margin
             height: width
-            radius: width * Theme.pictureCorner
-            // Only under the placeholder: a player that sends its own logo
-            // rather than a cover sends it on transparency, and a box behind
-            // it reads as part of the picture.
-            color: art.visible ? "transparent" : Theme.surfaceHoverIn(QsWindow.window)
 
-            Image {
-                id: art
-
+            ClippingRectangle {
                 anchors.fill: parent
-                source: MediaService.artUrl
-                visible: source != "" && status === Image.Ready
-                fillMode: Image.PreserveAspectCrop
-                asynchronous: true
-                sourceSize.width: 288
-                sourceSize.height: 288
+                visible: root.one === "media"
+                radius: width * Theme.pictureCorner
+                // Only under the placeholder: a player that sends its own logo
+                // rather than a cover sends it on transparency, and a box behind
+                // it reads as part of the picture.
+                color: art.visible ? "transparent" : Theme.surfaceHoverIn(QsWindow.window)
+
+                Image {
+                    id: art
+
+                    anchors.fill: parent
+                    source: MediaService.artUrl
+                    visible: source != "" && status === Image.Ready
+                    fillMode: Image.PreserveAspectCrop
+                    asynchronous: true
+                    sourceSize.width: 288
+                    sourceSize.height: 288
+                }
+
+                Text {
+                    anchors.centerIn: parent
+                    visible: !art.visible
+                    text: "󰎇"
+                    font.family: Theme.fontMono
+                    font.pixelSize: 34
+                    color: Theme.indicator
+                }
             }
 
-            Text {
-                anchors.centerIn: parent
-                visible: !art.visible
-                text: "󰎇"
-                font.family: Theme.fontMono
-                font.pixelSize: 34
-                color: Theme.indicator
+            // The marks the island shows, at the cover's size.
+            Rectangle {
+                anchors.fill: parent
+                visible: root.one !== "media"
+                radius: width * Theme.pictureCorner
+                color: Theme.surfaceIn(QsWindow.window)
+
+                RingIndicator {
+                    anchors.centerIn: parent
+                    visible: root.one === "timer"
+                    width: parent.width * 0.62
+                    height: width
+                    thickness: 6
+                    progress: TimerService.progress
+                    trackColor: Theme.indicatorDim
+                    fillColor: TimerService.tint
+                }
+
+                Rectangle {
+                    anchors.centerIn: parent
+                    visible: root.one === "recorder"
+                    width: parent.width * 0.36
+                    height: width
+                    radius: width / 2
+                    color: Theme.indicatorBad
+                }
+
+                Row {
+                    anchors.centerIn: parent
+                    visible: root.one === "privacy"
+                    spacing: 4
+
+                    Repeater {
+                        model: root.privacyMarks
+
+                        Text {
+                            required property var modelData
+
+                            text: modelData.glyph
+                            font.family: Theme.fontMono
+                            font.pixelSize: root.privacyMarks.length > 1 ? 26 : 40
+                            color: modelData.tint
+                        }
+                    }
+                }
             }
         }
 
@@ -87,7 +305,10 @@ Item {
 
             Text {
                 width: parent.width
-                text: MediaService.title || MediaService.identity
+                text: root.one === "media" ? (MediaService.title || MediaService.identity)
+                    : root.one === "timer" ? (TimerService.label || Tr.t("Timer"))
+                    : root.one === "recorder" ? Tr.t("Recording")
+                    : root.privacyName
                 elide: Text.ElideRight
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.fontSizeMedium
@@ -98,9 +319,12 @@ Item {
             Text {
                 width: parent.width
                 visible: text !== ""
-                text: MediaService.artist
+                text: root.one === "media" ? MediaService.artist
+                    : root.one === "timer" ? TimerService.display
+                    : root.one === "recorder" ? `${RecorderService.subject} · ${RecorderService.display}`
+                    : PrivacyService.who
                 elide: Text.ElideRight
-                font.family: Theme.fontFamily
+                font.family: root.one === "timer" ? Theme.fontMono : Theme.fontFamily
                 font.pixelSize: Theme.fontSizeRegular
                 color: Theme.textMuted
             }
@@ -111,6 +335,7 @@ Item {
             }
 
             Row {
+                visible: root.one === "media"
                 spacing: 8
 
                 Control {
@@ -134,6 +359,39 @@ Item {
                     onPressed: MediaService.next()
                 }
             }
+
+            Row {
+                visible: root.one === "timer"
+                spacing: 8
+
+                Control {
+                    glyph: "󰑐"
+                    size: 17
+                    onPressed: TimerService.restart()
+                }
+
+                Control {
+                    glyph: TimerService.paused ? "󰐊" : "󰏤"
+                    size: 22
+                    onPressed: TimerService.toggle()
+                }
+
+                Control {
+                    glyph: "󰅖"
+                    size: 17
+                    onPressed: TimerService.cancel()
+                }
+            }
+
+            Row {
+                visible: root.one === "recorder"
+
+                Control {
+                    glyph: "󰓛"
+                    size: 22
+                    onPressed: RecorderService.stop()
+                }
+            }
         }
 
         Clock {
@@ -151,7 +409,7 @@ Item {
 
     Item {
         anchors.fill: parent
-        visible: !root.media
+        visible: root.one === "" && !root.listed
 
         Column {
             x: root.margin + 4
