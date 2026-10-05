@@ -37,8 +37,5 @@ end)
 
 -- · polkit agent
 --
--- Without one, privileged requests (mounting a disk, etc.) fail silently.
-local polkit_agent = "/usr/lib/polkit-kde-authentication-agent-1"
-hl.on("hyprland.start", function()
-    hl.exec_cmd("test -x " .. polkit_agent .. " && " .. polkit_agent)
-end)
+-- The shell is the session's agent and asks on the island; it starts the
+-- KDE agent itself if it cannot register, so none is started here.

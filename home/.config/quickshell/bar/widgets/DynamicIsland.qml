@@ -96,6 +96,8 @@ Rectangle {
         brightness: { width: BrightnessService.panelWidth, height: BrightnessService.panelHeight },
         bluetooth:  { width: 420,  height: 500 },
         session:    { width: 720,  height: 180 },
+        // A program asking for root (`PolkitService`).
+        auth:       { width: 460,  height: 236 },
         // A row per creature, plus one for the next egg.
         pet:        { width: 560,  height: 205 + 62 * PetService.family.length },
         // The shelf of cards, or the game being played at its own size.
@@ -173,6 +175,7 @@ Rectangle {
         stats: statsPanel,
         overview: overviewPanel,
         session: sessionPanel,
+        auth: authPanel,
         pet: petPanel,
         games: gamesPanel,
         notes: notesPanel,
@@ -618,6 +621,11 @@ Rectangle {
     Component {
         id: sessionPanel
         SessionPanel { onClosed: root.close() }
+    }
+
+    Component {
+        id: authPanel
+        AuthPanel {}
     }
 
     Component {

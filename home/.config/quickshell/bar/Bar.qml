@@ -47,6 +47,10 @@ PanelWindow {
     // Named for the blur behind it (`windowrules.lua`), which shows only
     // through a ground that is not solid.
     WlrLayershell.namespace: "impasto-bar"
+    // A request for root rises over a full-screen window, which covers the
+    // top layer; the bar goes back down once it is answered.
+    WlrLayershell.layer: island.state.openPanel === "auth" && island.expanded
+        ? WlrLayer.Overlay : WlrLayer.Top
     // What is drawn here takes the island's glass (`Theme.surfaceIn`).
     readonly property bool glassy: true
     readonly property string groundStyle: Theme.surfaceStyle

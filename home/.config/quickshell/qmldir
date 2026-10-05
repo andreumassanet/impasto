@@ -50,6 +50,7 @@ singleton CaptureService     1.0 services/CaptureService.qml
 singleton RecorderService    1.0 services/RecorderService.qml
 singleton ClipboardService   1.0 services/ClipboardService.qml
 singleton EmojiService       1.0 services/EmojiService.qml
+singleton PolkitService      1.0 services/PolkitService.qml
 singleton TrayService        1.0 services/TrayService.qml
 singleton PrivacyService     1.0 services/PrivacyService.qml
 singleton SunsetService      1.0 services/SunsetService.qml

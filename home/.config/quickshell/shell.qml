@@ -48,6 +48,8 @@ ShellRoot {
         void ShortcutService.catalogue
         // Reads the user's name and face ahead of the first lock.
         void AccountService.user
+        // Registers the polkit agent, so a request is answered from the start.
+        void PolkitService.asking
         // Probes for hyprpicker, so the first press is not the one that asks.
         void PickerService.available
         // Starts the clipboard watcher.
@@ -238,6 +240,21 @@ ShellRoot {
 
         function onSettingsRequested(): void {
             root.toggleSettings()
+        }
+    }
+
+    // A program asking for root opens the island on its request, and the
+    // island closes once it is answered.
+    Connections {
+        target: PolkitService
+
+        function onRequested(): void {
+            root.island?.open("auth")
+        }
+
+        function onSettled(): void {
+            if (root.island?.state.openPanel === "auth")
+                root.island?.close()
         }
     }
 

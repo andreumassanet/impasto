@@ -119,7 +119,7 @@ xfconf                       # xfconf-query, which ./setup thunar writes with
 
 # ── QT ──────────────────────────────────────────────────────────────────────
 
-polkit-kde-agent             # the dialog that asks for a password
+polkit-kde-agent             # the password dialog when the shell cannot be the agent
 kconfig                      # kreadconfig6, for the KDE half of the palette
 
 
