@@ -44,6 +44,11 @@ spotify
 spicetify-cli                # applies the palette to Spotify · ./setup spotify
 
 
+# ── VIRTUAL MACHINES ────────────────────────────────────────────────────────
+
+quickemu                     # the machines panel · brings quickget, spicy and OVMF
+
+
 # ── FACE UNLOCK ─────────────────────────────────────────────────────────────
 
 # · howdy-next is not listed: ./setup face installs it, and only where there

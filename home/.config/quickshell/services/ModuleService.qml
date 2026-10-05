@@ -341,6 +341,9 @@ Singleton {
             list.push("timer")
         if (MediaService.playing && SettingsService.beside("media"))
             list.push("media")
+        // Last of those that come and go: a machine can run for hours.
+        if (VmService.running.length > 0 && SettingsService.beside("machine"))
+            list.push("machine")
         return list
     }
 
@@ -427,6 +430,8 @@ Singleton {
             list.push("timer")
         if (MediaService.available)
             list.push("media")
+        if (VmService.running.length > 0)
+            list.push("machine")
         return list
     }
     readonly property bool glanceList: root.glanceRows.length > 1

@@ -46,6 +46,14 @@ Item {
         { on: PrivacyService.cameraOn,   glyph: "󰄀", tint: Theme.privacyCamera },
         { on: PrivacyService.screen,     glyph: "󰍹", tint: Theme.privacyScreen }
     ].filter(mark => mark.on)
+    // The first machine running, and what it is doing.
+    readonly property var machine: VmService.running[0] ?? null
+    readonly property string machineState: !root.machine ? ""
+        : root.machine.paused ? Tr.t("Paused")
+        : [Tr.t("Running"), VmService.uptime(root.machine.started),
+           VmService.running.length > 1 ? `${VmService.running.length} ${Tr.t("running")}` : ""]
+            .filter(part => part !== "").join(" · ")
+
     readonly property string privacyName: Tr.t(PrivacyService.microphone ? "Microphone"
         : PrivacyService.cameraOn ? "Camera" : "Screen")
 
@@ -115,6 +123,15 @@ Item {
                             fillColor: TimerService.tint
                         }
 
+                        Text {
+                            anchors.centerIn: parent
+                            visible: row.modelData === "machine"
+                            text: VmService.mark(root.machine?.os ?? "")
+                            font.family: Theme.fontMono
+                            font.pixelSize: Theme.fontSizeMedium
+                            color: Theme.text
+                        }
+
                         ClippingRectangle {
                             anchors.fill: parent
                             visible: row.modelData === "media"
@@ -142,6 +159,7 @@ Item {
                         text: row.modelData === "recorder" ? Tr.t("Recording")
                             : row.modelData === "privacy" ? root.privacyName
                             : row.modelData === "timer" ? Tr.t("Timer")
+                            : row.modelData === "machine" ? (root.machine?.title ?? "")
                             : (MediaService.title || MediaService.identity)
                         font.family: Theme.fontFamily
                         font.pixelSize: Theme.fontSizeRegular
@@ -156,6 +174,7 @@ Item {
                         text: row.modelData === "recorder" ? RecorderService.display
                             : row.modelData === "privacy" ? PrivacyService.who
                             : row.modelData === "timer" ? TimerService.display
+                            : row.modelData === "machine" ? root.machineState
                             : MediaService.artist
                         font.family: row.modelData === "recorder" || row.modelData === "timer"
                             ? Theme.fontMono : Theme.fontFamily
@@ -274,6 +293,15 @@ Item {
                     color: Theme.indicatorBad
                 }
 
+                Text {
+                    anchors.centerIn: parent
+                    visible: root.one === "machine"
+                    text: VmService.mark(root.machine?.os ?? "")
+                    font.family: Theme.fontMono
+                    font.pixelSize: 44
+                    color: Theme.text
+                }
+
                 Row {
                     anchors.centerIn: parent
                     visible: root.one === "privacy"
@@ -308,6 +336,7 @@ Item {
                 text: root.one === "media" ? (MediaService.title || MediaService.identity)
                     : root.one === "timer" ? (TimerService.label || Tr.t("Timer"))
                     : root.one === "recorder" ? Tr.t("Recording")
+                    : root.one === "machine" ? (root.machine?.title ?? "")
                     : root.privacyName
                 elide: Text.ElideRight
                 font.family: Theme.fontFamily
@@ -322,6 +351,7 @@ Item {
                 text: root.one === "media" ? MediaService.artist
                     : root.one === "timer" ? TimerService.display
                     : root.one === "recorder" ? `${RecorderService.subject} · ${RecorderService.display}`
+                    : root.one === "machine" ? root.machineState
                     : PrivacyService.who
                 elide: Text.ElideRight
                 font.family: root.one === "timer" ? Theme.fontMono : Theme.fontFamily
@@ -380,6 +410,30 @@ Item {
                     glyph: "󰅖"
                     size: 17
                     onPressed: TimerService.cancel()
+                }
+            }
+
+            Row {
+                visible: root.one === "machine"
+                spacing: 8
+
+                Control {
+                    glyph: "󰍹"
+                    size: 17
+                    onPressed: VmService.open(root.machine?.name ?? "")
+                }
+
+                Control {
+                    glyph: root.machine?.paused ? "󰐊" : "󰏤"
+                    size: 22
+                    onPressed: root.machine?.paused ? VmService.resume(root.machine.name)
+                                                    : VmService.pause(root.machine?.name ?? "")
+                }
+
+                Control {
+                    glyph: "󰐥"
+                    size: 17
+                    onPressed: VmService.stop(root.machine?.name ?? "")
                 }
             }
 

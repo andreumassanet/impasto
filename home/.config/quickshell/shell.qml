@@ -54,6 +54,8 @@ ShellRoot {
         void PickerService.available
         // Starts the clipboard watcher.
         void ClipboardService.count
+        // Reads the virtual machines, one of which may be running from before.
+        void VmService.loaded
         // Probes the monitor source, so the first take is not silent, and
         // picks up a take left running by a previous shell.
         void RecorderService.available
@@ -447,6 +449,12 @@ ShellRoot {
         name: "packages"
         description: "Open the packages"
         onPressed: root.island?.toggle("packages")
+    }
+
+    GlobalShortcut {
+        name: "machines"
+        description: "Open the virtual machines"
+        onPressed: root.island?.toggle("machines")
     }
 
     // The clipboard and the emoji are launcher modes: pressed again on that

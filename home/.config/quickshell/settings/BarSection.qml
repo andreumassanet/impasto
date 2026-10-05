@@ -280,15 +280,19 @@ SettingsSection {
 
                     readonly property bool privacy: besideRow.modelData === "privacy"
                     readonly property bool workspace: besideRow.modelData === "workspace"
+                    readonly property bool machine: besideRow.modelData === "machine"
                     readonly property bool on: SettingsService.beside(besideRow.modelData)
 
                     label: besideRow.privacy ? Tr.t("Privacy")
                         : besideRow.workspace ? Tr.t("Workspace")
+                        : besideRow.machine ? Tr.t("Virtual machines")
                         : Tr.t(ModuleService.entry(besideRow.modelData).name)
                     reading: besideRow.privacy
                         ? (besideRow.on ? Tr.t("What uses the microphone, camera or screen") : Tr.t("Not shown"))
                         : besideRow.workspace
                             ? (besideRow.on ? Tr.t("The one you are on") : Tr.t("Not shown"))
+                        : besideRow.machine
+                            ? (besideRow.on ? Tr.t("On the island while one runs") : Tr.t("Not shown"))
                         : besideRow.on
                             ? Tr.t("On the island while it runs") : Tr.t("Only where its chip is put")
 

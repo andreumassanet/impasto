@@ -148,6 +148,11 @@ accountsservice              # the account's full name, which both screens show
 v4l-utils                    # v4l2-ctl, which ./setup face and Settings find the infrared camera with
 
 
+# ── VIRTUAL MACHINES ────────────────────────────────────────────────────────
+
+qemu-desktop                 # the qemu quickemu runs · quickemu is from the AUR
+
+
 # ── DEVELOPMENT ─────────────────────────────────────────────────────────────
 
 lua                          # luac, for ./setup check

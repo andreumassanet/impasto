@@ -53,6 +53,7 @@ Singleton {
         { name: "game",           label: "Game mode",            description: "Shell · Turn game mode on or off" },
         { name: "layout",         label: "Window layout",        description: "Windows · Cycle the layout" },
         { name: "packages",       label: "Packages",             description: "Shell · Open the packages" },
+        { name: "machines",       label: "Virtual machines",     description: "Shell · Open the virtual machines" },
         { name: "clipboard",      label: "Clipboard history",    description: "Shell · Open the clipboard history" },
         { name: "emoji",          label: "Emoji",                description: "Shell · Pick an emoji" },
         { name: "picker",         label: "Colour picker",        description: "Shell · Pick a colour off the screen" },
