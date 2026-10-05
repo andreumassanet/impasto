@@ -220,6 +220,9 @@ def describe(name):
         "ram": conf.get("ram", ""),
         "disk": conf.get("disk_size", ""),
         "used": used_bytes(disk),
+        # The disk is made on the first boot; until then there is nothing to
+        # snapshot.
+        "booted": os.path.isfile(disk),
         "running": pid != 0,
         "paused": paused,
         "started": started,
@@ -456,10 +459,15 @@ def cmd_snapshot(args):
         fail("snapshot needs create, apply or delete and a tag")
     if pid_of(name):
         fail(f"{name} must be off for a snapshot")
+    disk = os.path.join(HOME, read_conf(conf_path(name)).get("disk_img", f"{name}/disk.qcow2"))
+    if not os.path.isfile(disk):
+        fail(f"{name} has no disk until it has been started once")
     result = quickemu(name, "--snapshot", verb, args[2])
-    if result.returncode != 0:
+    # quickemu can report success without doing it; the disk is the answer.
+    there = any(row["tag"] == args[2] for row in snapshots_of(disk))
+    if result.returncode != 0 or there != (verb != "delete"):
         lines = (result.stderr or result.stdout).strip().splitlines()
-        fail(lines[-1] if lines else "snapshot failed")
+        fail(lines[-1] if lines and result.returncode != 0 else f"the snapshot was not {dict(create='made', apply='restored', delete='removed')[verb]}")
     say({"snapshot": verb, "tag": args[2]})
 
 

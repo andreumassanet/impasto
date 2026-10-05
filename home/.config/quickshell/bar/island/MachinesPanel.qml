@@ -114,9 +114,10 @@ ColumnLayout {
 
         property string label: ""
         property bool picked: false
+        property int rightPadding: 12
         signal pressed()
 
-        implicitWidth: chipText.implicitWidth + 24
+        implicitWidth: chipText.implicitWidth + 12 + chip.rightPadding
         implicitHeight: 28
         radius: height / 2
         color: chip.picked ? Theme.accent : chipPress.containsMouse ? Theme.islandSurfaceHover : Theme.island
@@ -124,7 +125,8 @@ ColumnLayout {
         Text {
             id: chipText
 
-            anchors.centerIn: parent
+            x: 12
+            anchors.verticalCenter: parent.verticalCenter
             text: chip.label
             font.family: Theme.fontFamily
             font.pixelSize: Theme.fontSizeSmall
@@ -387,7 +389,12 @@ ColumnLayout {
                 }
             }
 
-            model: VmService.machines
+            // By name, so a row outlives the list being read again every few
+            // seconds, and keeps what was asked of it.
+            model: ScriptModel {
+                values: VmService.machines
+                objectProp: "name"
+            }
 
             delegate: Rectangle {
                 id: machine
@@ -465,7 +472,7 @@ ColumnLayout {
 
                         Text {
                             text: !machine.on ? (machine.modelData.snapshots.length > 0
-                                    ? `${Tr.t("Off")} · ${machine.modelData.snapshots.length} ${Tr.t("snapshots")}` : Tr.t("Off"))
+                                    ? `${Tr.t("Off")} · ${machine.modelData.snapshots.length} ${Tr.t(machine.modelData.snapshots.length === 1 ? "snapshot" : "snapshots")}` : Tr.t("Off"))
                                 : machine.paused ? Tr.t("Paused")
                                 : machine.asked ? Tr.t("Shutting down")
                                 : `${Tr.t("Running")} · ${VmService.uptime(machine.modelData.started)}`
@@ -559,8 +566,10 @@ ColumnLayout {
                     }
 
                     // Snapshots: one to take now, and each kept to go back to.
+                    // The disk is made on the first boot, so not before.
                     Flow {
                         Layout.fillWidth: true
+                        visible: machine.modelData.booted
                         spacing: 6
 
                         Chip {
@@ -569,14 +578,43 @@ ColumnLayout {
                                 Qt.formatDateTime(new Date(), "yyyy-MM-dd_HH.mm"))
                         }
 
+                        // Restoring takes the disk back, so it arms on the first
+                        // press; the cross removes the snapshot.
                         Repeater {
                             model: machine.modelData.snapshots
 
                             Chip {
-                                required property var modelData
+                                id: kept
 
-                                label: `󰑐  ${modelData.tag}`
-                                onPressed: VmService.snapshot(machine.modelData.name, "apply", modelData.tag)
+                                required property var modelData
+                                property bool armed: false
+
+                                label: kept.armed ? `${Tr.t("Restore")} ${kept.modelData.tag}?`
+                                    : `󰑐  ${kept.modelData.tag}`
+                                picked: kept.armed
+                                rightPadding: 26
+                                onPressed: {
+                                    if (kept.armed)
+                                        VmService.snapshot(machine.modelData.name, "apply", kept.modelData.tag)
+                                    kept.armed = !kept.armed
+                                }
+
+                                Text {
+                                    anchors.right: parent.right
+                                    anchors.rightMargin: 10
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    text: "󰅖"
+                                    font.family: Theme.fontMono
+                                    font.pixelSize: 11
+                                    color: kept.armed ? Theme.accentText : Theme.textMuted
+
+                                    MouseArea {
+                                        anchors.fill: parent
+                                        anchors.margins: -6
+                                        cursorShape: Qt.PointingHandCursor
+                                        onClicked: VmService.snapshot(machine.modelData.name, "delete", kept.modelData.tag)
+                                    }
+                                }
                             }
                         }
                     }
