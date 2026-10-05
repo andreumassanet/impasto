@@ -218,7 +218,8 @@ SettingsSection {
                 Repeater {
                     model: [
                         { id: "stacked", label: "Stacked" },
-                        { id: "inline", label: "Inline" }
+                        { id: "inline", label: "Inline" },
+                        { id: "flip", label: "Flip" }
                     ]
 
                     PreviewTile {
@@ -256,7 +257,8 @@ SettingsSection {
                             anchors.centerIn: parent
                             style: clockTile.modelData.id
                             at: new Date(2026, 0, 1, 9, 41)
-                            scale: clockTile.modelData.id === "stacked" ? 0.17 : 0.2
+                            scale: clockTile.modelData.id === "stacked" ? 0.17
+                                : clockTile.modelData.id === "flip" ? 0.16 : 0.2
                         }
                     }
                 }

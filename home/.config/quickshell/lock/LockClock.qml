@@ -1,7 +1,7 @@
 // ╭──────────────────────────────────────────────────────────────────────────╮
 // │                                                                          │
 // │   L O C K   C L O C K                                                    │
-// │   the lock's clock · stacked or inline, the date above it                │
+// │   the lock's clock · stacked, inline or flip, the date above it          │
 // │                                                                          │
 // │   github.com/andreumassanet/impasto                                      │
 // │                                                                          │
@@ -14,22 +14,25 @@ import "../theme"
 import "../services"
 
 // The date above, then the time: hours over minutes with the minutes softer,
-// or the two on one line. The login screen draws the stacked one to the same
-// numbers. Shared with the setting's preview, which passes a fixed time.
+// the two on one line, or each on a card that folds over when it changes.
+// The login screen draws the stacked one to the same numbers. Shared with
+// the setting's preview, which passes a fixed time.
 Item {
     id: root
 
-    // "stacked" or "inline".
+    // "stacked", "inline" or "flip".
     property string style: SettingsService.lockClock
 
     // Empty follows the clock; the preview sets one.
     property var at: null
 
-    readonly property bool stacked: root.style !== "inline"
+    readonly property bool stacked: root.style !== "inline" && root.style !== "flip"
+    readonly property bool flip: root.style === "flip"
 
     readonly property int dateSize: 26
     readonly property int inlineSize: 212
     readonly property int stackedSize: 300
+    readonly property int flipSize: 190
 
     // A figure's cap height is about 0.73 of its size in Inter, and a line is
     // about 1.21: stacked lines overlap by the difference, less a gap.
@@ -53,7 +56,7 @@ Item {
         id: column
 
         anchors.horizontalCenter: parent.horizontalCenter
-        spacing: root.stacked ? root.stackedGap : -Math.round(root.inlineSize * 0.07)
+        spacing: root.stacked || root.flip ? root.stackedGap : -Math.round(root.inlineSize * 0.07)
 
         Text {
             anchors.horizontalCenter: parent.horizontalCenter
@@ -65,9 +68,28 @@ Item {
             opacity: 0.92
         }
 
+        Row {
+            anchors.horizontalCenter: parent.horizontalCenter
+            visible: root.flip
+            spacing: Math.round(root.flipSize * 0.1)
+
+            // By count, so a new minute folds the card already there
+            // rather than building another.
+            Repeater {
+                model: root.flip ? root.parts.length : 0
+
+                FlipCard {
+                    required property int index
+
+                    value: root.parts[index] ?? ""
+                    size: root.flipSize
+                }
+            }
+        }
+
         Text {
             anchors.horizontalCenter: parent.horizontalCenter
-            visible: !root.stacked
+            visible: !root.stacked && !root.flip
             text: root.time
             font.family: Theme.fontDisplay
             font.pixelSize: root.inlineSize
