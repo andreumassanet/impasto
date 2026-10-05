@@ -70,10 +70,16 @@ Singleton {
         .filter(node => !node.isSink && !node.isStream && node.audio
                 && (node.properties?.["media.class"] ?? "") === "Audio/Source")
 
+    // Every capture stream, tracked so its properties arrive.
+    readonly property var inStreams: Pipewire.nodes.values.filter(node =>
+        node.type === PwNodeType.AudioInStream)
+
     // Applications recording: capture streams that are not a capture of what
     // plays — the spectrum's cava, a recorder's system sound, a level meter.
-    readonly property var captures: Pipewire.nodes.values.filter(node => {
-        if (node.type !== PwNodeType.AudioInStream)
+    // Only once bound: a stream that has just appeared has no properties
+    // yet, and would pass for a microphone until they come.
+    readonly property var captures: root.inStreams.filter(node => {
+        if (!node.ready)
             return false
         const props = node.properties ?? {}
         return props["stream.capture.sink"] !== "true" && props["stream.monitor"] !== "true"
@@ -82,7 +88,7 @@ Singleton {
 
     PwObjectTracker {
         objects: [root.sink, root.source].concat(root.outputs).concat(root.streams)
-            .concat(root.inputs).concat(root.captures)
+            .concat(root.inputs).concat(root.inStreams)
     }
 
     // What every output's description starts with, word by word — on most

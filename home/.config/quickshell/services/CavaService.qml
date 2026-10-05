@@ -45,8 +45,14 @@ Singleton {
 
     property int watchers: 0
 
-    // Game mode stops it too. Stopped, the bars fall flat rather than freeze.
-    readonly property bool active: root.watchers > 0 && !SettingsService.gameMode
+    // Kept running a moment after the last watcher leaves, so a spectrum
+    // that is rebuilt does not restart cava. Game mode stops it at once.
+    // Stopped, the bars fall flat rather than freeze.
+    readonly property bool active: (root.watchers > 0 || root.linger.running) && !SettingsService.gameMode
+
+    readonly property Timer linger: Timer {
+        interval: 2000
+    }
 
     onActiveChanged: {
         if (!root.active) {
@@ -101,5 +107,7 @@ Singleton {
 
     function release(): void {
         root.watchers = Math.max(0, root.watchers - 1)
+        if (root.watchers === 0)
+            root.linger.restart()
     }
 }
