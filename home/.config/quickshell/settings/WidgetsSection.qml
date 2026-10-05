@@ -268,7 +268,7 @@ SettingsSection {
             SettingSlider {
                 label: Tr.t("Background")
                 value: SettingsService.desktopOpacity
-                from: 20
+                from: 0
                 to: 100
                 stepSize: 5
                 unit: "%"

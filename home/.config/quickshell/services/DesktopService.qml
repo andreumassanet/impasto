@@ -295,13 +295,12 @@ Singleton {
     // Laid out over the screen below the bar, dock or no dock, then placed
     // on the board, which the dock's inset has moved: the dock is drawn over
     // the widgets, and reserving, hiding or moving it moves none of them.
+    // Zen leaves the grid below the bar too, so hiding the bar moves nothing.
     function wholeGrid(width: real, height: real): var {
         const grid = root.gridFor(width + root.insets.left + root.insets.right,
-            height + root.insets.bottom + root.zenBand)
-        if (width > 0 && height > 0) {
+            height + root.insets.bottom)
+        if (width > 0 && height > 0)
             grid.originX -= root.insets.left
-            grid.originY -= root.zenBand
-        }
         return grid
     }
 
@@ -312,10 +311,6 @@ Singleton {
         return DeckService.edgeAt(x + root.insets.left, y,
             width + root.insets.left + root.insets.right, height + root.insets.bottom)
     }
-
-    // In zen the bar's band is free, and the grid is laid out over the whole
-    // screen, its squares resized so the margins stay even on all four sides.
-    readonly property real zenBand: SettingsService.barHidden ? root.insets.top : 0
 
     // Every widget off the picture (`desktopHidden`), except while arranging.
     readonly property bool hidden: SettingsService.desktopHidden && !root.editing

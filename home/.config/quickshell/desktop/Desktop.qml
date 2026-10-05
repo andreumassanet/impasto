@@ -261,17 +261,16 @@ PanelWindow {
         // One widget per key: a Repeater given a new array rebuilds every
         // delegate. The rows change on every drop; the keys only on add and
         // remove.
-        // The board with the dock's band given back, and the bar's in zen,
-        // which is what the grid is laid out over. The widgets sit in it, so
+        // The board with the dock's band given back, which is what the grid
+        // is laid out over. The widgets sit in it, so
         // the board moving with the dock moves them not at all instead of
         // sliding them back into place.
         Item {
             id: field
 
             x: -DesktopService.insets.left
-            y: -DesktopService.zenBand
             width: surface.width + DesktopService.insets.left + DesktopService.insets.right
-            height: surface.height + DesktopService.insets.bottom + DesktopService.zenBand
+            height: surface.height + DesktopService.insets.bottom
             visible: !DesktopService.hidden
 
             Repeater {
@@ -349,14 +348,17 @@ PanelWindow {
         mask: Region {}
 
         // The board's part of the screen, and the bar's band in zen, where
-        // the grid reaches into it; the dock keeps its band.
+        // no bar covers the windows; the dock keeps its band.
         ClippingRectangle {
-            readonly property real bandTop: DesktopService.insets.top - DesktopService.zenBand
+            id: backdropClip
+
+            readonly property real band: SettingsService.barHidden ? DesktopService.insets.top : 0
+            readonly property real bandTop: DesktopService.insets.top - band
 
             x: DesktopService.insets.left
             y: bandTop
             width: surface.width
-            height: surface.height + DesktopService.zenBand
+            height: surface.height + band
             color: "transparent"
             visible: root.editing && root.raised && backdrop.status === Image.Ready
 
@@ -370,7 +372,9 @@ PanelWindow {
                     backdropWindow.screen ? backdropWindow.screen.devicePixelRatio : 1
 
                 x: -DesktopService.insets.left
-                y: -parent.bandTop
+                // By id: a ClippingRectangle holds its children in an inner
+                // item, so `parent` is not this rectangle.
+                y: -backdropClip.bandTop
                 width: backdropWindow.width
                 height: backdropWindow.height
                 source: WallpaperService.currentWallpaper !== ""

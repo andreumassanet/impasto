@@ -66,6 +66,10 @@ Item {
     readonly property string family: DesktopService.familyOf(root.row)
     readonly property var ink: DesktopService.inkFor(root.row)
     readonly property real solidity: DesktopService.opacityOf(root.row) / 100
+    // The outline fades out over the last fifth, so at zero nothing of the
+    // capsule is left but what it holds.
+    readonly property color rim: Qt.rgba(root.ink.border.r, root.ink.border.g, root.ink.border.b,
+                                         root.ink.border.a * Math.min(1, root.solidity * 5))
 
     // Notes, photos and the spectrum have no capsule and draw on the
     // wallpaper with a shadow.
@@ -96,7 +100,7 @@ Item {
     Binding {
         target: root
         property: "y"
-        value: root.box.y + DesktopService.zenBand
+        value: root.box.y
         when: !drag.active
         restoreMode: Binding.RestoreBindingOrValue
     }
@@ -139,6 +143,7 @@ Item {
         readonly property bool cut: !Theme.deskSolid || root.solidity < 1
 
         visible: SettingsService.widgetShadow && !root.onPicture
+            && (!Theme.deskSolid || root.solidity > 0)
         x: -cast.reach
         y: -cast.reach
         width: root.width + 2 * cast.reach
@@ -243,7 +248,7 @@ Item {
                 color: Theme.deskSolid
                     ? Qt.rgba(root.ink.ground.r, root.ink.ground.g, root.ink.ground.b, root.solidity)
                     : Theme.groundOf(Theme.deskStyle)
-                border.color: Theme.deskSolid ? root.ink.border : Theme.rimOf(Theme.deskStyle)
+                border.color: Theme.deskSolid ? root.rim : Theme.rimOf(Theme.deskStyle)
                 border.width: 1
 
                 Behavior on color { ColorAnimation { duration: Theme.durationMedium } }
@@ -351,7 +356,7 @@ Item {
             }
             DesktopService.place(root.key, root.screenName,
                 DesktopService.cellX(root.screenName, root.x - DesktopService.insets.left),
-                DesktopService.cellY(root.screenName, root.y - DesktopService.zenBand))
+                DesktopService.cellY(root.screenName, root.y))
         }
     }
 
@@ -389,7 +394,7 @@ Item {
         DeckService.receiving = ""
         const spot = DesktopService.nearestFree(root.screenName,
             DesktopService.cellX(root.screenName, root.x - DesktopService.insets.left),
-            DesktopService.cellY(root.screenName, root.y - DesktopService.zenBand), root.family, root.key)
+            DesktopService.cellY(root.screenName, root.y), root.family, root.key)
         DesktopService.landing = spot
             ? { screen: root.screenName, col: spot.col, row: spot.row, family: root.family } : null
     }

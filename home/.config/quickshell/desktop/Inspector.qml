@@ -987,7 +987,7 @@ Item {
                     height: 40
                     icon: "󰊸"
                     value: DesktopService.opacityOf(root.row)
-                    from: 20
+                    from: 0
                     to: 100
                     onMoved: value => DesktopService.setOpacity(root.key, Math.round(value))
                 }
