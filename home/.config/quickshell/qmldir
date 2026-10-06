@@ -18,6 +18,7 @@ singleton BatteryService     1.0 services/BatteryService.qml
 singleton BrightnessService  1.0 services/BrightnessService.qml
 singleton OsdService         1.0 services/OsdService.qml
 singleton MediaService       1.0 services/MediaService.qml
+singleton LyricsService      1.0 services/LyricsService.qml
 singleton NotificationService 1.0 services/NotificationService.qml
 singleton FaceService        1.0 services/FaceService.qml
 singleton LockService        1.0 services/LockService.qml
@@ -126,6 +127,7 @@ IslandState      1.0 bar/island/IslandState.qml
 IslandRest       1.0 bar/island/IslandRest.qml
 IslandSummary    1.0 bar/island/IslandSummary.qml
 DetailFace       1.0 bar/island/DetailFace.qml
+LyricsDetail     1.0 bar/island/LyricsDetail.qml
 OsdLayer         1.0 bar/island/OsdLayer.qml
 TimerWidget      1.0 bar/widgets/TimerWidget.qml
 NotificationLayer 1.0 bar/island/NotificationLayer.qml

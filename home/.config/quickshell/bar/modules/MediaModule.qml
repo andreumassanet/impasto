@@ -125,6 +125,11 @@ Item {
         id: detail
 
         ModuleCard {
+            // Opened, the player asks for the lyrics, and opens out round
+            // them once they come (`DetailFace`).
+            Component.onCompleted: LyricsService.subscribe()
+            Component.onDestruction: LyricsService.release()
+
             title: MediaService.title !== "" ? MediaService.title : MediaService.identity
             subtitle: MediaService.artist !== "" ? MediaService.artist : MediaService.identity
 

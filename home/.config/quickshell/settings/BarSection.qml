@@ -202,6 +202,18 @@ SettingsSection {
                     onToggled: checked => SettingsService.set("islandSummary", checked)
                 }
             }
+
+            SettingRow {
+                label: Tr.t("Lyrics")
+                reading: SettingsService.lyrics
+                    ? Tr.t("The playing track's lyrics are looked up on lrclib.net")
+                    : Tr.t("No lyrics, and nothing is looked up")
+
+                ToggleSwitch {
+                    checked: SettingsService.lyrics
+                    onToggled: checked => SettingsService.set("lyrics", checked)
+                }
+            }
         }
 
         // ── CLOCK ───────────────────────────────────────────────────────────

@@ -39,6 +39,7 @@ Singleton {
     readonly property alias barLeft: config.barLeft
     readonly property alias barRight: config.barRight
     readonly property alias islandSummary: config.islandSummary
+    readonly property alias lyrics: config.lyrics
     readonly property alias islandActivities: config.islandActivities
     readonly property alias chipShape: config.chipShape
     readonly property alias chipFigure: config.chipFigure
@@ -551,6 +552,10 @@ Singleton {
         // Hovering the island opens the glance; a click still opens the
         // control centre.
         property bool islandSummary: true
+
+        // The playing track's lyrics, looked up on lrclib.net while
+        // something on screen shows them.
+        property bool lyrics: true
 
         // Null means `besideDefaults`.
         property var islandActivities: null

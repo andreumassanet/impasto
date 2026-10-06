@@ -480,6 +480,8 @@ Singleton {
         if (id === "brightness")
             return { width: item.width,
                      height: Theme.cardHeight(Math.max(1, BrightnessService.dimmable.length), 0) }
+        if (id === "media" && LyricsService.available)
+            return { width: 880, height: 440 }
         if (id === "media")
             return { width: item.width, height: MediaService.seekable
                 ? Theme.cardHeight(1, Theme.cardRowGap + 34) : Theme.cardHeight(0, 34) }
