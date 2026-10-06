@@ -125,6 +125,8 @@ Singleton {
 
     onWantedChanged: root.fetch()
     onTrackChanged: {
+        root.patience = 0
+        root.retry.stop()
         root.current = -1
         root.anchorPosition = 0
         root.anchorTime = Date.now()
@@ -164,12 +166,30 @@ Singleton {
         }
     }
 
+    // lrclib refuses questions while it is busy, sometimes for minutes: a
+    // refusal is asked again, sooner first and then less often, for as long
+    // as the same track is wanted. Until then it is still being looked for.
+    property int patience: 0
+
+    readonly property Timer retry: Timer {
+        interval: Math.min(120000, 10000 * Math.pow(2, root.patience))
+        onTriggered: {
+            root.patience += 1
+            root.fetch()
+        }
+    }
+
     function take(text: string): void {
         let report = null
         try {
             report = JSON.parse(text)
         } catch (error) {
             console.warn("Cannot parse the lyrics report:", error)
+            return
+        }
+        if (report.reason === "network") {
+            if (root.asked === root.track && root.wanted)
+                root.retry.restart()
             return
         }
         root.lines = report.available === true ? (report.lines ?? []) : []

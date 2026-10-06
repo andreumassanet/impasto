@@ -17,8 +17,9 @@ Prints {"available": true, "synced": bool, "instrumental": bool, "lines":
 [{"t": seconds, "text": "..."}]} — `t` is -1 for unsynced lyrics — or
 {"available": false, "reason": "missing" | "network"}.
 
-Answers are cached in the state directory — a miss for a week, a failure
-for a quarter of an hour — so a track asked for again costs nothing.
+Answers are cached in the state directory, a miss for a week, so a track
+asked for again costs nothing. A failure is not cached: the shell asks
+again on its own schedule.
 """
 
 import hashlib
@@ -35,8 +36,8 @@ ENDPOINT = "https://lrclib.net/api"
 TIMEOUT = 8
 AGENT = "impasto (github.com/andreumassanet/impasto)"
 MISS_TTL = 7 * 24 * 3600
-# A failure is asked again later, not on every look while it lasts.
-FAIL_TTL = 15 * 60
+# A busy lrclib is asked once more, this long after, before giving up.
+RETRY_AFTER = 2
 
 STAMP = re.compile(r"\[(\d+):(\d+(?:\.\d+)?)\]")
 # What video sites add to a title or a channel name.
@@ -167,19 +168,23 @@ def report(artist, title, album, seconds):
     try:
         with open(path) as file:
             kept = json.load(file)
-        ttl = FAIL_TTL if kept.get("reason") == "network" else MISS_TTL
-        if kept.get("available") or time.time() - kept.get("at", 0) < ttl:
+        if kept.get("available") or (kept.get("reason") == "missing"
+                                     and time.time() - kept.get("at", 0) < MISS_TTL):
             kept.pop("at", None)
             return kept
     except (OSError, ValueError):
         pass
 
     try:
-        entry = lookup(artist, title, album, seconds)
+        try:
+            entry = lookup(artist, title, album, seconds)
+        except Busy:
+            time.sleep(RETRY_AFTER)
+            entry = lookup(artist, title, album, seconds)
         result = (parse(entry) if entry else None) or {"available": False, "reason": "missing"}
     except Busy as error:
         sys.stderr.write(f"lyrics: {error}\n")
-        result = {"available": False, "reason": "network"}
+        return {"available": False, "reason": "network"}
 
     staging = f"{path}.tmp"
     with open(staging, "w") as file:
