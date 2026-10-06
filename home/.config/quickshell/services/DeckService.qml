@@ -86,22 +86,31 @@ Singleton {
         return Math.max(0, count * (root.tabLength + root.tabGap) - root.tabGap)
     }
 
+    // A side runs the screen's whole height, past the bar's band above the
+    // board, as the spectrum on a side does; the bottom stays the board's.
+    function leadOf(edge: string): real {
+        return edge === "bottom" ? 0 : Theme.barReserve
+    }
+
     // Free travel along the edge: its length minus the strip and both margins.
     function runOf(edge: string, count: int, width: real, height: real): real {
-        const length = edge === "bottom" ? width : height
+        const length = edge === "bottom" ? width : height + root.leadOf(edge)
         return Math.max(0, length - root.stripLength(count) - 2 * root.margin)
     }
 
     // `along` is a 0–1 fraction of the run, so a deck keeps its relative
-    // position across screen sizes.
+    // position across screen sizes. In the board's coordinates, so a side's
+    // start can be above it.
     function startOf(edge: string, count: int, along: real, width: real, height: real): real {
-        return root.margin + Math.max(0, Math.min(1, along)) * root.runOf(edge, count, width, height)
+        return root.margin - root.leadOf(edge)
+            + Math.max(0, Math.min(1, along)) * root.runOf(edge, count, width, height)
     }
 
     // Inverse of `startOf`.
     function alongAt(edge: string, count: int, start: real, width: real, height: real): real {
         const run = root.runOf(edge, count, width, height)
-        return run <= 0 ? 0 : Math.max(0, Math.min(1, (start - root.margin) / run))
+        return run <= 0 ? 0
+            : Math.max(0, Math.min(1, (start + root.leadOf(edge) - root.margin) / run))
     }
 
     function tabAt(start: real, index: int): real {

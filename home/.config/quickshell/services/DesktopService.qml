@@ -976,12 +976,13 @@ Singleton {
     // Sound bars along a whole edge, one per edge. The box runs to the
     // screen's own edge, past the dock's band, so it is measured from the
     // board out by the insets: the bottom from corner to corner, a side from
-    // under the bar to the bottom — or to the top of the bottom's bars, which
-    // keep the corner, so the two never cross.
+    // the top of the screen, past the bar's band, to the bottom — or to the
+    // top of the bottom's bars, which keep the corner, so the two never cross.
 
     function spectrumBox(name: string, row: var, boardWidth: real, boardHeight: real): var {
         const reach = root.spectrumOf(row).reach
         const left = -root.insets.left
+        const top = -root.insets.top
         const width = boardWidth + root.insets.left + root.insets.right
         const height = boardHeight + root.insets.bottom
         if (row.edge === "bottom")
@@ -989,8 +990,8 @@ Singleton {
         const bottom = root.spectrumOn(name, "bottom")
         return {
             x: row.edge === "right" ? left + width - reach : left,
-            y: 0, width: reach,
-            height: bottom !== null ? height - root.spectrumOf(bottom).reach : height
+            y: top, width: reach,
+            height: (bottom !== null ? height - root.spectrumOf(bottom).reach : height) - top
         }
     }
 
