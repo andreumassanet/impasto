@@ -265,6 +265,162 @@ SettingsSection {
             }
         }
 
+        // What is playing, on the lock. Each tile is the lock drawn small:
+        // the clock, and under it nothing, the cover, or the cover and lines.
+        SettingGroup {
+            title: Tr.t("Music")
+            note: Tr.t("Only while something is playing.")
+            hint: Tr.t("The lyrics follow the Lyrics switch on the Bar & Island page, and are looked up on lrclib.net.")
+
+            SettingTiles {
+                label: Tr.t("Show")
+
+                Repeater {
+                    model: [
+                        { id: "off", label: "Nothing" },
+                        { id: "player", label: "The player" },
+                        { id: "lyrics", label: "With lyrics" }
+                    ]
+
+                    PreviewTile {
+                        id: musicTile
+
+                        required property var modelData
+
+                        stageHeight: 120
+                        caption: Tr.t(musicTile.modelData.label)
+                        selected: SettingsService.lockMusic === musicTile.modelData.id
+                        onPicked: SettingsService.set("lockMusic", musicTile.modelData.id)
+
+                        Image {
+                            id: musicGround
+
+                            anchors.fill: parent
+                            source: WallpaperService.currentWallpaper
+                                ? `file://${WallpaperService.currentWallpaper}` : ""
+                            fillMode: Image.PreserveAspectCrop
+                            visible: false
+                            asynchronous: true
+                            sourceSize.width: 320
+                        }
+
+                        MultiEffect {
+                            anchors.fill: parent
+                            source: musicGround
+                            visible: musicGround.status === Image.Ready
+                            blurEnabled: true
+                            blur: 1
+                            blurMax: 16
+                        }
+
+                        Text {
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            y: musicTile.modelData.id === "off" ? 38 : 10
+                            text: "9:41"
+                            font.family: Theme.fontDisplay
+                            font.pixelSize: musicTile.modelData.id === "off" ? 30 : 16
+                            font.weight: Font.Bold
+                            color: Theme.text
+                        }
+
+                        Row {
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            y: 44
+                            visible: musicTile.modelData.id !== "off"
+                            spacing: 10
+
+                            Rectangle {
+                                width: 44
+                                height: 44
+                                radius: 8
+                                color: Theme.accent
+                            }
+
+                            Column {
+                                visible: musicTile.modelData.id === "lyrics"
+                                anchors.verticalCenter: parent.verticalCenter
+                                spacing: 5
+
+                                Repeater {
+                                    model: [0.35, 1, 0.35]
+
+                                    Rectangle {
+                                        required property real modelData
+                                        required property int index
+
+                                        width: index === 1 ? 52 : 40
+                                        height: 4
+                                        radius: 2
+                                        color: Theme.text
+                                        opacity: modelData
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            SettingTiles {
+                label: Tr.t("Behind it")
+                visible: SettingsService.lockMusic !== "off"
+
+                Repeater {
+                    model: [
+                        { id: "cover", label: "The cover" },
+                        { id: "desktop", label: "The desktop" }
+                    ]
+
+                    PreviewTile {
+                        id: groundTile
+
+                        required property var modelData
+
+                        readonly property bool onCover: groundTile.modelData.id === "cover"
+
+                        stageHeight: 120
+                        caption: Tr.t(groundTile.modelData.label)
+                        selected: SettingsService.lockMusicGround === groundTile.modelData.id
+                        onPicked: SettingsService.set("lockMusicGround", groundTile.modelData.id)
+
+                        // The cover playing now, or the wallpaper standing in.
+                        Image {
+                            id: behind
+
+                            anchors.fill: parent
+                            source: groundTile.onCover && MediaService.artUrl !== ""
+                                ? MediaService.artUrl
+                                : (WallpaperService.currentWallpaper
+                                    ? `file://${WallpaperService.currentWallpaper}` : "")
+                            fillMode: Image.PreserveAspectCrop
+                            visible: false
+                            asynchronous: true
+                            sourceSize.width: groundTile.onCover ? 48 : 320
+                        }
+
+                        MultiEffect {
+                            anchors.fill: parent
+                            source: behind
+                            visible: behind.status === Image.Ready
+                            blurEnabled: true
+                            blur: 1
+                            blurMax: groundTile.onCover ? 32 : 16
+                            brightness: groundTile.onCover ? -0.28 : -0.05
+                            saturation: groundTile.onCover ? 0.25 : 0
+                        }
+
+                        Rectangle {
+                            anchors.centerIn: parent
+                            width: 44
+                            height: 44
+                            radius: 8
+                            color: Theme.accent
+                        }
+                    }
+                }
+            }
+        }
+
         SettingGroup {
             title: Tr.t("Background")
             note: Tr.t("Just enough to make the text underneath unreadable.")

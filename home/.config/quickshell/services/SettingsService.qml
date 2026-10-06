@@ -77,6 +77,8 @@ Singleton {
     readonly property alias clipboardWipeOnLock: config.clipboardWipeOnLock
     readonly property alias lockBlur: config.lockBlur
     readonly property alias lockClock: config.lockClock
+    readonly property alias lockMusic: config.lockMusic
+    readonly property alias lockMusicGround: config.lockMusicGround
     readonly property alias userName: config.userName
     readonly property alias userAvatar: config.userAvatar
     readonly property alias doNotDisturb: config.doNotDisturb
@@ -602,6 +604,12 @@ Singleton {
         // "stacked", hours over minutes as the login screen draws them, or
         // "inline".
         property string lockClock: "stacked"
+
+        // What is playing on the lock: "lyrics" (the player and its lyrics),
+        // "player" or "off"; and behind it, the "cover" blurred or the
+        // "desktop" as without music.
+        property string lockMusic: "lyrics"
+        property string lockMusicGround: "cover"
 
         // Empty means read from the system: the passwd full name and
         // `~/.face` (`AccountService`).

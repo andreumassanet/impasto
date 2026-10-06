@@ -15,7 +15,9 @@ import "../services"
 import "../bar/widgets"
 
 // One screen of the lock: the desktop blurred behind, the island where the
-// bar has it, the clock, and the battery in its corner. A key or a click wakes
+// bar has it, the clock, and the battery in its corner; while music plays,
+// the clock small at the top and the player in the middle, its cover blurred
+// behind if that is the setting. A key or a click wakes
 // it: the clock rises and the account, the field and the power buttons come
 // in underneath; Escape or a while untouched sends them away again. Blurred
 // enough that text on the desktop cannot be read.
@@ -45,6 +47,15 @@ Item {
     property real awake: LockService.awake ? 1 : 0
 
     Behavior on awake {
+        NumberAnimation { duration: Theme.durationMorph; easing.type: Theme.easing }
+    }
+
+    // 1 while something is playing and the lock is set to show it: the clock
+    // steps up and small, and the player takes the middle.
+    readonly property bool music: SettingsService.lockMusic !== "off" && MediaService.available
+    property real musical: root.music ? 1 : 0
+
+    Behavior on musical {
         NumberAnimation { duration: Theme.durationMorph; easing.type: Theme.easing }
     }
 
@@ -115,6 +126,51 @@ Item {
         saturation: 0
     }
 
+    // While music plays, its cover can stand in for the desktop: blurred to a
+    // wash of its colours, darkened enough for white type, and gone as the
+    // lock lets go, so the desktop is still what is left. Drawn at a tenth of
+    // the screen, blurred there and stretched, so the blur reaches ten times
+    // as far.
+    Item {
+        id: wash
+
+        width: Math.ceil(root.width / 10)
+        height: Math.ceil(root.height / 10)
+        scale: 10
+        transformOrigin: Item.TopLeft
+        visible: opacity > 0
+        opacity: cover.status === Image.Ready ? root.musical * root.held : 0
+        layer.enabled: true
+        layer.smooth: true
+
+        Behavior on opacity {
+            NumberAnimation { duration: Theme.durationMorph; easing.type: Theme.easing }
+        }
+
+        Image {
+            id: cover
+
+            anchors.fill: parent
+            source: SettingsService.lockMusicGround === "cover" && root.music ? MediaService.artUrl : ""
+            visible: false
+            fillMode: Image.PreserveAspectCrop
+            asynchronous: true
+            sourceSize.width: 96
+            sourceSize.height: 96
+        }
+
+        MultiEffect {
+            anchors.fill: parent
+            source: cover
+            blurEnabled: true
+            blur: 1
+            blurMax: 24
+            brightness: -0.28
+            saturation: 0.25
+            autoPaddingEnabled: false
+        }
+    }
+
     // The lightest of washes, for separation rather than contrast.
     Rectangle {
         anchors.fill: parent
@@ -159,13 +215,19 @@ Item {
 
         readonly property real restY: Math.round((root.height - clock.height) / 2 - 40)
         readonly property real awakeY: Math.min(face.restY, 170)
+        readonly property real plainY: face.restY + (face.awakeY - face.restY) * root.awake
+        readonly property real plainScale: 1 - 0.1 * root.awake
+        // With music, where it is awake whether awake or not — below the
+        // island opened for a face — and no taller than 380.
+        readonly property real musicY: face.awakeY
+        readonly property real musicScale: Math.min(0.9, 380 / Math.max(1, clock.height))
 
         anchors.horizontalCenter: parent.horizontalCenter
-        y: face.restY + (face.awakeY - face.restY) * root.awake
+        y: face.plainY + (face.musicY - face.plainY) * root.musical
         width: clock.width
         height: clock.height
         opacity: root.held
-        scale: 1 - 0.1 * root.awake
+        scale: face.plainScale + (face.musicScale - face.plainScale) * root.musical
         transformOrigin: Item.Top
 
         layer.enabled: true
@@ -179,6 +241,27 @@ Item {
 
         LockClock {
             id: clock
+        }
+    }
+
+    // ── MUSIC ───────────────────────────────────────────────────────────────
+    //
+    // In the room between the clock and the account, centred in it.
+
+    Loader {
+        id: music
+
+        readonly property real roomTop: face.musicY + clock.height * face.musicScale
+        readonly property real roomBottom: account.y
+
+        active: root.music || root.musical > 0
+        anchors.horizontalCenter: parent.horizontalCenter
+        y: Math.round(music.roomTop + (music.roomBottom - music.roomTop - height) / 2)
+        opacity: root.musical * root.held
+        visible: opacity > 0
+
+        sourceComponent: LockMedia {
+            lyrics: SettingsService.lockMusic === "lyrics" && SettingsService.lyrics
         }
     }
 
