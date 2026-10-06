@@ -17,8 +17,9 @@ import "./faces/sticker"
 // Picks the face for a module, a family (size) and a theme. Modern has one
 // registry per family, falling back within that registry for modules without a
 // row; Analogue and Sticker each have a single registry whose faces lay
-// themselves out at any size. Notes always use NoteFace, and the spectrum is
-// its bars in every theme. Faces read their colours from the widget's resolved `ink`.
+// themselves out at any size. Notes always use NoteFace, the spectrum is its
+// bars and the lyrics are LyricsFace in every theme. Faces read their colours
+// from the widget's resolved `ink`.
 Item {
     id: root
 
@@ -39,6 +40,8 @@ Item {
     Loader {
         anchors.fill: parent
         sourceComponent: {
+            if (root.moduleId === "lyrics")
+                return lyrics
             if (root.analogue)
                 return analogue
             if (root.sticker)
@@ -51,6 +54,11 @@ Item {
                 return bands
             return wides
         }
+    }
+
+    Component {
+        id: lyrics
+        LyricsFace { family: root.family; ink: root.ink }
     }
 
     Component {

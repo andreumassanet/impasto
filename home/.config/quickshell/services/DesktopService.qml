@@ -84,7 +84,11 @@ Singleton {
         { id: "sticker",  label: "Sticker" }
     ]
 
+    // The lyrics have one face in every theme, as a note is paper in every
+    // theme: a sentence is not an object to draw.
     function themeOf(widget: var): string {
+        if (widget && widget.id === "lyrics")
+            return "lyrics"
         const own = widget ? widget.theme : ""
         return own && root.themes.some(theme => theme.id === own)
             ? own : SettingsService.desktopTheme
@@ -125,6 +129,11 @@ Singleton {
             notes: ["2x2", "4x2", "4x4", "8x2"],    tasks: ["2x2", "4x2", "4x4"],
             clock: ["2x2", "4x2", "4x4", "8x2"],    photo: ["2x2", "4x2", "4x4", "8x2"],
             spectrum: ["4x2", "8x2", "4x4"]
+        },
+        // Not a theme: the lyrics, which wear one face in every theme
+        // (`themeOf`).
+        lyrics: {
+            lyrics: ["2x2", "4x2", "8x2", "4x4"]
         },
         sticker: {
             media: ["2x2", "4x2", "4x4"],           timer: ["2x2", "4x2"],

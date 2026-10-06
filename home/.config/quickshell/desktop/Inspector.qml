@@ -895,7 +895,7 @@ Item {
             // as a live clock face.
 
             Text {
-                visible: root.moduleId !== "notes" && !root.onSpectrum
+                visible: root.moduleId !== "notes" && root.moduleId !== "lyrics" && !root.onSpectrum
                 text: Tr.t("Face")
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.fontSizeLabel
@@ -904,7 +904,7 @@ Item {
             }
 
             Row {
-                visible: root.moduleId !== "notes" && !root.onSpectrum
+                visible: root.moduleId !== "notes" && root.moduleId !== "lyrics" && !root.onSpectrum
                 spacing: 8
 
                 Repeater {

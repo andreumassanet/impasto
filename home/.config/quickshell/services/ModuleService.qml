@@ -33,7 +33,8 @@ Singleton {
     //            the desktop and behind their panels instead)
     //   desk     false for the one module with no desktop face
     //   width    detail size; none for the spectrum, which has no detail and
-    //   height   lives only on the desktop, on the grid or along an edge
+    //   height   lives only on the desktop, on the grid or along an edge, nor
+    //            for the lyrics, whose detail is the player's
     //
     // The chip look is global (`SettingsService.chipShape`, `chipFigure`);
     // desktop faces are listed per theme in `DesktopService.faces`.
@@ -59,6 +60,7 @@ Singleton {
         { id: "tasks",         name: "Tasks",         bar: false, width: Theme.cardWidth, height: Theme.cardHeight(4, 0) },
         { id: "photo",         name: "Photo",         bar: false, width: 356, height: 150 },
         { id: "spectrum",      name: "Spectrum",      bar: false, width: 0,   height: 0 },
+        { id: "lyrics",        name: "Lyrics",        bar: false, width: 0,   height: 0 },
         { id: "clock",         name: "Clock",         bar: false,
           width: SettingsService.clockShowsDate ? 240 : 150, height: Theme.capsuleHeight }
     ]
@@ -200,6 +202,8 @@ Singleton {
             return NotificationService.doNotDisturb ? "󰂛" : "󰂚"
         case "media":
             return "󰎇"
+        case "lyrics":
+            return "󰍰"
         case "timer":
             return "󰔛"
         case "stats":
@@ -584,6 +588,9 @@ Singleton {
             return TasksService.ready
         case "photo":
             // An empty one asks for a picture.
+            return true
+        case "lyrics":
+            // With nothing playing it says so, as the player does.
             return true
         }
         return false
