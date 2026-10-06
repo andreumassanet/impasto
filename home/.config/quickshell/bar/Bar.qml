@@ -256,9 +256,11 @@ PanelWindow {
     // (with `follow_mouse`, on-demand focus alone loses it), and a click on any
     // other surface clears it, which closes the island. The compositor
     // restores focus when the grab ends. Both stand down while the capture
-    // surface is up, so an open panel waits under it instead of closing.
+    // surface is up, so an open panel waits under it instead of closing, and
+    // while the session is locked, where a grab would keep the keyboard from
+    // the other screens' lock.
     readonly property bool holdsKeyboard: root.live && island.expanded
-        && !CaptureService.active
+        && !CaptureService.active && !LockService.locked
 
     WlrLayershell.keyboardFocus: root.holdsKeyboard
         ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None

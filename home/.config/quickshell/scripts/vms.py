@@ -124,11 +124,14 @@ def pid_of(name):
             pid = int(source.read().strip())
     except (OSError, ValueError):
         return 0
+    # A pid outlives its machine and gets reused: the process must be qemu
+    # and name this machine, or a stale file would claim another one.
     try:
         with open(f"/proc/{pid}/cmdline", "rb") as source:
-            return pid if b"qemu" in source.read() else 0
+            line = source.read()
     except OSError:
         return 0
+    return pid if b"qemu" in line and name.encode() in line else 0
 
 
 def monitor(name, command):

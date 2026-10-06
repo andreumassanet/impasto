@@ -589,7 +589,7 @@ ColumnLayout {
                                 required property var modelData
                                 property bool armed: false
 
-                                label: kept.armed ? `${Tr.t("Restore")} ${kept.modelData.tag}?`
+                                label: kept.armed ? Tr.t("Restore %1?").replace("%1", kept.modelData.tag)
                                     : `󰑐  ${kept.modelData.tag}`
                                 picked: kept.armed
                                 rightPadding: 26

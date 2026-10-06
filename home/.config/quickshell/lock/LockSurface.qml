@@ -254,9 +254,16 @@ Item {
         readonly property real roomTop: face.musicY + clock.height * face.musicScale
         readonly property real roomBottom: account.y
 
+        // A short screen has less room than the player: it is drawn smaller
+        // to fit, never under the account.
+        readonly property real fit: music.item
+            ? Math.min(1, Math.max(0, music.roomBottom - music.roomTop - 24) / Math.max(1, music.item.implicitHeight))
+            : 1
+
         active: root.music || root.musical > 0
         anchors.horizontalCenter: parent.horizontalCenter
         y: Math.round(music.roomTop + (music.roomBottom - music.roomTop - height) / 2)
+        scale: music.fit
         opacity: root.musical * root.held
         visible: opacity > 0
 

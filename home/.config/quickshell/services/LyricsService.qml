@@ -90,7 +90,7 @@ Singleton {
     readonly property Timer ticker: Timer {
         interval: 120
         repeat: true
-        running: root.available && root.synced && MediaService.playing
+        running: root.watchers > 0 && root.available && root.synced && MediaService.playing
         onTriggered: root.place()
     }
 
@@ -138,8 +138,10 @@ Singleton {
     property bool again: false
     property string asked: ""
 
-    function fetch(): void {
-        if (!root.wanted || root.readFor === root.track)
+    // A refusal waits for its retry: a surface opening meanwhile does not
+    // ask again.
+    function fetch(again = false): void {
+        if (!root.wanted || root.readFor === root.track || (root.retry.running && !again))
             return
         if (query.running) {
             root.again = true
@@ -175,7 +177,7 @@ Singleton {
         interval: Math.min(120000, 10000 * Math.pow(2, root.patience))
         onTriggered: {
             root.patience += 1
-            root.fetch()
+            root.fetch(true)
         }
     }
 

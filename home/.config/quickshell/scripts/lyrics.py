@@ -72,7 +72,9 @@ def ask(path, params):
         with urllib.request.urlopen(request, timeout=TIMEOUT) as answer:
             return json.load(answer)
     except urllib.error.HTTPError as error:
-        if error.code == 404:
+        # Not found, or a question it will not take (an empty artist): an
+        # answer. A server error or a rate limit is not one.
+        if error.code < 500 and error.code != 429:
             return None
         raise Busy(f"HTTP {error.code}") from error
     except (urllib.error.URLError, OSError, ValueError) as error:
@@ -100,7 +102,7 @@ def lookup(artist, title, album, seconds):
     def take(results):
         found.extend(entry for entry in results if entry)
 
-    if seconds > 0:
+    if seconds > 0 and artist:
         params = {"artist_name": artist, "track_name": title, "duration": round(seconds)}
         if album:
             params["album_name"] = album

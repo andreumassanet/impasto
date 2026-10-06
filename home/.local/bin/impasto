@@ -237,7 +237,8 @@ def call(target, function, values=()):
     if not shutil.which("qs"):
         return {"error": "quickshell (qs) is not installed"}
     try:
-        result = subprocess.run(["qs", "ipc", "call", target, function, *values],
+        # After "--" a value that starts with a dash is a value, not an option.
+        result = subprocess.run(["qs", "ipc", "call", target, function, "--", *values],
                                 capture_output=True, text=True, timeout=15)
     except (OSError, subprocess.SubprocessError) as error:
         return {"error": str(error)}
@@ -453,6 +454,11 @@ def main():
         local[arguments[0]]()
         return
     target, function, values = parse(arguments)
+    # The shell runs elsewhere: a picture is named from here, and must be.
+    if (target, function) == ("wallpaper", "set") and values and values[0]:
+        values[0] = os.path.abspath(os.path.expanduser(values[0]))
+        if not os.path.isfile(values[0]):
+            answer({"error": f"no such file: {values[0]}"}, True)
     payload = call(target, function, values)
     answer(payload, "error" in payload)
 

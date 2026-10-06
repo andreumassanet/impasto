@@ -79,9 +79,11 @@ Singleton {
             root.flow.cancelAuthenticationRequest()
     }
 
-    // Registration is asynchronous; give each agent a moment.
+    // Registration is asynchronous, and an agent rebuilt while it is still
+    // registering leaves the reply nowhere to land: give each one long
+    // enough that only a failure is still unregistered.
     readonly property Timer watch: Timer {
-        interval: 2000
+        interval: 6000
         running: !root.registered && root.tried < root.tries
         repeat: true
         onTriggered: {

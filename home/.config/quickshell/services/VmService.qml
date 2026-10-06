@@ -120,13 +120,16 @@ Singleton {
 
     property string busy: ""
 
-    function act(verb: string, name: string, extra: var): void {
+    // One action at a time; false when another is still running, so a
+    // caller can say so rather than report it done.
+    function act(verb: string, name: string, extra: var): bool {
         if (root.actor.running)
-            return
+            return false
         root.error = ""
         root.busy = name
         root.actor.command = [root.script, verb, name].concat(extra ?? [])
         root.actor.running = true
+        return true
     }
 
     readonly property Connections done: Connections {

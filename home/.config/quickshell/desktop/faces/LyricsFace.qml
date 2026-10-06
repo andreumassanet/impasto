@@ -52,7 +52,7 @@ Item {
             width: parent.width
             text: root.singing
                 ? (LyricsService.currentText !== "" ? LyricsService.currentText : "♪")
-                : (LyricsService.status !== "" ? LyricsService.status : "♪")
+                : (LyricsService.status !== "" ? Tr.t(LyricsService.status) : "♪")
             wrapMode: Text.Wrap
             maximumLineCount: root.band ? 2 : root.square ? 5 : 3
             elide: Text.ElideRight
@@ -92,7 +92,7 @@ Item {
         anchors.centerIn: lines
         width: lines.width
         visible: root.large && (!LyricsService.available || LyricsService.instrumental)
-        text: LyricsService.status
+        text: Tr.t(LyricsService.status)
         wrapMode: Text.Wrap
         horizontalAlignment: Text.AlignHCenter
         font.family: Theme.fontFamily

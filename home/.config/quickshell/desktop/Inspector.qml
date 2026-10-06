@@ -956,7 +956,7 @@ Item {
 
             // Which theme, and whether it is the desktop's.
             Text {
-                visible: root.styled
+                visible: root.styled && root.moduleId !== "lyrics"
                 width: parent.width
                 text: {
                     const theme = DesktopService.themes.find(

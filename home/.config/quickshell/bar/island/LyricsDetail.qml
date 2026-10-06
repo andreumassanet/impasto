@@ -64,8 +64,10 @@ Item {
                 visible: source != "" && status === Image.Ready
                 fillMode: Image.PreserveAspectCrop
                 asynchronous: true
-                sourceSize.width: 2 * root.coverSize
-                sourceSize.height: 2 * root.coverSize
+                // Fixed, not the cover's size: the island grows round the
+                // panel, and a size per frame would reload it per frame.
+                sourceSize.width: 600
+                sourceSize.height: 600
             }
 
             Text {

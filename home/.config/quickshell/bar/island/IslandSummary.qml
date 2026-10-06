@@ -105,7 +105,7 @@ Item {
         case "timer":
             return TimerService.display
         case "recorder":
-            return `${RecorderService.subject} · ${RecorderService.display}`
+            return `${Tr.t(RecorderService.subject)} · ${RecorderService.display}`
         case "machine":
             return root.machineState
         case "privacy":

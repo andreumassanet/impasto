@@ -153,6 +153,8 @@ Singleton {
 
     // `theme` defaults to the desktop's.
     function familiesFor(id: string, theme = ""): var {
+        if (id === "lyrics")
+            return root.faces.lyrics.lyrics
         const table = root.faces[theme !== "" ? theme : SettingsService.desktopTheme]
             ?? root.faces.modern
         return table[id] ?? ["4x2"]

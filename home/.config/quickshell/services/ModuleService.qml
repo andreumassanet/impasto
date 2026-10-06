@@ -406,10 +406,11 @@ Singleton {
 
     // The widths fit a 24-hour time; a longer format (seconds, AM/PM) widens
     // the glance by what it adds, measured at the glance's type. The music
-    // is wider, for a line of lyrics beside the time.
+    // is wider, for a line of lyrics beside the time; the rest leave their
+    // reading 170 px, which a weather line or a machine's state needs.
     readonly property int summaryWidth: root.glanceFace === "clock"
         ? root.glanceTime + 2 * (root.glanceMargin + 4)
-        : (root.glanceFace === "media" ? 620 : 500) + root.glanceTime - root.glanceTimeBase
+        : (root.glanceFace === "media" ? 620 : 560) + root.glanceTime - root.glanceTimeBase
     // Measured again when the type changes: a call is not a dependency.
     readonly property int glanceTimeBase: root.timeMetrics.font.family !== ""
         ? Math.ceil(root.timeMetrics.advanceWidth("20:48")) : 0

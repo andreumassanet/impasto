@@ -69,7 +69,8 @@ Scope {
     function machineDo(verb: string, name: string): string {
         if (!VmService.find(name))
             return root.fail(`no machine ${name}`)
-        VmService.act(verb, name)
+        if (!VmService.act(verb, name))
+            return root.fail(`busy with ${VmService.busy}, try again when it is done`)
         return root.ok({ name: name, asked: verb })
     }
 
