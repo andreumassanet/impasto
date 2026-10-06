@@ -388,9 +388,10 @@ Singleton {
         : root.clockCore + 2 * root.activitySide
             + (root.overflow > 0 ? root.overflowWidth : 0)
 
-    // The glance the island opens under a resting pointer: with a player,
-    // the cover, the controls and the time large beside them; without one,
-    // the time large, the weather under it and five days of the week.
+    // The glance the island opens under a resting pointer: one face — a
+    // square, the text beside it, the time large at the far end — and a
+    // strip of chips under it for whatever else is running. With nothing
+    // running the weather is the face, and without it the time alone.
     //
     // The weather only where it is already being asked for, on the bar or
     // on the desktop: touching the service builds it, and building it makes
@@ -400,26 +401,29 @@ Singleton {
         && WeatherService.available
 
     // The widths fit a 24-hour time; a longer format (seconds, AM/PM) widens
-    // the glance by what it adds, measured at the glance's type.
-    readonly property int summaryWidth: (root.glanceList ? 560 : root.glanceOne !== "" ? 500 : 390)
-        + Math.max(0, Math.ceil(root.timeMetrics.advanceWidth(
-            Qt.formatTime(new Date(2000, 0, 1, 20, 48, 58), SettingsService.clockFormat))
-            - root.timeMetrics.advanceWidth("20:48")))
+    // the glance by what it adds, measured at the glance's type. The music
+    // is wider, for a line of lyrics beside the time.
+    readonly property int summaryWidth: root.glanceFace === "clock"
+        ? root.glanceTime + 2 * (root.glanceMargin + 4)
+        : (root.glanceFace === "media" ? 620 : 500) + root.glanceTime - root.glanceTimeBase
+    // Measured again when the type changes: a call is not a dependency.
+    readonly property int glanceTimeBase: root.timeMetrics.font.family !== ""
+        ? Math.ceil(root.timeMetrics.advanceWidth("20:48")) : 0
+    readonly property int glanceTime: root.timeMetrics.font.family !== ""
+        ? Math.max(root.glanceTimeBase, Math.ceil(root.timeMetrics.advanceWidth(
+            Qt.formatTime(new Date(2000, 0, 1, 20, 48, 58), SettingsService.clockFormat))))
+        : 0
     readonly property FontMetrics timeMetrics: FontMetrics {
         font.family: Theme.fontFamily
         font.pixelSize: 62
         font.weight: Font.Black
     }
-    readonly property int summaryHeight: root.glanceList
-        ? 2 * root.glanceMargin + root.glanceRows.length * root.glanceRow
-        : root.glanceOne !== "" ? 150 : 118
+    readonly property int summaryHeight: root.glanceFaceHeight
+        + (root.glanceStrip.length > 0 ? root.glanceStripHeight : 0)
 
-    // One thing running has the glance to itself, drawn large; two or more
-    // are listed, one row each, in the island's order, the music with its
-    // controls.
-    // Its own count, not the island's: a countdown kept off the island
-    // still shows here. The privacy mark does not, since its service is not
-    // built while it is off.
+    // Everything running, in the island's order. Its own count, not the
+    // island's: a countdown kept off the island still shows here. The
+    // privacy mark does not, since its service is not built while it is off.
     readonly property var glanceRows: {
         const list = []
         if (RecorderService.recording)
@@ -434,10 +438,15 @@ Singleton {
             list.push("machine")
         return list
     }
-    readonly property bool glanceList: root.glanceRows.length > 1
-    readonly property string glanceOne: root.glanceRows.length === 1 ? root.glanceRows[0] : ""
+    // The face is what has the most to press: the music, then the countdown,
+    // the machine, the take, and the privacy mark, which has nothing.
+    readonly property var glanceRank: ["media", "timer", "machine", "recorder", "privacy"]
+    readonly property string glanceFace: root.glanceRank.find(id => root.glanceRows.includes(id))
+        ?? (root.summaryWeather ? "weather" : "clock")
+    readonly property var glanceStrip: root.glanceRows.filter(id => id !== root.glanceFace)
     readonly property int glanceMargin: 19
-    readonly property int glanceRow: 38
+    readonly property int glanceFaceHeight: 150
+    readonly property int glanceStripHeight: 38
 
     // ── OPEN DETAIL ─────────────────────────────────────────────────────────
     //
