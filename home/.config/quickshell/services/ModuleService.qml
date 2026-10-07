@@ -408,9 +408,10 @@ Singleton {
     // the glance by what it adds, measured at the glance's type. The music
     // is wider, for a line of lyrics beside the time; the rest leave their
     // reading 170 px, which a weather line or a machine's state needs.
-    readonly property int summaryWidth: root.glanceFace === "clock"
-        ? root.glanceTime + 2 * (root.glanceMargin + 4)
-        : (root.glanceFace === "media" ? 620 : 560) + root.glanceTime - root.glanceTimeBase
+    // Nothing running and no weather is five days beside the time, 420.
+    readonly property int summaryWidth: (root.glanceFace === "media" ? 620
+            : root.glanceFace === "clock" ? 420 : 560)
+        + root.glanceTime - root.glanceTimeBase
     // Measured again when the type changes: a call is not a dependency.
     readonly property int glanceTimeBase: root.timeMetrics.font.family !== ""
         ? Math.ceil(root.timeMetrics.advanceWidth("20:48")) : 0

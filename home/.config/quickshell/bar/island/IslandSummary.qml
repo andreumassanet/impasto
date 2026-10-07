@@ -22,7 +22,7 @@ import "../../components"
 // the date under it. The face is the running thing with the most to press
 // (`ModuleService.glanceFace`); everything else running is a chip on a strip
 // under it. With nothing running the weather is the face, and without the
-// weather the time is alone. The square is a slot, not a box: a cover fills
+// weather five days of the week. The square is a slot, not a box: a cover fills
 // it, and every other mark is drawn to fill it on the black.
 //
 // The square, the controls and the chips are the only things on it to
@@ -365,13 +365,81 @@ Item {
         }
     }
 
-    // The same block in every face; alone, it is centred.
+    // The same block, in the same place, in every face; beside the five days
+    // the time alone, since they say the date.
     Clock {
         id: time
 
-        x: root.face === "clock" ? Math.round((root.width - width) / 2)
-            : root.width - width - root.margin - 4
+        dated: root.face !== "clock"
+        x: root.width - width - root.margin - 4
         anchors.verticalCenter: slot.verticalCenter
+    }
+
+    // Nothing running and no weather: five days where the square and its
+    // words would be, today in the middle, its short name over its date and
+    // lit, the others a letter over a date, dim.
+    // Spread from the face's margin to the time, so the first day's ink
+    // starts as far from the edge as the time's ends; and set a little low,
+    // since the figures have no descenders and the box's room is below them.
+    Row {
+        id: week
+
+        readonly property real used: {
+            let total = 0
+            for (const child of week.children)
+                total += child.width
+            return total
+        }
+
+        anchors.left: parent.left
+        anchors.leftMargin: root.margin + 4
+        anchors.right: time.left
+        anchors.rightMargin: 28
+        anchors.verticalCenter: slot.verticalCenter
+        anchors.verticalCenterOffset: 3
+        spacing: Math.max(0, (week.width - week.used) / 4)
+        visible: root.face === "clock"
+
+        Repeater {
+            model: 5
+
+            Column {
+                id: day
+
+                required property int index
+
+                readonly property date date: {
+                    const shown = new Date(clock.date)
+                    shown.setDate(shown.getDate() + day.index - 2)
+                    return shown
+                }
+                readonly property bool today: day.index === 2
+                readonly property string name: root.locale.toString(day.date, "ddd")
+                    .replace(".", "").toUpperCase()
+
+                spacing: 4
+
+                Text {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    text: day.today ? day.name : day.name.charAt(0)
+                    font.family: Theme.fontFamily
+                    font.pixelSize: Theme.fontSizeSmall
+                    font.weight: Font.Bold
+                    color: day.today ? Theme.accent : Theme.textMuted
+                    opacity: day.today ? 1 : 0.7
+                }
+
+                Text {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    text: day.date.getDate()
+                    font.family: Theme.fontFamily
+                    font.pixelSize: day.today ? 34 : 22
+                    font.weight: day.today ? Font.Black : Font.DemiBold
+                    color: day.today ? Theme.text : Theme.textMuted
+                    opacity: day.today ? 1 : 0.55
+                }
+            }
+        }
     }
 
     // ── STRIP ───────────────────────────────────────────────────────────────
@@ -508,8 +576,12 @@ Item {
     component Clock: Column {
         id: face
 
+        // Off beside the five days, which already say the day and the date.
+        property bool dated: true
+
         // Its own width, since its lines hang from its right edge.
-        width: Math.max(hour.implicitWidth, weekday.implicitWidth, date.implicitWidth)
+        width: Math.max(hour.implicitWidth, face.dated ? weekday.implicitWidth : 0,
+                        face.dated ? date.implicitWidth : 0)
         spacing: -6
 
         Text {
@@ -524,6 +596,7 @@ Item {
 
         Text {
             id: weekday
+            visible: face.dated
             anchors.right: parent.right
             text: root.locale.toString(clock.date, "dddd").toUpperCase()
             font.family: Theme.fontFamily
@@ -534,6 +607,7 @@ Item {
 
         Text {
             id: date
+            visible: face.dated
             anchors.right: parent.right
             text: root.locale.toString(clock.date, "d MMMM").toUpperCase()
             font.family: Theme.fontFamily
