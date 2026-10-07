@@ -43,6 +43,10 @@ STAMP = re.compile(r"\[(\d+):(\d+(?:\.\d+)?)\]")
 # What video sites add to a title or a channel name.
 NOISE = re.compile(r"\s*[\(\[](official|lyric|audio|video|visuali[sz]er|hd|4k|mv)[^\)\]]*[\)\]]",
                    re.IGNORECASE)
+BRACKETS = re.compile(r"\s*[\(\[][^\)\]]*[\)\]]")
+# What a video title adds after a bar: the channel, the series, "Lyric Video".
+TAIL = re.compile(r"\s+[|｜].*$")
+DASH = re.compile(r"\s+[-–—]\s+")
 
 
 def cache_dir():
@@ -54,10 +58,12 @@ def cache_dir():
 
 def clean(artist, title):
     artist = re.sub(r"\s*-\s*Topic$", "", artist).strip()
-    title = NOISE.sub("", title).strip()
-    # "Artist - Title" with no artist of its own, as a browser tab sends it.
-    if not artist and " - " in title:
-        artist, title = (part.strip() for part in title.split(" - ", 1))
+    title = NOISE.sub("", TAIL.sub("", title)).strip()
+    # "Artist - Title", as a browser tab sends it: split when there is no
+    # artist, or when the channel is the artist the title starts with.
+    parts = DASH.split(title, 1)
+    if len(parts) == 2 and (not artist or folded(parts[0]) == folded(artist)):
+        artist, title = (part.strip() for part in parts)
     return artist, title
 
 
@@ -85,22 +91,39 @@ def folded(text):
     return re.sub(r"\W+", " ", text.casefold()).strip()
 
 
-def lookup(artist, title, album, seconds):
-    """The best record over three questions, any of which may be refused.
+def lookup(artist, title, album, seconds, sent=""):
+    """The best record over four questions, any of which may be refused.
 
     The exact record first, which lrclib matches within two seconds; then a
     search by fields, then a free search, since a busy server refuses some
     questions and answers others, and a record with only plain lyrics often
-    has a timed twin under a longer artist ("Feid" and "Feid, ICON"). Timed
-    beats plain, then the closest length. Busy everywhere and nothing found
-    is a failure, retried later; answered everywhere and nothing found is a
-    miss.
+    has a timed twin under a longer artist ("Feid" and "Feid, ICON"). Last,
+    the bare song name, for a video title no cleaning reads: a record found
+    that way is taken only when its name and its artist are both in what the
+    player sent and its length is within two seconds. Timed beats plain,
+    then the closest length. Busy everywhere and nothing found is a failure,
+    retried later; answered everywhere and nothing found is a miss.
     """
     found = []
     busy = False
+    wanted = folded(title)
+    heard = f" {folded(sent or f'{artist} {title}')} "
+
+    def fits(entry):
+        if not (entry.get("syncedLyrics") or entry.get("plainLyrics") or entry.get("instrumental")):
+            return False
+        off = abs((entry.get("duration") or 0) - seconds)
+        if seconds > 0 and off > 8:
+            return False
+        name = folded(entry.get("trackName") or "")
+        if wanted in name:
+            return True
+        singer = folded(entry.get("artistName") or "")
+        return (seconds > 0 and off <= 2 and bool(name) and bool(singer)
+                and f" {name} " in heard and f" {singer} " in heard)
 
     def take(results):
-        found.extend(entry for entry in results if entry)
+        found.extend(entry for entry in results if entry and fits(entry))
 
     if seconds > 0 and artist:
         params = {"artist_name": artist, "track_name": title, "duration": round(seconds)}
@@ -113,8 +136,11 @@ def lookup(artist, title, album, seconds):
         if found and found[0].get("syncedLyrics"):
             return found[0]
 
+    song = DASH.split(BRACKETS.sub("", title).strip(), 1)[-1].strip()
     questions = [{"track_name": title, **({"artist_name": artist} if artist else {})},
                  {"q": f"{artist} {title}".strip()}]
+    if song and song != title:
+        questions.append({"track_name": song})
     for params in questions:
         try:
             take(ask("search", params) or [])
@@ -124,12 +150,7 @@ def lookup(artist, title, album, seconds):
         if any(entry.get("syncedLyrics") for entry in found):
             break
 
-    wanted = folded(title)
-    candidates = [entry for entry in found
-                  if wanted in folded(entry.get("trackName") or "")
-                  and (seconds <= 0 or abs((entry.get("duration") or 0) - seconds) <= 8)
-                  and (entry.get("syncedLyrics") or entry.get("plainLyrics") or entry.get("instrumental"))]
-    if not candidates:
+    if not found:
         if busy:
             raise Busy("no answer")
         return None
@@ -138,7 +159,7 @@ def lookup(artist, title, album, seconds):
         off = abs((entry.get("duration") or 0) - seconds) if seconds > 0 else 0
         return (not entry.get("syncedLyrics"), off)
 
-    return min(candidates, key=rank)
+    return min(found, key=rank)
 
 
 def parse(entry):
@@ -161,6 +182,7 @@ def parse(entry):
 
 
 def report(artist, title, album, seconds):
+    sent = f"{artist} {title}"
     artist, title = clean(artist, title)
     if not title:
         return {"available": False, "reason": "missing"}
@@ -179,10 +201,10 @@ def report(artist, title, album, seconds):
 
     try:
         try:
-            entry = lookup(artist, title, album, seconds)
+            entry = lookup(artist, title, album, seconds, sent)
         except Busy:
             time.sleep(RETRY_AFTER)
-            entry = lookup(artist, title, album, seconds)
+            entry = lookup(artist, title, album, seconds, sent)
         result = (parse(entry) if entry else None) or {"available": False, "reason": "missing"}
     except Busy as error:
         sys.stderr.write(f"lyrics: {error}\n")
