@@ -18,7 +18,7 @@ Item {
     id: root
 
     property real size: 40
-    property color coat: Theme.accent
+    property color coat: Theme.petDot
 
     readonly property real s: root.size
     readonly property color shell: Theme.indicator

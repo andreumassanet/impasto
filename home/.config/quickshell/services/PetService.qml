@@ -41,14 +41,14 @@ Singleton {
 
     // ── SPECIES ─────────────────────────────────────────────────────────────
 
-    // Tints are palette tokens, so each species follows the wallpaper. Labels
-    // are proper names and are not translated.
+    // Each species has a fixed coat, `Theme.pet<Label>`. Labels are proper
+    // names and are not translated.
     readonly property var species: [
-        { id: "dot",    label: "Dot",    tint: "accent", ears: "round" },
-        { id: "sprout", label: "Sprout", tint: "green",  ears: "leaf" },
-        { id: "ember",  label: "Ember",  tint: "red",    ears: "tuft" },
-        { id: "sol",    label: "Sol",    tint: "yellow", ears: "none" },
-        { id: "drift",  label: "Drift",  tint: "blue",   ears: "droop" }
+        { id: "dot",    label: "Dot",    ears: "round" },
+        { id: "sprout", label: "Sprout", ears: "leaf" },
+        { id: "ember",  label: "Ember",  ears: "tuft" },
+        { id: "sol",    label: "Sol",    ears: "none" },
+        { id: "drift",  label: "Drift",  ears: "droop" }
     ]
 
     function speciesOf(record: var): var {

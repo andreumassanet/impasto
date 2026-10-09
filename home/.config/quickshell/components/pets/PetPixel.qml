@@ -22,7 +22,7 @@ Item {
     id: root
 
     property var kind: ({ id: "dot", ears: "round" })
-    property color coat: Theme.accent
+    property color coat: Theme.petDot
     property real size: 40
     property string mood: "content"
     property bool egg: false

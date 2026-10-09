@@ -37,12 +37,12 @@ Item {
     readonly property var kind: PetService.speciesOf(root.record)
 
     readonly property color coat: ({
-        accent: Theme.accent,
-        green: Theme.green,
-        yellow: Theme.yellow,
-        red: Theme.red,
-        blue: Theme.blue
-    })[root.kind.tint] ?? Theme.accent
+        dot: Theme.petDot,
+        sprout: Theme.petSprout,
+        ember: Theme.petEmber,
+        sol: Theme.petSol,
+        drift: Theme.petDrift
+    })[root.kind.id] ?? Theme.petDot
 
     // 1 open, 0 shut.
     property real blink: 1

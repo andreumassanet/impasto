@@ -153,6 +153,14 @@ QtObject {
     readonly property color privacyCamera: root.indicatorGood
     readonly property color privacyScreen: "#0a84ff"
 
+    // One coat per pet species. Fixed, so a pet looks the same on every
+    // wallpaper and palette.
+    readonly property color petDot: "#cba6f7"
+    readonly property color petSprout: "#a6e3a1"
+    readonly property color petEmber: "#f38ba8"
+    readonly property color petSol: "#f9e2af"
+    readonly property color petDrift: "#89b4fa"
+
     // Ground and ink over photographs. Fixed, since the ground is always dark.
     readonly property color scrim: "#bf000000"
     // Not `onScrim`: QML parses "on" + capital as a signal handler.
