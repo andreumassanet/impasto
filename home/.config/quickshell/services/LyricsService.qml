@@ -52,9 +52,10 @@ Singleton {
         && root.current + 1 < root.lines.length ? root.lines[root.current + 1].text : ""
 
     // What a face says when there is no line to show, empty when there is
-    // one (or the song has not reached its first line yet).
+    // one (or the song has not reached its first line yet) and when nothing
+    // is playing, since then there is nothing to explain.
     readonly property string status: !SettingsService.lyrics ? "Lyrics are off"
-        : !MediaService.available ? "Nothing playing"
+        : !MediaService.available ? ""
         : root.loading ? "Looking for lyrics"
         : root.instrumental ? "Instrumental"
         : !root.available ? "No lyrics for this one"
