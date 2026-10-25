@@ -111,10 +111,10 @@ hl.window_rule({
 -- Chromium's Wayland backend scales every axis delta by kWheelDelta /
 -- kAxisValueScale = 53 / 10 (ui/ozone/platform/wayland/host/
 -- wayland_pointer.cc), so it scrolls 5.3× faster than GTK/Qt. 0.19 ≈ 1/5.3.
--- Chrome web apps report `chrome-<id>-Default`.
+-- Chrome web apps report `chrome-<id>-Default`, Brave's `brave-<id>-Default`.
 hl.window_rule({
     name  = "chromium-touchpad-scroll",
-    match = { class = "^(google-chrome|chrome-.*|discord|code)$" },
+    match = { class = "^(google-chrome|chrome-.*|brave-browser|brave-.*|chromium|discord|code)$" },
 
     scroll_touchpad = 0.19,
 })
