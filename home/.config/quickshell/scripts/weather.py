@@ -120,7 +120,17 @@ def report(place):
         "glyph": glyph(code, daytime),
         "icon": icon(code, daytime),
         "humidity": int(current["humidity"]),
+        # The rest of the dashboard's "Now" grid.
+        "uv": int(current.get("uvIndex", 0)),
+        "pressure": int(current.get("pressure", 0)),
+        "pressureUnit": "hPa",
+        "visibility": int(current.get("visibility", 0)),
+        "visibilityUnit": "km",
+        "cloud": int(current.get("cloudcover", 0)),
+        "sunrise": today.get("astronomy", [{}])[0].get("sunrise", ""),
+        "sunset": today.get("astronomy", [{}])[0].get("sunset", ""),
         "wind": int(current["windspeedKmph"]),
+        "windUnit": "km/h",
         "low": int(today["mintempC"]),
         "high": int(today["maxtempC"]),
         # Today and tomorrow, in wttr.in's three-hour steps, so the evening
@@ -136,6 +146,18 @@ def report(place):
             }
             for day, blocks in enumerate(w["hourly"] for w in data["weather"][:2])
             for block in blocks
+        ],
+        # Every day wttr.in has (three), for the dashboard.
+        "days": [
+            {
+                "date": day["date"],
+                "low": int(day["mintempC"]),
+                "high": int(day["maxtempC"]),
+                "glyph": glyph(int(day["hourly"][len(day["hourly"]) // 2]["weatherCode"]), True),
+                "icon": icon(int(day["hourly"][len(day["hourly"]) // 2]["weatherCode"]), True),
+                "rain": max(int(block["chanceofrain"]) for block in day["hourly"]),
+            }
+            for day in data["weather"]
         ],
     }
 

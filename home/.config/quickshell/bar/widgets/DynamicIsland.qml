@@ -76,6 +76,11 @@ Rectangle {
 
     readonly property int overviewRows: Math.ceil(HyprlandService.maximum / 5)
 
+    // The dashboard's height follows its tab (`DashboardPanel.heightWanted`).
+    property int dashboardHeight: 560
+    // The tab the dashboard opens on ("overview", "monitor", "system", "weather"), or "".
+    property string dashboardStart: ""
+
     // ── PANEL SIZES ─────────────────────────────────────────────────────────
     //
     // Declared rather than measured: the island has to reach its final shape
@@ -85,7 +90,7 @@ Rectangle {
         appearance: root.appearanceSize,
         palette:    root.appearanceSize,
         stats:      { width: 940,  height: 614 },
-        dashboard:  { width: 940,  height: 614 },
+        dashboard:  { width: 1040, height: root.dashboardHeight },
         // Depends on the results when `launcherFits` is on.
         launcher:   { width: LauncherService.panelWidth,
                       height: LauncherService.panelHeight },
@@ -207,8 +212,16 @@ Rectangle {
     }
 
     function open(panel: string): void {
-        // A card in the island asking for its piece's detail.
-        if (panel === "media" || panel === "weather") {
+        // "dashboard:weather" opens the dashboard on that tab; so does a tap on
+        // the weather card, when the statistics are the dashboard.
+        if (panel.startsWith("dashboard:")) {
+            root.dashboardStart = panel.slice("dashboard:".length)
+            panel = "stats"
+        } else if (panel === "weather" && SettingsService.statsDesign === "dashboard") {
+            root.dashboardStart = "weather"
+            panel = "stats"
+        } else if (panel === "media" || panel === "weather") {
+            // A card in the island asking for its piece's detail.
             ModuleService.activate(panel)
             return
         }
@@ -648,6 +661,14 @@ Rectangle {
         DashboardPanel {
             onClosed: root.close()
             onPanelRequested: panel => root.open(panel)
+            onHeightWanted: height => root.dashboardHeight = height
+            Component.onCompleted: {
+                const start = ["overview", "monitor", "system", "weather"].indexOf(root.dashboardStart)
+                if (start >= 0)
+                    tab = start
+                root.dashboardStart = ""
+                root.dashboardHeight = wanted
+            }
         }
     }
 

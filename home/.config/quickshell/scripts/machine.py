@@ -19,6 +19,7 @@ than on a tick; a missing source is null.
 import json
 import os
 import pwd
+import re
 import shutil
 import subprocess
 import sys
@@ -76,6 +77,63 @@ def packages():
         return None
 
 
+def os_id():
+    """ID out of os-release ("arch"), for the logo."""
+    for path in OS_RELEASE:
+        try:
+            with open(path, encoding="utf-8") as handle:
+                for line in handle:
+                    key, _, value = line.strip().partition("=")
+                    if key == "ID":
+                        return value.strip().strip('"') or None
+        except OSError:
+            continue
+    return None
+
+
+def logo(identifier):
+    """The distribution's logo as an image file: its pixmap, else the icon
+    theme's distributor logo. None when there is neither."""
+    if not identifier:
+        return None
+    candidates = [
+        f"/usr/share/pixmaps/{identifier}linux-logo.svg",
+        f"/usr/share/pixmaps/{identifier}-logo.svg",
+        f"/usr/share/pixmaps/{identifier}linux-logo.png",
+        f"/usr/share/pixmaps/{identifier}-logo.png",
+        f"/usr/share/icons/hicolor/scalable/apps/distributor-logo-{identifier}.svg",
+        f"/usr/share/icons/breeze/apps/48/distributor-logo-{identifier}.svg",
+    ]
+    return next((path for path in candidates if os.path.exists(path)), None)
+
+
+def cleaned(name):
+    """A GPU name without the trademark marks."""
+    for mark in ("(R)", "(TM)", "(tm)", "CPU"):
+        name = name.replace(mark, "")
+    return " ".join(name.split())
+
+
+def hardware():
+    """The model and the graphics cards, from fastfetch's JSON. Empty without
+    fastfetch."""
+    if not shutil.which("fastfetch"):
+        return {}
+    try:
+        result = subprocess.run(
+            ["fastfetch", "-s", "host:gpu", "--format", "json"],
+            capture_output=True, text=True, timeout=10, check=False,
+        )
+        modules = {entry.get("type"): entry.get("result") for entry in json.loads(result.stdout)}
+    except (OSError, subprocess.SubprocessError, ValueError):
+        return {}
+    host = modules.get("Host") or {}
+    return {
+        "model": " ".join(part for part in (host.get("vendor"), host.get("name")) if part) or None,
+        "gpus": [cleaned(gpu.get("name", "")) for gpu in modules.get("GPU") or [] if gpu.get("name")],
+    }
+
+
 def machine():
     try:
         record = pwd.getpwuid(os.getuid())
@@ -89,7 +147,8 @@ def machine():
         "wm": compositor(),
         "shell": login_shell(record),
         "packages": packages(),
-    }
+        "logo": logo(os_id()),
+    } | hardware()
 
 
 def main():

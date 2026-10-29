@@ -92,6 +92,8 @@ Singleton {
     readonly property alias recorderAudio: config.recorderAudio
     readonly property alias captureShape: config.captureShape
     readonly property alias captureKind: config.captureKind
+    readonly property alias updatesCheckMinutes: config.updatesCheckMinutes
+    readonly property alias weatherRefreshMinutes: config.weatherRefreshMinutes
     readonly property alias notesHandwriting: config.notesHandwriting
     readonly property alias deckOnEmpty: config.deckOnEmpty
     readonly property alias spectrumOnEmpty: config.spectrumOnEmpty
@@ -323,6 +325,19 @@ Singleton {
         { id: "kanji", label: "Kanji" },
         { id: "greek", label: "Greek" }
     ]
+
+    // "Every hour", "Every 2 h", "Every 1 h 30 min", "Only when asked".
+    function periodLabel(minutes: int): string {
+        if (minutes <= 0)
+            return "Only when asked"
+        if (minutes < 60)
+            return `Every ${minutes} min`
+        const hours = Math.floor(minutes / 60)
+        const rest = minutes % 60
+        if (rest === 0)
+            return hours === 1 ? "Every hour" : `Every ${hours} h`
+        return `Every ${hours} h ${rest} min`
+    }
 
     readonly property var chipFigures: [
         { id: "off",   label: "No",       note: "No figure beside it" },
@@ -679,6 +694,11 @@ Singleton {
         // destination is not stored: it resets to saving a file.
         property string captureShape: "region"
         property string captureKind: "photo"
+
+        // Minutes between two looks for package updates, and between two
+        // readings of the weather; 0 is only when asked, from a button.
+        property int updatesCheckMinutes: 60
+        property int weatherRefreshMinutes: 60
 
         // Note bodies in the handwriting font instead of the UI font.
         property bool notesHandwriting: true

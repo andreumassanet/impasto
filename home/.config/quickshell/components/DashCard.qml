@@ -20,12 +20,23 @@ Rectangle {
 
     property string title: ""
     default property alias content: body.data
+    // Controls in the card's top right corner, beside the title.
+    property alias corner: cornerRow.data
 
     radius: Theme.radiusMedium
     color: Theme.surfaceIn(QsWindow.window)
     border.color: Theme.borderIn(QsWindow.window)
     border.width: 1
     implicitHeight: body.implicitHeight + 32
+
+    Row {
+        id: cornerRow
+
+        anchors.top: parent.top
+        anchors.right: parent.right
+        anchors.margins: 10
+        spacing: 8
+    }
 
     ColumnLayout {
         id: body

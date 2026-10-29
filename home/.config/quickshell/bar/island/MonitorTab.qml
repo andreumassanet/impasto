@@ -22,6 +22,10 @@ import "../../components"
 Flickable {
     id: root
 
+    // The arrows in the colour of their line in the graph.
+    readonly property color downColor: Theme.accent
+    readonly property color upColor: Theme.indicatorGood
+
     readonly property int graphHeight: 44
 
     contentHeight: grid.implicitHeight
@@ -260,7 +264,8 @@ Flickable {
             Layout.alignment: Qt.AlignTop
 
             Headline {
-                text: `↓ ${SystemMonitorService.formatRate(SystemMonitorService.ethRx + SystemMonitorService.wifiRx)}   ↑ ${SystemMonitorService.formatRate(SystemMonitorService.ethTx + SystemMonitorService.wifiTx)}`
+                textFormat: Text.StyledText
+                text: `<font color="${root.downColor}">↓</font> ${SystemMonitorService.formatRate(SystemMonitorService.ethRx + SystemMonitorService.wifiRx)}   <font color="${root.upColor}">↑</font> ${SystemMonitorService.formatRate(SystemMonitorService.ethTx + SystemMonitorService.wifiTx)}`
             }
 
             Item {
@@ -275,13 +280,14 @@ Flickable {
                 Sparkline {
                     anchors.fill: parent
                     values: SystemMonitorService.upHistory
-                    stroke: Theme.textMuted
+                    stroke: root.upColor
                     showDot: false
                 }
             }
 
             Text {
-                text: `${Tr.t("Since boot")}  ↓ ${SystemMonitorService.formatBytes(SystemMonitorService.ethRxTotal + SystemMonitorService.wifiRxTotal)}  ↑ ${SystemMonitorService.formatBytes(SystemMonitorService.ethTxTotal + SystemMonitorService.wifiTxTotal)}`
+                textFormat: Text.StyledText
+                text: `${Tr.t("Since boot")}  <font color="${root.downColor}">↓</font> ${SystemMonitorService.formatBytes(SystemMonitorService.ethRxTotal + SystemMonitorService.wifiRxTotal)}  <font color="${root.upColor}">↑</font> ${SystemMonitorService.formatBytes(SystemMonitorService.ethTxTotal + SystemMonitorService.wifiTxTotal)}`
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.fontSizeLabel
                 color: Theme.textMuted
@@ -308,7 +314,8 @@ Flickable {
                     }
 
                     Text {
-                        text: `↓ ${SystemMonitorService.formatRate(modelData.rx)}  ↑ ${SystemMonitorService.formatRate(modelData.tx)}`
+                        textFormat: Text.StyledText
+                        text: `<font color="${root.downColor}">↓</font> ${SystemMonitorService.formatRate(modelData.rx)}  <font color="${root.upColor}">↑</font> ${SystemMonitorService.formatRate(modelData.tx)}`
                         font.family: Theme.fontFamily
                         font.pixelSize: Theme.fontSizeLabel
                         color: Theme.textMuted
