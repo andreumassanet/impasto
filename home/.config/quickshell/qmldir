@@ -75,6 +75,7 @@ ToggleSwitch     1.0 components/ToggleSwitch.qml
 SegmentedControl 1.0 components/SegmentedControl.qml
 SettingRow       1.0 components/SettingRow.qml
 RingIndicator    1.0 components/RingIndicator.qml
+WeatherIcon      1.0 components/WeatherIcon.qml
 ContributionGrid 1.0 components/ContributionGrid.qml
 Sparkline        1.0 components/Sparkline.qml
 UsageBars        1.0 components/UsageBars.qml
@@ -119,7 +120,6 @@ GroupHeading     1.0 components/GroupHeading.qml
 TabStrip         1.0 components/TabStrip.qml
 PanelTabs        1.0 components/PanelTabs.qml
 DashCard         1.0 components/DashCard.qml
-WeatherIcon      1.0 components/WeatherIcon.qml
 LidPreview       1.0 components/LidPreview.qml
 MotionPreview    1.0 components/MotionPreview.qml
 IslandMotionPreview 1.0 components/IslandMotionPreview.qml

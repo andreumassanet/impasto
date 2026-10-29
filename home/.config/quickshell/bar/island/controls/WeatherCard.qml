@@ -52,11 +52,10 @@ Card {
         visible: root.oneLine
         spacing: 10
 
-        Text {
-            text: WeatherService.available ? WeatherService.glyph : "󰅤"
-            font.family: Theme.fontMono
-            font.pixelSize: 22
-            color: Theme.accent
+        WeatherIcon {
+            name: WeatherService.available ? WeatherService.icon : ""
+            glyph: WeatherService.available ? WeatherService.glyph : ""
+            size: 26
         }
 
         Text {
@@ -106,11 +105,10 @@ Card {
             Layout.alignment: Qt.AlignTop
             spacing: 12
 
-            Text {
-                text: WeatherService.available ? WeatherService.glyph : "󰅤"
-                font.family: Theme.fontMono
-                font.pixelSize: 40
-                color: Theme.accent
+            WeatherIcon {
+                name: WeatherService.available ? WeatherService.icon : ""
+                glyph: WeatherService.available ? WeatherService.glyph : ""
+                size: 46
             }
 
             ColumnLayout {
@@ -223,12 +221,11 @@ Card {
                             color: Theme.textMuted
                         }
 
-                        Text {
+                        WeatherIcon {
                             anchors.horizontalCenter: parent.horizontalCenter
-                            text: block.modelData.glyph
-                            font.family: Theme.fontMono
-                            font.pixelSize: 16
-                            color: Theme.text
+                            name: block.modelData.icon ?? ""
+                            glyph: block.modelData.glyph
+                            size: 22
                         }
 
                         Text {
