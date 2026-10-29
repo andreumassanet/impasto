@@ -1114,6 +1114,13 @@ QtObject {
             "Look them up": "Buscarlas",
             "Looked up on lrclib.net by title and artist, which needs no account. They show in the island's glance and its media card, in the desktop's lyrics widget and on the lock screen when it is set to show them.":
                 "Se buscan en lrclib.net por título y artista, sin necesidad de cuenta. Aparecen en el vistazo de la isla y en su tarjeta de música, en el widget de letras del escritorio y en la pantalla de bloqueo cuando está configurada para mostrarlas.",
+            "Media card": "Tarjeta de música",
+            "The player in the control centre.": "El reproductor del centro de control.",
+            "The bars come from cava, which listens to the sound only while the card is open. Without cava installed the cover stays plain.":
+                "Las barras vienen de cava, que escucha el sonido solo mientras la tarjeta está abierta. Sin cava instalado, la portada queda lisa.",
+            "Ring around the cover": "Anillo alrededor de la portada",
+            "Bars move around a round cover with the music": "Barras alrededor de una portada redonda, al ritmo de la música",
+            "Plain cover": "Portada lisa",
             "Notes on the edges": "Notas en los bordes",
             "Position": "Posición",
             "Profiles, updates, language and this machine.":
