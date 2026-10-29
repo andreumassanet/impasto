@@ -48,6 +48,7 @@ Singleton {
         { name: "notes",          label: "Notes",                description: "Shell · Open the notes" },
         { name: "board",          label: "Task board",           description: "Shell · Open the task board" },
         { name: "keys",           label: "Keys",                 description: "Shell · Show every key" },
+        { name: "cheatsheetWindow", label: "Keys in a window",   description: "Shell · Open the cheatsheet in a window" },
         { name: "zen",            label: "Zen",                  description: "Shell · Hide or show the bar" },
         { name: "widgets",        label: "Hide the widgets",     description: "Shell · Hide or show the desktop widgets" },
         { name: "game",           label: "Game mode",            description: "Shell · Turn game mode on or off" },
