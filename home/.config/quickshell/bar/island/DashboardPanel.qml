@@ -252,6 +252,15 @@ FocusScope {
 
                     Item { Layout.fillHeight: true }
                 }
+
+                // Only while Claude is on the bar, where its module keeps the
+                // service running; the card never starts it.
+                Loader {
+                    Layout.fillWidth: true
+                    active: SettingsService.onBar("claude")
+                    visible: active
+                    sourceComponent: Component { DashClaudeCard {} }
+                }
             }
 
             // The machine: rings for the processor, memory, temperature and
