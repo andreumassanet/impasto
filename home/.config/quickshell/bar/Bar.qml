@@ -1040,4 +1040,121 @@ PanelWindow {
             }
         }
     }
+
+    // ── HOVER CARD ──────────────────────────────────────────────────────────
+    //
+    // A piece's name and value in a card under it (`ModuleService.peek…`,
+    // `SettingsService.chipHover`). In the island and bezel styles the bar is
+    // one band, so the card is a tab that grows down out of the band's lower
+    // edge, in the band's colour and joined to it by two fillets. In the
+    // grouped and spread styles, with their capsules or without, a piece has
+    // no wide edge to join, so the card hangs free a little below it, as a
+    // pill in the capsules' ground and rim. Either way it stays inside the
+    // bar's width. On this screen's bar only, and not while the island is
+    // open; no input of its own.
+    Item {
+        id: peek
+
+        readonly property Item source: ModuleService.peekSource
+        readonly property bool mine: peek.source !== null && peek.source.QsWindow.window === root
+            && !island.expanded
+        readonly property bool joined: root.unified
+        property real anchorX: 0
+        property real edgeY: 0
+        property string label: ""
+        readonly property int fillet: 10
+        readonly property real fullHeight: 30
+        readonly property real margin: 6
+        readonly property real gap: 6
+        readonly property color ground: peek.joined ? island.surfaceColor : Theme.islandGround
+
+        // The band's extent, for the joined tab.
+        property real shapeStart: 0
+        property real shapeEnd: 0
+        property real shapeRadius: 0
+
+        onMineChanged: {
+            if (!peek.mine)
+                return
+            const centre = peek.source.mapToItem(null, peek.source.width / 2, 0)
+            peek.anchorX = centre.x
+            if (peek.joined) {
+                peek.edgeY = band.mapToItem(null, 0, band.height).y
+                peek.shapeStart = root.bandX
+                peek.shapeEnd = root.bandX + root.bandWidth
+                peek.shapeRadius = band.radius
+            } else {
+                peek.edgeY = peek.source.mapToItem(null, 0, peek.source.height).y + peek.gap
+            }
+            peek.label = ModuleService.peekText
+        }
+
+        // Centred under the piece. Joined: kept on the straight part of the
+        // band's lower edge, clear of its rounded ends, so the fillets meet a
+        // flat line. Always: inside the bar's width.
+        readonly property real centred: peek.anchorX - peek.width / 2
+        readonly property real minX: peek.joined ? peek.shapeStart + peek.shapeRadius + peek.fillet : peek.margin
+        readonly property real maxX: peek.joined
+            ? peek.shapeEnd - peek.shapeRadius - peek.fillet - peek.width
+            : root.width - peek.margin - peek.width
+
+        z: 100
+        x: Math.max(peek.margin, Math.min(root.width - peek.margin - peek.width,
+            peek.maxX < peek.minX ? peek.centred : Math.max(peek.minX, Math.min(peek.maxX, peek.centred))))
+        y: peek.edgeY
+        width: peekText.implicitWidth + 28
+        height: peek.mine ? peek.fullHeight : 0
+        visible: peek.height > 0.5
+        clip: true
+
+        Behavior on height { NumberAnimation { duration: Theme.durationFast; easing.type: Theme.easing } }
+
+        Rectangle {
+            width: parent.width
+            height: peek.fullHeight
+            color: peek.ground
+            topLeftRadius: peek.joined ? 0 : 12
+            topRightRadius: peek.joined ? 0 : 12
+            bottomLeftRadius: 12
+            bottomRightRadius: 12
+            border.width: peek.joined ? 0 : 1
+            border.color: Theme.islandRim
+        }
+
+        Text {
+            id: peekText
+
+            anchors.horizontalCenter: parent.horizontalCenter
+            y: (peek.fullHeight - height) / 2 - 1
+            opacity: Math.min(1, peek.height / peek.fullHeight)
+            text: peek.label
+            font.family: Theme.fontFamily
+            font.pixelSize: Theme.fontSizeSmall
+            font.weight: Font.DemiBold
+            font.features: { "tnum": 1 }
+            color: Theme.text
+        }
+    }
+
+    // Where the joined tab meets the band: a concave fillet either side.
+    NotchFillet {
+        x: peek.x - width
+        y: peek.edgeY
+        width: peek.fillet
+        height: Math.min(peek.fillet, peek.height)
+        visible: peek.visible && peek.joined
+        mirrored: true
+        color: peek.ground
+        z: 100
+    }
+
+    NotchFillet {
+        x: peek.x + peek.width
+        y: peek.edgeY
+        width: peek.fillet
+        height: Math.min(peek.fillet, peek.height)
+        visible: peek.visible && peek.joined
+        color: peek.ground
+        z: 100
+    }
 }
