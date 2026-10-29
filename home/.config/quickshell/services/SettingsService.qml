@@ -37,6 +37,9 @@ Singleton {
     readonly property alias screenCorners: config.screenCorners
     readonly property alias frameMode: config.frameMode
     readonly property alias frameThickness: config.frameThickness
+    readonly property alias slidersPlacement: config.slidersPlacement
+    readonly property alias slidersPinned: config.slidersPinned
+    readonly property alias edgeOpen: config.edgeOpen
     readonly property alias gameMode: config.gameMode
     readonly property alias barLeft: config.barLeft
     readonly property alias barRight: config.barRight
@@ -548,6 +551,19 @@ Singleton {
         // over the windows only while the island or a drawer is out; "none".
         property string frameMode: "none"
         property int frameThickness: 8
+
+        // Where the volume, brightness and input sliders live: `island` (the
+        // control centre's blocks) or `side` (a drawer on the right edge,
+        // and those blocks hidden).
+        property string slidersPlacement: "island"
+
+        // The sliders drawer stays out on its edge, and the windows keep
+        // clear of it.
+        property bool slidersPinned: false
+
+        // How the edge drawers wake: `hover` (the pointer rests on their
+        // edge) or `click` (a button under the bar's corner).
+        property string edgeOpen: "hover"
 
         // Game mode: no animations, blur, shadow or glass on the compositor,
         // over whatever the rest of the settings say.

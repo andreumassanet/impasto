@@ -245,6 +245,19 @@ ShellRoot {
         }
     }
 
+    // The sliders on a side edge, with the control centre's own hidden. Not
+    // built while they stay in the island.
+    Variants {
+        model: SettingsService.slidersPlacement === "side" ? Quickshell.screens : []
+
+        SlidersDrawer {
+            required property var modelData
+
+            screen: modelData
+            live: modelData.name === root.liveScreenName
+        }
+    }
+
     // Notes docked on the screen edges, on every screen, for the desktop's
     // reason. A deck is a row like a widget and carries its screen too.
     Variants {

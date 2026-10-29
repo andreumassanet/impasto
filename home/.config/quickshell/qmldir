@@ -243,3 +243,5 @@ FrameRing        1.0 frame/FrameRing.qml
 EdgeDrawer       1.0 frame/EdgeDrawer.qml
 LauncherDrawer   1.0 frame/LauncherDrawer.qml
 AppGrid          1.0 frame/AppGrid.qml
+SlidersDrawer    1.0 frame/SlidersDrawer.qml
+CornerButton     1.0 frame/CornerButton.qml
