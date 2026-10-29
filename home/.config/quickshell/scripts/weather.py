@@ -48,6 +48,33 @@ GLYPHS = [
 FALLBACK = ("󰖐", "󰖐")
 
 
+# KDE Breeze's full-colour weather icons
+# (/usr/share/icons/breeze/applets/48/weather-NAME.svg), by the same codes.
+ICONS = [
+    ({113}, "clear", "clear-night"),
+    ({116}, "few-clouds", "few-clouds-night"),
+    ({119}, "clouds", "clouds-night"),
+    ({122}, "overcast", "overcast"),
+    ({143}, "mist", "mist"),
+    ({248, 260}, "fog", "fog"),
+    ({176, 263, 266, 293, 296, 353}, "showers-scattered-day", "showers-scattered-night"),
+    ({299, 302, 305, 308, 356, 359}, "showers-day", "showers-night"),
+    ({281, 284, 311, 314, 317, 320, 350, 362, 365, 374, 377}, "freezing-rain-day", "freezing-rain-night"),
+    ({179, 227, 323, 326, 368}, "snow-scattered-day", "snow-scattered-night"),
+    ({230, 329, 332, 335, 338, 371}, "snow-day", "snow-night"),
+    ({182, 185}, "snow-rain", "snow-rain"),
+    ({200, 386, 389}, "storm-day", "storm-night"),
+    ({392, 395}, "snow-storm-day", "snow-storm-night"),
+]
+
+
+def icon(code, daytime):
+    for codes, day, night in ICONS:
+        if code in codes:
+            return day if daytime else night
+    return "clouds" if daytime else "clouds-night"
+
+
 def glyph(code, daytime):
     for codes, day, night in GLYPHS:
         if code in codes:
@@ -91,6 +118,7 @@ def report(place):
         "feelsLike": int(current["FeelsLikeC"]),
         "description": current["weatherDesc"][0]["value"].strip(),
         "glyph": glyph(code, daytime),
+        "icon": icon(code, daytime),
         "humidity": int(current["humidity"]),
         "wind": int(current["windspeedKmph"]),
         "low": int(today["mintempC"]),
@@ -102,6 +130,7 @@ def report(place):
                 "hour": int(block["time"]) // 100,
                 "temperature": int(block["tempC"]),
                 "glyph": glyph(int(block["weatherCode"]), 6 <= int(block["time"]) // 100 < 21),
+                "icon": icon(int(block["weatherCode"]), 6 <= int(block["time"]) // 100 < 21),
                 "rain": int(block["chanceofrain"]),
                 "tomorrow": day > 0,
             }
