@@ -89,6 +89,18 @@ SettingsSection {
                 }
             }
 
+            SettingRow {
+                label: Tr.t("Connectivity tabs")
+                reading: SettingsService.connectivityTabs
+                    ? Tr.t("Bluetooth, Wi-Fi and Sound share one panel, with Tab to switch")
+                    : Tr.t("Each opens as a panel of its own")
+
+                ToggleSwitch {
+                    checked: SettingsService.connectivityTabs
+                    onToggled: checked => SettingsService.set("connectivityTabs", checked)
+                }
+            }
+
         }
 
         // ── CLOCK ───────────────────────────────────────────────────────────

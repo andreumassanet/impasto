@@ -23,8 +23,23 @@ ColumnLayout {
     id: root
 
     signal back()
+    signal pageRequested(string panel)
+
+    // Focus on open, or Tab goes to whatever had the keyboard before.
+    Component.onCompleted: {
+        if (tabs.visible)
+            root.forceActiveFocus()
+    }
+    Keys.onPressed: event => event.accepted = tabs.handle(event)
 
     spacing: Theme.detailGap
+
+    ConnectivityTabs {
+        id: tabs
+
+        page: "sound"
+        onPageRequested: panel => root.pageRequested(panel)
+    }
 
     DetailHeading {
         title: Tr.t("Sound")

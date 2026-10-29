@@ -27,10 +27,28 @@ ColumnLayout {
     property bool backable: true
 
     property string expanded: ""
+    signal pageRequested(string panel)
+
+    // The password field keeps Tab while it is open.
+    Keys.onPressed: event => event.accepted = root.expanded === "" && tabs.handle(event)
 
     spacing: Theme.cardGap
 
-    Component.onCompleted: NetworkService.scan(false)
+    Component.onCompleted: {
+        NetworkService.scan(false)
+        // Focus on open, or Tab goes to whatever had the keyboard before.
+        if (tabs.visible)
+            root.forceActiveFocus()
+    }
+
+    // Only in the island: the module card has no panel to switch to.
+    ConnectivityTabs {
+        id: tabs
+
+        visible: SettingsService.connectivityTabs && root.backable
+        page: "wifi"
+        onPageRequested: panel => root.pageRequested(panel)
+    }
 
     // The heading a module's card has (`ModuleCard`), with the back arrow in
     // front of it when there is somewhere to go back to.
