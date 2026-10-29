@@ -36,6 +36,7 @@ Singleton {
 
     // Asked for again in the mode it is already showing, it closes.
     function openLauncher(mode: string, screenName: string): void {
+        root.slidersOpen = false
         if (root.launcherOpen && root.launcherMode === mode) {
             root.closeLauncher()
             return
@@ -54,6 +55,20 @@ Singleton {
     // this first, so only one thing holds the keyboard.
     function closeAll(): void {
         root.closeLauncher()
+        root.slidersOpen = false
+    }
+
+    // ── EDGE BUTTONS ────────────────────────────────────────────────────────
+    //
+    // With `edgeOpen` "click" the sliders open from the bar's corner button
+    // rather than from their edge; these say which is out, on which screen.
+    property bool slidersOpen: false
+    property string edgeScreen: ""
+
+    function toggleSliders(screenName: string): void {
+        root.edgeScreen = screenName
+        root.closeLauncher()
+        root.slidersOpen = !root.slidersOpen
     }
 
     // A drawer that is no longer built cannot be left open.

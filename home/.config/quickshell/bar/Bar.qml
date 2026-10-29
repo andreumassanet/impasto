@@ -344,6 +344,10 @@ PanelWindow {
             width: root.edgeArmed ? root.width : 0
             height: root.edgeArmed ? 3 : 0
         }
+
+        Region {
+            item: slidersButton.visible ? slidersButton : null
+        }
     }
 
     // The reserve is `BarReserve.qml`'s, one strip per screen that outlives
@@ -460,6 +464,26 @@ PanelWindow {
         anchors.fill: parent
         enabled: root.holding
         onClicked: root.dismiss()
+    }
+
+    // ── EDGE BUTTONS ────────────────────────────────────────────────────────
+    //
+    // With `edgeOpen` "click" the drawers do not wake at their edge; a button
+    // under the bar's corner on their side opens each. Under the band rather
+    // than in it, so they never cover the bar's own sides.
+    readonly property bool edgeButtons: SettingsService.edgeOpen === "click"
+        && root.live && !root.inert
+    readonly property bool slidersOnRight: SettingsService.dockEdge !== "right"
+
+    CornerButton {
+        id: slidersButton
+
+        visible: root.edgeButtons && SettingsService.slidersPlacement === "side"
+        x: root.slidersOnRight ? root.width - root.edgeMargin - width : root.edgeMargin
+        y: root.collapsedHeight + 4
+        glyph: "󰕰"
+        lit: DrawerService.slidersOpen
+        onTriggered: DrawerService.toggleSliders(root.screen.name)
     }
 
     // ── FRAME ───────────────────────────────────────────────────────────────
