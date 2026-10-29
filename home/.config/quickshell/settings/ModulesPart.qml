@@ -84,6 +84,22 @@ ColumnLayout {
                 }
             }
         }
+
+        // Only a figure that waits for the pointer has a hover to choose.
+        SettingRow {
+            label: Tr.t("Hover")
+            reading: Tr.t(SettingsService.chipHover === "card"
+                ? "A small card drops from the bar under the piece"
+                : "The piece widens to show its figure")
+            visible: SettingsService.chipFigure === "hover"
+
+            SegmentedControl {
+                options: SettingsService.chipHovers.map(
+                    entry => ({ id: entry.id, label: Tr.t(entry.label) }))
+                current: SettingsService.chipHover
+                onSelected: id => SettingsService.set("chipHover", id)
+            }
+        }
     }
 
     // ── WHAT THE BAR CARRIES ────────────────────────────────────────────────
