@@ -99,7 +99,9 @@ ColumnLayout {
         Repeater {
             model: [
                 { id: "netspeed", label: "Network speed", side: "left", figure: "on",
-                  note: "Download and upload speed, with a card of the connection." }
+                  note: "Download and upload speed, with a card of the connection." },
+                { id: "keyboard", label: "Keyboard layout", side: "right", figure: "on",
+                  note: "The layout in use, with a card to switch to another." }
             ]
 
             SettingRow {
