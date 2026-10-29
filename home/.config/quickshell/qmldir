@@ -28,6 +28,7 @@ singleton SessionService     1.0 services/SessionService.qml
 singleton NetworkService     1.0 services/NetworkService.qml
 singleton FontService        1.0 services/FontService.qml
 singleton StatsService       1.0 services/StatsService.qml
+singleton SystemMonitorService 1.0 services/SystemMonitorService.qml
 singleton TimerService       1.0 services/TimerService.qml
 singleton CavaService        1.0 services/CavaService.qml
 singleton CompositorService  1.0 services/CompositorService.qml
