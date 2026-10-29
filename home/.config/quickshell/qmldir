@@ -33,6 +33,7 @@ singleton TimerService       1.0 services/TimerService.qml
 singleton CavaService        1.0 services/CavaService.qml
 singleton CompositorService  1.0 services/CompositorService.qml
 singleton BluetoothService   1.0 services/BluetoothService.qml
+singleton DeviceService      1.0 services/DeviceService.qml
 singleton ClaudeService      1.0 services/ClaudeService.qml
 singleton CodexService       1.0 services/CodexService.qml
 singleton UpdatesService     1.0 services/UpdatesService.qml
