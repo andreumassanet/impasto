@@ -133,6 +133,9 @@ DynamicIsland    1.0 bar/widgets/DynamicIsland.qml
 WorkspacesWidget 1.0 bar/widgets/WorkspacesWidget.qml
 TrayWidget       1.0 bar/widgets/TrayWidget.qml
 SpecialPill      1.0 bar/widgets/SpecialPill.qml
+WorkspacePills   1.0 bar/widgets/WorkspacePills.qml
+WorkspaceExtras  1.0 bar/widgets/WorkspaceExtras.qml
+WorkspaceStrip   1.0 bar/widgets/WorkspaceStrip.qml
 BatteryWidget    1.0 bar/widgets/BatteryWidget.qml
 BarZone          1.0 bar/widgets/BarZone.qml
 BarChip          1.0 bar/widgets/BarChip.qml

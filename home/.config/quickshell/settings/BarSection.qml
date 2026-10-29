@@ -183,6 +183,39 @@ SettingsSection {
             }
         }
 
+        SettingRow {
+            label: Tr.t("Icons")
+            reading: SettingsService.workspaceIcons === "single" ? Tr.t("One per workspace, its last window")
+                : SettingsService.workspaceIcons === "none" ? Tr.t("Numbers only")
+                : Tr.t("The apps of the workspace you are on")
+
+            SegmentedControl {
+                options: [
+                    { id: "group", label: Tr.t("All apps") },
+                    { id: "single", label: Tr.t("One") },
+                    { id: "none", label: Tr.t("None") }
+                ]
+                current: SettingsService.workspaceIcons
+                onSelected: id => SettingsService.set("workspaceIcons", id)
+            }
+        }
+
+        SettingRow {
+            label: Tr.t("Apps beside the strip")
+            reading: SettingsService.workspaceExtras
+                ? Tr.t("The focused workspace's apps and the special workspace, after the strip")
+                : Tr.t("Only the strip")
+            locked: SettingsService.workspaceStyle === "pills"
+            reason: Tr.t("The pills style always shows them")
+
+            ToggleSwitch {
+                checked: SettingsService.workspaceExtras
+                onToggled: checked => SettingsService.set("workspaceExtras", checked)
+            }
+        }
+
+        IconRules {}
+
         SettingSlider {
             label: Tr.t("Workspaces shown")
             value: HyprlandService.slots
