@@ -75,6 +75,9 @@ Singleton {
     readonly property alias launcherResults: config.launcherResults
     readonly property alias launcherOrder: config.launcherOrder
     readonly property alias launcherFits: config.launcherFits
+    readonly property alias launcherDesign: config.launcherDesign
+    readonly property alias launcherOnHover: config.launcherOnHover
+    readonly property alias launcherPinned: config.launcherPinned
     readonly property alias emojiTone: config.emojiTone
     readonly property alias cameraEnabled: config.cameraEnabled
     readonly property alias cameraEffect: config.cameraEffect
@@ -616,6 +619,19 @@ Singleton {
         // list. Off by default: a list that holds still is easier to aim at.
         // `launcherResults` caps it either way.
         property bool launcherFits: false
+
+        // Where the launcher key opens it: `island` (the island's panel),
+        // `drawer` (the same panel growing from the bottom edge) or `grid`
+        // (the application grid from the bottom edge).
+        property string launcherDesign: "island"
+
+        // Drawer and grid only: resting on the bottom edge opens it, and
+        // leaving without typing closes it.
+        property bool launcherOnHover: false
+
+        // Drawer and grid only: a search pill stays out on the bottom edge,
+        // and the windows keep clear of it.
+        property bool launcherPinned: false
 
         // Skin tone for emoji that have one: 0 is the default yellow, 1 to 5
         // light to dark. The person's, so it stays with the machine.

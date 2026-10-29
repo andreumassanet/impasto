@@ -229,6 +229,22 @@ ShellRoot {
         }
     }
 
+    // The launcher from the bottom edge, in the drawer and grid designs. The
+    // one it opens on is the live screen unless it was asked for elsewhere
+    // (resting on another screen's edge).
+    Variants {
+        model: SettingsService.launcherDesign !== "island" ? Quickshell.screens : []
+
+        LauncherDrawer {
+            required property var modelData
+
+            screen: modelData
+            live: modelData.name === (DrawerService.screenName || root.liveScreenName)
+            onPanelRequested: panel => root.island?.open(panel)
+            onSettingsRequested: root.toggleSettings()
+        }
+    }
+
     // Notes docked on the screen edges, on every screen, for the desktop's
     // reason. A deck is a row like a widget and carries its screen too.
     Variants {
@@ -513,6 +529,20 @@ ShellRoot {
     // it, and the island is sized before the panel exists.
     function openLauncherOn(mode: string): void {
         const sigil = SettingsService.launcherPrefix(mode)
+        // The drawer designs: the same two keys on the drawer's own search.
+        // It is closed first, since a panel being destroyed clears the query.
+        if (SettingsService.launcherDesign !== "island") {
+            if (DrawerService.launcherOpen && DrawerService.launcherMode === "search"
+                    && LauncherService.query.startsWith(sigil)) {
+                DrawerService.closeLauncher()
+                return
+            }
+            root.island?.close()
+            DrawerService.closeLauncher()
+            LauncherService.query = sigil
+            DrawerService.openLauncher("search", "")
+            return
+        }
         const showing = root.island?.state.openPanel === "launcher"
         if (showing && LauncherService.query.startsWith(sigil)) {
             root.island?.close()

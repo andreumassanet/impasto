@@ -241,3 +241,5 @@ ScreenCorners    1.0 ScreenCorners.qml
 Frame            1.0 frame/Frame.qml
 FrameRing        1.0 frame/FrameRing.qml
 EdgeDrawer       1.0 frame/EdgeDrawer.qml
+LauncherDrawer   1.0 frame/LauncherDrawer.qml
+AppGrid          1.0 frame/AppGrid.qml
