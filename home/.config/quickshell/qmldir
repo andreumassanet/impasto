@@ -152,6 +152,7 @@ AppearancePanel  1.0 bar/island/AppearancePanel.qml
 ControlsPanel    1.0 bar/island/ControlsPanel.qml
 LauncherPanel    1.0 bar/island/LauncherPanel.qml
 StatsPanel       1.0 bar/island/StatsPanel.qml
+MonitorTab       1.0 bar/island/MonitorTab.qml
 OverviewPanel    1.0 bar/island/OverviewPanel.qml
 
 Module           1.0 bar/modules/Module.qml
