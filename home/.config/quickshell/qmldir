@@ -42,6 +42,7 @@ singleton AccountService     1.0 services/AccountService.qml
 singleton MachineService     1.0 services/MachineService.qml
 singleton DesktopService     1.0 services/DesktopService.qml
 singleton DockService        1.0 services/DockService.qml
+singleton WindowService      1.0 services/WindowService.qml
 singleton ControlsService    1.0 services/ControlsService.qml
 singleton GamesService       1.0 services/GamesService.qml
 singleton NotesService       1.0 services/NotesService.qml
