@@ -20,6 +20,7 @@ import "./modules"
 import "./island"
 import "./island/controls"
 import "../components"
+import "../frame"
 
 // The island in the middle and the two sides (`SettingsService.barZone`), in
 // one of three styles:
@@ -178,7 +179,8 @@ PanelWindow {
 
     // Attached (notch mode), only the island reaches the screen edge; the
     // sides stay capsules, centred on `laneY`.
-    readonly property int islandTopMargin: SettingsService.notched ? 0 : Theme.barTopMargin
+    readonly property int islandTopMargin: SettingsService.notched
+        ? 0 : SettingsService.frameTopInset + Theme.barTopMargin
 
     // How far the glass's light from the top reaches down the notch
     // (`GlassSheen`), for the fillets that carry it on.
@@ -188,7 +190,7 @@ PanelWindow {
     // reaches the screen edge, so its centre is half a margin higher and the
     // sides move up to match.
     readonly property real laneY: SettingsService.notched
-        ? Theme.barTopMargin / 2 : Theme.barTopMargin
+        ? Theme.barTopMargin / 2 : SettingsService.frameTopInset + Theme.barTopMargin
 
     readonly property int collapsedHeight: Theme.barBand
 
@@ -358,6 +360,27 @@ PanelWindow {
         anchors.fill: parent
         enabled: root.holding
         onClicked: root.dismiss()
+    }
+
+    // ── FRAME ───────────────────────────────────────────────────────────────
+    //
+    // The border round the screen (`frame/`), drawn in this surface so it
+    // shares the island's ground. Not built at all while the mode is "none".
+    // "open" shows it on the live bar while the island or a drawer is out.
+    readonly property bool frameShown: SettingsService.frameMode === "always"
+        || (SettingsService.frameMode === "open" && root.live
+            && (island.expanded || DrawerService.anyFramed))
+
+    Loader {
+        anchors.fill: parent
+        active: SettingsService.frameMode !== "none"
+
+        sourceComponent: FrameRing {
+            shown: root.frameShown
+            holeLeft: root.edgeToEdge ? 0 : root.shapeLeft
+            holeRight: root.edgeToEdge ? root.width : root.shapeRight
+            holeHeight: SettingsService.notched && !Theme.solid ? SettingsService.frameThickness : 0
+        }
     }
 
     // ── THE FACE ────────────────────────────────────────────────────────────

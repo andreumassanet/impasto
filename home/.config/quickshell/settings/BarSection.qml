@@ -73,6 +73,36 @@ SettingsSection {
                 }
             }
 
+            SettingRow {
+                label: Tr.t("Frame")
+                reading: SettingsService.frameMode === "always"
+                    ? Tr.t("A thin border all the time; the windows keep clear of it")
+                    : SettingsService.frameMode === "open"
+                        ? Tr.t("A thin border, only while the island or a drawer is out")
+                        : Tr.t("No border, as the panel is")
+
+                SegmentedControl {
+                    options: [
+                        { id: "none", label: Tr.t("None") },
+                        { id: "open", label: Tr.t("When open") },
+                        { id: "always", label: Tr.t("Always") }
+                    ]
+                    current: SettingsService.frameMode
+                    onSelected: id => SettingsService.set("frameMode", id)
+                }
+            }
+
+            SettingSlider {
+                label: Tr.t("Frame thickness")
+                value: SettingsService.frameThickness
+                from: 4
+                to: 24
+                unit: " px"
+                locked: SettingsService.frameMode === "none"
+                reason: Tr.t("The frame is off")
+                onMoved: value => SettingsService.set("frameThickness", Math.round(value))
+            }
+
             // Locked in one capsule, where the sides sit on its band.
             SettingRow {
                 label: Tr.t("Sides")

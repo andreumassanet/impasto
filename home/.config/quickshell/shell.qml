@@ -23,6 +23,7 @@ import "./bar"
 import "./capture"
 import "./desktop"
 import "./dock"
+import "./frame"
 import "./lock"
 import "./services"
 import "./settings"
@@ -213,6 +214,18 @@ ShellRoot {
 
             screen: modelData
             live: modelData.name === root.liveScreenName
+        }
+    }
+
+    // The room the frame takes from the windows, on every screen. Built only
+    // while the frame is always on.
+    Variants {
+        model: SettingsService.frameMode === "always" ? Quickshell.screens : []
+
+        Frame {
+            required property var modelData
+
+            screen: modelData
         }
     }
 

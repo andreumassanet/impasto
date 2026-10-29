@@ -35,6 +35,8 @@ Singleton {
     readonly property alias barEverywhere: config.barEverywhere
     readonly property alias barHidden: config.barHidden
     readonly property alias screenCorners: config.screenCorners
+    readonly property alias frameMode: config.frameMode
+    readonly property alias frameThickness: config.frameThickness
     readonly property alias gameMode: config.gameMode
     readonly property alias barLeft: config.barLeft
     readonly property alias barRight: config.barRight
@@ -176,6 +178,11 @@ Singleton {
     // The island is cut into the top edge: chosen, or the bezel, which is
     // always cut in.
     readonly property bool notched: config.islandAttached || config.barStyle === "bezel"
+
+    // Under an always-on frame a floating bar hangs from the frame's inner
+    // edge, not the screen's; notched, the band already covers it.
+    readonly property int frameTopInset: config.frameMode === "always" && !root.notched
+        ? config.frameThickness : 0
 
     // Used while `barLeft`/`barRight` are null. `workspaces` is the strip,
     // `tray` the applications' icons and `split` starts a new capsule; none is
@@ -532,6 +539,12 @@ Singleton {
 
         // Every screen's four corners rounded off in black.
         property bool screenCorners: false
+
+        // A thin border round the screen, in the island's ground. "always":
+        // drawn all the time, with the windows kept clear of it; "open": drawn
+        // over the windows only while the island or a drawer is out; "none".
+        property string frameMode: "none"
+        property int frameThickness: 8
 
         // Game mode: no animations, blur, shadow or glass on the compositor,
         // over whatever the rest of the settings say.

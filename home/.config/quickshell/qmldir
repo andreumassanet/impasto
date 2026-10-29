@@ -65,6 +65,7 @@ singleton GithubService      1.0 services/GithubService.qml
 singleton PackagesService    1.0 services/PackagesService.qml
 singleton ProfileService     1.0 services/ProfileService.qml
 singleton VersionService     1.0 services/VersionService.qml
+singleton DrawerService      1.0 services/DrawerService.qml
 
 Card             1.0 components/Card.qml
 ColorSwatch      1.0 components/ColorSwatch.qml
@@ -236,3 +237,7 @@ TrayMenuPanel    1.0 bar/island/TrayMenuPanel.qml
 BluetoothDetail  1.0 bar/island/BluetoothDetail.qml
 Commands         1.0 Commands.qml
 ScreenCorners    1.0 ScreenCorners.qml
+
+Frame            1.0 frame/Frame.qml
+FrameRing        1.0 frame/FrameRing.qml
+EdgeDrawer       1.0 frame/EdgeDrawer.qml
