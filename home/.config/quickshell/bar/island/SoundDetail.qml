@@ -13,6 +13,7 @@ import QtQuick.Layouts
 
 import "../../theme"
 import "../../services"
+import "../../components"
 
 // Opened from the control centre's volume, as a phone opens its volume into a
 // page: the level, every application playing, and the outputs to choose from
@@ -27,6 +28,7 @@ ColumnLayout {
 
     // Focus on open, or Tab goes to whatever had the keyboard before.
     Component.onCompleted: {
+        AudioService.refreshEasyEffects()
         if (tabs.visible)
             root.forceActiveFocus()
     }
@@ -112,6 +114,33 @@ ColumnLayout {
                 text: AudioService.outputName(modelData)
                 chosen: AudioService.source === modelData
                 onPicked: AudioService.chooseInput(modelData)
+            }
+        }
+    }
+
+    // Only when EasyEffects is installed.
+    DetailSection {
+        title: Tr.t("Effects")
+        visible: AudioService.easyEffectsAvailable
+
+        RowLayout {
+            Layout.fillWidth: true
+            Layout.preferredHeight: Theme.detailRow
+            spacing: 10
+
+            Text {
+                Layout.fillWidth: true
+                text: !AudioService.easyEffectsRunning ? Tr.t("EasyEffects is not running")
+                    : AudioService.easyEffectsBypassed ? Tr.t("EasyEffects is bypassed")
+                    : Tr.t("EasyEffects is on")
+                font.family: Theme.fontFamily
+                font.pixelSize: Theme.fontSizeSmall
+                color: Theme.text
+            }
+
+            PillButton {
+                text: Tr.t("Open")
+                onClicked: AudioService.openEasyEffects()
             }
         }
     }
