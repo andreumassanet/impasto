@@ -160,6 +160,7 @@ BatteryModule    1.0 bar/modules/BatteryModule.qml
 VolumeModule     1.0 bar/modules/VolumeModule.qml
 BrightnessModule 1.0 bar/modules/BrightnessModule.qml
 NetworkModule    1.0 bar/modules/NetworkModule.qml
+NetSpeedModule   1.0 bar/modules/NetSpeedModule.qml
 BluetoothModule  1.0 bar/modules/BluetoothModule.qml
 WeatherModule    1.0 bar/modules/WeatherModule.qml
 MarketsModule    1.0 bar/modules/MarketsModule.qml
