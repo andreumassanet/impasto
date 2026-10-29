@@ -58,8 +58,38 @@ Singleton {
         root.current?.setPercent(value)
     }
 
+    // With `brightnessBelowFloor`, a screen goes on dimming past the backlight's
+    // floor: the lowest 20 % of the slider is a dark layer over that screen
+    // alone (`dim`, drawn by `DimLayer`), the rest the backlight or the monitor
+    // from 1 to 100 %. On the way up the layer clears before the backlight
+    // moves. Off, the slider is the percentage and these are `step` and
+    // `setPercent`.
     function step(delta: int): void {
-        root.current?.step(delta)
+        root.current?.stepSlider(delta)
+    }
+
+    readonly property bool belowFloor: SettingsService.brightnessBelowFloor
+    readonly property int sliderMinimum: root.belowFloor ? 0 : 1
+    readonly property int slider: root.current?.slider ?? 0
+
+    function setSlider(value: int): void {
+        root.current?.setSlider(value)
+    }
+
+    function displayNamed(name: string): var {
+        return root.displays.find(display => display.name === name) ?? null
+    }
+
+    // The slider's first `dimReach` are the layer (darkest at 0).
+    readonly property int dimReach: 20
+    readonly property real dimDeepest: 0.75
+
+    // Switching it off clears every layer; the backlight stays where it is.
+    onBelowFloorChanged: {
+        if (root.belowFloor)
+            return
+        for (const display of root.displays)
+            display.dim = 0
     }
 
     // A monitor's own buttons change it without telling anyone, so whatever
@@ -205,7 +235,51 @@ Singleton {
             readonly property bool available: display.backlight
                 || (display.bus !== "" && display.answering)
             readonly property int percent: display.backlight ? root.backlightPercent : display.level
-            readonly property string icon: root.iconFor(display.percent)
+            readonly property string icon: display.dim > 0 ? "󰌁" : root.iconFor(display.percent)
+
+            // Darkness of the layer over this screen alone, 0 to `dimDeepest`.
+            property real dim: 0
+
+            // The slider's scale (see `dimReach`).
+            readonly property int slider: {
+                if (!root.belowFloor)
+                    return display.percent
+                if (display.dim > 0)
+                    return Math.round(root.dimReach * (1 - display.dim / root.dimDeepest))
+                return Math.round(root.dimReach
+                    + (100 - root.dimReach) * (Math.max(1, display.percent) - 1) / 99)
+            }
+
+            function setSlider(value: int): void {
+                if (!root.belowFloor) {
+                    display.setPercent(value)
+                    return
+                }
+                if (!display.available)
+                    return
+                const clamped = Math.max(0, Math.min(100, value))
+                if (clamped < root.dimReach) {
+                    display.setPercent(1)
+                    display.dim = root.dimDeepest * (1 - clamped / root.dimReach)
+                    root.adjusted(display)
+                    return
+                }
+                // The layer first, then the backlight.
+                const wasDim = display.dim > 0
+                display.dim = 0
+                display.setPercent(1 + Math.round(99 * (clamped - root.dimReach) / (100 - root.dimReach)))
+                if (wasDim)
+                    root.adjusted(display)
+            }
+
+            // A key: through the layer at the bottom, the backlight above it.
+            function stepSlider(delta: int): void {
+                const level = display.wanted >= 0 ? display.wanted : display.percent
+                if (root.belowFloor && (display.dim > 0 || (delta < 0 && level <= 1)))
+                    display.setSlider(display.slider + delta)
+                else
+                    display.step(delta)
+            }
 
             // Asked for and not yet written, or -1.
             property int wanted: -1

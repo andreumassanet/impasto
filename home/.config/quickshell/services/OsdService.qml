@@ -71,7 +71,7 @@ Singleton {
             const display = root.brightnessDisplay
             if (!display || ModuleService.openId === "brightness")
                 return
-            root.requested(display.icon, `${display.percent}%`, display.percent / 100)
+            root.requested(display.icon, `${display.slider}%`, display.slider / 100)
         }
     }
 
