@@ -132,6 +132,7 @@ Deck             1.0 deck/Deck.qml
 DynamicIsland    1.0 bar/widgets/DynamicIsland.qml
 WorkspacesWidget 1.0 bar/widgets/WorkspacesWidget.qml
 TrayWidget       1.0 bar/widgets/TrayWidget.qml
+SpecialPill      1.0 bar/widgets/SpecialPill.qml
 BatteryWidget    1.0 bar/widgets/BatteryWidget.qml
 BarZone          1.0 bar/widgets/BarZone.qml
 BarChip          1.0 bar/widgets/BarChip.qml
