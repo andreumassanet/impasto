@@ -59,6 +59,7 @@ Singleton {
     readonly property alias centreRows: config.centreRows
     readonly property alias centreToggles: config.centreToggles
     readonly property alias dockEnabled: config.dockEnabled
+    readonly property alias dockStyle: config.dockStyle
     readonly property alias dockPinned: config.dockPinned
     readonly property alias dockEdge: config.dockEdge
     readonly property alias dockAlignment: config.dockAlignment
@@ -860,6 +861,10 @@ Singleton {
         // An empty dock is not drawn, so enabling it by default costs
         // nothing on a fresh install.
         property bool dockEnabled: true
+
+        // `classic` (the capsule in `dock/`) or `drawer` (the same apps in a
+        // drawer on the dock's edge, with a popout for each app's windows).
+        property string dockStyle: "classic"
 
         // Pinned desktop entry ids, in order. Name, icon and command are
         // read from the entry.

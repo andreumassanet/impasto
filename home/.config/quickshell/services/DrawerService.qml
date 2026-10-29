@@ -37,6 +37,7 @@ Singleton {
     // Asked for again in the mode it is already showing, it closes.
     function openLauncher(mode: string, screenName: string): void {
         root.slidersOpen = false
+        root.dockOpen = false
         if (root.launcherOpen && root.launcherMode === mode) {
             root.closeLauncher()
             return
@@ -56,19 +57,39 @@ Singleton {
     function closeAll(): void {
         root.closeLauncher()
         root.slidersOpen = false
+        root.dockOpen = false
     }
 
     // ── EDGE BUTTONS ────────────────────────────────────────────────────────
     //
-    // With `edgeOpen` "click" the sliders open from the bar's corner button
-    // rather than from their edge; these say which is out, on which screen.
+    // With `edgeOpen` "click" the sliders and the dock open from the bar's
+    // corner buttons rather than from their edge; these say which is out, on
+    // which screen. Only one of the two at a time.
     property bool slidersOpen: false
+    property bool dockOpen: false
     property string edgeScreen: ""
 
     function toggleSliders(screenName: string): void {
         root.edgeScreen = screenName
         root.closeLauncher()
+        root.dockOpen = false
         root.slidersOpen = !root.slidersOpen
+    }
+
+    function toggleDock(screenName: string): void {
+        root.edgeScreen = screenName
+        root.closeLauncher()
+        root.slidersOpen = false
+        root.dockOpen = !root.dockOpen
+    }
+
+    // A drawer that is no longer built cannot be left open.
+    readonly property Connections edgesChanged: Connections {
+        target: SettingsService
+
+        function onEdgeOpenChanged(): void { root.closeAll() }
+        function onSlidersPlacementChanged(): void { root.closeAll() }
+        function onDockStyleChanged(): void { root.closeAll() }
     }
 
     // A drawer that is no longer built cannot be left open.

@@ -66,6 +66,7 @@ singleton PackagesService    1.0 services/PackagesService.qml
 singleton ProfileService     1.0 services/ProfileService.qml
 singleton VersionService     1.0 services/VersionService.qml
 singleton DrawerService      1.0 services/DrawerService.qml
+singleton DockApps           1.0 services/DockApps.qml
 
 Card             1.0 components/Card.qml
 ColorSwatch      1.0 components/ColorSwatch.qml
@@ -244,4 +245,6 @@ EdgeDrawer       1.0 frame/EdgeDrawer.qml
 LauncherDrawer   1.0 frame/LauncherDrawer.qml
 AppGrid          1.0 frame/AppGrid.qml
 SlidersDrawer    1.0 frame/SlidersDrawer.qml
+DockDrawer       1.0 frame/DockDrawer.qml
+DockPopout       1.0 frame/DockPopout.qml
 CornerButton     1.0 frame/CornerButton.qml

@@ -192,7 +192,7 @@ ShellRoot {
     // A dock on every screen, each drawn or not by `dockEverywhere` and
     // which screen is live.
     Variants {
-        model: Quickshell.screens
+        model: SettingsService.dockStyle === "classic" ? Quickshell.screens : []
 
         Dock {
             required property var modelData
@@ -242,6 +242,22 @@ ShellRoot {
             live: modelData.name === (DrawerService.screenName || root.liveScreenName)
             onPanelRequested: panel => root.island?.open(panel)
             onSettingsRequested: root.toggleSettings()
+        }
+    }
+
+    // The dock as a drawer on its edge, in place of the classic one.
+    Variants {
+        model: SettingsService.dockStyle === "drawer" ? Quickshell.screens : []
+
+        DockDrawer {
+            required property var modelData
+
+            screen: modelData
+            live: modelData.name === root.liveScreenName
+
+            // As the classic dock's launcher button: the island or the
+            // drawer, whichever the launcher key opens.
+            onLauncherRequested: root.island?.toggle("launcher")
         }
     }
 

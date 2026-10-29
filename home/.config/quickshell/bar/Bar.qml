@@ -258,6 +258,10 @@ PanelWindow {
         Region {
             item: slidersButton.visible ? slidersButton : null
         }
+
+        Region {
+            item: dockButton.visible ? dockButton : null
+        }
     }
 
     // The reserve is `BarReserve.qml`'s, one strip per screen that outlives
@@ -384,6 +388,17 @@ PanelWindow {
         glyph: "󰕰"
         lit: DrawerService.slidersOpen
         onTriggered: DrawerService.toggleSliders(root.screen.name)
+    }
+
+    CornerButton {
+        id: dockButton
+
+        visible: root.edgeButtons && SettingsService.dockStyle === "drawer" && SettingsService.dockEnabled
+        x: root.slidersOnRight ? root.edgeMargin : root.width - root.edgeMargin - width
+        y: root.collapsedHeight + 4
+        glyph: "󱂩"
+        lit: DrawerService.dockOpen
+        onTriggered: DrawerService.toggleDock(root.screen.name)
     }
 
     // ── FRAME ───────────────────────────────────────────────────────────────
