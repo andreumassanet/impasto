@@ -81,6 +81,7 @@ Singleton {
     readonly property alias clipboardKeep: config.clipboardKeep
     readonly property alias clipboardImages: config.clipboardImages
     readonly property alias clipboardWipeOnLock: config.clipboardWipeOnLock
+    readonly property alias lockBackground: config.lockBackground
     readonly property alias lockBlur: config.lockBlur
     readonly property alias lockClock: config.lockClock
     readonly property alias lockMusic: config.lockMusic
@@ -632,6 +633,11 @@ Singleton {
         // Password-manager copies are never stored regardless
         // (`clipboard.py`).
         property bool clipboardWipeOnLock: false
+
+        // What the lock blurs: "live", a capture of the screen as it was, or
+        // "wallpaper", which shows nothing that was open. A wallpaper that
+        // cannot be read falls back to "live".
+        property string lockBackground: "live"
 
         // Enough to make text unreadable, no more.
         property int lockBlur: 32
