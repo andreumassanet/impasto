@@ -48,6 +48,7 @@ Singleton {
         { id: "brightness",    name: "Brightness",    bar: true,  width: Theme.cardWidth, height: Theme.cardHeight(1, 0) },
         { id: "network",       name: "Network",       bar: true,  width: Theme.cardWidth, height: Theme.cardHeight(2, 0) },
         { id: "netspeed",      name: "Network speed", bar: true,  desk: false, width: Theme.cardWidth, height: Theme.cardHeight(3, 154) },
+        { id: "keyboard",      name: "Keyboard layout", bar: true, desk: false, width: Theme.cardWidth, height: Theme.cardHeight(1, 0) },
         { id: "bluetooth",     name: "Bluetooth",     bar: true,  width: Theme.cardWidth, height: Theme.cardHeight(3, 0) },
         { id: "notifications", name: "Notifications", bar: true,  desk: false, width: Theme.cardWidth, height: Theme.cardHeight(7, 0) },
         { id: "weather",       name: "Weather",       bar: true,  width: Theme.cardWidth, height: Theme.cardHeight(0, 50) },
@@ -201,6 +202,8 @@ Singleton {
             return NetworkService.icon
         case "netspeed":
             return "󰓅"
+        case "keyboard":
+            return "󰌌"
         case "bluetooth":
             return BluetoothService.icon
         case "volume":
@@ -273,6 +276,8 @@ Singleton {
             return PetService.hatched ? `Lv ${PetService.level}` : "Egg"
         case "network":
             return NetworkService.connectionName
+        case "keyboard":
+            return KeyboardService.shortCode
         case "netspeed":
             return `↓ ${StatsService.rate(StatsService.networkDown)}  ↑ ${StatsService.rate(StatsService.networkUp)}`
         case "bluetooth":
@@ -526,6 +531,8 @@ Singleton {
                                               (Theme.cardRowGap + 4 + root.netGraphHeight)
                                               + (Theme.cardRowGap + 4 + root.netButtonHeight)
                                               + (root.netNameLines() - 1) * 17) }
+        if (id === "keyboard")
+            return { width: item.width, height: Theme.cardHeight(Math.max(1, KeyboardService.layoutList.length), 0) }
         if (id === "notifications")
             return { width: item.width,
                      height: Theme.cardHeight(Math.min(6, NotificationService.history.length) + 1, 0) }
@@ -614,6 +621,10 @@ Singleton {
         case "brightness":
             // A desktop has no backlight, the way it has no battery.
             return BrightnessService.available
+        case "keyboard":
+            // Reading the layout builds the service, which asks the compositor;
+            // a single layout is still a reading.
+            return KeyboardService.layout !== ""
         case "netspeed":
             // Reading the addresses builds the service, which lists the
             // interfaces the card is sized from.
