@@ -67,6 +67,21 @@ SettingsSection {
         }
     }
 
+    SettingGroup {
+        title: Tr.t("Extra tiles")
+        note: Tr.t("Toggles that call tools outside the shell. A tile whose tool is not installed is not listed.")
+
+        SettingRow {
+            label: Tr.t("Search a region with Google Lens")
+            reading: Tr.t("The region is uploaded to uguu.se, a temporary public host")
+
+            ToggleSwitch {
+                checked: SettingsService.lensUpload
+                onToggled: checked => SettingsService.set("lensUpload", checked)
+            }
+        }
+    }
+
     // ── THE TOP ROW ─────────────────────────────────────────────────────────
 
     SettingGroup {
