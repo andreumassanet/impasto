@@ -200,13 +200,19 @@ Rectangle {
         tray: trayMenu
     })
 
+    // The stats panel is one of two designs (`statsDesign`); everything that
+    // opens it, by key, button or IPC, asks for "stats".
+    function resolve(panel: string): string {
+        return panel === "stats" && SettingsService.statsDesign === "dashboard" ? "dashboard" : panel
+    }
+
     function open(panel: string): void {
         // A card in the island asking for its piece's detail.
         if (panel === "media" || panel === "weather") {
             ModuleService.activate(panel)
             return
         }
-        islandState.open(panel)
+        islandState.open(root.resolve(panel))
     }
 
     function close(): void {
@@ -215,7 +221,7 @@ Rectangle {
 
     // Shortcuts toggle: the same key opens and closes.
     function toggle(panel: string): void {
-        if (islandState.openPanel === panel)
+        if (islandState.openPanel === root.resolve(panel))
             root.close()
         else
             root.open(panel)

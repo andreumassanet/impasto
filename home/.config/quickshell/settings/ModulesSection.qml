@@ -42,6 +42,28 @@ SettingsSection {
     }
 
     SettingGroup {
+        title: Tr.t("System statistics")
+        note: Tr.t("Which panel opens from the stats key and the stats button.")
+        hint: Tr.t("Classic is the processor, memory and network cards. The dashboard adds the calendar, the weather and a monitor with per-core load, GPUs, disks, network totals since boot and the batteries of connected devices. It reads the same services; nothing runs while it is closed.")
+
+        SettingRow {
+            label: Tr.t("Design")
+            reading: SettingsService.statsDesign === "dashboard"
+                ? Tr.t("Overview, monitor, system and weather tabs")
+                : Tr.t("The processor, memory and network cards")
+
+            SegmentedControl {
+                options: [
+                    { id: "classic", label: Tr.t("Classic") },
+                    { id: "dashboard", label: Tr.t("Dashboard") }
+                ]
+                current: SettingsService.statsDesign
+                onSelected: id => SettingsService.set("statsDesign", id)
+            }
+        }
+    }
+
+    SettingGroup {
         title: "GitHub"
         note: Tr.t("Whose public contribution graph to draw.")
         hint: Tr.t("The graph is read from the public profile page, so no token or account is needed. It stays empty until you enter a username.")

@@ -67,6 +67,7 @@ Singleton {
     readonly property alias dockAutohide: config.dockAutohide
     readonly property alias dockLauncher: config.dockLauncher
     readonly property alias weatherPlace: config.weatherPlace
+    readonly property alias statsDesign: config.statsDesign
     readonly property alias githubUser: config.githubUser
     readonly property alias markets: config.markets
     readonly property alias petStyle: config.petStyle
@@ -872,6 +873,11 @@ Singleton {
         // Anything wttr.in accepts: a city, postcode or airport code. Empty
         // lets wttr.in geolocate by IP, which can be tens of kilometres off.
         property string weatherPlace: ""
+
+        // Which panel the stats shortcut and the stats button open: `classic`
+        // is the processor, memory and network cards; `dashboard` adds the
+        // calendar, weather and a monitor with the machine's details.
+        property string statsDesign: "classic"
 
         // GitHub user for the contributions widget; empty draws nothing.
         property string githubUser: ""
