@@ -315,8 +315,8 @@ Singleton {
     // What resting the pointer on a piece does while its figure is "On hover":
     // the piece widens, or a small card drops from the bar under it.
     readonly property var chipHovers: [
-        { id: "widen", label: "Widen" },
-        { id: "card", label: "Card" }
+        { id: "widen", label: "Inline", note: "The figure opens beside the piece" },
+        { id: "card", label: "Pill", note: "A small pill drops from the bar under the piece" }
     ]
 
     // No writes until the file has been read: `onAdapterUpdated` writes the
