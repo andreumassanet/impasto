@@ -181,10 +181,12 @@ Singleton {
     readonly property var ringed: ["media", "timer", "claude", "codex", "battery", "volume",
         "brightness", "stats", "pet"]
 
-    // A piece's own shape when it has one, the bar's when it does not.
+    // A piece's own shape when it has one, the bar's when it does not. A
+    // device measures too, but only a chip for a device has a ring
+    // (`ChipFace`), so it is not in `ringed`.
     function shapeOf(id: string, own: var): string {
         const chosen = own ? own : SettingsService.chipShape
-        return chosen === "ring" && root.ringed.indexOf(id) >= 0 ? "ring" : "icon"
+        return chosen === "ring" && (root.ringed.indexOf(id) >= 0 || id === "devices") ? "ring" : "icon"
     }
 
     function figureOf(own: var): string {
@@ -299,6 +301,7 @@ Singleton {
             return 150
         case "network":
         case "bluetooth":
+        case "devices":
             return 110
         }
         return 0
