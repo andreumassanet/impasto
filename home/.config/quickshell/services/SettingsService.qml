@@ -244,6 +244,24 @@ Singleton {
         root.set(side === "left" ? "barLeft" : "barRight", packed)
     }
 
+    // Puts a piece on the bar or takes it off. On adds it to the end of `side`
+    // with its own `figure` ("" follows the bar's), unless it is already on
+    // either; a layout never edited is first kept whole from the defaults
+    // (`barItems`).
+    function setOnBar(id: string, on: bool, side: string, figure: string): void {
+        if (!on) {
+            for (const zone of ["left", "right"]) {
+                const items = root.barItems(zone)
+                if (items.some(item => item.id === id))
+                    root.setBarZone(zone, items.filter(item => item.id !== id))
+            }
+            return
+        }
+        if (root.onBar(id))
+            return
+        root.setBarZone(side, root.barItems(side).concat([{ id: id, shape: "", figure: figure, when: "" }]))
+    }
+
     // What may sit beside the time on the island while it runs. A module left
     // out still works on the bar; it just doesn't take a side of the island.
     // `privacy` is the microphone, camera or screen in use, which has no
