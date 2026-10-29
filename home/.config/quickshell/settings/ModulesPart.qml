@@ -99,7 +99,9 @@ ColumnLayout {
         Repeater {
             model: [
                 { id: "netspeed", label: "Network speed", side: "left", figure: "on",
-                  note: "Download and upload speed, with a card of the connection." }
+                  note: "Download and upload speed, with a card of the connection." },
+                { id: "devices", label: "Device batteries", side: "right", figure: "",
+                  note: "A chip for each connected device that reports a battery, such as a mouse or earbuds." }
             ]
 
             SettingRow {
