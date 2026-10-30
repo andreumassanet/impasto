@@ -25,7 +25,11 @@
 -- Loads custom/NAME.lua when there is one, found where `require` would look.
 local function load_custom(name)
     if package.searchpath("custom." .. name, package.path) then
-        require("custom." .. name)
+        -- A file of the user's with an error must not stop the modules after it.
+        local loaded, failure = pcall(require, "custom." .. name)
+        if not loaded then
+            print("hypr custom/" .. name .. ".lua: " .. tostring(failure))
+        end
     end
 end
 
