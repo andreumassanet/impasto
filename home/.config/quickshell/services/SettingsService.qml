@@ -40,10 +40,10 @@ Singleton {
     readonly property alias barRight: config.barRight
     readonly property alias islandSummary: config.islandSummary
     readonly property alias lyrics: config.lyrics
-    // "rectangle" or "circle", the cover's shape wherever the shell shows it. A
-    // config from before the choice has only `mediaRing`, which meant circle.
     // "card" (the piece's card) or "panel" (the wide media panel).
     readonly property alias mediaDesign: config.mediaDesign
+    // "rectangle" or "circle", the cover's shape wherever the shell shows it. A
+    // config from before the choice has only `mediaRing`, which meant circle.
     readonly property string mediaCover: config.mediaCover !== ""
         ? config.mediaCover : (config.mediaRing ? "circle" : "rectangle")
     readonly property alias islandActivities: config.islandActivities

@@ -31,6 +31,9 @@ Singleton {
 
     function choose(player: var): void {
         root.chosen = player
+        // A player that is paused pushes no position: ask for one.
+        if (root.available)
+            root.active.positionChanged()
     }
 
     readonly property MprisPlayer active: {

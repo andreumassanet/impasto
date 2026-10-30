@@ -35,6 +35,8 @@ FocusScope {
     Component.onDestruction: {
         MediaService.release()
         LyricsService.release()
+        // A player picked here is picked for as long as the panel is open.
+        MediaService.choose(null)
     }
 
     Keys.onSpacePressed: MediaService.toggle()
@@ -73,6 +75,8 @@ FocusScope {
                 height: width
                 spin: true
                 cornerScale: 0.6
+                // The island animates the panel's size; one decode serves all of it.
+                sourceEdge: 600
             }
         }
 

@@ -80,12 +80,14 @@ Item {
             width: 0
             height: 0
 
+            // Paused with the music, from where it stopped.
             NumberAnimation on angle {
                 from: 0
                 to: 360
                 duration: 24000
                 loops: Animation.Infinite
-                running: root.spin && root.circle && MediaService.playing
+                running: root.spin && root.circle
+                paused: !MediaService.playing
             }
         }
 
