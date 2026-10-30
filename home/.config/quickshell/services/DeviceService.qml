@@ -55,8 +55,10 @@ Singleton {
     // Bluetooth first: it names the device the way the user paired it.
     readonly property var devices: {
         const all = [...root.bluetoothDevices]
+        // A UPower device is dropped only for a Bluetooth one of the same name:
+        // two of the same model (a pair of pads) are two devices.
         for (const device of root.upowerDevices)
-            if (!all.some(other => other.name.toLowerCase() === device.name.toLowerCase()))
+            if (!root.bluetoothDevices.some(other => other.name.toLowerCase() === device.name.toLowerCase()))
                 all.push(device)
         return all
     }
