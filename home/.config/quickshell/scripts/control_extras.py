@@ -110,7 +110,12 @@ def record(source, path):
         recorder.wait(timeout=RECORD_SECONDS)  # returns early only if parec failed
     except subprocess.TimeoutExpired:
         recorder.terminate()
-    recorder.wait()
+    try:
+        recorder.wait(timeout=3)
+    except subprocess.TimeoutExpired:
+        # A recorder that ignores the signal must not hang the helper.
+        recorder.kill()
+        recorder.wait()
     return path.exists() and path.stat().st_size > WAV_HEADER_BYTES
 
 

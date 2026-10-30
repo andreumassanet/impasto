@@ -96,7 +96,7 @@ SettingsSection {
 
     SettingGroup {
         title: Tr.t("Extra tiles")
-        note: Tr.t("Toggles that call tools outside the shell. A tile whose tool is not installed is not listed.")
+        note: Tr.t("Toggles that call tools outside the shell. A tile whose tool is not installed is not listed. Song sends a short fingerprint of 12 seconds of what the speakers play (anything, a call included) to the song service through songrec.")
 
         SettingRow {
             label: Tr.t("Search a region with Google Lens")

@@ -47,7 +47,10 @@ Rectangle {
     Behavior on border.color { ColorAnimation { duration: Theme.durationFast } }
     Behavior on opacity { NumberAnimation { duration: Theme.durationFast } }
 
+    // Above the tile-wide click area, so the icon's own area under it takes
+    // the icon's clicks; the texts take none, and a click on them falls through.
     RowLayout {
+        z: 1
         anchors.fill: parent
         anchors.margins: 12
         spacing: 11

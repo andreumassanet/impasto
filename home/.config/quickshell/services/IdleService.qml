@@ -31,6 +31,13 @@ Singleton {
     // a new session starts as the settings say.
     property bool keepAwake: false
 
+    // A screen already turned off by idle comes back on when keeping awake
+    // starts: nothing but this and SUPER + SHIFT + D wakes it.
+    onKeepAwakeChanged: {
+        if (root.keepAwake)
+            root.screen(true)
+    }
+
     readonly property IdleMonitor lockWatch: IdleMonitor {
         enabled: root.lockAfter > 0 && !root.keepAwake
         timeout: root.lockAfter * 60
