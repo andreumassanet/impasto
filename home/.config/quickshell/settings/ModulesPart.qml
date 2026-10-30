@@ -133,7 +133,7 @@ ColumnLayout {
                                 id: pillText
 
                                 anchors.centerIn: parent
-                                text: "Volume · 40%"
+                                text: `${Tr.t("Volume")} · 40%`
                                 font.family: Theme.fontFamily
                                 font.pixelSize: Theme.fontSizeLabel
                                 color: Theme.text

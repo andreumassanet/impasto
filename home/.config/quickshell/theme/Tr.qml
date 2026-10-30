@@ -256,12 +256,11 @@ QtObject {
             "No figure beside it": "Sin cifra al lado",
             "The figure opens under the pointer": "La cifra se abre bajo el cursor",
             "The figure always beside it": "La cifra siempre al lado",
-            "Hover": "Al pasar el cursor",
-            "Widen": "Ensanchar",
-            "Card": "Tarjeta",
-            "A small card drops from the bar under the piece":
-                "Una tarjeta pequeña baja de la barra bajo la pieza",
-            "The piece widens to show its figure": "La pieza se ensancha para mostrar su cifra",
+            "Pill": "Píldora",
+            "The figure opens beside the piece": "La cifra se abre junto a la pieza",
+            "A small pill drops from the bar under the piece":
+                "Una pequeña píldora baja de la barra bajo la pieza",
+            "Used when the figure is set to On hover": "Se usa cuando la cifra está en Al pasar",
             "Layout": "Disposición",
             "Drag a piece from the catalogue onto the bar.":
                 "Arrastra una pieza del catálogo a la barra.",
