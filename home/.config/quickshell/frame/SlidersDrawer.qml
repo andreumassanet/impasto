@@ -215,6 +215,12 @@ EdgeDrawer {
                 root.dragging = false
                 linger.restart()
             }
+            // A press the compositor takes away is a release as well; left
+            // set, the drawer would stay out.
+            onCanceled: {
+                root.dragging = false
+                linger.restart()
+            }
             onWheel: wheel => {
                 level.moved(Math.max(0, Math.min(level.limit, level.value + (wheel.angleDelta.y > 0 ? 5 : -5))))
                 linger.restart()
