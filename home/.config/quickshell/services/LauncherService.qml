@@ -244,7 +244,8 @@ QtObject {
     // Under the applications, when `launcherFallbacks` is on: open what looks
     // like an address, search the web, run the text as a command, or run it
     // in a terminal. Each is a "command" row, so choosing it runs it and
-    // closes the launcher.
+    // closes the launcher. A row carries its `argv`, not a function, which a
+    // model would drop on the way to a mouse click.
     readonly property string defaultSearchUrl: "https://search.brave.com/search?q="
 
     // Optional scheme, a dotted host, optional port and path, no spaces.
@@ -272,19 +273,19 @@ QtObject {
             const address = /^https?:\/\//.test(query) ? query : `https://${query}`
             rows.push({ kind: "command", id: "open", icon: "󰖟",
                         name: `${Tr.t("Open")} ${query}`, subtitle: Tr.t("In the browser"),
-                        run: () => Quickshell.execDetached(["xdg-open", address]) })
+                        argv: ["xdg-open", address] })
         }
         rows.push({ kind: "command", id: "web", icon: "󰖟",
                     name: `${Tr.t("Search the web for")} “${query}”`,
                     subtitle: searchHost || Tr.t("Web search"),
-                    run: () => Quickshell.execDetached(["xdg-open", searchUrl + encodeURIComponent(query)]) })
+                    argv: ["xdg-open", searchUrl + encodeURIComponent(query)] })
         rows.push({ kind: "command", id: "run", icon: "󰆍",
                     name: `${Tr.t("Run")} ${query}`, subtitle: Tr.t("As a command, in the background"),
-                    run: () => Quickshell.execDetached(["sh", "-c", query]) })
+                    argv: ["sh", "-c", query] })
         rows.push({ kind: "command", id: "terminal", icon: "󰆍",
                     name: `${Tr.t("Run")} ${query} ${Tr.t("in a terminal")}`,
                     subtitle: Tr.t("Stays open at the end"),
-                    run: () => Quickshell.execDetached(root.terminalCommand(heldScript).concat(["sh", query])) })
+                    argv: root.terminalCommand(heldScript).concat(["sh", query]) })
         return rows
     }
 
@@ -506,7 +507,7 @@ QtObject {
         else if (entry.kind === "emoji")
             EmojiService.copy(entry.item)
         else if (entry.kind === "command")
-            entry.run()
+            Quickshell.execDetached(entry.argv)
         // `panel` and `mode` entries are handled by the launcher panel: the
         // service does not know about the island, and a mode row keeps the
         // launcher open.
