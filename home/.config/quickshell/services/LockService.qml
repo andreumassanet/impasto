@@ -144,7 +144,7 @@ Singleton {
         const wallpaper = WallpaperService.currentWallpaper
         if (SettingsService.lockBackground === "wallpaper" && wallpaper !== "") {
             root.probeGiveUp.restart()
-            root.probe.source = `file://${wallpaper}`
+            root.probe.source = DesktopService.urlOf(wallpaper)
             return
         }
         root.captureScreen()
