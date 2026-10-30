@@ -306,6 +306,12 @@ Singleton {
             action: () => AudioService.toggleSourceMute()
         },
         Toggle {
+            key: "keepawake"; icon: IdleService.keepAwake ? "󰅶" : "󰾪"; label: Tr.t("Keep awake")
+            detail: IdleService.keepAwake ? Tr.t("No idle lock") : Tr.t("Idle as set")
+            active: IdleService.keepAwake
+            action: () => IdleService.keepAwake = !IdleService.keepAwake
+        },
+        Toggle {
             key: "airplane"; icon: root.airborne ? "󰀝" : "󰀞"; label: "Airplane"
             detail: root.airborne ? "Radios off" : "Radios on"
             active: root.airborne
