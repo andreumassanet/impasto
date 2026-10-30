@@ -19,7 +19,6 @@ than on a tick; a missing source is null.
 import json
 import os
 import pwd
-import re
 import shutil
 import subprocess
 import sys
@@ -125,7 +124,7 @@ def hardware():
             capture_output=True, text=True, timeout=10, check=False,
         )
         modules = {entry.get("type"): entry.get("result") for entry in json.loads(result.stdout)}
-    except (OSError, subprocess.SubprocessError, ValueError):
+    except Exception:  # fastfetch's output is not ours: any surprise is "nothing"
         return {}
     host = modules.get("Host") or {}
     return {

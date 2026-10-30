@@ -55,7 +55,7 @@ SettingsSection {
     SettingGroup {
         title: Tr.t("Package updates")
         note: Tr.t("How often the shell looks for updates to the packages.")
-        hint: Tr.t("The count on the bar and the dashboard's lists are as old as the last look; Check now in the dashboard looks at once. Only when asked leaves it to that button. The weather is read only while something shows it, and each reading tells wttr.in your connection's address.")
+        hint: Tr.t("The count on the bar and the dashboard's lists are as old as the last look; Check now in the dashboard looks at once. Only when asked leaves it to that button. The weather is read on its period only while something shows it, and once when it is first looked at, such as when this page opens; each reading tells wttr.in your connection's address.")
 
         SettingSlider {
             label: Tr.t("Look for updates")

@@ -186,7 +186,7 @@ Singleton {
     // the reading is recorded against the place it was asked for.
     property int unsettled: 0
     // A reading is on its way, for the button that asks for one.
-    readonly property bool refreshing: root.query.running || root.unsettled > 0
+    readonly property bool refreshing: root.query.running || (root.unsettled > 0 && Date.now() - root.askedAt < 30000)
 
     function settle(): void {
         root.unsettled = Math.max(0, root.unsettled - 1)

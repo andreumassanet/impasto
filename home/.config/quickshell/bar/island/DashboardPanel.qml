@@ -572,6 +572,9 @@ FocusScope {
                         text: Tr.t("Update in a terminal")
                         icon: "󰆍"
                         active: UpdatesService.count > 0
+                        // Once the AUR helper is known, and not while a terminal
+                        // from the packages panel is already up.
+                        enabled: PackagesService.loaded && !PackagesService.busy
                         onClicked: {
                             root.closed()
                             PackagesService.upgrade()

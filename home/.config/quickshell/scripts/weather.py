@@ -112,6 +112,22 @@ def daytime_now(current, today):
     return sunrise <= observed < sunset
 
 
+def day_report(day):
+    """One day of the forecast, or None when wttr.in sent it without its hours."""
+    blocks = day.get("hourly") or []
+    if not blocks:
+        return None
+    middle = int(blocks[len(blocks) // 2].get("weatherCode", 0))
+    return {
+        "date": day.get("date", ""),
+        "low": int(day.get("mintempC", 0)),
+        "high": int(day.get("maxtempC", 0)),
+        "glyph": glyph(middle, True),
+        "icon": icon(middle, True),
+        "rain": max(int(block.get("chanceofrain", 0)) for block in blocks),
+    }
+
+
 def report(place):
     data = fetch(place)
     current = data["current_condition"][0]
@@ -161,17 +177,7 @@ def report(place):
             for block in blocks
         ],
         # Every day wttr.in has (three), for the dashboard.
-        "days": [
-            {
-                "date": day["date"],
-                "low": int(day["mintempC"]),
-                "high": int(day["maxtempC"]),
-                "glyph": glyph(int(day["hourly"][len(day["hourly"]) // 2]["weatherCode"]), True),
-                "icon": icon(int(day["hourly"][len(day["hourly"]) // 2]["weatherCode"]), True),
-                "rain": max(int(block["chanceofrain"]) for block in day["hourly"]),
-            }
-            for day in data["weather"]
-        ],
+        "days": [entry for entry in map(day_report, data["weather"]) if entry is not None],
     }
 
 
