@@ -55,6 +55,8 @@ Item {
             height: width
             cornerScale: 0.5
             equalizer: false
+            // The island animates the cover's size; one decode serves all of it.
+            sourceEdge: 600
         }
 
         Column {

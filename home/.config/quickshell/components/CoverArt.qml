@@ -26,6 +26,10 @@ Item {
     property bool equalizer: true
     // Scales the rectangle's corner: a large cover wants a smaller radius.
     property real cornerScale: 1
+    // The edge the picture is decoded at, when the item is resized by an
+    // animation: the picture is not reloaded per frame. 0 follows the size,
+    // in steps of 64.
+    property int sourceEdge: 0
 
     readonly property real size: Math.min(root.width, root.height)
     readonly property bool circle: SettingsService.mediaCover === "circle"
@@ -59,8 +63,8 @@ Item {
             visible: root.ready
             fillMode: Image.PreserveAspectCrop
             asynchronous: true
-            sourceSize.width: Math.round(root.size * 2)
-            sourceSize.height: Math.round(root.size * 2)
+            sourceSize.width: root.sourceEdge > 0 ? root.sourceEdge : Math.ceil(root.size * 2 / 64) * 64
+            sourceSize.height: root.sourceEdge > 0 ? root.sourceEdge : Math.ceil(root.size * 2 / 64) * 64
         }
 
         Text {
