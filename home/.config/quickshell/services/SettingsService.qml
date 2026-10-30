@@ -42,6 +42,8 @@ Singleton {
     readonly property alias lyrics: config.lyrics
     // "rectangle" or "circle", the cover's shape wherever the shell shows it. A
     // config from before the choice has only `mediaRing`, which meant circle.
+    // "card" (the piece's card) or "panel" (the wide media panel).
+    readonly property alias mediaDesign: config.mediaDesign
     readonly property string mediaCover: config.mediaCover !== ""
         ? config.mediaCover : (config.mediaRing ? "circle" : "rectangle")
     readonly property alias islandActivities: config.islandActivities
@@ -591,6 +593,8 @@ Singleton {
         // with a ring of bars from the audio spectrum around it where there is
         // room (needs cava). "" follows `mediaRing`, the first form of this.
         property string mediaCover: ""
+        // What the media piece opens: its "card" or the wide "panel".
+        property string mediaDesign: "card"
         property bool mediaRing: false
 
         // Null means `besideDefaults`.

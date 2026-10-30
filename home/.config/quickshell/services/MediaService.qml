@@ -25,7 +25,17 @@ Singleton {
     readonly property var players: Mpris.players.values
         .filter(player => player.isPlaying || (player.trackTitle ?? "") !== "")
 
+    // The player picked in the media panel; the one playing otherwise, and
+    // the first it can control.
+    property var chosen: null
+
+    function choose(player: var): void {
+        root.chosen = player
+    }
+
     readonly property MprisPlayer active: {
+        if (root.chosen && root.players.indexOf(root.chosen) >= 0)
+            return root.chosen
         const playing = root.players.find(player => player.isPlaying)
         if (playing)
             return playing
@@ -47,7 +57,11 @@ Singleton {
     readonly property bool canSeek: root.available && root.active.canSeek && root.length > 0
 
     // Seconds. Streams report no length, so `progress` stays at 0.
-    readonly property real length: root.available ? (root.active.length ?? 0) : 0
+    // A browser stream reports a length of days or none: neither is a length.
+    readonly property real length: {
+        const reported = root.available ? (root.active.length ?? 0) : 0
+        return reported > 0 && reported < 86400 ? reported : 0
+    }
     readonly property real position: root.available ? (root.active.position ?? 0) : 0
     readonly property bool seekable: root.length > 0
     readonly property real progress: root.seekable
@@ -59,7 +73,8 @@ Singleton {
     property int watchers: 0
 
     readonly property Timer positionTimer: Timer {
-        interval: 1000
+        // Often enough for a seek bar and lyrics to follow the music.
+        interval: 250
         repeat: true
         running: root.watchers > 0 && root.playing && root.seekable
         onTriggered: {
