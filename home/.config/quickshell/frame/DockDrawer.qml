@@ -445,6 +445,8 @@ EdgeDrawer {
                         if (from >= 0 && to >= 0)
                             Qt.callLater(() => DockService.reorder(from, to))
                     }
+                    // A drop whose release lands outside the tile makes no click.
+                    onCanceled: tileMouse.dropped = false
                     // A click waits a moment so a double-click is not taken for one.
                     onClicked: mouse => {
                         if (tileMouse.dropped) {
