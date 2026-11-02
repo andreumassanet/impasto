@@ -197,6 +197,11 @@ Rectangle {
     })
 
     function open(panel: string): void {
+        // A card in the island asking for its piece's detail.
+        if (panel === "media" || panel === "weather") {
+            ModuleService.activate(panel)
+            return
+        }
         islandState.open(panel)
     }
 

@@ -136,7 +136,7 @@ Item {
 
     Component {
         id: mediaBlock
-        MediaCard {}
+        MediaCard { onPanelRequested: panel => root.panelRequested(panel) }
     }
 
     Component {
@@ -144,6 +144,7 @@ Item {
         WeatherCard {
             cols: root.shape.cols
             rows: root.shape.rows
+            onPanelRequested: panel => root.panelRequested(panel)
         }
     }
 
