@@ -84,5 +84,22 @@ ColumnLayout {
         }
     }
 
+    DetailSection {
+        title: Tr.t("Input")
+        visible: AudioService.inputs.length > 0
+
+        Repeater {
+            model: AudioService.inputs
+
+            DetailChoice {
+                required property var modelData
+
+                text: AudioService.outputName(modelData)
+                chosen: AudioService.source === modelData
+                onPicked: AudioService.chooseInput(modelData)
+            }
+        }
+    }
+
     Item { Layout.fillHeight: true }
 }
