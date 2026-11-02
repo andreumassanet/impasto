@@ -54,8 +54,9 @@ BRACKETS = re.compile(r"\s*[\(\[][^\)\]]*[\)\]]")
 # What a video title adds after a bar: the channel, the series, "Lyric Video".
 TAIL = re.compile(r"\s+[|｜].*$")
 DASH = re.compile(r"\s+[-–—]\s+")
-# "Song ft. Someone", "Song (feat. Someone)": the credit is not in the record's name.
-FEATURING = re.compile(r"\s*[\(\[]?\s*\b(?:ft|feat|featuring)\b\.?.*$", re.IGNORECASE)
+# "Song ft. Someone": the credit is not in the record's name. A bracketed one
+# is already gone with BRACKETS; "feat" without its stop is a word.
+FEATURING = re.compile(r"\s+(?:ft\.?|feat\.|featuring)\s.*$", re.IGNORECASE)
 
 
 def cache_dir():
@@ -235,6 +236,10 @@ def report(artist, title, album, seconds):
             time.sleep(RETRY_AFTER)
             entry = lookup(artist, title, album, seconds, sent)
         result = (parse(entry) if entry else None) or {"available": False, "reason": "missing"}
+        # A miss does not unlearn what was found before: it is kept another day.
+        if not result.get("available") and stale is not None:
+            stale.pop("at", None)
+            result = stale
     except Busy as error:
         sys.stderr.write(f"lyrics: {error}\n")
         # What was kept, though old, beats nothing while lrclib is busy.
