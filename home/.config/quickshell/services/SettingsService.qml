@@ -124,6 +124,7 @@ Singleton {
     readonly property alias shakeToFind: config.shakeToFind
     readonly property alias nightLight: config.nightLight
     readonly property alias nightTemperature: config.nightTemperature
+    readonly property alias powerTileProfile: config.powerTileProfile
     readonly property alias lidPolicy: config.lidPolicy
     readonly property alias idleLock: config.idleLock
     readonly property alias idleScreen: config.idleScreen
@@ -343,7 +344,7 @@ Singleton {
         "userName", "userAvatar", "language", "keyboard", "weatherPlace", "githubUser", "markets",
         "emojiTone",
         "doNotDisturb", "nightLight", "nightTemperature", "barHidden", "desktopHidden",
-        "gameMode",
+        "gameMode", "powerTileProfile",
         "cameraEnabled", "cameraEffect", "cameraReactions",
         "recorderAudio", "captureShape", "captureKind"
     ]
@@ -875,6 +876,11 @@ Singleton {
         // warm. `SunsetService` drives hyprsunset.
         property bool nightLight: false
         property int nightTemperature: 4000
+
+        // The profile the power tile's press goes to from balanced: the last
+        // one picked that is not balanced. Saver first, the one a laptop
+        // leaves the house in.
+        property string powerTileProfile: "power-saver"
 
         // Closing the lid with another screen connected: `off` disables the
         // panel and moves its workspaces, `keep` leaves it on, `system`

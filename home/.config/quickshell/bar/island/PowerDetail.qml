@@ -13,9 +13,9 @@ import QtQuick.Layouts
 import "../../theme"
 import "../../services"
 
-// Opened from the power tile, whose press only turns performance on and off:
-// here every profile the daemon offers, the night light's presets in shape.
-// Sizes are `SystemService`'s.
+// Opened from the power tile, whose press goes between balanced and the last
+// other profile picked: here every profile the daemon offers, the night
+// light's presets in shape. Sizes are `SystemService`'s.
 ColumnLayout {
     id: root
 

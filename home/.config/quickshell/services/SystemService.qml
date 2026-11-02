@@ -47,9 +47,13 @@ Singleton {
     readonly property string powerProfile: !root.powerAvailable ? ""
         : PowerProfiles.profile === PowerProfile.PowerSaver ? "power-saver"
         : PowerProfiles.profile === PowerProfile.Performance ? "performance" : "balanced"
-    readonly property string powerLabel:
-        root.powerProfiles.find(profile => profile.id === root.powerProfile)?.label ?? ""
-    readonly property bool performanceMode: root.powerProfile === "performance"
+    readonly property var powerEntry:
+        root.powerProfiles.find(profile => profile.id === root.powerProfile) ?? null
+    readonly property string powerLabel: root.powerEntry?.label ?? ""
+    readonly property string powerIcon: root.powerEntry?.icon ?? "󰗑"
+    // Balanced is the resting state; the tile is lit by either other one.
+    readonly property bool powerShifted: root.powerProfile !== ""
+        && root.powerProfile !== "balanced"
 
     // The power page, declared since the island takes its size before the
     // panel exists: a heading and one row per profile.
@@ -112,13 +116,22 @@ Singleton {
     }
 
     function setPowerProfile(id: string): void {
+        if (id !== "balanced")
+            SettingsService.set("powerTileProfile", id)
         PowerProfiles.profile = id === "power-saver" ? PowerProfile.PowerSaver
             : id === "performance" ? PowerProfile.Performance : PowerProfile.Balanced
     }
 
-    // The tile's press: performance on, or back to balanced.
-    function togglePerformance(): void {
-        root.setPowerProfile(root.performanceMode ? "balanced" : "performance")
+    // The tile's press: back to balanced, or to the last other profile
+    // picked, saver where that one is not on this machine.
+    function togglePower(): void {
+        if (root.powerShifted) {
+            root.setPowerProfile("balanced")
+            return
+        }
+        const kept = SettingsService.powerTileProfile
+        root.setPowerProfile(root.powerProfiles.some(profile => profile.id === kept)
+            ? kept : "power-saver")
     }
 
     function toggle(target: string): void {

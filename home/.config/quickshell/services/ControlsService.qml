@@ -254,12 +254,12 @@ Singleton {
             action: () => { OsdService.suppressAudio(); BluetoothService.toggle() }
         },
         Toggle {
-            key: "power"; icon: "󰓅"; label: "Power"
+            key: "power"; icon: SystemService.powerIcon; label: "Power"
             detail: SystemService.powerLabel || "Unknown"
-            active: SystemService.performanceMode
+            active: SystemService.powerShifted
             available: SystemService.powerAvailable
             expandable: SystemService.powerAvailable; panel: "power"
-            action: () => SystemService.togglePerformance()
+            action: () => SystemService.togglePower()
         },
         Toggle {
             key: "focus"; icon: NotificationService.doNotDisturb ? "󰂛" : "󰂚"; label: "Focus"
