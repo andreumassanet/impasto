@@ -8,6 +8,8 @@
 // ╰──────────────────────────────────────────────────────────────────────────╯
 
 import QtQuick
+import QtQuick.Layouts
+import Quickshell.Services.UPower
 
 import "../../theme"
 import "../../services"
@@ -15,7 +17,8 @@ import "../../components"
 import "../widgets"
 
 // The ring shows the charge; the detail adds what UPower reports beyond it:
-// time remaining, charge direction, power draw and cell health.
+// time remaining, charge direction, power draw and cell health, and the power
+// profile of power-profiles-daemon, which the card can change.
 Item {
     id: root
 
@@ -81,6 +84,25 @@ Item {
                 fraction: BatteryService.health / 100
                 tint: BatteryService.health < 60 ? Theme.indicatorWarn : Theme.indicatorGood
                 note: "of new"
+            }
+
+            // Performance is offered only where the machine has it.
+            SegmentedControl {
+                Layout.fillWidth: true
+                stretch: true
+                labelled: true
+                options: [
+                    { id: "saver", label: "Saver", icon: "󰌪" },
+                    { id: "balanced", label: "Balanced", icon: "󰗑" }
+                ].concat(PowerProfiles.hasPerformanceProfile
+                    ? [{ id: "performance", label: "Performance", icon: "󰓅" }] : [])
+                current: PowerProfiles.profile === PowerProfile.PowerSaver ? "saver"
+                    : PowerProfiles.profile === PowerProfile.Performance ? "performance" : "balanced"
+                onSelected: id => {
+                    PowerProfiles.profile = id === "saver" ? PowerProfile.PowerSaver
+                        : id === "performance" ? PowerProfile.Performance : PowerProfile.Balanced
+                    SystemService.refresh()
+                }
             }
         }
     }

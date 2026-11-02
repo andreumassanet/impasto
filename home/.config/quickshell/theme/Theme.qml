@@ -370,6 +370,8 @@ QtObject {
     readonly property int cardGap: 14
     readonly property int cardRow: 22
     readonly property int cardRowGap: 8
+    // A segmented control's height, wherever it sits.
+    readonly property int segmentHeight: 28
     readonly property int cardLabel: 84
     readonly property int cardWidth: 380
     // The one figure a heading may carry on its right.
