@@ -255,10 +255,11 @@ Singleton {
         },
         Toggle {
             key: "power"; icon: "󰓅"; label: "Power"
-            detail: SystemService.powerProfile || "Unknown"
+            detail: SystemService.powerLabel || "Unknown"
             active: SystemService.performanceMode
-            available: SystemService.ready
-            action: () => SystemService.toggle("power-profile")
+            available: SystemService.powerAvailable
+            expandable: SystemService.powerAvailable; panel: "power"
+            action: () => SystemService.togglePerformance()
         },
         Toggle {
             key: "focus"; icon: NotificationService.doNotDisturb ? "󰂛" : "󰂚"; label: "Focus"

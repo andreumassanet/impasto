@@ -9,7 +9,6 @@
 
 import QtQuick
 import QtQuick.Layouts
-import Quickshell.Services.UPower
 
 import "../../theme"
 import "../../services"
@@ -86,23 +85,16 @@ Item {
                 note: "of new"
             }
 
-            // Performance is offered only where the machine has it.
+            // Only where power-profiles-daemon answers.
             SegmentedControl {
+                visible: SystemService.powerAvailable
                 Layout.fillWidth: true
                 stretch: true
                 labelled: true
-                options: [
-                    { id: "saver", label: "Saver", icon: "󰌪" },
-                    { id: "balanced", label: "Balanced", icon: "󰗑" }
-                ].concat(PowerProfiles.hasPerformanceProfile
-                    ? [{ id: "performance", label: "Performance", icon: "󰓅" }] : [])
-                current: PowerProfiles.profile === PowerProfile.PowerSaver ? "saver"
-                    : PowerProfiles.profile === PowerProfile.Performance ? "performance" : "balanced"
-                onSelected: id => {
-                    PowerProfiles.profile = id === "saver" ? PowerProfile.PowerSaver
-                        : id === "performance" ? PowerProfile.Performance : PowerProfile.Balanced
-                    SystemService.refresh()
-                }
+                options: SystemService.powerProfiles.map(profile =>
+                    ({ id: profile.id, label: Tr.t(profile.label), icon: profile.icon }))
+                current: SystemService.powerProfile
+                onSelected: id => SystemService.setPowerProfile(id)
             }
         }
     }

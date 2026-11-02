@@ -510,7 +510,8 @@ Singleton {
         if (id === "claude")
             return { width: item.width, height: Theme.cardHeight(ClaudeService.rows, 0) }
         if (id === "battery")
-            return { width: item.width, height: Theme.cardHeight(BatteryService.healthKnown ? 3 : 2, Theme.cardRowGap + Theme.segmentHeight) }
+            return { width: item.width, height: Theme.cardHeight(BatteryService.healthKnown ? 3 : 2,
+                SystemService.powerAvailable ? Theme.cardRowGap + Theme.segmentHeight : 0) }
         if (id === "volume")
             return { width: item.width, height: Theme.cardHeight(AudioService.cardRows, 0) }
         if (id === "codex")
