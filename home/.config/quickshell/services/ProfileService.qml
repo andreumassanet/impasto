@@ -262,8 +262,8 @@ Singleton {
 
         printErrors: false
 
-        onSaved: OsdService.requested("󰈝", `Exported ${name}`, -1)
-        onSaveFailed: OsdService.requested("󰀦", "Could not write that file", -1)
+        onSaved: OsdService.requested("󰈝", Tr.t("Exported %1").arg(name), -1)
+        onSaveFailed: OsdService.requested("󰀦", Tr.t("Could not write that file"), -1)
     }
 
     function importFrom(path: string): void {
@@ -279,7 +279,7 @@ Singleton {
         printErrors: false
 
         onLoaded: root.receive(text(), path)
-        onLoadFailed: OsdService.requested("󰀦", "Could not read that file", -1)
+        onLoadFailed: OsdService.requested("󰀦", Tr.t("Could not read that file"), -1)
     }
 
     // Rejected whole if it is not a profile. Otherwise unknown keys and
@@ -288,11 +288,11 @@ Singleton {
     function receive(text: string, path: string): void {
         const document = root.parse(text)
         if (document === null) {
-            OsdService.requested("󰀦", "Not an impasto profile", -1)
+            OsdService.requested("󰀦", Tr.t("Not an impasto profile"), -1)
             return
         }
         if (document.impasto > root.format) {
-            OsdService.requested("󰀦", "Made by a newer impasto", -1)
+            OsdService.requested("󰀦", Tr.t("Made by a newer impasto"), -1)
             return
         }
 
@@ -306,7 +306,7 @@ Singleton {
         root.profiles = root.profiles.concat([made])
         root.save()
         OsdService.requested("󰋺", skipped > 0
-            ? `Imported ${made.name} · ${skipped} left out` : `Imported ${made.name}`, -1)
+            ? Tr.t("Imported %1 · %2 left out").arg(made.name).arg(skipped) : Tr.t("Imported %1").arg(made.name), -1)
     }
 
     // An export's text as a document, or null when it is not one: it has to

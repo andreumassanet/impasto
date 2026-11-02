@@ -237,7 +237,7 @@ Singleton {
     function valueOf(id: string): string {
         switch (id) {
         case "volume":
-            return AudioService.muted ? "Muted" : `${AudioService.volume}%`
+            return AudioService.muted ? Tr.t("Muted") : `${AudioService.volume}%`
         case "brightness":
             return `${BrightnessService.percent}%`
         case "battery":
@@ -255,7 +255,7 @@ Singleton {
             return `${NotificationService.history.length}`
         case "media":
             return MediaService.available
-                ? (MediaService.title || MediaService.identity || "Playing") : "Nothing playing"
+                ? (MediaService.title || MediaService.identity || Tr.t("Playing")) : Tr.t("Nothing playing")
         case "timer":
             return TimerService.running ? TimerService.display : "0:00"
         case "claude":
@@ -267,7 +267,7 @@ Singleton {
         case "stats":
             return `${StatsService.cpu.toFixed(0)}%`
         case "pet":
-            return PetService.hatched ? `Lv ${PetService.level}` : "Egg"
+            return PetService.hatched ? Tr.t("Lv %1").arg(PetService.level) : Tr.t("Egg")
         case "network":
             return NetworkService.connectionName
         case "bluetooth":
