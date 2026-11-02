@@ -91,7 +91,7 @@ Item {
                 fraction: TimerService.progress
                 tint: TimerService.tint
                 note: TimerService.paused
-                    ? Tr.t("held") : Tr.t("ends %1").arg(Qt.formatTime(new Date(TimerService.endsAt), "HH:mm"))
+                    ? Tr.t("held") : Tr.t("ends %1").arg(Tr.date(new Date(TimerService.endsAt), "HH:mm"))
             }
 
             // A RowLayout so the three fields split the card's width.

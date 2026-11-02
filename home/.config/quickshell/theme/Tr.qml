@@ -37,6 +37,19 @@ QtObject {
         return (table && table[text]) ? table[text] : text
     }
 
+    // A date in the shell's language. Qt's own formatting spells day and
+    // month names in English whatever the locale, so English keeps it.
+    function date(when: var, format: string): string {
+        return root.language === "en" ? Qt.formatDateTime(when, format)
+            : Qt.locale(root.language).toString(when, format)
+    }
+
+    // A weekday's initial: one key for the week, since in English two
+    // initials repeat and in Spanish Wednesday is X.
+    function initial(when: var): string {
+        return root.t("M T W T F S S").split(" ")[(when.getDay() + 6) % 7]
+    }
+
     readonly property var tables: ({
         es: {
             // ── SHARED ──────────────────────────────────────────────────────

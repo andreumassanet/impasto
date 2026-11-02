@@ -273,7 +273,7 @@ Singleton {
         case "bluetooth":
             return BluetoothService.summary
         case "calendar":
-            return Qt.formatDate(root.today.date, "ddd d")
+            return Tr.date(root.today.date, "ddd d")
         }
         return ""
     }
@@ -440,7 +440,7 @@ Singleton {
         ? Math.ceil(root.timeMetrics.advanceWidth("20:48")) : 0
     readonly property int glanceTime: root.timeMetrics.font.family !== ""
         ? Math.max(root.glanceTimeBase, Math.ceil(root.timeMetrics.advanceWidth(
-            Qt.formatTime(new Date(2000, 0, 1, 20, 48, 58), SettingsService.clockFormat))))
+            Tr.date(new Date(2000, 0, 1, 20, 48, 58), SettingsService.clockFormat))))
         : 0
     readonly property FontMetrics timeMetrics: FontMetrics {
         font.family: Theme.fontFamily

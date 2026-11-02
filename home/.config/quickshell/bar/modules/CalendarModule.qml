@@ -87,7 +87,7 @@ Item {
                     Text {
                         anchors.left: parent.left
                         anchors.verticalCenter: parent.verticalCenter
-                        text: Qt.formatDateTime(root.clock.date, "MMMM yyyy")
+                        text: Tr.date(root.clock.date, "MMMM yyyy")
                         font.family: Theme.fontFamily
                         font.pixelSize: Theme.fontSizeSmall
                         font.weight: Font.DemiBold
@@ -97,7 +97,7 @@ Item {
                     Text {
                         anchors.right: parent.right
                         anchors.verticalCenter: parent.verticalCenter
-                        text: Qt.formatDateTime(root.clock.date, "dddd d")
+                        text: Tr.date(root.clock.date, "dddd d")
                         font.family: Theme.fontFamily
                         font.pixelSize: Theme.fontSizeSmall
                         color: Theme.textMuted
@@ -218,7 +218,7 @@ Item {
                         width: parent.width
                         text: {
                             const name = page.onToday ? Tr.t("Today")
-                                : Qt.formatDate(new Date(root.today.getFullYear(),
+                                : Tr.date(new Date(root.today.getFullYear(),
                                     root.today.getMonth(), page.day), "dddd d")
                             const n = page.due.length
                             const left = page.due.filter(task => task.state !== "done").length

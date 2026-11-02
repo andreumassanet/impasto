@@ -220,7 +220,7 @@ Singleton {
             return `${Math.floor(seconds / 3600)} h`
         if (seconds < 7 * 86400)
             return `${Math.floor(seconds / 86400)} d`
-        return Qt.formatDate(new Date(when), "d MMM")
+        return Tr.date(new Date(when), "d MMM")
     }
 
     // ── PANEL ───────────────────────────────────────────────────────────────

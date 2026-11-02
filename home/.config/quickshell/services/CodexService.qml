@@ -69,7 +69,7 @@ Singleton {
         const when = minutes <= 0 ? Tr.t("renewed")
             : minutes < 60 ? Tr.t("resets in %1 min").arg(minutes)
             : minutes < 24 * 60 ? Tr.t("resets in %1 h").arg(Math.floor(minutes / 60))
-            : Tr.t("resets %1").arg(Qt.formatDateTime(new Date(Math.round(limit.resets / 60) * 60000), "ddd HH:mm"))
+            : Tr.t("resets %1").arg(Tr.date(new Date(Math.round(limit.resets / 60) * 60000), "ddd HH:mm"))
         return `${limit.name.toLowerCase()} · ${when}`
     }
 
@@ -94,7 +94,7 @@ Singleton {
             return Tr.t("read %1 min ago").arg(minutes)
         if (minutes < 24 * 60)
             return Tr.t("read %1 h ago").arg(Math.floor(minutes / 60))
-        return Tr.t("read %1").arg(Qt.formatDateTime(new Date(root.observed * 1000), "ddd d MMM"))
+        return Tr.t("read %1").arg(Tr.date(new Date(root.observed * 1000), "ddd d MMM"))
     }
 
     function subscribe(): void {

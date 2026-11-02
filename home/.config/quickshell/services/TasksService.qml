@@ -200,8 +200,8 @@ Singleton {
             return day
         const week = root.shifted(6)
         if (day > root.todayKey && day <= week)
-            return Qt.formatDate(date, "dddd")
-        return Qt.formatDate(date, date.getFullYear() === root.clock.date.getFullYear()
+            return Tr.date(date, "dddd")
+        return Tr.date(date, date.getFullYear() === root.clock.date.getFullYear()
             ? "ddd d MMM" : "d MMM yyyy")
     }
 

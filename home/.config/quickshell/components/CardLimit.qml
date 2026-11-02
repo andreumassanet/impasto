@@ -39,7 +39,7 @@ RowLayout {
         if (minutes < 24 * 60)
             return `${Math.floor(minutes / 60)} h ${String(minutes % 60).padStart(2, "0")}`
         // To the nearest minute: a window ends at 16:59:59.
-        return Qt.formatDateTime(new Date(Math.round(root.resets / 60) * 60000), "ddd HH:mm")
+        return Tr.date(new Date(Math.round(root.resets / 60) * 60000), "ddd HH:mm")
     }
 
     SystemClock {

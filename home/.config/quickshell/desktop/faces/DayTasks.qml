@@ -78,7 +78,7 @@ Item {
                 Layout.fillWidth: true
                 visible: root.titled
                 text: root.shown === "" ? ""
-                    : Qt.formatDate(TasksService.dateOf(root.shown), "dddd d")
+                    : Tr.date(TasksService.dateOf(root.shown), "dddd d")
                 elide: Text.ElideRight
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.fontSizeLarge

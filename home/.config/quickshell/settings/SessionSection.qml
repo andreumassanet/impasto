@@ -624,7 +624,7 @@ SettingsSection {
                         }
 
                         Text {
-                            text: Qt.formatDate(new Date(kept.modelData.added.replace(" ", "T")), "d MMM yyyy")
+                            text: Tr.date(new Date(kept.modelData.added.replace(" ", "T")), "d MMM yyyy")
                             font.family: Theme.fontFamily
                             font.pixelSize: Theme.fontSizeSmall
                             color: Theme.textMuted

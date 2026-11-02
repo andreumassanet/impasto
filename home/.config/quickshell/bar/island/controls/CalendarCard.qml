@@ -89,7 +89,7 @@ Card {
 
             Text {
                 Layout.fillWidth: true
-                text: dayPage.date ? Qt.formatDate(dayPage.date, "dddd d MMMM") : ""
+                text: dayPage.date ? Tr.date(dayPage.date, "dddd d MMMM") : ""
                 elide: Text.ElideRight
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.fontSizeSmall
@@ -149,7 +149,7 @@ Card {
             spacing: 6
 
             Text {
-                text: Qt.formatDateTime(root.shown, "MMMM")
+                text: Tr.date(root.shown, "MMMM")
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.fontSizeMedium
                 font.weight: Font.DemiBold
@@ -168,7 +168,7 @@ Card {
             // Today's weekday while showing the current month, otherwise a way
             // back to it.
             Text {
-                text: Qt.formatDateTime(root.today, "dddd")
+                text: Tr.date(root.today, "dddd")
                 visible: root.showingThisMonth
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.fontSizeSmall

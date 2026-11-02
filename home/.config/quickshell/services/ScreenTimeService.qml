@@ -406,6 +406,6 @@ Singleton {
     function clock(epoch: real): string {
         const format = SettingsService.clockFormat.indexOf("AP") >= 0
             || SettingsService.clockFormat.indexOf("ap") >= 0 ? "h:mm AP" : "HH:mm"
-        return Qt.formatDateTime(new Date(epoch * 1000), format)
+        return Tr.date(new Date(epoch * 1000), format)
     }
 }

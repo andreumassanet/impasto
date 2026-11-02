@@ -87,7 +87,7 @@ FocusScope {
             spacing: 6
 
             Text {
-                text: Qt.formatDateTime(root.shown, "MMMM")
+                text: Tr.date(root.shown, "MMMM")
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.fontSizeRegular
                 font.weight: Font.DemiBold

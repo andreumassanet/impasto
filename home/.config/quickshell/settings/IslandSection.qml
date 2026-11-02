@@ -115,7 +115,7 @@ SettingsSection {
 
                         Text {
                             anchors.centerIn: parent
-                            text: Qt.formatDateTime(clock.date, SettingsService.clockShowsSeconds
+                            text: Tr.date(clock.date, SettingsService.clockShowsSeconds
                                 ? formatTile.modelData.id.replace("mm", "mm:ss")
                                 : formatTile.modelData.id)
                             font.family: Theme.fontFamily

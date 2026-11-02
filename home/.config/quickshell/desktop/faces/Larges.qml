@@ -436,7 +436,7 @@ Item {
                     Layout.fillWidth: true
 
                     Text {
-                        text: Qt.formatDateTime(month.today, "MMMM")
+                        text: Tr.date(month.today, "MMMM")
                         font.family: Theme.fontFamily
                         font.pixelSize: Theme.fontSizeLarge
                         font.weight: Font.DemiBold
@@ -446,7 +446,7 @@ Item {
                     Item { Layout.fillWidth: true }
 
                     Text {
-                        text: Qt.formatDateTime(month.today, "yyyy")
+                        text: Tr.date(month.today, "yyyy")
                         font.family: Theme.fontFamily
                         font.pixelSize: Theme.fontSizeSmall
                         color: root.ink.muted
@@ -573,7 +573,7 @@ Item {
                         Layout.fillWidth: true
                         text: {
                             const name = agenda.day === TasksService.todayKey ? Tr.t("Today")
-                                : Qt.formatDate(TasksService.dateOf(agenda.day), "dddd d")
+                                : Tr.date(TasksService.dateOf(agenda.day), "dddd d")
                             const n = agenda.due.length
                             const left = agenda.due.filter(task => task.state !== "done").length
                             return n === 0 ? `${name} · ${Tr.t("nothing due")}` : `${name} · ${Tr.t("%1 of %2 to do").arg(left).arg(n)}`

@@ -747,9 +747,9 @@ Item {
                 ? SettingsService.clockFormat.replace("mm", "mm:ss")
                 : SettingsService.clockFormat
 
-            label: Qt.formatDateTime(clock.date, "dddd")
-            reading: Qt.formatDateTime(clock.date, clockFace.format)
-            note: Qt.formatDateTime(clock.date, "d MMMM yyyy")
+            label: Tr.date(clock.date, "dddd")
+            reading: Tr.date(clock.date, clockFace.format)
+            note: Tr.date(clock.date, "d MMMM yyyy")
 
             SystemClock {
                 id: clock
@@ -800,7 +800,7 @@ Item {
 
                 // The same label and reading as the square, so the wide face
                 // adds the week without rearranging anything.
-                label: Qt.formatDateTime(calendarClock.date, "MMMM")
+                label: Tr.date(calendarClock.date, "MMMM")
                 reading: `${calendarFace.today.getDate()}`
                 // Today's count if any; else the next task due; else the
                 // weekday.
@@ -811,7 +811,7 @@ Item {
                     const next = TasksService.next
                     if (next)
                         return `${next.text} · ${TasksService.dueLabel(next.due)}`
-                    return Qt.formatDateTime(calendarClock.date, "dddd")
+                    return Tr.date(calendarClock.date, "dddd")
                 }
                 extraShare: 0.5
 
@@ -865,7 +865,7 @@ Item {
 
                                     Text {
                                         anchors.horizontalCenter: parent.horizontalCenter
-                                        text: Qt.formatDateTime(day.date, "ddd").charAt(0)
+                                        text: Tr.initial(day.date)
                                         font.family: Theme.fontFamily
                                         font.pixelSize: Theme.fontSizeLabel
                                         color: root.ink.muted
@@ -1114,7 +1114,7 @@ Item {
                                 width: weekBars.slot
                                 rightPadding: weekBars.gap
                                 horizontalAlignment: Text.AlignHCenter
-                                text: Qt.formatDate(ScreenTimeService.dateOf(modelData.date), "ddd").charAt(0)
+                                text: Tr.initial(ScreenTimeService.dateOf(modelData.date))
                                 font.family: Theme.fontFamily
                                 font.pixelSize: Theme.fontSizeLabel - 1
                                 color: root.ink.muted

@@ -56,9 +56,9 @@ Item {
                 ? SettingsService.clockFormat.replace("mm", "mm:ss")
                 : SettingsService.clockFormat
 
-            label: Qt.formatDateTime(clock.date, "dddd")
-            reading: Qt.formatDateTime(clock.date, clockFace.format)
-            note: Qt.formatDateTime(clock.date, "d MMMM yyyy")
+            label: Tr.date(clock.date, "dddd")
+            reading: Tr.date(clock.date, clockFace.format)
+            note: Tr.date(clock.date, "d MMMM yyyy")
             readingSize: Theme.fontSizeDisplay
 
             SystemClock {
