@@ -17,8 +17,9 @@ import "../services"
 // translation falls back to English rather than to an id. `t` reads
 // `language`, so bindings through it update when the setting changes.
 //
-// Grouped by settings page, in page order; strings used on several pages are
-// under SHARED.
+// Grouped by settings page, in page order, with strings used on several
+// pages under SHARED; then by room for the rest of the shell, with strings
+// shown in several rooms under EVERYWHERE.
 QtObject {
     id: root
 
@@ -1151,7 +1152,112 @@ QtObject {
                 "Al colocar, haz clic en un widget para cambiar esto solo para él. Moderno muestra una cifra con un rótulo, Analógico dibuja un objeto como una esfera o un indicador, y Pegatina lo recorta como pegatinas de colores sobre el fondo de pantalla; el material y el fondo deciden de qué están hechos los dos primeros y su opacidad.",
             "With more screens": "Con más pantallas",
             "Your account, the lock screen, face unlock and idle behaviour.":
-                "Tu cuenta, la pantalla de bloqueo, el desbloqueo facial y la inactividad."
+                "Tu cuenta, la pantalla de bloqueo, el desbloqueo facial y la inactividad.",
+
+            // ── THE ISLAND ──────────────────────────────────────────────────
+            "Scanning…": "Buscando…",
+            "Looking for devices…": "Buscando dispositivos…",
+            "Adapter off": "Adaptador apagado",
+            "Nothing found yet": "Aún no se ha encontrado nada",
+            "Turn Bluetooth on to see devices": "Activa el Bluetooth para ver dispositivos",
+            "Pairing…": "Emparejando…",
+            "Connected": "Conectado",
+            "Paired": "Emparejado",
+            "Available": "Disponible",
+            "1 unnamed device nearby": "1 dispositivo sin nombre cerca",
+            "%1 unnamed devices nearby": "%1 dispositivos sin nombre cerca",
+            "New task": "Tarea nueva",
+            "Nothing on the board yet": "Aún no hay nada en el tablero",
+            "%1 task open": "%1 tarea abierta",
+            "%1 tasks open": "%1 tareas abiertas",
+            "%1 due today": "%1 para hoy",
+            "%1 overdue": "%1 con retraso",
+            "What has to be done": "Qué hay que hacer",
+            "Anything else about it": "Algo más sobre ella",
+            "Pick a day": "Elige un día",
+            "Find a key, or what it does…": "Busca una tecla, o lo que hace…",
+            "%1 keys": "%1 teclas",
+            "%1 of %2": "%1 de %2",
+            "Reading the keys…": "Leyendo las teclas…",
+            "No key does that.": "Ninguna tecla hace eso.",
+            "Search…": "Buscar…",
+            "Radio off": "Radio apagada",
+            "Rescan": "Volver a buscar",
+            "Looking for networks…": "Buscando redes…",
+            "Nothing in range": "Nada al alcance",
+            "Turn Wi-Fi on to see what is around": "Activa el Wi-Fi para ver qué hay cerca",
+            "Working…": "Un momento…",
+            "secured": "protegida",
+            "saved": "guardada",
+            "Connect": "Conectar",
+            "Nothing written down yet": "Aún no hay nada escrito",
+            "%1 note": "%1 nota",
+            "%1 notes": "%1 notas",
+            "%1 archived": "%1 archivadas",
+            "Hide archived": "Ocultar archivadas",
+            "Show archived": "Ver archivadas",
+            "Title": "Título",
+            "Write…  a line that starts [ ] is a box":
+                "Escribe…  una línea que empieza por [ ] es una casilla",
+            "Archive": "Archivar",
+            "Find a package…": "Busca un paquete…",
+            "Filter the updates…": "Filtra las actualizaciones…",
+            "Filter what is installed…": "Filtra lo instalado…",
+            "Installed": "Instalado",
+            "Find": "Buscar",
+            "Everything is up to date.": "Todo está al día.",
+            "No pending update is called that.": "Ninguna actualización pendiente se llama así.",
+            "Reading the database…": "Leyendo la base de datos…",
+            "Nothing installed is called that.": "Nada instalado se llama así.",
+            "Type a name — the repositories and the AUR both answer.":
+                "Escribe un nombre — responden los repositorios y el AUR.",
+            "Two letters at least.": "Al menos dos letras.",
+            "Searching…": "Buscando…",
+            "Nothing is called that.": "Nada se llama así.",
+            "out of date": "desactualizado",
+            "%1 votes": "%1 votos",
+            "Install": "Instalar",
+            "By you": "Tuyos",
+            "All": "Todos",
+            "%1 from the repositories": "%1 de los repositorios",
+            "%1 from the repositories as of the last sync":
+                "%1 de los repositorios según la última sincronización",
+            "%1 from the AUR": "%1 del AUR",
+            "the AUR did not answer": "el AUR no respondió",
+            "checking…": "comprobando…",
+            "checked %1": "comprobado %1",
+            "Installed with %1, in a terminal": "Se instala con %1, en una terminal",
+            "No AUR helper — the repositories only": "Sin asistente de AUR — solo los repositorios",
+            "%1 in the repositories": "%1 en los repositorios",
+            "the first %1 in the AUR that start with it": "los %1 primeros del AUR que empiezan así",
+            "%1 in the AUR": "%1 en el AUR",
+            "Update everything": "Actualizar todo",
+            "Egg": "Huevo",
+            "Lv %1": "Nv. %1",
+            "Feed": "Comida",
+            "Fed": "Lleno",
+            "Play": "Jugar",
+            "Played": "Jugado",
+            "Confirm": "Confirmar",
+            "Processor": "Procesador",
+            "load %1": "carga %1",
+            "%1 threads": "%1 hilos",
+            "up %1": "encendido %1",
+            "Temperature": "Temperatura",
+            "Storage": "Almacenamiento",
+            "%1 free": "%1 libres",
+
+            // ── THE ARCADE ──────────────────────────────────────────────────
+            "Best %1": "Récord %1",
+            "Not played yet": "Aún sin jugar",
+            "Moves %1": "Movimientos %1",
+            "Score %1": "Puntos %1",
+            "Solved": "Resuelto",
+            "Game over": "Fin de la partida",
+            "New best": "Nuevo récord",
+            "Play again": "Jugar otra vez",
+            "level": "nivel",
+            "lines": "líneas"
         }
     })
 }
