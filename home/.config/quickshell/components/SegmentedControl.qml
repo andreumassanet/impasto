@@ -36,7 +36,7 @@ Rectangle {
     property Item hovered: null
 
     implicitWidth: layout.implicitWidth + 6
-    implicitHeight: 28
+    implicitHeight: Theme.segmentHeight
     radius: Theme.radiusSmall
     opacity: root.enabled ? 1 : 0.45
 
