@@ -70,11 +70,11 @@ Item {
         id: detail
 
         ModuleCard {
-            title: TimerService.running ? (TimerService.label || "Countdown") : "Timer"
+            title: TimerService.running ? (TimerService.label || Tr.t("Countdown")) : Tr.t("Timer")
             subtitle: {
                 if (!TimerService.running)
-                    return "Set a countdown"
-                return TimerService.paused ? "Held" : "Running"
+                    return Tr.t("Set a countdown")
+                return TimerService.paused ? Tr.t("Held") : Tr.t("Running")
             }
             figure: TimerService.running ? TimerService.display : root.preview
             figureColor: TimerService.paused ? Theme.textMuted : Theme.text
@@ -87,11 +87,11 @@ Item {
 
             CardLimit {
                 visible: TimerService.running
-                name: "Left"
+                name: Tr.t("Time left")
                 fraction: TimerService.progress
                 tint: TimerService.tint
                 note: TimerService.paused
-                    ? "held" : `ends ${Qt.formatTime(new Date(TimerService.endsAt), "HH:mm")}`
+                    ? Tr.t("held") : Tr.t("ends %1").arg(Qt.formatTime(new Date(TimerService.endsAt), "HH:mm"))
             }
 
             // A RowLayout so the three fields split the card's width.
@@ -146,8 +146,8 @@ Item {
                     Layout.preferredWidth: 0
                     text: {
                         if (!TimerService.running)
-                            return "Start"
-                        return TimerService.paused ? "Resume" : "Hold"
+                            return Tr.t("Start")
+                        return TimerService.paused ? Tr.t("Resume") : Tr.t("Hold")
                     }
                     icon: {
                         if (!TimerService.running)
@@ -169,7 +169,7 @@ Item {
                 PillButton {
                     Layout.fillWidth: !TimerService.running
                     Layout.preferredWidth: TimerService.running ? 46 : 0
-                    text: TimerService.running ? "" : "Clear"
+                    text: TimerService.running ? "" : Tr.t("Clear")
                     icon: "󰜉"
                     implicitWidth: 46
                     implicitHeight: Theme.cardRow

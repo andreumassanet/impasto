@@ -66,9 +66,9 @@ Item {
         id: detail
 
         ModuleCard {
-            title: "Sound"
-            subtitle: AudioService.ready ? AudioService.outputName(AudioService.sink) : "No output"
-            figure: AudioService.muted ? "Muted" : `${AudioService.volume}%`
+            title: Tr.t("Sound")
+            subtitle: AudioService.ready ? AudioService.outputName(AudioService.sink) : Tr.t("No output")
+            figure: AudioService.muted ? Tr.t("Muted") : `${AudioService.volume}%`
             figureColor: AudioService.muted ? Theme.textMuted : Theme.text
 
             mark: RingIndicator {
@@ -95,7 +95,7 @@ Item {
 
             CardLevel {
                 glyph: AudioService.icon
-                name: "Volume"
+                name: Tr.t("Volume")
                 value: AudioService.volume
                 dimmed: AudioService.muted
                 available: AudioService.ready
@@ -105,7 +105,7 @@ Item {
 
             CardLevel {
                 glyph: AudioService.sourceIcon
-                name: "Microphone"
+                name: Tr.t("Microphone")
                 value: AudioService.sourceVolume
                 dimmed: AudioService.sourceMuted
                 available: AudioService.sourceReady
@@ -115,7 +115,7 @@ Item {
 
             CardHeading {
                 visible: AudioService.streams.length > 0
-                text: "Apps"
+                text: Tr.t("Apps")
             }
 
             Repeater {
@@ -138,7 +138,7 @@ Item {
 
             CardHeading {
                 visible: AudioService.outputs.length > 1
-                text: "Output"
+                text: Tr.t("Output")
             }
 
             Repeater {
