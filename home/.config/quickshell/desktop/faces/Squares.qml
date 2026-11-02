@@ -71,9 +71,9 @@ Item {
             ink: root.ink
             // Every face shows something when there is no data: widgets are
             // always drawn.
-            label: "Battery"
+            label: Tr.t("Battery")
             reading: BatteryService.available ? `${BatteryService.percent}%` : "—"
-            note: BatteryService.available ? BatteryService.estimate : "no battery"
+            note: BatteryService.available ? BatteryService.estimate : Tr.t("no battery")
 
             BatteryWidget { size: 40; glyphColor: root.ink.text; track: root.ink.dim }
         }
@@ -85,8 +85,8 @@ Item {
         WidgetFace {
 
             ink: root.ink
-            label: "Volume"
-            reading: AudioService.muted ? "Muted" : `${AudioService.volume}%`
+            label: Tr.t("Volume")
+            reading: AudioService.muted ? Tr.t("Muted") : `${AudioService.volume}%`
             tint: AudioService.muted ? root.ink.muted : root.ink.text
 
             RingIndicator {
@@ -113,9 +113,9 @@ Item {
         WidgetFace {
 
             ink: root.ink
-            label: "Brightness"
+            label: Tr.t("Brightness")
             reading: BrightnessService.available ? `${BrightnessService.percent}%` : "—"
-            note: BrightnessService.available ? "" : "no backlight"
+            note: BrightnessService.available ? "" : Tr.t("no backlight")
 
             RingIndicator {
                 anchors.fill: parent
@@ -141,7 +141,7 @@ Item {
         WidgetFace {
 
             ink: root.ink
-            label: "Network"
+            label: Tr.t("Network")
             reading: NetworkService.connectionName
             note: NetworkService.stateLine
 
@@ -180,13 +180,13 @@ Item {
         WidgetFace {
 
             ink: root.ink
-            label: "Updates"
+            label: Tr.t("Updates")
             reading: UpdatesService.available || UpdatesService.checking
                 ? `${UpdatesService.count}` : "—"
             note: UpdatesService.checking
-                ? "checking"
-                : (!UpdatesService.available ? "cannot check"
-                    : (UpdatesService.count === 0 ? "up to date" : "pending"))
+                ? Tr.t("checking")
+                : (!UpdatesService.available ? Tr.t("cannot check")
+                    : (UpdatesService.count === 0 ? Tr.t("up to date") : Tr.t("pending")))
             tint: UpdatesService.count === 0 ? root.ink.muted : root.ink.text
 
             Text {
@@ -205,9 +205,9 @@ Item {
         WidgetFace {
 
             ink: root.ink
-            label: WeatherService.place || "Weather"
+            label: WeatherService.place || Tr.t("Weather")
             reading: WeatherService.available ? `${WeatherService.temperature}°` : "--°"
-            note: WeatherService.available ? WeatherService.description : "no forecast"
+            note: WeatherService.available ? WeatherService.description : Tr.t("no forecast")
 
             Text {
                 anchors.centerIn: parent
@@ -225,7 +225,7 @@ Item {
         WidgetFace {
 
             ink: root.ink
-            label: "System"
+            label: Tr.t("System")
             reading: `${StatsService.cpu.toFixed(0)}%`
             note: `RAM ${Math.round(StatsService.memoryFraction * 100)}%`
 
@@ -250,8 +250,8 @@ Item {
                 : ClaudeService.sessionMeasured
                 ? ClaudeService.percent(ClaudeService.sessionFraction)
                 : ClaudeService.compact(ClaudeService.blockTokens)
-            note: !ClaudeService.available ? "no usage found"
-                : (ClaudeService.sessionMeasured ? "of this block" : "this block")
+            note: !ClaudeService.available ? Tr.t("no usage found")
+                : (ClaudeService.sessionMeasured ? Tr.t("of this block") : Tr.t("this block"))
 
             ClaudeMark {
                 anchors.centerIn: parent
@@ -270,9 +270,9 @@ Item {
             ink: root.ink
             label: "Codex"
             reading: CodexService.figure
-            note: !CodexService.available ? "no usage found"
-                : CodexService.fullest ? `of the ${CodexService.fullestName}`
-                : "until Codex runs again"
+            note: !CodexService.available ? Tr.t("no usage found")
+                : CodexService.fullest ? Tr.t("of the %1").arg(CodexService.fullestName)
+                : Tr.t("until Codex runs again")
 
             CodexMark {
                 anchors.centerIn: parent
@@ -289,11 +289,11 @@ Item {
         WidgetFace {
 
             ink: root.ink
-            label: "Timer"
+            label: Tr.t("Timer")
             reading: TimerService.running ? TimerService.display : "—"
             note: TimerService.running
-                ? (TimerService.label !== "" ? TimerService.label : "counting down")
-                : "nothing running"
+                ? (TimerService.label !== "" ? TimerService.label : Tr.t("counting down"))
+                : Tr.t("nothing running")
             tint: TimerService.running ? root.ink.text : root.ink.muted
 
             RingIndicator {
@@ -314,9 +314,9 @@ Item {
             ink: root.ink
             readonly property var last: GamesService.entry(GamesService.lastPlayed)
 
-            label: "Games"
+            label: Tr.t("Games")
             reading: last ? `${GamesService.bestOf(last.id)}` : "—"
-            note: last ? `${last.name} · best` : "Nothing played yet"
+            note: last ? `${last.name} · ${Tr.t("best")}` : Tr.t("Nothing played yet")
 
             RingIndicator {
                 anchors.fill: parent
@@ -341,8 +341,8 @@ Item {
         WidgetFace {
 
             ink: root.ink
-            label: PetService.name !== "" ? PetService.name : "Pet"
-            reading: PetService.hatched ? `Lv ${PetService.level}` : "Egg"
+            label: PetService.name !== "" ? PetService.name : Tr.t("Pet")
+            reading: PetService.hatched ? Tr.t("Lv %1").arg(PetService.level) : Tr.t("Egg")
             note: PetService.mood
 
             RingIndicator {
@@ -372,11 +372,11 @@ Item {
 
             ink: root.ink
             // Without a player it says so rather than going blank.
-            label: MediaService.artist !== "" ? MediaService.artist : "Media"
+            label: MediaService.artist !== "" ? MediaService.artist : Tr.t("Media")
             reading: MediaService.title !== "" ? MediaService.title
-                : (MediaService.available ? MediaService.identity : "Nothing playing")
-            note: !MediaService.available ? "no player"
-                : (MediaService.playing ? "playing" : "paused")
+                : (MediaService.available ? MediaService.identity : Tr.t("Nothing playing"))
+            note: !MediaService.available ? Tr.t("no player")
+                : (MediaService.playing ? Tr.t("playing") : Tr.t("paused"))
 
             ClippingRectangle {
                 anchors.fill: parent
@@ -478,7 +478,7 @@ Item {
                 note: {
                     const weekday = Qt.formatDateTime(calendarClock.date, "dddd")
                     const left = TasksService.pendingOn(TasksService.todayKey)
-                    return left > 0 ? `${weekday} · ${left} to do` : weekday
+                    return left > 0 ? `${weekday} · ${Tr.t("%1 to do").arg(left)}` : weekday
                 }
 
                 SystemClock {
@@ -552,10 +552,10 @@ Item {
         WidgetFace {
 
             ink: root.ink
-            label: "Tasks"
+            label: Tr.t("Tasks")
             reading: `${TasksService.pending}`
             note: TasksService.pending === 0
-                ? (TasksService.count === 0 ? "nothing yet" : "all done")
+                ? (TasksService.count === 0 ? Tr.t("nothing yet") : Tr.t("all done"))
                 : TasksService.summary
             tint: TasksService.overdue.length > 0 ? Theme.red : root.ink.text
 
@@ -576,9 +576,10 @@ Item {
         WidgetFace {
 
             ink: root.ink
-            label: MarketsService.lead ? `${MarketsService.lead.base}/${MarketsService.lead.quote}` : "Markets"
+            label: MarketsService.lead ? `${MarketsService.lead.base}/${MarketsService.lead.quote}` : Tr.t("Markets")
             note: !MarketsService.lead
-                ? (MarketsService.pairs.length === 0 ? "nothing on the list" : "no prices")
+                ? (MarketsService.pairs.length === 0 ? Tr.t("nothing on the list") : Tr.t("no prices")
+)
                 : `${MarketsService.change(MarketsService.lead)} · ${MarketsService.lead.period}`
             noteTint: MarketsService.lead ? MarketsService.tint(MarketsService.lead) : root.ink.muted
 

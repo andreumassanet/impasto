@@ -712,8 +712,8 @@ PanelWindow {
 
         sourceComponent: PopMenu {
             rows: [
-                { id: "open", label: "Open", icon: "󰏫", warn: false },
-                { id: "edit", label: "Edit", icon: "󰆾", warn: false }
+                { id: "open", label: Tr.t("Open"), icon: "󰏫", warn: false },
+                { id: "edit", label: Tr.t("Edit"), icon: "󰆾", warn: false }
             ]
             onChosen: id => {
                 const menu = root.menu

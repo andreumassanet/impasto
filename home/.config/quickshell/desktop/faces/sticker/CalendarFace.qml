@@ -58,11 +58,11 @@ Item {
 
     function agendaLine(): string {
         if (root.dueToday > 0)
-            return `${root.dueToday} to do today`
+            return Tr.t("%1 to do today").arg(root.dueToday)
         const next = TasksService.next
         if (next)
             return `${next.text} · ${TasksService.dueLabel(next.due)}`
-        return "nothing due"
+        return Tr.t("nothing due")
     }
 
     component Day: Cut {
@@ -201,7 +201,7 @@ Item {
                 columns: 7
 
                 Repeater {
-                    model: ["M", "T", "W", "T", "F", "S", "S"]
+                    model: Tr.t("M T W T F S S").split(" ")
 
                     Item {
                         required property var modelData

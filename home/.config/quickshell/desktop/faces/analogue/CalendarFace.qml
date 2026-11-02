@@ -66,7 +66,7 @@ Item {
     function agendaLine(): string {
         const left = TasksService.pendingOn(TasksService.todayKey)
         if (left > 0)
-            return `${left} to do today`
+            return Tr.t("%1 to do today").arg(left)
         const next = TasksService.next
         if (next)
             return `${next.text} · ${TasksService.dueLabel(next.due)}`
@@ -270,7 +270,7 @@ Item {
                     readonly property real cellHeight: height / (1 + sheet.cells.length / 7)
 
                     Repeater {
-                        model: ["M", "T", "W", "T", "F", "S", "S"]
+                        model: Tr.t("M T W T F S S").split(" ")
 
                         Item {
                             required property var modelData
@@ -373,11 +373,11 @@ Item {
                     Text {
                         width: parent.width
                         text: {
-                            const name = agenda.day === TasksService.todayKey ? "Today"
+                            const name = agenda.day === TasksService.todayKey ? Tr.t("Today")
                                 : Qt.formatDate(TasksService.dateOf(agenda.day), "dddd d")
                             const n = agenda.due.length
                             const left = agenda.due.filter(task => task.state !== "done").length
-                            return n === 0 ? `${name} · nothing due` : `${name} · ${left} of ${n} to do`
+                            return n === 0 ? `${name} · ${Tr.t("nothing due")}` : `${name} · ${Tr.t("%1 of %2 to do").arg(left).arg(n)}`
                         }
                         elide: Text.ElideRight
                         font.family: Theme.fontFamily

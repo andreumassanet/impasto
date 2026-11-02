@@ -20,8 +20,8 @@ Spread {
     readonly property color tint: BatteryService.low ? BatteryService.tint : face.ink.green
 
     hue: face.tint
-    reading: BatteryService.available ? `${BatteryService.percent}%` : "No battery"
-    note: BatteryService.available ? `${BatteryService.stateWord} · ${BatteryService.estimate}` : "nothing to read"
+    reading: BatteryService.available ? `${BatteryService.percent}%` : Tr.t("No battery")
+    note: BatteryService.available ? `${BatteryService.stateWord} · ${BatteryService.estimate}` : Tr.t("nothing to read")
 
     Tone { id: tone; hue: face.tint }
 

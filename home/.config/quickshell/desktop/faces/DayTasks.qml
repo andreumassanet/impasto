@@ -47,7 +47,7 @@ Item {
 
     readonly property var due: root.shown !== "" ? TasksService.on(root.shown) : []
     readonly property int pending: root.due.filter(task => task.state !== "done").length
-    readonly property string count: `${root.pending} of ${root.due.length} to do`
+    readonly property string count: Tr.t("%1 of %2 to do").arg(root.pending).arg(root.due.length)
 
     // Too narrow for the day and the count on one line.
     readonly property bool narrow: root.titled && root.width < 240
