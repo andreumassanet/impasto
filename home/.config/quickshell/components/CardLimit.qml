@@ -32,7 +32,7 @@ RowLayout {
             return ""
         const left = root.resets * 1000 - clock.date.getTime()
         if (left <= 0)
-            return "renewed"
+            return Tr.t("renewed")
         const minutes = Math.ceil(left / 60000)
         if (minutes < 60)
             return `${minutes} min`

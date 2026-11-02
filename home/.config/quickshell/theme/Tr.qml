@@ -770,6 +770,8 @@ QtObject {
                 "Se pasa un poco y vuelve a asentarse. El aspecto que persiguen la mayoría de preajustes.",
             "Nothing moves. Windows and workspaces appear where they are going to be.":
                 "Nada se mueve. Ventanas y espacios aparecen donde van a estar.",
+            "The quick brown fox 0123": "El veloz murciélago hindú 0123",
+            "Reading installed fonts…": "Leyendo las tipografías instaladas…",
 
             // ── DISPLAYS ────────────────────────────────────────────────────
             "The screens": "Las pantallas",
@@ -952,6 +954,7 @@ QtObject {
             "Screen off after": "Apagar la pantalla tras",
             "before the lock": "antes del bloqueo",
             "Suspend after": "Suspender tras",
+            "Images": "Imágenes",
 
             // ── SYSTEM ──────────────────────────────────────────────────────
             "Changes are saved to the profile in use as you make them.":
@@ -1442,7 +1445,24 @@ QtObject {
             "UP TO DATE": "AL DÍA",
             "updates": "actualizaciones",
             "UPDATES": "PENDIENTES",
-            "week": "semana"
+            "week": "semana",
+
+            // ── THE LOCK SCREEN ─────────────────────────────────────────────
+            "Face unlock or password": "Desbloqueo facial o contraseña",
+            "Enter your password": "Escribe tu contraseña",
+
+            // ── THE CAPTURE SURFACE ─────────────────────────────────────────
+            "Video": "Vídeo",
+            "Save": "Guardar",
+            "Copy": "Copiar",
+            "No sound": "Sin sonido",
+
+            // ── EVERYWHERE ──────────────────────────────────────────────────
+            "Tomorrow": "Mañana",
+            "No day": "Sin día",
+            "%1 to the next egg": "%1 para el próximo huevo",
+            "1 level to the next egg": "1 nivel para el próximo huevo",
+            "%1 levels to the next egg": "%1 niveles para el próximo huevo"
         }
     })
 }

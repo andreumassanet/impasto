@@ -62,7 +62,7 @@ SettingsSection {
         id: picker
 
         title: Tr.t("Choose a picture")
-        nameFilters: ["Images (*.png *.jpg *.jpeg *.webp *.bmp)"]
+        nameFilters: [`${Tr.t("Images")} (*.png *.jpg *.jpeg *.webp *.bmp)`]
         onAccepted: {
             const url = String(picker.selectedFile)
             AccountService.setPicture(url.startsWith("file://") ? url.slice(7) : url)

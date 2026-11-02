@@ -65,7 +65,7 @@ SettingsSection {
                 }
 
                 PreviewTile {
-                    caption: "Notch"
+                    caption: Tr.t("Notch")
                     selected: SettingsService.islandAttached
                     onPicked: SettingsService.set("islandAttached", true)
 
