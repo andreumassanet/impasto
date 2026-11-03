@@ -436,6 +436,24 @@ ShellRoot {
         onPressed: root.island?.toggle("keys")
     }
 
+    // The key sheet in a window, beside the island's: a layer over the blurred
+    // desktop that exists only while it is open.
+    property bool cheatsheetWindow: false
+
+    LazyLoader {
+        active: root.cheatsheetWindow
+
+        CheatsheetLayer {
+            onDismissed: root.cheatsheetWindow = false
+        }
+    }
+
+    GlobalShortcut {
+        name: "cheatsheetWindow"
+        description: "Open the cheatsheet in a window"
+        onPressed: root.cheatsheetWindow = !root.cheatsheetWindow
+    }
+
     GlobalShortcut {
         name: "zen"
         description: "Hide or show the bar"
