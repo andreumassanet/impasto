@@ -543,6 +543,25 @@ Singleton {
         root.activationRequested(id)
     }
 
+    // The hover card (`SettingsService.chipHover`). A piece rested on for a
+    // moment names itself and its value in a small card under it (`Bar.qml`),
+    // so pieces never widen and shift under the pointer.
+    property Item peekSource: null
+    property string peekText: ""
+
+    // The text first: the bar reads it when the source arrives.
+    function showPeek(source: Item, text: string): void {
+        root.peekText = text
+        root.peekSource = source
+    }
+
+    function hidePeek(source: Item): void {
+        if (root.peekSource !== source)
+            return
+        root.peekSource = null
+        root.peekText = ""
+    }
+
     // A module asking for a panel, e.g. the games detail opening the arcade.
     signal panelRequested(string panel)
 
