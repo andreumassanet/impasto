@@ -91,6 +91,9 @@ Singleton {
     readonly property alias recorderAudio: config.recorderAudio
     readonly property alias captureShape: config.captureShape
     readonly property alias captureKind: config.captureKind
+    readonly property alias lensUpload: config.lensUpload
+    readonly property alias controlsClock: config.controlsClock
+    readonly property alias tileMenuOnLabel: config.tileMenuOnLabel
     readonly property alias notesHandwriting: config.notesHandwriting
     readonly property alias deckOnEmpty: config.deckOnEmpty
     readonly property alias spectrumOnEmpty: config.spectrumOnEmpty
@@ -660,6 +663,17 @@ Singleton {
         // destination is not stored: it resets to saving a file.
         property string captureShape: "region"
         property string captureKind: "photo"
+
+        // The control centre's lens tile uploads a region of the screen to
+        // uguu.se, so it stays out of the list until this is on.
+        property bool lensUpload: false
+
+        // The time in the middle of the control centre's top row, so it stays
+        // in view while the island is open.
+        property bool controlsClock: false
+        // A tile with a menu: the icon toggles it and the rest of the tile
+        // opens the menu, so reaching for the menu does not switch it off.
+        property bool tileMenuOnLabel: false
 
         // Note bodies in the handwriting font instead of the UI font.
         property bool notesHandwriting: true

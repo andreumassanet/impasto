@@ -72,6 +72,27 @@ ColumnLayout {
 
         readonly property bool chosen: ControlsService.selected === "top"
 
+        // The time stays in view while the island is open, in the middle of
+        // the row, where the island showed it at rest.
+        SystemClock {
+            id: openClock
+
+            precision: SettingsService.clockShowsSeconds ? SystemClock.Seconds : SystemClock.Minutes
+        }
+
+        Text {
+            anchors.centerIn: parent
+            visible: SettingsService.controlsClock && !root.editing
+            text: Qt.formatDateTime(openClock.date, SettingsService.clockShowsSeconds
+                ? SettingsService.clockFormat.replace("mm", "mm:ss")
+                : SettingsService.clockFormat)
+            font.family: Theme.fontFamily
+            font.pixelSize: Theme.fontSizeLarge
+            font.weight: Font.DemiBold
+            font.features: { "tnum": 1 }
+            color: Theme.text
+        }
+
         RowLayout {
             anchors.fill: parent
             spacing: 12

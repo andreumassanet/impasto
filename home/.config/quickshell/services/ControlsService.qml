@@ -12,6 +12,7 @@ pragma Singleton
 import QtQml
 import QtQuick
 import Quickshell
+import Quickshell.Io
 
 import "../theme"
 
@@ -218,6 +219,9 @@ Singleton {
         property string detail: ""
         property bool active: false
         property bool available: true
+        // False takes the tile out of every list, for a tile whose tools are
+        // missing, instead of leaving it dimmed.
+        property bool listed: true
         property bool expandable: false
         property string panel: ""
         property bool closes: false
@@ -235,6 +239,32 @@ Singleton {
     // Airplane mode = Wi-Fi (nmcli) and Bluetooth (bluez) both off. Neither
     // service owns it, so it is derived here.
     readonly property bool airborne: !NetworkService.radioOn && !BluetoothService.enabled
+
+    // Which tools the lens and music tiles need are installed; probed once.
+    property var extraTools: ({})
+
+    readonly property string extrasScript: Quickshell.shellPath("scripts/control_extras.py")
+
+    // The region leaves the machine, so the tile needs the setting as well.
+    readonly property bool lensReady: SettingsService.lensUpload
+        && root.extraTools.grim === true && root.extraTools.slurp === true
+        && root.extraTools.curl === true
+    readonly property bool musicReady: root.extraTools.songrec === true
+        && root.extraTools.parec === true
+
+    readonly property Process extrasProbe: Process {
+        command: [root.extrasScript, "tools"]
+        running: true
+        stdout: StdioCollector {
+            onStreamFinished: {
+                try {
+                    root.extraTools = JSON.parse(text)
+                } catch (error) {
+                    console.warn("Cannot read which tools the extra tiles need:", error)
+                }
+            }
+        }
+    }
 
     readonly property list<QtObject> toggleCatalogue: [
         Toggle {
@@ -274,6 +304,12 @@ Singleton {
             available: AudioService.sourceReady
             expandable: AudioService.sourceReady; panel: "microphone"
             action: () => AudioService.toggleSourceMute()
+        },
+        Toggle {
+            key: "keepawake"; icon: IdleService.keepAwake ? "󰅶" : "󰾪"; label: Tr.t("Keep awake")
+            detail: IdleService.keepAwake ? Tr.t("No idle lock") : Tr.t("Idle as set")
+            active: IdleService.keepAwake
+            action: () => IdleService.keepAwake = !IdleService.keepAwake
         },
         Toggle {
             key: "airplane"; icon: root.airborne ? "󰀝" : "󰀞"; label: "Airplane"
@@ -389,6 +425,22 @@ Singleton {
             // A one-shot action, which also lists it in the launcher's `>`.
             closes: true
             action: () => ClipboardService.wipe()
+        },
+        Toggle {
+            key: "lens"; icon: "󰈈"; label: Tr.t("Lens")
+            detail: Tr.t("Select area")
+            available: root.lensReady; listed: root.lensReady
+            closes: true
+            // Waits for the panel to close so it is not in the selection.
+            action: () => Quickshell.execDetached([root.extrasScript, "lens",
+                "--wait", String(CaptureService.settle / 1000 + 0.1)])
+        },
+        Toggle {
+            key: "music"; icon: "󰎈"; label: Tr.t("Song")
+            detail: Tr.t("Listen")
+            available: root.musicReady; listed: root.musicReady
+            closes: true
+            action: () => Quickshell.execDetached([root.extrasScript, "music"])
         }
     ]
 
@@ -398,7 +450,7 @@ Singleton {
     function tileOf(key: string): var {
         for (let index = 0; index < root.toggleCatalogue.length; index++) {
             const tile = root.toggleCatalogue[index]
-            if (tile.key === key)
+            if (tile.key === key && tile.listed)
                 return tile
         }
         return null
@@ -429,7 +481,7 @@ Singleton {
     function tileRowsOf(key: string): var {
         const keys = root.toggleKeysOf(key)
         return keys.map(tile => root.tileOf(tile)).concat(
-            root.toggleCatalogue.filter(tile => keys.indexOf(tile.key) < 0))
+            root.toggleCatalogue.filter(tile => tile.listed && keys.indexOf(tile.key) < 0))
     }
 
     // ── A BLOCK'S LIST ──────────────────────────────────────────────────────

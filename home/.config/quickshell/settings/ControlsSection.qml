@@ -67,6 +67,48 @@ SettingsSection {
         }
     }
 
+    SettingGroup {
+        title: Tr.t("Clicks and the clock")
+        note: Tr.t("Two ways the control centre answers.")
+
+        SettingRow {
+            label: Tr.t("Menu on the label")
+            reading: SettingsService.tileMenuOnLabel
+                ? Tr.t("On a tile with a menu the icon toggles and the rest opens the menu")
+                : Tr.t("A tile toggles wherever it is pressed; its arrow opens the menu")
+
+            ToggleSwitch {
+                checked: SettingsService.tileMenuOnLabel
+                onToggled: checked => SettingsService.set("tileMenuOnLabel", checked)
+            }
+        }
+
+        SettingRow {
+            label: Tr.t("Time in the top row")
+            reading: Tr.t("The time stays in view in the middle of the top row while the control centre is open")
+
+            ToggleSwitch {
+                checked: SettingsService.controlsClock
+                onToggled: checked => SettingsService.set("controlsClock", checked)
+            }
+        }
+    }
+
+    SettingGroup {
+        title: Tr.t("Extra tiles")
+        note: Tr.t("Toggles that call tools outside the shell. A tile whose tool is not installed is not listed. Song sends a short fingerprint of 12 seconds of what the speakers play (anything, a call included) to the song service through songrec.")
+
+        SettingRow {
+            label: Tr.t("Search a region with Google Lens")
+            reading: Tr.t("The region is uploaded to uguu.se, a temporary public host")
+
+            ToggleSwitch {
+                checked: SettingsService.lensUpload
+                onToggled: checked => SettingsService.set("lensUpload", checked)
+            }
+        }
+    }
+
     // ── THE TOP ROW ─────────────────────────────────────────────────────────
 
     SettingGroup {
