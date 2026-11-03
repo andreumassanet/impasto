@@ -170,6 +170,34 @@ SettingsSection {
         }
     }
 
+    // ── FALLBACKS ───────────────────────────────────────────────────────────
+
+    SettingGroup {
+        visible: root.tab === "results"
+        title: Tr.t("Fallbacks")
+        note: Tr.t("Rows under the applications that act on the text as typed.")
+        hint: Tr.t("Open an address, search the web, run it as a command, or run it in a terminal (the one named by $TERMINAL, else kitty). Only in the plain-text mode, and a command runs as soon as its row is chosen.")
+
+        SettingRow {
+            label: Tr.t("Offer fallback rows")
+            reading: SettingsService.launcherFallbacks
+                ? Tr.t("Open, search, run") : Tr.t("Applications only")
+
+            ToggleSwitch {
+                checked: SettingsService.launcherFallbacks
+                onToggled: checked => SettingsService.set("launcherFallbacks", checked)
+            }
+        }
+
+        SettingField {
+            label: Tr.t("Web search address")
+            reading: Tr.t("The text is added at the end, encoded")
+            placeholder: LauncherService.defaultSearchUrl
+            value: SettingsService.launcherSearchUrl
+            onEdited: value => SettingsService.set("launcherSearchUrl", value.trim())
+        }
+    }
+
     // ── SIGILS ──────────────────────────────────────────────────────────────
     //
     // Each sigil is edited in place, at the end of its mode's row.

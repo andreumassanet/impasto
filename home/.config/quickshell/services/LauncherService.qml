@@ -234,7 +234,59 @@ QtObject {
             return root.emoji(term)
         }
 
-        return root.rank(term).slice(0, root.maxResults)
+        const applicationRows = root.rank(term).slice(0, root.maxResults)
+        return SettingsService.launcherFallbacks
+            ? applicationRows.concat(root.extras(raw)) : applicationRows
+    }
+
+    // ── FALLBACK ROWS ───────────────────────────────────────────────────────
+    //
+    // Under the applications, when `launcherFallbacks` is on: open what looks
+    // like an address, search the web, run the text as a command, or run it
+    // in a terminal. Each is a "command" row, so choosing it runs it and
+    // closes the launcher. A row carries its `argv`, not a function, which a
+    // model would drop on the way to a mouse click.
+    readonly property string defaultSearchUrl: "https://search.brave.com/search?q="
+
+    // Optional scheme, a dotted host, optional port and path, no spaces.
+    readonly property var addressPattern: /^(https?:\/\/)?[\w-]+(\.[\w-]+)+(:\d+)?(\/\S*)?$/
+
+    // The user's terminal, else kitty (the shell's own scripts use it). Most
+    // terminals take the program after -e; kitty and foot take it directly.
+    function terminalCommand(script: string): var {
+        const terminal = Quickshell.env("TERMINAL") || "kitty"
+        const execFlag = /(^|\/)(kitty|foot)$/.test(terminal) ? [] : ["-e"]
+        return [terminal].concat(execFlag, ["sh", "-c", script])
+    }
+
+    function extras(text: string): var {
+        const query = text.trim()
+        if (query === "")
+            return []
+        const searchUrl = SettingsService.launcherSearchUrl || root.defaultSearchUrl
+        const searchHost = (searchUrl.match(/^https?:\/\/([^\/?#]+)/) ?? [])[1] ?? ""
+        // The command is a positional argument, never part of the script, and
+        // the terminal waits for Enter so its output can be read.
+        const heldScript = "sh -c \"$1\"; printf '\\n  Enter closes this window.'; read -r _"
+        const rows = []
+        if (root.addressPattern.test(query)) {
+            const address = /^https?:\/\//.test(query) ? query : `https://${query}`
+            rows.push({ kind: "command", id: "open", icon: "󰖟",
+                        name: `${Tr.t("Open")} ${query}`, subtitle: Tr.t("In the browser"),
+                        argv: ["xdg-open", address] })
+        }
+        rows.push({ kind: "command", id: "web", icon: "󰖟",
+                    name: `${Tr.t("Search the web for")} “${query}”`,
+                    subtitle: searchHost || Tr.t("Web search"),
+                    argv: ["xdg-open", searchUrl + encodeURIComponent(query)] })
+        rows.push({ kind: "command", id: "run", icon: "󰆍",
+                    name: `${Tr.t("Run")} ${query}`, subtitle: Tr.t("As a command, in the background"),
+                    argv: ["sh", "-c", query] })
+        rows.push({ kind: "command", id: "terminal", icon: "󰆍",
+                    name: `${Tr.t("Run")} ${query} ${Tr.t("in a terminal")}`,
+                    subtitle: Tr.t("Stays open at the end"),
+                    argv: root.terminalCommand(heldScript).concat(["sh", query]) })
+        return rows
     }
 
     // All applications matching `term`, sorted by:
@@ -454,6 +506,8 @@ QtObject {
             ClipboardService.copy(entry.id)
         else if (entry.kind === "emoji")
             EmojiService.copy(entry.item)
+        else if (entry.kind === "command")
+            Quickshell.execDetached(entry.argv)
         // `panel` and `mode` entries are handled by the launcher panel: the
         // service does not know about the island, and a mode row keeps the
         // launcher open.
