@@ -20,7 +20,9 @@ import "../bar/widgets"
 // behind if that is the setting. A key or a click wakes
 // it: the clock rises and the account, the field and the power buttons come
 // in underneath; Escape or a while untouched sends them away again. Blurred
-// enough that text on the desktop cannot be read.
+// enough that text on the desktop cannot be read. With the lock set to the
+// wallpaper, that is blurred in place of the desktop, and only the lock's own
+// text is drawn: no notification, and no window.
 Item {
     id: root
 
@@ -104,7 +106,11 @@ Item {
         id: shot
 
         anchors.fill: parent
-        source: LockService.shotSource(root.output)
+        // The wallpaper in place of this screen's capture when the lock is set
+        // to a private background; if it fails to draw, the plain island
+        // colour behind shows and nothing of the desktop does.
+        source: LockService.privateBackground ? LockService.privateSource
+                                              : LockService.shotSource(root.output)
         visible: false
         fillMode: Image.PreserveAspectCrop
         asynchronous: false
@@ -285,6 +291,31 @@ Item {
         opacity: root.awake * root.held
 
         onSubmitted: password => root.submitted(password)
+    }
+
+    // Caps Lock, over the account: read only on a lock with the wallpaper
+    // behind it.
+    Rectangle {
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.bottom: account.top
+        anchors.bottomMargin: 14
+        visible: LockService.privateBackground && LockService.capsLock
+        width: capsLabel.implicitWidth + 24
+        height: 28
+        radius: height / 2
+        color: Theme.indicatorWarn
+        opacity: root.awake * root.held
+
+        Text {
+            id: capsLabel
+
+            anchors.centerIn: parent
+            text: `󰪛  ${Tr.t("Caps Lock is on")}`
+            font.family: Theme.fontFamily
+            font.pixelSize: Theme.fontSizeSmall
+            font.weight: Font.DemiBold
+            color: Theme.island
+        }
     }
 
     // ── POWER ───────────────────────────────────────────────────────────────

@@ -424,6 +424,21 @@ SettingsSection {
             note: Tr.t("Just enough to make the text underneath unreadable.")
             hint: Tr.t("The preview uses the wallpaper, since the lock screen's own capture is taken when it locks. It applies the same blur with the capsule on top, so you can judge how it reads.")
 
+            SettingRow {
+                label: Tr.t("Behind the lock")
+                reading: SettingsService.lockBackground === "wallpaper"
+                    ? Tr.t("Nothing that was open shows") : ""
+
+                SegmentedControl {
+                    options: [
+                        { id: "live", label: Tr.t("The screen") },
+                        { id: "wallpaper", label: Tr.t("The wallpaper") }
+                    ]
+                    current: SettingsService.lockBackground
+                    onSelected: id => SettingsService.set("lockBackground", id)
+                }
+            }
+
             SettingSlider {
                 label: Tr.t("Blur")
                 value: SettingsService.lockBlur
