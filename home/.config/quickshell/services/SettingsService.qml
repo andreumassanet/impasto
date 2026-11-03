@@ -40,6 +40,10 @@ Singleton {
     readonly property alias barRight: config.barRight
     readonly property alias islandSummary: config.islandSummary
     readonly property alias lyrics: config.lyrics
+    // "rectangle" or "circle", the cover's shape wherever the shell shows it. A
+    // config from before the choice has only `mediaRing`, which meant circle.
+    readonly property string mediaCover: config.mediaCover !== ""
+        ? config.mediaCover : (config.mediaRing ? "circle" : "rectangle")
     readonly property alias islandActivities: config.islandActivities
     readonly property alias chipShape: config.chipShape
     readonly property alias chipFigure: config.chipFigure
@@ -582,6 +586,12 @@ Singleton {
         // The playing track's lyrics, looked up on lrclib.net while
         // something on screen shows them.
         property bool lyrics: true
+
+        // The cover's shape everywhere: "rectangle" or "circle", the circle
+        // with a ring of bars from the audio spectrum around it where there is
+        // room (needs cava). "" follows `mediaRing`, the first form of this.
+        property string mediaCover: ""
+        property bool mediaRing: false
 
         // Null means `besideDefaults`.
         property var islandActivities: null
