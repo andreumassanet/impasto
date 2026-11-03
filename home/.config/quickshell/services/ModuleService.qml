@@ -239,7 +239,7 @@ Singleton {
         case "volume":
             return AudioService.muted ? "Muted" : `${AudioService.volume}%`
         case "brightness":
-            return `${BrightnessService.percent}%`
+            return `${BrightnessService.slider}%`
         case "battery":
             return `${BatteryService.percent}%`
         case "weather":

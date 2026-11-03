@@ -467,12 +467,18 @@ Scope {
             const value = parseInt(percent)
             if (isNaN(value) || value < 0 || value > 100)
                 return root.fail("a brightness from 0 to 100")
-            BrightnessService.setPercent(value)
+            // With the dim layer, the slider is what is set and read, so that
+            // the layer follows the number.
+            if (BrightnessService.belowFloor)
+                BrightnessService.setSlider(value)
+            else
+                BrightnessService.setPercent(value)
             return root.ok({ brightness: value })
         }
 
         function get(): string {
-            return root.ok({ brightness: BrightnessService.percent })
+            return root.ok({ brightness: BrightnessService.belowFloor
+                ? BrightnessService.slider : BrightnessService.percent })
         }
     }
 
