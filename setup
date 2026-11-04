@@ -36,6 +36,12 @@ SKIP_PACKAGES=0
 SKIP_SYSTEM=0
 SKIP_PLUGINS=0
 SKIP_EXTRAS=0
+# --shell-only: the shell and Hyprland, and nothing else of home/. MODE_GIVEN is
+# whether a flag said so this run; if none did, the mode install last left in
+# the state directory is used.
+SHELL_ONLY=0
+MODE_GIVEN=0
+MODE_LOADED=0
 SUDO=
 SOFT=
 # Whether the desk was up when this run began: an install can take it down.
@@ -194,6 +200,13 @@ Options:
   --skip-system       install, update: leave / alone
   --skip-plugins      install, update: do not build the plugins
   --skip-extras       install, update: leave the extras above alone
+  --shell-only        install, update, sync: only the shell (~/.config/quickshell)
+                      and Hyprland (~/.config/hypr, never its custom/ folder),
+                      with the shell's data and the impasto command: no
+                      packages, no / and no other program's config. Remembered,
+                      so update, sync and Settings keep to it
+  --full              install, update, sync: everything again, and forget
+                      --shell-only
   --aur-helper NAME   yay or paru. The one installed is used, and when there
                       is neither, this one is built from the AUR (yay if unset)
   --noconfirm         answer every question with its default
@@ -292,6 +305,48 @@ files_in() {
             done
     else
         (cd "$REPO/$tree" && find . -type f -printf '%P\n')
+    fi
+}
+
+# What a shell-only install copies out of home/: the shell, Hyprland's files
+# but never custom/ (the user's own, which no install writes), the data the
+# shell reads and the command that talks to it.
+shell_part() {
+    case $1 in
+        .config/hypr/custom|.config/hypr/custom/*) return 1 ;;
+        .config/quickshell/*|.config/hypr/*|.local/share/impasto/*|.local/bin/impasto) return 0 ;;
+    esac
+    return 1
+}
+
+# files_in, cut to shell_part when this is a shell-only copy of home/.
+scoped() {
+    local tree=$1 rel
+    while IFS= read -r rel; do
+        if [[ $tree != home ]] || (( ! SHELL_ONLY )) || shell_part "$rel"; then printf '%s\n' "$rel"; fi
+    done
+}
+
+# The mode is remembered, so the menu, `update`, `sync` and Settings' Update
+# button stay inside the scope the install chose. Called first by every verb
+# that copies home/, after the options and before anything is asked.
+load_install_mode() {
+    (( ! MODE_LOADED )) || return 0
+    MODE_LOADED=1
+    (( ! MODE_GIVEN )) || return 0
+    if [[ -f $STATE/install-mode && $(< "$STATE/install-mode") == shell ]]; then
+        SHELL_ONLY=1
+        say 'shell only — as this machine was installed; ./setup install --full does the rest'
+    fi
+}
+
+save_install_mode() {
+    if (( DRY )) || (( ! MODE_GIVEN )); then return 0; fi
+    if (( SHELL_ONLY )); then
+        mkdir -p "$STATE"
+        printf 'shell\n' > "$STATE/install-mode"
+    else
+        rm -f "$STATE/install-mode"
     fi
 }
 
@@ -401,6 +456,15 @@ deploy() {
     manifest_lock
     read_manifest "$manifest"
     AFTER=()
+    if [[ $tree == home ]] && (( SHELL_ONLY )); then
+        # A shell-only copy answers for the shell's files alone. The rest of
+        # the manifest is carried over as it was, or the pass below that
+        # removes what the repository dropped would take every kitty, btop
+        # or nvim file of an earlier full install for one.
+        for rel in "${!BEFORE[@]}"; do
+            shell_part "$rel" || AFTER[$rel]=${BEFORE[$rel]}
+        done
+    fi
     while IFS= read -r rel; do
         src=$REPO/$tree/$rel
         dst=$target/$rel
@@ -434,7 +498,7 @@ deploy() {
                 say "kept     $shown$rel — edited here; the repository's is beside it as .new"; said=1
             fi
         fi
-    done < <(files_in "$tree" | sort)
+    done < <(files_in "$tree" | scoped "$tree" | sort)
 
     for rel in "${!BEFORE[@]}"; do
         [[ -z ${AFTER[$rel]:-} ]] || continue
@@ -475,6 +539,8 @@ seed() {
             say "skipped  the greeting's scenes — greeting.py seed failed"
         fi
     fi
+    # ~/.local/share/icons is not the shell's.
+    if (( SHELL_ONLY )); then return 0; fi
     if [[ ! -f $icons/index.theme ]]; then
         act mkdir -p "$icons"
         if (( ! DRY )); then
@@ -662,6 +728,7 @@ files_one() {
 }
 
 verb_sync() {
+    load_install_mode
     section home
     SUDO=
     deploy home "$HOME" "$STATE/home.manifest" '~/'
@@ -925,11 +992,18 @@ verb_plugins() {
 
 verb_install() {
     SECONDS=0
+    load_install_mode
+    if (( SHELL_ONLY )); then
+        SKIP_PACKAGES=1 SKIP_SYSTEM=1 SKIP_PLUGINS=1 SKIP_EXTRAS=1
+    fi
     note_shell
     if (( ! SKIP_PACKAGES )); then verb_packages; fi
-    folders
-    omz
+    if (( ! SHELL_ONLY )); then
+        folders
+        omz
+    fi
     verb_sync
+    save_install_mode
     if (( ! SKIP_SYSTEM )); then verb_system; fi
     if (( ! SKIP_PLUGINS )); then verb_plugins; fi
     if (( ! SKIP_EXTRAS )); then extras; fi
@@ -1044,8 +1118,8 @@ verb_uninstall() {
         fi
         say 'removed  the boot splash · other boot loaders keep the splash argument, which does nothing now'
     fi
-    # So an install after this one sets the extras up again.
-    act rm -rf "$APPLIED" "$PLUGINS_PENDING"
+    # So an install after this one sets the extras up again, and starts whole.
+    act rm -rf "$APPLIED" "$PLUGINS_PENDING" "$STATE/install-mode"
     if (( KEPT )); then say "not put back, the path is taken: $KEPT, kept in $STATE/backups"; fi
 }
 
@@ -1748,6 +1822,10 @@ main() {
             --skip-system)   SKIP_SYSTEM=1 ;;
             --skip-plugins)  SKIP_PLUGINS=1 ;;
             --skip-extras)   SKIP_EXTRAS=1 ;;
+            --shell-only)    (( MODE_GIVEN && ! SHELL_ONLY )) && fail '--shell-only and --full are opposites'
+                             SHELL_ONLY=1 MODE_GIVEN=1 ;;
+            --full)          (( MODE_GIVEN && SHELL_ONLY )) && fail '--shell-only and --full are opposites'
+                             SHELL_ONLY=0 MODE_GIVEN=1 ;;
             --aur-helper)    (( $# > 1 )) || fail '--aur-helper takes yay or paru'; HELPER=$2; shift ;;
             --aur-helper=*)  HELPER=${1#*=} ;;
             --noconfirm)     NOCONFIRM=1 ;;
