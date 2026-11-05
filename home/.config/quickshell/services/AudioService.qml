@@ -180,7 +180,8 @@ Singleton {
     // bypassed, and a button for its window. Installed is probed once; the
     // state is read when the panel opens, and only from a running instance,
     // because asking one that is not running would start it.
-    property bool easyEffectsAvailable: false
+    property bool easyEffectsInstalled: false
+    readonly property bool easyEffectsAvailable: SettingsService.soundEffects && root.easyEffectsInstalled
     property bool easyEffectsRunning: false
     property bool easyEffectsBypassed: false
 
@@ -188,7 +189,7 @@ Singleton {
         command: ["sh", "-c", "command -v easyeffects"]
         running: true
         stdout: StdioCollector {
-            onStreamFinished: root.easyEffectsAvailable = text.trim() !== ""
+            onStreamFinished: root.easyEffectsInstalled = text.trim() !== ""
         }
     }
 

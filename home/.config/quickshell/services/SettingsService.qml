@@ -40,6 +40,7 @@ Singleton {
     readonly property alias barRight: config.barRight
     readonly property alias islandSummary: config.islandSummary
     readonly property alias connectivityTabs: config.connectivityTabs
+    readonly property alias soundEffects: config.soundEffects
     readonly property alias lyrics: config.lyrics
     readonly property alias islandActivities: config.islandActivities
     readonly property alias chipShape: config.chipShape
@@ -583,6 +584,10 @@ Singleton {
         // Bluetooth, Wi-Fi and Sound as the tabs of one island panel, rather
         // than three panels reached from the control centre.
         property bool connectivityTabs: false
+
+        // A row in the sound panel for EasyEffects, when it is installed:
+        // whether it is processing, and a button for its window.
+        property bool soundEffects: false
 
         // The playing track's lyrics, looked up on lrclib.net while
         // something on screen shows them.
