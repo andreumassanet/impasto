@@ -40,6 +40,19 @@ SettingsSection {
             onEdited: value => SettingsService.set("weatherPlace", value.trim())
         }
 
+        SettingRow {
+            label: Tr.t("Units")
+
+            SegmentedControl {
+                options: [
+                    { id: "m", label: "°C · km/h" },
+                    { id: "u", label: "°F · mph" }
+                ]
+                current: SettingsService.weatherUnits
+                onSelected: id => SettingsService.set("weatherUnits", id)
+            }
+        }
+
         SettingSlider {
             label: Tr.t("Read the weather")
             value: SettingsService.weatherRefreshMinutes

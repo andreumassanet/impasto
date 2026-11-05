@@ -167,7 +167,19 @@ Singleton {
 
     property bool placeUnknown: false
 
+    // A new unit is read at once, not at the next period.
+    readonly property Connections unitsChanged: Connections {
+        target: SettingsService
+
+        function onWeatherUnitsChanged(): void {
+            if (root.watchers > 0)
+                root.refresh()
+        }
+    }
+
     readonly property Process query: Process {
+        // Read by the script: "m" for °C and km/h, "u" for °F and mph.
+        environment: ({ IMPASTO_WEATHER_UNITS: SettingsService.weatherUnits })
         command: {
             const line = [Quickshell.shellPath("scripts/weather.py")]
             return root.wanted === "" ? line : line.concat([root.wanted])

@@ -20,6 +20,7 @@ Any failure is reported as unavailable, never as a guessed value.
 """
 
 import json
+import os
 import subprocess
 import sys
 import urllib.parse
@@ -99,6 +100,12 @@ def fetch(place):
     return json.loads(result.stdout)
 
 
+# "u" (°F, mph, inHg, miles) or "m" (°C, km/h, hPa, km), from the shell's
+# weatherUnits setting. wttr.in's JSON carries both.
+US = os.environ.get("IMPASTO_WEATHER_UNITS") == "u"
+DEG = "F" if US else "C"
+
+
 def daytime_now(current, today):
     """Whether the sun is up where the reading is: the local observation time
     against today's sunrise and sunset. True when wttr.in sends none of them."""
@@ -120,8 +127,8 @@ def day_report(day):
     middle = int(blocks[len(blocks) // 2].get("weatherCode", 0))
     return {
         "date": day.get("date", ""),
-        "low": int(day.get("mintempC", 0)),
-        "high": int(day.get("maxtempC", 0)),
+        "low": int(day.get(f"mintemp{DEG}", 0)),
+        "high": int(day.get(f"maxtemp{DEG}", 0)),
         "glyph": glyph(middle, True),
         "icon": icon(middle, True),
         "rain": max(int(block.get("chanceofrain", 0)) for block in blocks),
@@ -143,31 +150,31 @@ def report(place):
         "available": True,
         "place": area["areaName"][0]["value"],
         "region": area["country"][0]["value"],
-        "temperature": int(current["temp_C"]),
-        "feelsLike": int(current["FeelsLikeC"]),
+        "temperature": int(current[f"temp_{DEG}"]),
+        "feelsLike": int(current[f"FeelsLike{DEG}"]),
         "description": current["weatherDesc"][0]["value"].strip(),
         "glyph": glyph(code, daytime),
         "icon": icon(code, daytime),
         "humidity": int(current["humidity"]),
         # The rest of the dashboard's "Now" grid.
         "uv": int(current.get("uvIndex", 0)),
-        "pressure": int(current.get("pressure", 0)),
-        "pressureUnit": "hPa",
-        "visibility": int(current.get("visibility", 0)),
-        "visibilityUnit": "km",
+        "pressure": int(current.get("pressureInches" if US else "pressure", 0)),
+        "pressureUnit": "inHg" if US else "hPa",
+        "visibility": int(current.get("visibilityMiles" if US else "visibility", 0)),
+        "visibilityUnit": "mi" if US else "km",
         "cloud": int(current.get("cloudcover", 0)),
         "sunrise": today.get("astronomy", [{}])[0].get("sunrise", ""),
         "sunset": today.get("astronomy", [{}])[0].get("sunset", ""),
-        "wind": int(current["windspeedKmph"]),
-        "windUnit": "km/h",
-        "low": int(today["mintempC"]),
-        "high": int(today["maxtempC"]),
+        "wind": int(current["windspeedMiles" if US else "windspeedKmph"]),
+        "windUnit": "mph" if US else "km/h",
+        "low": int(today[f"mintemp{DEG}"]),
+        "high": int(today[f"maxtemp{DEG}"]),
         # Today and tomorrow, in wttr.in's three-hour steps, so the evening
         # still has a forecast.
         "hourly": [
             {
                 "hour": int(block["time"]) // 100,
-                "temperature": int(block["tempC"]),
+                "temperature": int(block[f"temp{DEG}"]),
                 "glyph": glyph(int(block["weatherCode"]), 6 <= int(block["time"]) // 100 < 21),
                 "icon": icon(int(block["weatherCode"]), 6 <= int(block["time"]) // 100 < 21),
                 "rain": int(block["chanceofrain"]),
