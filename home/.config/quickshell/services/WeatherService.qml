@@ -112,10 +112,10 @@ Singleton {
 
     function subscribe(): void {
         root.watchers += 1
-        // Only if never read, read for another place or older than the period
+        // Only if never read, read for another place or older than ten minutes
         // (never, with "only when asked").
         const minutes = (new Date().getTime() - root.readAt.getTime()) / 60000
-        if (!root.available || root.stale || (root.refreshMinutes > 0 && minutes > root.refreshMinutes))
+        if (!root.available || root.stale || (root.refreshMinutes > 0 && minutes > 10))
             root.refresh()
     }
 

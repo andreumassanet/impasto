@@ -81,9 +81,7 @@ Singleton {
     readonly property Timer poller: Timer {
         interval: Math.max(60000, root.pollInterval)
         repeat: true
-        // In the background, with nothing showing it: the count on the bar and
-        // the lists are as old as the last look.
-        running: root.pollInterval > 0
+        running: root.watchers > 0 && root.pollInterval > 0
         onTriggered: root.refresh()
     }
 
