@@ -109,6 +109,8 @@ EdgeDrawer {
         if (!root.shown) {
             root.hoveredIndex = -1
             root.selectedKey = ""
+            root.draggedKey = ""
+            root.dropKey = ""
         }
     }
 
@@ -324,7 +326,12 @@ EdgeDrawer {
         Repeater {
             id: iconRepeater
 
-            model: DockService.items
+            // Keyed, so a window or title change does not recreate the tile
+            // being dragged (its release is what ends the drag).
+            model: ScriptModel {
+                objectProp: "key"
+                values: DockService.items
+            }
 
             Item {
                 id: tile
@@ -417,7 +424,12 @@ EdgeDrawer {
                             root.hoveredIndex = -1
                         root.leave(tile.modelData)
                     }
-                    onPressed: mouse => tileMouse.pressedAt = Qt.point(mouse.x, mouse.y)
+                    onPressed: mouse => {
+                        tileMouse.pressedAt = Qt.point(mouse.x, mouse.y)
+                        // A drop that wrote nothing makes no click either, so
+                        // the flag is only good until the next press.
+                        tileMouse.dropped = false
+                    }
                     // Past 10 px with the left button held, a pin is being dragged.
                     onPositionChanged: mouse => {
                         if (!(mouse.buttons & Qt.LeftButton) || !tile.modelData.pinned)
@@ -445,8 +457,13 @@ EdgeDrawer {
                         if (from >= 0 && to >= 0)
                             Qt.callLater(() => DockService.reorder(from, to))
                     }
-                    // A drop whose release lands outside the tile makes no click.
-                    onCanceled: tileMouse.dropped = false
+                    // A drop whose release lands outside the tile makes no
+                    // click, and a cancelled press ends the drag.
+                    onCanceled: {
+                        tileMouse.dropped = false
+                        root.draggedKey = ""
+                        root.dropKey = ""
+                    }
                     // A click waits a moment so a double-click is not taken for one.
                     onClicked: mouse => {
                         if (tileMouse.dropped) {

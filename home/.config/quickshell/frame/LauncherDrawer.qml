@@ -61,6 +61,10 @@ EdgeDrawer {
     onEdgeHoveredChanged: {
         if (root.edgeHovered && !DrawerService.launcherOpen)
             dwell.restart()
+        // The strip lies under the frame, outside the body: a pointer that
+        // opened the launcher from it and goes sideways never leaves the body.
+        else if (!root.edgeHovered && root.openedByHover && !root.hovered)
+            leave.restart()
     }
 
     Timer {
