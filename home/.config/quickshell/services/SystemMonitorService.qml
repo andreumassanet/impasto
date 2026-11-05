@@ -55,6 +55,8 @@ Singleton {
     function releaseHardware(): void {
         root.release()
         root.hardwareWatchers = Math.max(0, root.hardwareWatchers - 1)
+        if (root.hardwareWatchers === 0)
+            root.previousHardware = null
     }
 
     // `{ vendor, name, usage (0-1 | null), vramUsedMiB, vramTotalMiB,

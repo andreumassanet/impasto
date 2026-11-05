@@ -33,8 +33,8 @@ Flickable {
     clip: true
     boundsBehavior: Flickable.StopAtBounds
 
-    Component.onCompleted: SystemMonitorService.subscribe()
-    Component.onDestruction: SystemMonitorService.release()
+    Component.onCompleted: SystemMonitorService.subscribeHardware()
+    Component.onDestruction: SystemMonitorService.releaseHardware()
 
     function percent(fraction: real): string {
         return `${Math.round(fraction * 100)} %`
