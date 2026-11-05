@@ -35,6 +35,12 @@ Singleton {
 
     function release(): void {
         root.watchers = Math.max(0, root.watchers - 1)
+        // The next sample after a gap has nothing to take a rate from: not the
+        // last one before it, which could be hours old.
+        if (root.watchers === 0) {
+            root.previousNet = null
+            root.previousHardware = null
+        }
     }
 
     // `{ vendor, name, usage (0-1 | null), vramUsedMiB, vramTotalMiB,

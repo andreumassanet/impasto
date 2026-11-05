@@ -351,14 +351,19 @@ FocusScope {
                     columnSpacing: 28
 
                     Repeater {
-                        model: [
-                            { label: Tr.t("CPU"), fraction: StatsService.cpu / 100, text: `${Math.round(StatsService.cpu)}%` },
-                            { label: Tr.t("Memory"), fraction: StatsService.memoryFraction, text: `${Math.round(StatsService.memoryFraction * 100)}%` },
-                            { label: Tr.t("Temperature"), fraction: (StatsService.temperature?.celsius ?? 0) / 100,
-                              text: StatsService.temperature ? `${Math.round(StatsService.temperature.celsius)}°` : "—" },
-                            { label: Tr.t("Battery"), fraction: BatteryService.available ? BatteryService.percent / 100 : 0,
-                              text: BatteryService.available ? `${BatteryService.percent}%` : Tr.t("AC"), battery: true }
-                        ]
+                        // A new array on every sample would rebuild the rings;
+                        // keyed by label they stay and only their figures change.
+                        model: ScriptModel {
+                            objectProp: "label"
+                            values: [
+                                { label: Tr.t("CPU"), fraction: StatsService.cpu / 100, text: `${Math.round(StatsService.cpu)}%` },
+                                { label: Tr.t("Memory"), fraction: StatsService.memoryFraction, text: `${Math.round(StatsService.memoryFraction * 100)}%` },
+                                { label: Tr.t("Temperature"), fraction: (StatsService.temperature?.celsius ?? 0) / 100,
+                                  text: StatsService.temperature ? `${Math.round(StatsService.temperature.celsius)}°` : "—" },
+                                { label: Tr.t("Battery"), fraction: BatteryService.available ? BatteryService.percent / 100 : 0,
+                                  text: BatteryService.available ? `${BatteryService.percent}%` : Tr.t("AC"), battery: true }
+                            ]
+                        }
 
                         ColumnLayout {
                             required property var modelData
@@ -674,7 +679,10 @@ FocusScope {
                 }
 
                 Repeater {
-                    model: machineCard.facts
+                    model: ScriptModel {
+                        objectProp: "key"
+                        values: machineCard.facts
+                    }
 
                     RowLayout {
                         required property var modelData
