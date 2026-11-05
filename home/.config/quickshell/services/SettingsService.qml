@@ -62,6 +62,7 @@ Singleton {
     readonly property alias dockOpacity: config.dockOpacity
     readonly property alias dockGround: config.dockGround
     readonly property alias terminalGround: config.terminalGround
+    readonly property alias dashboardHealth: config.dashboardHealth
     readonly property alias dockRunning: config.dockRunning
     readonly property alias dockEverywhere: config.dockEverywhere
     readonly property alias dockAutohide: config.dockAutohide
@@ -879,6 +880,10 @@ Singleton {
 
         // kitty's ground, as `surfaceStyle`.
         property string terminalGround: "glass"
+
+        // A Health card on the dashboard's System tab: failed units and this
+        // boot's journal errors.
+        property bool dashboardHealth: false
 
         // Also show running applications that aren't pinned.
         property bool dockRunning: true

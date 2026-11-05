@@ -433,9 +433,30 @@ FocusScope {
         id: system
 
         RowLayout {
+            id: systemTab
+
+            // `scripts/health.py`, read when the tab opens and by the card's
+            // refresh; null until the first answer.
+            property var health: null
+
             spacing: 12
 
+            readonly property Process healthReader: Process {
+                command: [Quickshell.shellPath("scripts/health.py")]
+                stdout: StdioCollector {
+                    onStreamFinished: {
+                        try {
+                            systemTab.health = JSON.parse(text)
+                        } catch (error) {
+                            console.warn("Health: cannot read the report:", error)
+                        }
+                    }
+                }
+            }
+
             Component.onCompleted: {
+                if (SettingsService.dashboardHealth)
+                    systemTab.healthReader.running = true
                 UpdatesService.subscribe()
                 MachineService.refresh()
                 // Which AUR helper there is, so the update button uses it.
@@ -443,6 +464,124 @@ FocusScope {
                     PackagesService.load()
             }
             Component.onDestruction: UpdatesService.release()
+
+            // Failed units and this boot's journal errors; a click on a unit
+            // opens its status and log in a terminal.
+            DashCard {
+                id: healthCard
+
+                readonly property var failed: systemTab.health
+                    ? systemTab.health.failedSystem.map(unit => ({ scope: "system", unit: unit }))
+                        .concat(systemTab.health.failedUser.map(unit => ({ scope: "user", unit: unit })))
+                    : []
+                readonly property int errors: systemTab.health?.journalErrors ?? 0
+
+                visible: SettingsService.dashboardHealth
+                title: Tr.t("Health")
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+
+                // In a terminal: a unit's status and its journal for this boot.
+                function inspect(failed: var): void {
+                    const scope = failed.scope === "user" ? "--user " : ""
+                    const unit = failed.unit.replace(/'/g, "")
+                    root.closed()
+                    Quickshell.execDetached(LauncherService.terminalCommand(
+                        `systemctl ${scope}status '${unit}' --no-pager --full; echo; `
+                        + `journalctl ${scope}--boot --unit '${unit}' --no-pager --lines 200 --output short-precise; `
+                        + `echo; read -r -p 'Enter to close ' _`))
+                }
+
+                function showErrors(): void {
+                    root.closed()
+                    Quickshell.execDetached(LauncherService.terminalCommand(
+                        "journalctl --boot --priority err --pager-end --output short-precise"))
+                }
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: 8
+
+                    StatTile {
+                        glyph: healthCard.failed.length === 0 ? "󰄬" : "󰅚"
+                        tint: healthCard.failed.length === 0 ? Theme.indicatorGood : Theme.indicatorBad
+                        figure: systemTab.health === null ? "…" : String(healthCard.failed.length)
+                        label: Tr.t("failed units")
+                    }
+
+                    StatTile {
+                        glyph: "󰀦"
+                        tint: healthCard.errors === 0 ? Theme.indicatorGood
+                            : healthCard.errors > 200 ? Theme.indicatorWarn : Theme.accent
+                        figure: systemTab.health === null ? "…" : String(healthCard.errors)
+                        label: Tr.t("errors this boot")
+                    }
+                }
+
+                Repeater {
+                    model: ScriptModel {
+                        objectProp: "unit"
+                        values: healthCard.failed
+                    }
+
+                    Rectangle {
+                        id: failedRow
+
+                        required property var modelData
+
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: 34
+                        radius: Theme.radiusMedium
+                        color: failedMouse.containsMouse ? Theme.surfaceHoverIn(QsWindow.window) : "transparent"
+
+                        MouseArea {
+                            id: failedMouse
+
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: healthCard.inspect(failedRow.modelData)
+                        }
+
+                        RowLayout {
+                            anchors.fill: parent
+                            anchors.leftMargin: 10
+                            anchors.rightMargin: 10
+                            spacing: 8
+
+                            Text {
+                                text: failedRow.modelData.scope === "system" ? "󰒋" : "󰀄"
+                                font.family: Theme.fontMono
+                                font.pixelSize: Theme.fontSizeMedium
+                                color: Theme.indicatorBad
+                            }
+
+                            Text {
+                                Layout.fillWidth: true
+                                text: failedRow.modelData.unit.replace(/\.service$/, "")
+                                elide: Text.ElideMiddle
+                                font.family: Theme.fontFamily
+                                font.pixelSize: Theme.fontSizeSmall
+                                color: Theme.text
+                            }
+
+                            Text {
+                                text: failedRow.modelData.scope
+                                font.family: Theme.fontFamily
+                                font.pixelSize: Theme.fontSizeLabel
+                                color: Theme.textMuted
+                            }
+                        }
+                    }
+                }
+
+                Item { Layout.fillHeight: true }
+
+                PillButton {
+                    text: Tr.t("Show the errors")
+                    onClicked: healthCard.showErrors()
+                }
+            }
 
             DashCard {
                 id: updatesCard
