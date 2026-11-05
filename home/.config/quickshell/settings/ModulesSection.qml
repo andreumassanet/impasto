@@ -42,6 +42,30 @@ SettingsSection {
     }
 
     SettingGroup {
+        title: Tr.t("Agenda")
+        note: Tr.t("The next two weeks of your calendars, from khal.")
+        hint: Tr.t("khal reads the calendars you set up with vdirsyncer or a folder of .ics files; nothing here talks to a calendar server. Its [locale] must use dateformat = %Y-%m-%d and timeformat = %H:%M. Bind the agenda shortcut to open it.")
+
+        SettingRow {
+            label: Tr.t("Agenda panel")
+            reading: SettingsService.agenda ? Tr.t("Available") : Tr.t("Off")
+
+            ToggleSwitch {
+                checked: SettingsService.agenda
+                onToggled: checked => SettingsService.set("agenda", checked)
+            }
+        }
+
+        SettingField {
+            label: Tr.t("khal config")
+            reading: Tr.t("A file path; empty is khal's own")
+            placeholder: "~/.config/khal/config"
+            value: SettingsService.agendaKhalConfig
+            onEdited: value => SettingsService.set("agendaKhalConfig", value.trim())
+        }
+    }
+
+    SettingGroup {
         title: "GitHub"
         note: Tr.t("Whose public contribution graph to draw.")
         hint: Tr.t("The graph is read from the public profile page, so no token or account is needed. It stays empty until you enter a username.")

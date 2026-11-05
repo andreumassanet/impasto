@@ -443,6 +443,12 @@ ShellRoot {
     }
 
     GlobalShortcut {
+        name: "agenda"
+        description: "Open the agenda"
+        onPressed: root.island?.toggle("agenda")
+    }
+
+    GlobalShortcut {
         name: "widgets"
         description: "Hide or show the desktop widgets"
         onPressed: SettingsService.set("desktopHidden", !SettingsService.desktopHidden)
