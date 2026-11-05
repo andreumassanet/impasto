@@ -46,12 +46,11 @@ Rectangle {
     readonly property int slotHeight: Math.min(26, Theme.capsuleHeight - 8)
     readonly property int iconSize: root.slotHeight - 8
 
-    // Slots past the number of workspaces available are not drawn.
+    // The same rule as the dots: the first `workspaceCount` always, the rest
+    // of the ten while occupied or active, none past `workspaceMax`.
     function isShown(index: int): bool {
-        if (root.preview)
-            return true
-        return HyprlandService.perScreen ? index + 1 <= HyprlandService.maximum
-                                         : root.groupBase + index + 1 <= HyprlandService.maximum
+        return root.preview
+            || HyprlandService.isVisibleOn(root.groupBase + index + 1, root.screenName)
     }
 
     // The workspaces the wheel may reach: the screen's own ten, or all of them.

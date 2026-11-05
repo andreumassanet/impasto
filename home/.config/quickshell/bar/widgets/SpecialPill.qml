@@ -44,7 +44,7 @@ Rectangle {
 
         Text {
             anchors.verticalCenter: parent.verticalCenter
-            text: "special"
+            text: Tr.t("special")
             font.family: Theme.fontFamily
             font.pixelSize: Theme.fontSizeSmall
             font.weight: Font.DemiBold
