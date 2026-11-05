@@ -26,7 +26,13 @@ ColumnLayout {
     signal back()
     signal pageRequested(string panel)
 
-    Keys.onPressed: event => event.accepted = tabs.handle(event)
+    Keys.onPressed: event => event.accepted = tabs.handle(event, index => root.activate(index))
+
+    // The Nth device in the list: pair, connect or disconnect it.
+    function activate(index: int): void {
+        if (index < root.listed.length)
+            BluetoothService.connectDevice(root.listed[index])
+    }
 
     // No back arrow when opened from the bar, where there is nothing to go
     // back to.

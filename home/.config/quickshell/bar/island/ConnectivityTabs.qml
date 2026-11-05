@@ -29,14 +29,18 @@ PanelTabs {
 
     visible: SettingsService.connectivityTabs
 
-    // For the page's own Keys handler: true when the key was used.
-    function handle(event: var): bool {
+    // For the page's own Keys handler: true when the key was used. Tab and
+    // Shift+Tab change page; with `activate`, the keys 1 to 9 call it with the
+    // row's index (0 to 8): the page's Nth network, device or output.
+    function handle(event: var, activate: var): bool {
         if (!root.visible)
             return false
         if (event.key === Qt.Key_Tab)
             root.step(1)
         else if (event.key === Qt.Key_Backtab)
             root.step(-1)
+        else if (activate && event.key >= Qt.Key_1 && event.key <= Qt.Key_9)
+            activate(event.key - Qt.Key_1)
         else
             return false
         return true
