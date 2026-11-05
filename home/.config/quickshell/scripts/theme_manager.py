@@ -3271,6 +3271,21 @@ def shell_font():
     return font or DEFAULT_MONO
 
 
+def target_enabled(target):
+    """Whether the palette is written to this application.
+
+    `themeTargets` in the shell's settings lists the applications to write;
+    without it, or when it is not a list, every one is written as before.
+    Re-read on each call: a push is rare and the setting changes live.
+    """
+    try:
+        with open(SHELL_SETTINGS_FILE, encoding="utf-8") as handle:
+            targets = json.load(handle).get("themeTargets")
+    except (OSError, ValueError):
+        targets = None
+    return not isinstance(targets, list) or target in targets
+
+
 def jsonc_skip(text, index):
     """The index past any whitespace and comments at `index`."""
     while index < len(text):
@@ -4043,6 +4058,34 @@ def set_theme(theme_id):
     save_state(state)
 
 
+# What a palette push writes, in order, by the `themeTargets` name that
+# switches it. Spotify's refresh stays last: spicetify may ask the network.
+PALETTE_WRITERS = (
+    ("terminal", push_terminal_palette),
+    ("greeting", write_greetings),
+    ("btop", write_btop_theme),
+    ("cava", write_cava_theme),
+    ("yazi", write_yazi_flavor),
+    ("nvim", push_nvim_colorscheme),
+    ("imv", write_imv_config),
+    ("gtk", write_gtk_theme),
+    ("gtk", write_icon_theme),
+    ("qt", write_qt_theme),
+    ("vesktop", write_vesktop_css),
+    ("spotify", write_spicetify_colors),
+    ("vscodium", write_vscodium_theme),
+    ("vscodium", lambda colors: update_vscodium_settings(vscodium_palette_settings(colors))),
+    ("zen", write_zen_css),
+    ("spotify", lambda colors: refresh_spotify()),
+)
+
+
+def push_palette(colors):
+    for target, write in PALETTE_WRITERS:
+        if target_enabled(target):
+            write(colors)
+
+
 def main():
     actions = ("list-wallpapers | list-animated | get-current | get-state | "
                "set-wallpaper <path> [transition] | "
@@ -4077,35 +4120,23 @@ def main():
     elif action == "set-theme" and argument:
         set_theme(argument)
     elif action == "push-terminal-palette" and argument:
-        colors = json.loads(argument)
-        push_terminal_palette(colors)
-        write_greetings(colors)
-        write_btop_theme(colors)
-        write_cava_theme(colors)
-        write_yazi_flavor(colors)
-        push_nvim_colorscheme(colors)
-        write_imv_config(colors)
-        write_gtk_theme(colors)
-        write_icon_theme(colors)
-        write_qt_theme(colors)
-        write_vesktop_css(colors)
-        write_spicetify_colors(colors)
-        write_vscodium_theme(colors)
-        update_vscodium_settings(vscodium_palette_settings(colors))
-        write_zen_css(colors)
-        refresh_spotify()
+        push_palette(json.loads(argument))
     elif action == "push-terminal-font" and argument:
-        push_terminal_font(argument)
+        if target_enabled("terminal"):
+            push_terminal_font(argument)
     elif action == "push-terminal-ground" and argument:
-        push_terminal_ground(argument)
+        if target_enabled("terminal"):
+            push_terminal_ground(argument)
     elif action == "apply-vscodium":
+        if not target_enabled("vscodium"):
+            sys.exit(0)
         colors = json.loads(argument) if argument else (
             extract_colors(get_current_wallpaper()) or {})
         sys.exit(0 if write_vscodium_settings(colors) else 1)
     elif action == "apply-nautilus":
-        sys.exit(0 if apply_nautilus() else 1)
+        sys.exit(0 if not target_enabled("nautilus") or apply_nautilus() else 1)
     elif action == "apply-vesktop":
-        sys.exit(0 if tick_vesktop_theme() else 1)
+        sys.exit(0 if not target_enabled("vesktop") or tick_vesktop_theme() else 1)
     else:
         sys.stderr.write(f"Unknown action: {action}\n")
         sys.exit(1)

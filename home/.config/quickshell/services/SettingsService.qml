@@ -62,6 +62,7 @@ Singleton {
     readonly property alias dockOpacity: config.dockOpacity
     readonly property alias dockGround: config.dockGround
     readonly property alias terminalGround: config.terminalGround
+    readonly property alias themeTargets: config.themeTargets
     readonly property alias dockRunning: config.dockRunning
     readonly property alias dockEverywhere: config.dockEverywhere
     readonly property alias dockAutohide: config.dockAutohide
@@ -344,7 +345,7 @@ Singleton {
         "userName", "userAvatar", "language", "keyboard", "weatherPlace", "githubUser", "markets",
         "emojiTone",
         "doNotDisturb", "nightLight", "nightTemperature", "barHidden", "desktopHidden",
-        "gameMode", "powerTileProfile",
+        "gameMode", "powerTileProfile", "themeTargets",
         "cameraEnabled", "cameraEffect", "cameraReactions",
         "recorderAudio", "captureShape", "captureKind"
     ]
@@ -839,6 +840,10 @@ Singleton {
 
         // kitty's ground, as `surfaceStyle`.
         property string terminalGround: "glass"
+
+        // The applications the palette is written to, by the names in
+        // `theme_manager.py` (`PALETTE_WRITERS`). Null is all of them.
+        property var themeTargets: null
 
         // Also show running applications that aren't pinned.
         property bool dockRunning: true
