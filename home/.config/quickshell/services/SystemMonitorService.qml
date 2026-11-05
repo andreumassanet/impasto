@@ -22,19 +22,33 @@ import Quickshell.Io
 Singleton {
     id: root
 
+    // Whatever shows the network rates; `hardwareWatchers` are the ones that
+    // also show the GPUs, the CPU's power and the disks, which cost a script
+    // run every `interval` (and wake a discrete GPU): the speed card is not one.
     property int watchers: 0
+    property int hardwareWatchers: 0
     readonly property bool active: root.watchers > 0
     readonly property int interval: 3000
     readonly property int historyLength: 60
 
     function subscribe(): void {
         root.watchers += 1
-        if (root.watchers === 1)
-            diskProcess.running = true
     }
 
     function release(): void {
         root.watchers = Math.max(0, root.watchers - 1)
+    }
+
+    function subscribeHardware(): void {
+        root.subscribe()
+        root.hardwareWatchers += 1
+        if (root.hardwareWatchers === 1)
+            diskProcess.running = true
+    }
+
+    function releaseHardware(): void {
+        root.release()
+        root.hardwareWatchers = Math.max(0, root.hardwareWatchers - 1)
     }
 
     // `{ vendor, name, usage (0-1 | null), vramUsedMiB, vramTotalMiB,
@@ -123,7 +137,7 @@ Singleton {
         running: root.active
         triggeredOnStart: true
         onTriggered: {
-            if (!hardwareProcess.running)
+            if (root.hardwareWatchers > 0 && !hardwareProcess.running)
                 hardwareProcess.running = true
             netFile.reload()
             root.parseNet(netFile.text())
