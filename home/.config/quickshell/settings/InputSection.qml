@@ -88,6 +88,22 @@ SettingsSection {
                 onMoved: value => CompositorService.remember("input:repeat_rate", Math.round(value))
             }
         }
+
+        SettingGroup {
+            title: Tr.t("On-screen keyboard")
+            note: Tr.t("A keyboard along the bottom edge, for a touch screen or no keyboard.")
+            hint: Tr.t("It types through ydotool, so ydotoold must be running. Bind the osk shortcut, or run qs ipc call osk toggle, to show and hide it.")
+
+            SettingRow {
+                label: Tr.t("On-screen keyboard")
+                reading: SettingsService.osk ? Tr.t("Available") : Tr.t("Off")
+
+                ToggleSwitch {
+                    checked: SettingsService.osk
+                    onToggled: checked => SettingsService.set("osk", checked)
+                }
+            }
+        }
     }
 
 

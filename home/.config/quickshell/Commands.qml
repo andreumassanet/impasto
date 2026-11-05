@@ -390,6 +390,17 @@ Scope {
     }
 
     IpcHandler {
+        target: "osk"
+
+        function toggle(): string {
+            if (!SettingsService.osk)
+                return root.fail("the on-screen keyboard is off (setting osk)")
+            OskService.toggle()
+            return root.ok({ open: OskService.open })
+        }
+    }
+
+    IpcHandler {
         target: "focus"
 
         function set(word: string): string {
