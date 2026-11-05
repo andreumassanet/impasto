@@ -210,7 +210,11 @@ ColumnLayout {
                 anchors.fill: parent
                 hoverEnabled: true
                 cursorShape: Qt.PointingHandCursor
-                onClicked: BluetoothService.connectDevice(entry.modelData)
+                acceptedButtons: Qt.LeftButton | Qt.RightButton
+                // The right button forgets the device.
+                onClicked: mouse => mouse.button === Qt.RightButton
+                    ? BluetoothService.forgetDevice(entry.modelData)
+                    : BluetoothService.connectDevice(entry.modelData)
             }
         }
     }
