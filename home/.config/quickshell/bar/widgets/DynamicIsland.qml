@@ -665,15 +665,33 @@ Rectangle {
     Component {
         id: dashboardPanel
         DashboardPanel {
+            id: dashboard
+
             onClosed: root.close()
             onPanelRequested: panel => root.open(panel)
             onHeightWanted: height => root.dashboardHeight = height
-            Component.onCompleted: {
+
+            // The tab asked for, when the panel opens and when it is already
+            // open and something asks for another.
+            function takeStart(): void {
                 const start = ["overview", "monitor", "system", "weather"].indexOf(root.dashboardStart)
                 if (start >= 0)
-                    tab = start
+                    dashboard.tab = start
                 root.dashboardStart = ""
-                root.dashboardHeight = wanted
+            }
+
+            Component.onCompleted: {
+                dashboard.takeStart()
+                root.dashboardHeight = dashboard.wanted
+            }
+
+            Connections {
+                target: root
+
+                function onDashboardStartChanged(): void {
+                    if (root.dashboardStart !== "")
+                        dashboard.takeStart()
+                }
             }
         }
     }
