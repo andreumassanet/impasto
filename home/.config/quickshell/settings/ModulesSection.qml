@@ -89,6 +89,14 @@ SettingsSection {
                 onSelected: id => SettingsService.set("statsDesign", id)
             }
         }
+
+        SettingField {
+            label: Tr.t("Machine logo")
+            reading: Tr.t("An image path; empty is the distribution's own")
+            placeholder: Tr.t("/path/to/logo.svg")
+            value: SettingsService.systemLogo
+            onEdited: value => SettingsService.set("systemLogo", value.trim())
+        }
     }
 
     SettingGroup {

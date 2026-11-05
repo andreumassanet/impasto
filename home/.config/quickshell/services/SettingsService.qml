@@ -62,6 +62,7 @@ Singleton {
     readonly property alias dockOpacity: config.dockOpacity
     readonly property alias dockGround: config.dockGround
     readonly property alias terminalGround: config.terminalGround
+    readonly property alias systemLogo: config.systemLogo
     readonly property alias dockRunning: config.dockRunning
     readonly property alias dockEverywhere: config.dockEverywhere
     readonly property alias dockAutohide: config.dockAutohide
@@ -879,6 +880,10 @@ Singleton {
 
         // kitty's ground, as `surfaceStyle`.
         property string terminalGround: "glass"
+
+        // Path of an image for the dashboard's machine card; empty is the
+        // distribution's logo.
+        property string systemLogo: ""
 
         // Also show running applications that aren't pinned.
         property bool dockRunning: true

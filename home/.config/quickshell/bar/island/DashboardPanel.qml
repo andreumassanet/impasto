@@ -593,6 +593,9 @@ FocusScope {
             DashCard {
                 id: machineCard
 
+                // Your own image, else the distribution's.
+                readonly property string logo: SettingsService.systemLogo !== ""
+                    ? SettingsService.systemLogo : MachineService.logo
                 readonly property var disk: StatsService.disks.find(entry => entry.target === "/")
                 readonly property var tints: [Theme.accent, Theme.indicatorTimer, Theme.indicatorGood,
                                               Theme.indicatorWarn, Theme.indicatorBad]
@@ -633,7 +636,7 @@ FocusScope {
                             id: logoImage
 
                             anchors.fill: parent
-                            source: MachineService.logo !== "" ? `file://${MachineService.logo}` : ""
+                            source: machineCard.logo !== "" ? `file://${machineCard.logo}` : ""
                             sourceSize.width: 104
                             sourceSize.height: 104
                             fillMode: Image.PreserveAspectFit
