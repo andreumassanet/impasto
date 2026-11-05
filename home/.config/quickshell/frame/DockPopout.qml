@@ -239,7 +239,12 @@ Item {
         // ── WINDOWS ─────────────────────────────────────────────────────────
 
         Repeater {
-            model: root.menu ? [] : (root.shownApp?.windows ?? [])
+            // Keyed, so a title or focus change keeps the cards, their
+            // previews and an open "send to workspace" picker.
+            model: ScriptModel {
+                objectProp: "address"
+                values: root.menu ? [] : (root.shownApp?.windows ?? [])
+            }
 
             Rectangle {
                 id: windowCard
