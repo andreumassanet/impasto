@@ -80,6 +80,7 @@ Item {
                 height: Math.min(parent.height, 48)
                 icon: AudioService.icon
                 value: AudioService.volume
+                to: AudioService.ceiling
                 available: AudioService.ready
                 dimmed: AudioService.muted
                 expandable: true
