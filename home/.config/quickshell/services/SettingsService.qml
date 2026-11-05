@@ -62,6 +62,7 @@ Singleton {
     readonly property alias dockOpacity: config.dockOpacity
     readonly property alias dockGround: config.dockGround
     readonly property alias terminalGround: config.terminalGround
+    readonly property alias islandSpectrum: config.islandSpectrum
     readonly property alias dockRunning: config.dockRunning
     readonly property alias dockEverywhere: config.dockEverywhere
     readonly property alias dockAutohide: config.dockAutohide
@@ -839,6 +840,10 @@ Singleton {
 
         // kitty's ground, as `surfaceStyle`.
         property string terminalGround: "glass"
+
+        // The resting island shows the playing music as moving bars (the
+        // audio analyser runs for them); off, a still note.
+        property bool islandSpectrum: true
 
         // Also show running applications that aren't pinned.
         property bool dockRunning: true
