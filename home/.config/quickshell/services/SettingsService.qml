@@ -62,6 +62,7 @@ Singleton {
     readonly property alias dockOpacity: config.dockOpacity
     readonly property alias dockGround: config.dockGround
     readonly property alias terminalGround: config.terminalGround
+    readonly property alias launcherBareMath: config.launcherBareMath
     readonly property alias dockRunning: config.dockRunning
     readonly property alias dockEverywhere: config.dockEverywhere
     readonly property alias dockAutohide: config.dockAutohide
@@ -839,6 +840,10 @@ Singleton {
 
         // kitty's ground, as `surfaceStyle`.
         property string terminalGround: "glass"
+
+        // Work out a sum typed without the calculator's prefix, as the
+        // first row of the list.
+        property bool launcherBareMath: false
 
         // Also show running applications that aren't pinned.
         property bool dockRunning: true
