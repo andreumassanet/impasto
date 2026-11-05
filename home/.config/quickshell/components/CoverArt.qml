@@ -87,7 +87,8 @@ Item {
                 duration: 24000
                 loops: Animation.Infinite
                 running: root.spin && root.circle
-                paused: !MediaService.playing
+                // Only while it runs: pausing a stopped animation warns.
+                paused: running && !MediaService.playing
             }
         }
 
