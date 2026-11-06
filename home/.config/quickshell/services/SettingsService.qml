@@ -62,6 +62,7 @@ Singleton {
     readonly property alias dockOpacity: config.dockOpacity
     readonly property alias dockGround: config.dockGround
     readonly property alias terminalGround: config.terminalGround
+    readonly property alias trayHidden: config.trayHidden
     readonly property alias dockRunning: config.dockRunning
     readonly property alias dockEverywhere: config.dockEverywhere
     readonly property alias dockAutohide: config.dockAutohide
@@ -839,6 +840,10 @@ Singleton {
 
         // kitty's ground, as `surfaceStyle`.
         property string terminalGround: "glass"
+
+        // Tray items left out of the bar, by the id the application gives
+        // them (`TrayService.all`). Empty shows every one.
+        property var trayHidden: []
 
         // Also show running applications that aren't pinned.
         property bool dockRunning: true
