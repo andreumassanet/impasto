@@ -51,3 +51,6 @@ hl.env("IMPASTO_CAPTURES",   captures)
 hl.env("HYPRSHOT_DIR",       captures)
 hl.env("IMPASTO_RECORDINGS", recordings)
 hl.env("IMPASTO_CAMERA",     camera)
+-- · what follows the time in a saved capture's name (2026-11-06-141947_impasto.png).
+-- · Set it empty in custom/env.lua for the time alone.
+hl.env("IMPASTO_CAPTURE_SUFFIX", "_impasto")

@@ -27,6 +27,9 @@ ColumnLayout {
 
     readonly property int rows: 4
     readonly property string directory: RecorderService.tools.directory ?? ""
+    // What the scripts put after the time in a name (`IMPASTO_CAPTURE_SUFFIX`);
+    // with none, every video in the folder is a take.
+    readonly property string suffix: Quickshell.env("IMPASTO_CAPTURE_SUFFIX") ?? "_impasto"
 
     // `record.py` names its takes by the time they began, so the newest sorts
     // last by name; reversed, they lead.
@@ -34,7 +37,7 @@ ColumnLayout {
         id: takes
 
         folder: root.directory === "" ? "" : DesktopService.urlOf(root.directory)
-        nameFilters: ["*_impasto.mp4"]
+        nameFilters: [`*${root.suffix}.mp4`]
         showDirs: false
         sortField: FolderListModel.Name
         sortReversed: true

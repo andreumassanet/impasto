@@ -243,7 +243,7 @@ def snap():
     folder = photos(quietly)
     try:
         folder.mkdir(parents=True, exist_ok=True)
-        saved = folder / f"{stamp}_impasto.png"
+        saved = folder / f"{stamp}{os.environ.get('IMPASTO_CAPTURE_SUFFIX', '_impasto')}.png"
         shutil.move(str(taken), saved)
     except OSError as error:
         taken.unlink(missing_ok=True)
