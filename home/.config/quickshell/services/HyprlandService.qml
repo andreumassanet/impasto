@@ -60,7 +60,7 @@ QtObject {
     // screen's ten, and past them any that outlived its screen.
     readonly property int span: root.perScreen
         ? Math.max(10 * Math.max(1, root.screenOrder.length),
-                   ...root.named.map(workspace => workspace.id))
+                   ...root.namedIds)
         : root.maximum
 
     property int activeId: 1
@@ -68,6 +68,12 @@ QtObject {
 
     // Every workspace as hyprctl lists it, for the name an event carries.
     property var named: []
+    // The ids of the numbered ones. Hyprland 0.57 lists a special workspace
+    // with `"id": null` (older ones gave it a negative id), and one such id
+    // turns a `Math.max` over them into NaN: the strips drew no slots at all.
+    readonly property var namedIds: root.named
+        .map(workspace => workspace.id)
+        .filter(id => typeof id === "number" && id > 0)
 
     // The screen with the keyboard, by connector name. Quickshell's own
     // `Hyprland.focusedMonitor` is empty here for the reason its monitor list
@@ -414,6 +420,7 @@ QtObject {
                 root.occupiedIds = workspaces
                     .filter(workspace => workspace.windows > 0)
                     .map(workspace => workspace.id)
+                    .filter(id => typeof id === "number" && id > 0)
                 root.named = workspaces
             }
         }
