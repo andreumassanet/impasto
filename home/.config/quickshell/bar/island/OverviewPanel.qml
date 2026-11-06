@@ -761,10 +761,8 @@ ColumnLayout {
                     cursorShape: Qt.PointingHandCursor
                     onClicked: {
                         root.closed()
-                        if ((pad.modelData.command ?? "") !== "")
-                            Quickshell.execDetached(["sh", "-c", pad.modelData.command])
-                        else
-                            Hyprland.dispatch(`hl.dsp.workspace.toggle_special("${pad.modelData.name}")`)
+                        Quickshell.execDetached([Quickshell.shellPath("scripts/scratchpad.sh"),
+                                                 pad.modelData.name, pad.modelData.command ?? ""])
                     }
                 }
 

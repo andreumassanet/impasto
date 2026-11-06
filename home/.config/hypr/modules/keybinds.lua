@@ -394,6 +394,32 @@ bind("", hl.dsp.global("quickshell:captureEdit"),   { description = "Shell · Ca
 bind("", hl.dsp.global("quickshell:captureText"),   { description = "Shell · Read a region as text" })
 
 
+-- ── SCRATCHPADS ─────────────────────────────────────────────────────────────
+
+-- The scratchpads of Settings → Scratchpads, written by the shell to
+-- scratchpads.tsv (name, combination, label, command: tab-separated, the
+-- combination empty for none). Each is a special workspace: its key shows or
+-- hides it, and starts the command on it first when it holds no window. The
+-- key is the user's choice, so it replaces whatever else holds it.
+do
+    local state = os.getenv("XDG_STATE_HOME") or (os.getenv("HOME") .. "/.local/state")
+    local file  = io.open(state .. "/quickshell/scratchpads.tsv")
+    if file then
+        local script = os.getenv("HOME") .. "/.config/quickshell/scripts/scratchpad.sh"
+        for line in file:lines() do
+            local name, combination, label, command = line:match("^([^#\t][^\t]*)\t([^\t]*)\t([^\t]*)\t?(.*)$")
+            if name and combination ~= "" then
+                local line_to_run = "'" .. script .. "' '" .. name .. "' '" .. command:gsub("'", "'\\''") .. "'"
+                hl.unbind(combination)
+                hl.bind(combination, hl.dsp.exec_cmd(line_to_run),
+                        { description = "Workspaces · Scratchpad " .. (label ~= "" and label or name) })
+            end
+        end
+        file:close()
+    end
+end
+
+
 -- ── LID ─────────────────────────────────────────────────────────────────────
 
 -- Plain `hl.bind`, not profile keys. Kept out of monitors.lua: a `switch:`
