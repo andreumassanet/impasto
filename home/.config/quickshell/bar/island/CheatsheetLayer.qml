@@ -117,6 +117,18 @@ PanelWindow {
 
                 Item { Layout.fillWidth: true }
 
+                // Core and Custom (Settings → Keys → The key sheet).
+                SegmentedControl {
+                    visible: SettingsService.keysTabs
+                    Layout.alignment: Qt.AlignVCenter
+                    options: [
+                        { id: "core", label: `${Tr.t("Core")} · ${ShortcutService.tabCount("core")}` },
+                        { id: "custom", label: `${Tr.t("Custom")} · ${ShortcutService.tabCount("custom")}` }
+                    ]
+                    current: ShortcutService.sheetTab
+                    onSelected: id => ShortcutService.sheetTab = id
+                }
+
                 Rectangle {
                     Layout.preferredWidth: 320
                     Layout.preferredHeight: 38

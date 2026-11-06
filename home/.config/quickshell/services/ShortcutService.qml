@@ -299,7 +299,25 @@ Singleton {
         return key.startsWith("XF86") ? key.slice(4) : key
     }
 
-    readonly property var sheet: {
+    // Which tab of the sheet is shown while `keysTabs` splits it.
+    property string sheetTab: "core"
+
+    // Impasto's own descriptions read `Category · Action`; what a user's
+    // config adds usually reads `Category: Action`. That is how the two are
+    // told apart, and why the second is read as a category too rather than
+    // piled under "Other".
+    function sheetParts(text: string): var {
+        const dot = text.indexOf(" · ")
+        if (dot >= 0)
+            return { category: text.slice(0, dot), action: text.slice(dot + 3), origin: "core" }
+        const colon = text.indexOf(": ")
+        if (colon > 0)
+            return { category: text.slice(0, colon), action: text.slice(colon + 2), origin: "custom" }
+        return { category: "Other", action: text, origin: "custom" }
+    }
+
+    readonly property var sheetAll: {
+        const tabs = SettingsService.keysTabs
         const groups = ({})
         const order = []
         for (const bind of HyprlandService.binds) {
@@ -307,20 +325,22 @@ Singleton {
             if (key === "" || key.startsWith("switch:"))
                 continue
             const text = bind.description ?? ""
-            const split = text.indexOf(" · ")
-            const category = split < 0 ? "Other" : text.slice(0, split)
-            const action = split < 0 ? (text || key) : text.slice(split + 3)
+            const parts = root.sheetParts(text)
+            const category = parts.category
+            const action = parts.action !== "" ? parts.action : key
+            // With tabs a category exists once for each; without, once.
+            const slot = tabs ? `${parts.origin}|${category}` : category
 
             // A trailing number or direction, which varies within a fold.
             const folded = action.match(/^(.*) (\d+|left|right|up|down)$/)
             const base = folded ? folded[1] : action
             const kind = !folded ? "" : (/^\d+$/.test(folded[2]) ? "digits" : "words")
 
-            if (!groups[category]) {
-                groups[category] = []
-                order.push(category)
+            if (!groups[slot]) {
+                groups[slot] = { name: category, origin: parts.origin, rows: [] }
+                order.push(slot)
             }
-            const rows = groups[category]
+            const rows = groups[slot].rows
             const same = kind === "" ? null : rows.find(row => row.base === base
                 && row.kind === kind && row.modmask === bind.modmask)
             if (same) {
@@ -332,14 +352,15 @@ Singleton {
         }
 
         const ranked = order.slice().sort((a, b) => {
-            const ia = root.sheetOrder.indexOf(a)
-            const ib = root.sheetOrder.indexOf(b)
+            const ia = root.sheetOrder.indexOf(groups[a].name)
+            const ib = root.sheetOrder.indexOf(groups[b].name)
             return (ia < 0 ? 99 + order.indexOf(a) : ia) - (ib < 0 ? 99 + order.indexOf(b) : ib)
         })
 
-        return ranked.map(category => ({
-            name: category,
-            rows: groups[category].map(row => {
+        return ranked.map(slot => ({
+            name: groups[slot].name,
+            origin: tabs ? groups[slot].origin : "",
+            rows: groups[slot].rows.map(row => {
                 const caps = root.modifierCaps
                     .filter(modifier => row.modmask & modifier.bit)
                     .map(modifier => modifier.cap)
@@ -352,6 +373,16 @@ Singleton {
                 return { action: many ? row.base : row.action, caps: caps, keys: row.keys }
             })
         }))
+    }
+
+    // What the sheet shows: all of it, or the tab's.
+    readonly property var sheet: SettingsService.keysTabs
+        ? root.sheetAll.filter(group => group.origin === root.sheetTab) : root.sheetAll
+
+    // Keys on each tab, for the tab labels.
+    function tabCount(origin: string): int {
+        return root.sheetAll.filter(group => group.origin === origin)
+            .reduce((sum, group) => sum + group.rows.length, 0)
     }
 
     readonly property int sheetCount: root.sheet.reduce((sum, group) => sum + group.rows.length, 0)

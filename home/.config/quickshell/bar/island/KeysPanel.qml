@@ -13,6 +13,7 @@ import Quickshell
 
 import "../../theme"
 import "../../services"
+import "../../components"
 
 // A read-only sheet of key bindings: one field over one list, grouped, the
 // action on the left and the keys as caps on the right. The field narrows the
@@ -125,6 +126,21 @@ ColumnLayout {
         Layout.fillWidth: true
         Layout.preferredHeight: 1
         color: Theme.borderIn(QsWindow.window)
+    }
+
+    // Core and Custom (Settings → Keys → The key sheet).
+    SegmentedControl {
+        visible: SettingsService.keysTabs
+        Layout.alignment: Qt.AlignHCenter
+        options: [
+            { id: "core", label: `${Tr.t("Core")} · ${ShortcutService.tabCount("core")}` },
+            { id: "custom", label: `${Tr.t("Custom")} · ${ShortcutService.tabCount("custom")}` }
+        ]
+        current: ShortcutService.sheetTab
+        onSelected: id => {
+            ShortcutService.sheetTab = id
+            list.contentY = 0
+        }
     }
 
     // ── LIST ────────────────────────────────────────────────────────────────
