@@ -75,6 +75,10 @@ Rectangle {
     property int roomForPanel: 100000
 
     readonly property int overviewRows: Math.ceil(HyprlandService.maximum / 5)
+    // The overview's special strip (52) and the gap above it (10), only
+    // while it is drawn.
+    readonly property int overviewSpecialHeight:
+        HyprlandService.specialShown(root.QsWindow.window?.screen?.name ?? "") ? 62 : 0
 
     // ── PANEL SIZES ─────────────────────────────────────────────────────────
     //
@@ -119,7 +123,7 @@ Rectangle {
         module:     root.moduleSize,
         // A tray item's menu, a row per entry.
         tray:       { width: TrayService.menuWidth, height: TrayService.menuHeight },
-        overview:   { width: 1560, height: 72 + root.overviewRows * 190 }
+        overview:   { width: 1560, height: 72 + root.overviewRows * 190 + root.overviewSpecialHeight }
     })
 
     // One panel under two names (its two strips), so switching between them
