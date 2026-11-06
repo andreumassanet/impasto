@@ -40,7 +40,7 @@ Rectangle {
         : HyprlandService.activeOn(root.screenName) || HyprlandService.activeId
     // The workspace before the first slot.
     readonly property int groupBase: HyprlandService.perScreen
-        ? HyprlandService.baseOn(root.screenName)
+        ? HyprlandService.blockOn(root.screenName)
         : Math.floor((Math.max(1, root.activeId) - 1) / 10) * 10
 
     readonly property int slotHeight: Math.min(26, Theme.capsuleHeight - 8)
@@ -190,11 +190,13 @@ Rectangle {
             }
         }
 
-        // Hides itself unless a special workspace is open on this screen.
+        // Hides itself unless a special workspace is open on this screen. Not
+        // in a preview: that is a picture of the strip, and the screen it sits
+        // on says nothing about it.
         SpecialPill {
             Layout.leftMargin: 4
             Layout.alignment: Qt.AlignVCenter
-            screenName: root.screenName
+            screenName: root.preview ? "" : root.screenName
             slotHeight: root.slotHeight
         }
     }

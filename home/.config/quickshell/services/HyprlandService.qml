@@ -49,10 +49,22 @@ QtObject {
         return root.perScreen ? Math.max(0, root.screenOrder.indexOf(monitor)) * 10 : 0
     }
 
-    // The number a screen shows a workspace as: its own are numbered from 1,
-    // and another screen's keep their id.
+    // The ten a screen is showing: its own, or, while it is on a workspace
+    // outside them (a further layer of ten, 31-40), that workspace's. Without
+    // this the strip stays on the screen's own ten and the workspace it is on
+    // is nowhere in it.
+    function blockOn(monitor: string): int {
+        const own = root.baseOn(monitor)
+        if (!root.perScreen)
+            return own
+        const active = root.activeOn(monitor)
+        return active > 0 ? Math.floor((active - 1) / 10) * 10 : own
+    }
+
+    // The number a screen shows a workspace as: those of the ten it shows are
+    // numbered from 1, and another screen's keep their id.
     function numberOn(workspaceId: int, monitor: string): int {
-        const own = workspaceId - root.baseOn(monitor)
+        const own = workspaceId - root.blockOn(monitor)
         return own >= 1 && own <= 10 ? own : workspaceId
     }
 
@@ -118,7 +130,7 @@ QtObject {
     function isVisibleOn(workspaceId: int, monitor: string): bool {
         if (!root.perScreen)
             return root.isVisible(workspaceId)
-        const own = workspaceId - root.baseOn(monitor)
+        const own = workspaceId - root.blockOn(monitor)
         if (own >= 1 && own <= root.slots)
             return true
         const used = root.isOccupied(workspaceId) || root.activeOn(monitor) === workspaceId
