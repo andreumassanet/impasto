@@ -39,6 +39,18 @@ Item {
     // The workspace before the first one the chips offer: the screen's own
     // ten when each screen has its own.
     property int workspaceBase: 0
+    // The ten the chips offer: that one, moved by the arrows beside them
+    // (`layerShift`), back to it for each opening. With one ten per screen
+    // there is nothing to move to.
+    property int layerShift: 0
+    readonly property int highestBase: Math.max(0, Math.floor((HyprlandService.maximum - 1) / 10) * 10)
+    readonly property int layerBase: Math.max(0, Math.min(root.highestBase, root.workspaceBase + 10 * root.layerShift))
+
+    function shiftLayer(delta: int): void {
+        const next = root.workspaceBase + 10 * (root.layerShift + delta)
+        if (next >= 0 && next <= root.highestBase)
+            root.layerShift += delta
+    }
 
     signal done()
     signal windowsRequested()
@@ -46,6 +58,7 @@ Item {
     readonly property bool open: root.app !== null
     property var shownApp: null
     onAppChanged: if (root.app !== null) root.shownApp = root.app
+    onShownAppChanged: root.layerShift = 0
 
     readonly property int padding: 10
     readonly property int cardWidth: root.menu ? 272 : 360
@@ -226,9 +239,9 @@ Item {
 
                         width: 46
                         height: 32
-                        label: String(root.workspaceBase + index + 1)
+                        label: String(root.layerBase + index + 1)
                         onTriggered: {
-                            DockApps.launchOn(root.shownApp, root.workspaceBase + index + 1)
+                            DockApps.launchOn(root.shownApp, root.layerBase + index + 1)
                             root.done()
                         }
                     }
@@ -352,7 +365,7 @@ Item {
 
                             Chip {
                                 required property int index
-                                readonly property int workspaceId: root.workspaceBase + index + 1
+                                readonly property int workspaceId: root.layerBase + index + 1
 
                                 width: 30
                                 label: String(workspaceId)
@@ -417,7 +430,8 @@ Item {
         }
     }
 
-    // A label over workspace chips: which ten they are.
+    // A label over workspace chips: which ten they are, with the arrows that
+    // move them a ten down or up.
     component LayerHeader: RowLayout {
         id: header
 
@@ -436,12 +450,28 @@ Item {
             color: Theme.textMuted
         }
 
+        Chip {
+            glyph: "󰅃"
+            width: 26
+            height: 26
+            visible: root.layerBase > 0
+            onTriggered: root.shiftLayer(-1)
+        }
+
         Text {
-            text: `${root.workspaceBase + 1}–${root.workspaceBase + root.chips}`
+            text: `${root.layerBase + 1}–${root.layerBase + root.chips}`
             font.family: Theme.fontFamily
             font.pixelSize: Theme.fontSizeSmall
             font.features: { "tnum": 1 }
-            color: Theme.text
+            color: root.layerShift !== 0 ? Theme.accent : Theme.text
+        }
+
+        Chip {
+            glyph: "󰅀"
+            width: 26
+            height: 26
+            visible: root.layerBase < root.highestBase
+            onTriggered: root.shiftLayer(1)
         }
     }
 
