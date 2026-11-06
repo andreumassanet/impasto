@@ -59,14 +59,11 @@ Item {
             }
             figure: `${WeatherService.temperature}°`
 
-            mark: Text {
-                anchors.fill: parent
-                horizontalAlignment: Text.AlignHCenter
-                verticalAlignment: Text.AlignVCenter
-                text: WeatherService.glyph
-                font.family: Theme.fontMono
-                font.pixelSize: 30
-                color: Theme.indicator
+            mark: WeatherIcon {
+                anchors.centerIn: parent
+                name: WeatherService.icon
+                glyph: WeatherService.glyph
+                size: 34
             }
 
             // Columns divide the width by hand: a RowLayout sizes from its
@@ -104,12 +101,11 @@ Item {
                                 color: Theme.textMuted
                             }
 
-                            Text {
+                            WeatherIcon {
                                 anchors.horizontalCenter: parent.horizontalCenter
-                                text: block.modelData.glyph
-                                font.family: Theme.fontMono
-                                font.pixelSize: 15
-                                color: Theme.indicator
+                                name: block.modelData.icon ?? ""
+                                glyph: block.modelData.glyph
+                                size: 20
                             }
 
                             Text {
