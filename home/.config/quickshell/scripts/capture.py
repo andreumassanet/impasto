@@ -143,42 +143,59 @@ def tools():
     })
 
 
-def grab(output=""):
+def take(output=""):
     """Capture one screen into the runtime directory.
 
     Every crop is cut from this picture, so the result is what was on screen
     when the key was pressed, including menus that close once the pointer moves.
     Without an output name grim takes every screen side by side, which is a
-    picture of no single one.
+    picture of no single one. Returns the picture's path and size, or an error.
     """
     if not shutil.which("grim"):
-        report(error="grim is not installed")
-        return
+        return {"error": "grim is not installed"}
     handle, name = tempfile.mkstemp(prefix="impasto-grab-", suffix=".png",
                                     dir=str(runtime()))
     os.close(handle)
     path = Path(name)
-    command = ["grim"]
+    # Level 0: the picture is cropped and thrown away, so speed beats size.
+    command = ["grim", "-l", "0"]
     if output:
         command += ["-o", output]
     result = run(command + [str(path)])
     if result is None or result.returncode != 0:
         path.unlink(missing_ok=True)
-        report(error="grim took nothing")
-        return
+        return {"error": "grim took nothing"}
 
     # Pixel size differs from logical size on a scaled screen; the overlay
-    # needs both to map its selection to a crop.
+    # needs both to map its selection to a crop. It is in the PNG's header, so
+    # no tool is started to ask.
     width, height = 0, 0
-    tool = magick()
-    if tool:
-        size = run([tool, "identify", "-format", "%w %h", str(path)])
-        if size is not None and size.returncode == 0:
-            try:
-                width, height = (int(part) for part in size.stdout.split()[:2])
-            except ValueError:
-                pass
-    report(path=str(path), width=width, height=height)
+    try:
+        with open(path, "rb") as picture:
+            header = picture.read(24)
+        if header[:8] == b"\x89PNG\r\n\x1a\n":
+            width = int.from_bytes(header[16:20], "big")
+            height = int.from_bytes(header[20:24], "big")
+    except OSError:
+        pass
+    return {"path": str(path), "width": width, "height": height}
+
+
+def grab(output=""):
+    report(**take(output))
+
+
+def grab_all(outputs):
+    """One picture of each screen, taken together so they show the same moment.
+
+    Reports `screens`, the pictures by screen name; a screen that failed holds
+    an error in place of a path.
+    """
+    from concurrent.futures import ThreadPoolExecutor
+
+    with ThreadPoolExecutor(max_workers=max(1, len(outputs))) as pool:
+        pictures = list(pool.map(take, outputs))
+    report(screens=dict(zip(outputs, pictures)))
 
 
 def parse(geometry):
@@ -330,11 +347,14 @@ def main():
                 output = arguments[at + 1]
         grab(output)
         return
+    if action == "grab-all":
+        grab_all(arguments[1:])
+        return
     if action == "drop" and len(arguments) > 1:
         drop(arguments[1])
         return
     if action != "finish" or len(arguments) < 2:
-        print("usage: capture.py [tools | grab [--output <screen>] | drop <picture> | "
+        print("usage: capture.py [tools | grab [--output <screen>] | grab-all <screen>... | drop <picture> | "
               "finish <picture> [--geometry 'x,y wxh'] "
               f"[--to {'|'.join(DESTINATIONS)}]]", file=sys.stderr)
         report(error=f"No such capture: {action}")
