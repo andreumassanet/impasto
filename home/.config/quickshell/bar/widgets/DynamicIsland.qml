@@ -74,7 +74,20 @@ Rectangle {
     // default, so an island without a bar gets the size it asks for.
     property int roomForPanel: 100000
 
-    readonly property int overviewRows: Math.ceil(HyprlandService.maximum / 5)
+    readonly property int overviewRows: Math.max(1, Math.min(HyprlandService.overviewRows, HyprlandService.overviewRowsShown))
+    // The scratchpad tiles under the strip: a row of them and the gap before it
+    // for every five.
+    readonly property int overviewPadHeight: {
+        const count = HyprlandService.overviewPads.length
+        if (count === 0)
+            return 0
+        const rows = Math.ceil(count / HyprlandService.overviewColumns)
+        return rows * HyprlandService.overviewRowHeight + 10
+    }
+    // The dashboard's height follows its tab (`DashboardPanel.heightWanted`).
+    property int dashboardHeight: 560
+    // The tab the dashboard opens on ("overview", "monitor", "system", "weather"), or "".
+    property string dashboardStart: ""
 
     // ── PANEL SIZES ─────────────────────────────────────────────────────────
     //
@@ -119,7 +132,8 @@ Rectangle {
         module:     root.moduleSize,
         // A tray item's menu, a row per entry.
         tray:       { width: TrayService.menuWidth, height: TrayService.menuHeight },
-        overview:   { width: 1560, height: 72 + root.overviewRows * 190 }
+        overview:   { width: 1560, height: 72 + root.overviewRows * HyprlandService.overviewRowHeight
+                                      + root.overviewPadHeight }
     })
 
     // One panel under two names (its two strips), so switching between them
