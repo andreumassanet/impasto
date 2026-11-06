@@ -207,6 +207,24 @@ SettingsSection {
         }
 
         SettingRow {
+            label: Tr.t("Workspace numbers")
+            reading: SettingsService.workspaceNumbers === "real"
+                ? Tr.t("Every workspace shows its own number: 23 reads as 23")
+                : Tr.t("A screen numbers its own ten from 1")
+            locked: !HyprlandService.perScreen
+            reason: Tr.t("Only with one set of workspaces for each screen")
+
+            SegmentedControl {
+                options: [
+                    { id: "block", label: Tr.t("From 1") },
+                    { id: "real", label: Tr.t("Real") }
+                ]
+                current: SettingsService.workspaceNumbers
+                onSelected: id => SettingsService.set("workspaceNumbers", id)
+            }
+        }
+
+        SettingRow {
             label: Tr.t("With more screens")
             reading: HyprlandService.perScreen
                 ? Tr.t("Ten for each screen: the main one 1–10, the next 11–20")
