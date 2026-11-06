@@ -115,8 +115,9 @@ Rectangle {
                 readonly property var classes: !root.preview && (slot.focused || (slot.single && slot.occupied))
                     ? WindowService.iconClassesOn(slot.workspaceId) : []
                 // With one icon per workspace, the icon stands for an
-                // occupied one's number.
-                readonly property bool numbered: slot.focused
+                // occupied one's number. Every number shows while Super is
+                // held (the `workspaceNumber` shortcut, when it is bound).
+                readonly property bool numbered: slot.focused || HyprlandService.superHeld
                     || (slot.occupied && !(slot.single && slot.classes.length > 0))
                 readonly property bool marked: slot.numbered || slot.classes.length > 0
 
