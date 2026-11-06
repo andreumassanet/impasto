@@ -15,16 +15,16 @@ import "../services"
 import "../components"
 import "../bar/widgets"
 
-// Two rows: the shapes, then the number written out. Each tile is the real
-// strip in preview, so it follows the palette and the bar's height.
+// Two rows: the shapes and the pills, then the number written out. Each tile
+// is the real strip in preview, so it follows the palette and the bar's height.
 ColumnLayout {
     id: root
 
     spacing: 8
 
     Repeater {
-        model: [SettingsService.workspaceStyles.slice(0, 3),
-                SettingsService.workspaceStyles.slice(3)]
+        model: [SettingsService.workspaceStyles.slice(0, 4),
+                SettingsService.workspaceStyles.slice(4)]
 
         RowLayout {
             required property var modelData
@@ -45,7 +45,7 @@ ColumnLayout {
                     selected: SettingsService.workspaceStyle === modelData.id
                     onPicked: SettingsService.set("workspaceStyle", modelData.id)
 
-                    WorkspacesWidget {
+                    WorkspaceStrip {
                         anchors.centerIn: parent
                         style: tile.modelData.id
                         preview: true
