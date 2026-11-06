@@ -20,9 +20,11 @@ Any failure is reported as unavailable, never as a guessed value.
 """
 
 import json
+import os
 import subprocess
 import sys
 import urllib.parse
+from datetime import datetime
 
 ENDPOINT = "https://wttr.in/{place}?format=j1"
 TIMEOUT = 12
@@ -48,6 +50,33 @@ GLYPHS = [
 FALLBACK = ("󰖐", "󰖐")
 
 
+# KDE Breeze's full-colour weather icons
+# (/usr/share/icons/breeze/applets/48/weather-NAME.svg), by the same codes.
+ICONS = [
+    ({113}, "clear", "clear-night"),
+    ({116}, "few-clouds", "few-clouds-night"),
+    ({119}, "clouds", "clouds-night"),
+    ({122}, "overcast", "overcast"),
+    ({143}, "mist", "mist"),
+    ({248, 260}, "fog", "fog"),
+    ({176, 263, 266, 293, 296, 353}, "showers-scattered-day", "showers-scattered-night"),
+    ({299, 302, 305, 308, 356, 359}, "showers-day", "showers-night"),
+    ({281, 284, 311, 314, 317, 320, 350, 362, 365, 374, 377}, "freezing-rain-day", "freezing-rain-night"),
+    ({179, 227, 323, 326, 368}, "snow-scattered-day", "snow-scattered-night"),
+    ({230, 329, 332, 335, 338, 371}, "snow-day", "snow-night"),
+    ({182, 185}, "snow-rain", "snow-rain"),
+    ({200, 386, 389}, "storm-day", "storm-night"),
+    ({392, 395}, "snow-storm-day", "snow-storm-night"),
+]
+
+
+def icon(code, daytime):
+    for codes, day, night in ICONS:
+        if code in codes:
+            return day if daytime else night
+    return "clouds" if daytime else "clouds-night"
+
+
 def glyph(code, daytime):
     for codes, day, night in GLYPHS:
         if code in codes:
@@ -71,6 +100,41 @@ def fetch(place):
     return json.loads(result.stdout)
 
 
+# "u" (°F, mph, inHg, miles) or "m" (°C, km/h, hPa, km), from the shell's
+# weatherUnits setting. wttr.in's JSON carries both.
+US = os.environ.get("IMPASTO_WEATHER_UNITS") == "u"
+DEG = "F" if US else "C"
+
+
+def daytime_now(current, today):
+    """Whether the sun is up where the reading is: the local observation time
+    against today's sunrise and sunset. True when wttr.in sends none of them."""
+    try:
+        astronomy = today["astronomy"][0]
+        observed = datetime.strptime(current["localObsDateTime"].split(" ", 1)[1], "%I:%M %p")
+        sunrise = datetime.strptime(astronomy["sunrise"], "%I:%M %p")
+        sunset = datetime.strptime(astronomy["sunset"], "%I:%M %p")
+    except (KeyError, IndexError, ValueError):
+        return True
+    return sunrise <= observed < sunset
+
+
+def day_report(day):
+    """One day of the forecast, or None when wttr.in sent it without its hours."""
+    blocks = day.get("hourly") or []
+    if not blocks:
+        return None
+    middle = int(blocks[len(blocks) // 2].get("weatherCode", 0))
+    return {
+        "date": day.get("date", ""),
+        "low": int(day.get(f"mintemp{DEG}", 0)),
+        "high": int(day.get(f"maxtemp{DEG}", 0)),
+        "glyph": glyph(middle, True),
+        "icon": icon(middle, True),
+        "rain": max(int(block.get("chanceofrain", 0)) for block in blocks),
+    }
+
+
 def report(place):
     data = fetch(place)
     current = data["current_condition"][0]
@@ -78,36 +142,49 @@ def report(place):
     today = data["weather"][0]
 
     code = int(current["weatherCode"])
-    daytime = current["observation_time"] and True
-    # wttr.in reports observation time in UTC and `isdaytime` only per hour, so
-    # the day/night split comes from the hour blocks the day is made of.
-    hours = today["hourly"]
+    # The icon at night is the night one: by the observation's local time and
+    # today's sun, since wttr.in gives `isdaytime` only per hour block.
+    daytime = daytime_now(current, today)
 
     return {
         "available": True,
         "place": area["areaName"][0]["value"],
         "region": area["country"][0]["value"],
-        "temperature": int(current["temp_C"]),
-        "feelsLike": int(current["FeelsLikeC"]),
+        "temperature": int(current[f"temp_{DEG}"]),
+        "feelsLike": int(current[f"FeelsLike{DEG}"]),
         "description": current["weatherDesc"][0]["value"].strip(),
         "glyph": glyph(code, daytime),
+        "icon": icon(code, daytime),
         "humidity": int(current["humidity"]),
-        "wind": int(current["windspeedKmph"]),
-        "low": int(today["mintempC"]),
-        "high": int(today["maxtempC"]),
+        # The rest of the dashboard's "Now" grid.
+        "uv": int(current.get("uvIndex", 0)),
+        "pressure": int(current.get("pressureInches" if US else "pressure", 0)),
+        "pressureUnit": "inHg" if US else "hPa",
+        "visibility": int(current.get("visibilityMiles" if US else "visibility", 0)),
+        "visibilityUnit": "mi" if US else "km",
+        "cloud": int(current.get("cloudcover", 0)),
+        "sunrise": today.get("astronomy", [{}])[0].get("sunrise", ""),
+        "sunset": today.get("astronomy", [{}])[0].get("sunset", ""),
+        "wind": int(current["windspeedMiles" if US else "windspeedKmph"]),
+        "windUnit": "mph" if US else "km/h",
+        "low": int(today[f"mintemp{DEG}"]),
+        "high": int(today[f"maxtemp{DEG}"]),
         # Today and tomorrow, in wttr.in's three-hour steps, so the evening
         # still has a forecast.
         "hourly": [
             {
                 "hour": int(block["time"]) // 100,
-                "temperature": int(block["tempC"]),
+                "temperature": int(block[f"temp{DEG}"]),
                 "glyph": glyph(int(block["weatherCode"]), 6 <= int(block["time"]) // 100 < 21),
+                "icon": icon(int(block["weatherCode"]), 6 <= int(block["time"]) // 100 < 21),
                 "rain": int(block["chanceofrain"]),
                 "tomorrow": day > 0,
             }
             for day, blocks in enumerate(w["hourly"] for w in data["weather"][:2])
             for block in blocks
         ],
+        # Every day wttr.in has (three), for the dashboard.
+        "days": [entry for entry in map(day_report, data["weather"]) if entry is not None],
     }
 
 

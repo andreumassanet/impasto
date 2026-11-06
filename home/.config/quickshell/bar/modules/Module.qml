@@ -35,7 +35,9 @@ Item {
         volume: volumeModule,
         brightness: brightnessModule,
         network: networkModule,
+        netspeed: netSpeedModule,
         bluetooth: bluetoothModule,
+        devices: devicesModule,
         weather: weatherModule,
         github: githubModule,
         markets: marketsModule,
@@ -69,7 +71,9 @@ Item {
     Component { id: volumeModule;     VolumeModule { compact: root.compact } }
     Component { id: brightnessModule; BrightnessModule { compact: root.compact } }
     Component { id: networkModule;    NetworkModule {} }
+    Component { id: netSpeedModule;   NetSpeedModule {} }
     Component { id: bluetoothModule;  BluetoothModule {} }
+    Component { id: devicesModule;    DevicesModule {} }
     Component { id: weatherModule;    WeatherModule {} }
     Component { id: githubModule;     GithubModule {} }
     Component { id: marketsModule;    MarketsModule {} }

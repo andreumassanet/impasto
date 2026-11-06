@@ -256,7 +256,8 @@ Scope {
             "machines", "servers", "screentime", "camera", "wifi", "bluetooth", "sound", "microphone", "brightness", "nightlight", "power"]
 
         function open(name: string): string {
-            if (names.indexOf(name) < 0)
+            // "dashboard:weather" is the dashboard on that tab.
+            if (names.indexOf(name) < 0 && !name.startsWith("dashboard:"))
                 return root.fail(`not a panel: "${name}" (${names.join(", ")})`)
             root.island?.open(name)
             return root.ok({ panel: name })
