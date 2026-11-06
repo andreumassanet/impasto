@@ -226,6 +226,46 @@ SettingsSection {
             }
         }
 
+        // The applications that have notified, and any with a rule.
+        Repeater {
+            model: ScriptModel {
+                values: {
+                    const names = Object.keys(SettingsService.notificationRules ?? ({}))
+                    for (const entry of NotificationService.history)
+                        if (entry.appName && names.indexOf(entry.appName) < 0)
+                            names.push(entry.appName)
+                    return names.sort()
+                }
+            }
+
+            SettingRow {
+                id: appRow
+
+                required property string modelData
+
+                label: appRow.modelData
+                reading: Tr.t("What its notifications do")
+
+                SegmentedControl {
+                    options: [
+                        { id: "", label: Tr.t("Default") },
+                        { id: "mute", label: Tr.t("Mute") },
+                        { id: "silent", label: Tr.t("Silent") },
+                        { id: "popup", label: Tr.t("Popup only") }
+                    ]
+                    current: NotificationService.ruleFor(appRow.modelData)
+                    onSelected: id => {
+                        const rules = Object.assign({}, SettingsService.notificationRules ?? ({}))
+                        if (id === "")
+                            delete rules[appRow.modelData]
+                        else
+                            rules[appRow.modelData] = id
+                        SettingsService.set("notificationRules", rules)
+                    }
+                }
+            }
+        }
+
         SettingRow {
             label: Tr.t("Kept")
             reading: NotificationService.history.length > 0

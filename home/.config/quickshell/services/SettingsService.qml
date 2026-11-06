@@ -62,6 +62,7 @@ Singleton {
     readonly property alias dockOpacity: config.dockOpacity
     readonly property alias dockGround: config.dockGround
     readonly property alias terminalGround: config.terminalGround
+    readonly property alias notificationRules: config.notificationRules
     readonly property alias dockRunning: config.dockRunning
     readonly property alias dockEverywhere: config.dockEverywhere
     readonly property alias dockAutohide: config.dockAutohide
@@ -839,6 +840,10 @@ Singleton {
 
         // kitty's ground, as `surfaceStyle`.
         property string terminalGround: "glass"
+
+        // Per application, by the name it notifies as: "mute", "silent" or
+        // "popup" (see `NotificationService.ruleFor`). None is the default.
+        property var notificationRules: ({})
 
         // Also show running applications that aren't pinned.
         property bool dockRunning: true
