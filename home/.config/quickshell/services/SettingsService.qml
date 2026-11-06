@@ -62,6 +62,7 @@ Singleton {
     readonly property alias dockOpacity: config.dockOpacity
     readonly property alias dockGround: config.dockGround
     readonly property alias terminalGround: config.terminalGround
+    readonly property alias osk: config.osk
     readonly property alias dockRunning: config.dockRunning
     readonly property alias dockEverywhere: config.dockEverywhere
     readonly property alias dockAutohide: config.dockAutohide
@@ -839,6 +840,10 @@ Singleton {
 
         // kitty's ground, as `surfaceStyle`.
         property string terminalGround: "glass"
+
+        // An on-screen keyboard along the bottom edge, toggled by its key or
+        // `qs ipc call osk toggle`. It types through ydotool (and ydotoold).
+        property bool osk: false
 
         // Also show running applications that aren't pinned.
         property bool dockRunning: true
