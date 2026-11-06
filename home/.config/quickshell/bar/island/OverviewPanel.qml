@@ -8,6 +8,7 @@
 // ╰──────────────────────────────────────────────────────────────────────────╯
 
 import QtQuick
+import QtQuick.Controls
 import QtQuick.Effects
 import QtQuick.Layouts
 import Quickshell
@@ -32,10 +33,13 @@ ColumnLayout {
     signal closed()
 
     // Every workspace up to the maximum, not only those with a dot on the bar;
-    // per screen, this screen's own.
-    readonly property int count: HyprlandService.maximum
-    readonly property int columns: Math.min(5, root.count)
-    readonly property int rows: Math.ceil(root.count / root.columns)
+    // per screen, every screen's.
+    readonly property var ids: HyprlandService.overviewIds
+    readonly property int count: root.ids.length
+    readonly property int columns: HyprlandService.overviewColumns
+    readonly property int rows: HyprlandService.overviewRows
+    // How many rows fit before the grid scrolls.
+    readonly property int visibleRows: Math.max(1, Math.min(root.rows, HyprlandService.overviewRowsShown))
     readonly property int gap: 10
 
     // The screen this panel is on. It decides the shape of a cell; what a cell
@@ -110,8 +114,8 @@ ColumnLayout {
     // That also keeps a short last row in range, since the count need not
     // divide by the column count.
     function selectBy(delta: int): void {
-        const own = root.selectedId - root.base
-        root.selectedId = root.base + (own - 1 + delta + root.count) % root.count + 1
+        const at = Math.max(0, root.ids.indexOf(root.selectedId))
+        root.selectedId = root.ids[(at + delta + root.count) % root.count]
     }
 
     function activate(): void {
@@ -134,8 +138,7 @@ ColumnLayout {
         HyprlandService.loadClients()
         HyprlandService.loadMonitors()
         void ToplevelManager.toplevels
-        root.selectedId = root.base + Math.min(Math.max(1, root.activeId - root.base),
-                                               root.count)
+        root.selectedId = root.ids.indexOf(root.activeId) >= 0 ? root.activeId : root.ids[0]
         root.forceActiveFocus()
     }
 
@@ -158,7 +161,7 @@ ColumnLayout {
         // uneven (`inset` across, `inset * aspect` down).
         readonly property real cellWidth: Math.min(
             (width - (root.columns - 1) * root.gap) / root.columns,
-            ((height - (root.rows - 1) * root.gap) / root.rows - 2 * board.inset)
+            ((height - (root.visibleRows - 1) * root.gap) / root.visibleRows - 2 * board.inset)
                 / root.aspect + 2 * board.inset)
         readonly property real cellHeight:
             (board.cellWidth - 2 * board.inset) * root.aspect + 2 * board.inset
@@ -187,8 +190,45 @@ ColumnLayout {
             onTriggered: board.settled = true
         }
 
+        // The rows, scrolling by the wheel (or the arrows, which follow the
+        // selection) once there are more than fit.
+        Flickable {
+            id: scroller
+
+            anchors.fill: parent
+            contentWidth: width
+            contentHeight: Math.max(height, grid.height)
+            clip: true
+            interactive: grid.height > height
+            boundsBehavior: Flickable.StopAtBounds
+            flickableDirection: Flickable.VerticalFlick
+
+            ScrollBar.vertical: ScrollBar {
+                policy: grid.height > scroller.height ? ScrollBar.AlwaysOn : ScrollBar.AlwaysOff
+                width: 6
+            }
+
+            // Brings the selected cell's row into view.
+            function reveal(): void {
+                const at = Math.max(0, root.ids.indexOf(root.selectedId))
+                const top = Math.floor(at / root.columns) * (board.cellHeight + root.gap)
+                if (top < scroller.contentY)
+                    scroller.contentY = top
+                else if (top + board.cellHeight > scroller.contentY + scroller.height)
+                    scroller.contentY = top + board.cellHeight - scroller.height
+            }
+
+            Connections {
+                target: root
+
+                function onSelectedIdChanged(): void { scroller.reveal() }
+            }
+
         GridLayout {
-            anchors.centerIn: parent
+            id: grid
+
+            x: Math.max(0, (scroller.width - width) / 2)
+            y: Math.max(0, (scroller.height - height) / 2)
             columns: root.columns
             rowSpacing: root.gap
             columnSpacing: root.gap
@@ -201,7 +241,7 @@ ColumnLayout {
 
                     required property int index
 
-                    readonly property int workspaceId: root.base + cell.index + 1
+                    readonly property int workspaceId: root.ids[cell.index]
                     readonly property bool focused: root.activeId === cell.workspaceId
                     readonly property bool selected: root.selectedId === cell.workspaceId
                     readonly property var windows: HyprlandService.clientsOn(cell.workspaceId)
@@ -455,13 +495,38 @@ ColumnLayout {
                         }
                     }
 
+                    // Which screen a row of workspaces belongs to, and which ten it
+                    // is when the screen has more than one, on its first cell.
+                    Rectangle {
+                        visible: HyprlandService.manyBlocks && cell.index % 10 === 0
+                        x: 6
+                        y: 6
+                        z: 6
+                        width: chipText.implicitWidth + 12
+                        height: 18
+                        radius: height / 2
+                        color: Qt.alpha(Theme.island, 0.85)
+                        border.color: Theme.islandBorder
+                        border.width: 1
+
+                        Text {
+                            id: chipText
+
+                            anchors.centerIn: parent
+                            text: HyprlandService.overviewBlocks[Math.floor(cell.index / 10)]?.label ?? ""
+                            font.family: Theme.fontMono
+                            font.pixelSize: Theme.fontSizeLabel
+                            color: Theme.textMuted
+                        }
+                    }
+
                     // The workspace number, only on empty cells; occupied ones
                     // are recognised by their windows. Hidden under the
                     // pointer. Opacity rather than `visible`, so it fades in
                     // when a cell empties.
                     Text {
                         anchors.centerIn: parent
-                        text: cell.index + 1
+                        text: HyprlandService.numberOn(cell.workspaceId, HyprlandService.overviewBlocks[Math.floor(cell.index / 10)]?.screen ?? "")
                         font.family: Theme.fontFamily
                         font.pixelSize: Math.round(cell.height * 0.44)
                         font.weight: Font.DemiBold
@@ -557,6 +622,7 @@ ColumnLayout {
                 }
             }
         }
+        }
 
         // ── GHOST ───────────────────────────────────────────────────────────
         //
@@ -592,105 +658,41 @@ ColumnLayout {
         }
     }
 
-    // ── SPECIAL WORKSPACES ──────────────────────────────────────────────────
-    //
-    // One strip under the grid for all special workspaces, as the bar's pill
-    // treats them: the apps inside, a click to open or close it, and a drop
-    // target for sending a window there. Special workspaces are named, so the
-    // one acted on is the one open on this screen, else the first with a
-    // window in it, else the default one.
-    readonly property string openSpecial: HyprlandService.specialOn(root.screenName)
-    readonly property string specialName: (root.openSpecial
-        || HyprlandService.specialClients[0]?.workspace.name
-        || "special:special").replace(/^special:/, "")
-    readonly property var specialClasses: {
-        const classes = WindowService.distinctClasses(HyprlandService.specialClients)
-        return WindowService.pick(classes, classes[0] ?? "")
-    }
-
-    Rectangle {
-        id: specialStrip
-
-        // Drawn only when there is something to show, so the overview is
-        // as it was for anyone who never uses a special workspace.
-        visible: HyprlandService.specialShown(root.screenName)
-        Layout.fillWidth: true
-        Layout.fillHeight: false
-        Layout.preferredHeight: 52
-        radius: Theme.radiusLarge
-        color: specialDrop.containsDrag ? Qt.alpha(Theme.accent, 0.25)
-            : specialMouse.containsMouse ? Theme.islandSurfaceHover : Theme.islandSurface
-        border.color: root.openSpecial !== "" || specialDrop.containsDrag
-            ? Theme.accent : "transparent"
-        border.width: 2
-
-        Row {
-            anchors.centerIn: parent
-            spacing: 8
-
-            Text {
-                anchors.verticalCenter: parent.verticalCenter
-                text: Tr.t("Special")
-                font.family: Theme.fontFamily
-                font.pixelSize: Theme.fontSizeSmall
-                font.weight: Font.DemiBold
-                color: Theme.text
-            }
-
-            Repeater {
-                model: root.specialClasses
-
-                IconImage {
-                    required property string modelData
-
-                    anchors.verticalCenter: parent.verticalCenter
-                    implicitSize: 24
-                    source: WindowService.iconFor(modelData)
-                }
-            }
-        }
-
-        MouseArea {
-            id: specialMouse
-
-            anchors.fill: parent
-            hoverEnabled: true
-            cursorShape: Qt.PointingHandCursor
-            onClicked: {
-                root.closed()
-                Hyprland.dispatch(`hl.dsp.workspace.toggle_special("${root.specialName}")`)
-            }
-        }
-
-        DropArea {
-            id: specialDrop
-
-            anchors.fill: parent
-            onDropped: dropped => {
-                if (ghost.client)
-                    HyprlandService.moveClientToNamed(ghost.client.address,
-                                                      `special:${root.specialName}`)
-                dropped.accept()
-            }
-        }
-    }
+    // Every scratchpad: those of Settings → Scratchpads, and any other special
+    // workspace with a window in it. As many to a row as `padsPerRow` allows,
+    // the rest on rows below. One element for all of them: the open one is
+    // lit and shows its window, rather than a second strip appearing.
+    readonly property var pads: HyprlandService.overviewPads
+    // As many to a row as the workspaces above, each the size of one of their
+    // cells: the proportions of the screen, in the same columns. Worked out from
+    // the island's declared width (`overview` in DynamicIsland: 1560, less 20 a
+    // side), not from the layout, which the tiles are part of.
+    readonly property int padColumns: Math.max(1, Math.min(root.pads.length, root.columns))
+    readonly property real tileWidth: (1520 - (root.columns - 1) * root.gap) / root.columns
+    readonly property real tileHeight: (root.tileWidth - 6) * root.aspect + 6
+    readonly property int padRows: Math.ceil(root.pads.length / root.padColumns)
 
     // ── SCRATCHPAD TILES ────────────────────────────────────────────────────
     //
     // `overviewScratchpads`: one tile per scratchpad under the strip, each
     // with its apps and the key that opens it. A click runs its command or
     // toggles its workspace; a window dropped on one is sent there.
-    RowLayout {
-        visible: (SettingsService.overviewScratchpads ?? []).length > 0
-        Layout.fillWidth: true
+    GridLayout {
+        visible: root.pads.length > 0
+        Layout.fillWidth: false
         Layout.fillHeight: false
-        Layout.preferredHeight: 76
-        spacing: root.gap
+        Layout.alignment: Qt.AlignLeft
+        Layout.preferredHeight: root.padRows * root.tileHeight + (root.padRows - 1) * root.gap
+        // As wide as fits, then a new row: tiles stay one size and line up
+        // with the strip above and each other.
+        columns: root.padColumns
+        rowSpacing: root.gap
+        columnSpacing: root.gap
 
         Repeater {
-            model: Array.from(SettingsService.overviewScratchpads ?? [])
+            model: root.pads
 
-            Rectangle {
+            ClippingRectangle {
                 id: pad
 
                 required property var modelData
@@ -699,17 +701,83 @@ ColumnLayout {
                     HyprlandService.specialClients.filter(client => client.workspace.name === pad.workspace)
                 ).slice(0, 3)
                 readonly property bool open: HyprlandService.specialOn(root.screenName) === pad.workspace
+                readonly property var windows: HyprlandService.specialClients
+                    .filter(client => client.workspace.name === pad.workspace)
+                // The window shown while the scratchpad is open.
+                readonly property var shown: pad.open && pad.windows.length > 0 ? pad.windows[0] : null
+                readonly property var capture: pad.shown ? root.toplevelFor(pad.shown) : null
 
-                Layout.fillWidth: true
-                Layout.fillHeight: true
+                Layout.preferredWidth: root.tileWidth
+                Layout.preferredHeight: root.tileHeight
                 radius: Theme.radiusLarge
-                color: padDrop.containsDrag ? Qt.alpha(Theme.accent, 0.25)
-                    : padMouse.containsMouse ? Theme.islandSurfaceHover : Theme.islandSurface
-                border.color: pad.open || padDrop.containsDrag ? Theme.accent : "transparent"
-                border.width: 2
+                contentUnderBorder: true
+                color: Theme.island
+                border.color: pad.open || padDrop.containsDrag || padMouse.containsMouse
+                    ? Theme.accent : Theme.borderIn(QsWindow.window)
+                border.width: pad.open || padDrop.containsDrag ? 2 : 1
+                // The open scratchpad is lifted: a little larger and above its
+                // neighbours.
+                scale: pad.open ? 1.04 : 1
+                z: pad.open ? 2 : 0
+
+                Behavior on scale {
+                    NumberAnimation { duration: Theme.durationFast; easing.type: Theme.easing }
+                }
+
+                Image {
+                    anchors.fill: parent
+                    // The wallpaper under the card, as under a workspace's cell, so the
+                    // cells and the tiles read as one set.
+                    source: WallpaperService.currentWallpaper !== ""
+                        ? `file://${WallpaperService.currentWallpaper}` : ""
+                    fillMode: Image.PreserveAspectCrop
+                    asynchronous: true
+                    sourceSize.width: 480
+                    // Clearer while open: the wallpaper comes up.
+                    opacity: pad.open ? 0.6 : 0.3
+
+                    Behavior on opacity {
+                        NumberAnimation { duration: Theme.durationFast }
+                    }
+                }
+
+                // The open scratchpad's window, live, as large as the tile
+                // lets it be at the window's own proportions.
+                ScreencopyView {
+                    visible: pad.capture !== null
+                    anchors.centerIn: parent
+                    height: parent.height
+                    width: pad.shown ? Math.min(parent.width, parent.height * pad.shown.size[0] / Math.max(1, pad.shown.size[1])) : 0
+                    captureSource: pad.capture
+                    live: true
+                    paintCursor: false
+                }
+
+                // The accent washes a tile a window is dragged over.
+                Rectangle {
+                    anchors.fill: parent
+                    color: Qt.alpha(Theme.accent, 0.25)
+                    opacity: padDrop.containsDrag ? 1 : 0
+                }
+
+                // Behind the name once it is in the corner, over the window.
+                Rectangle {
+                    visible: pad.capture !== null
+                    x: labelColumn.x - 6
+                    y: labelColumn.y - 3
+                    width: labelColumn.width + 12
+                    height: labelColumn.height + 6
+                    radius: height / 2
+                    color: Qt.alpha(Theme.island, 0.82)
+                }
 
                 ColumnLayout {
-                    anchors.centerIn: parent
+                    id: labelColumn
+
+                    // With the window showing, the name steps aside to the corner.
+                    anchors.centerIn: pad.capture === null ? parent : undefined
+                    x: 14
+                    y: 9
                     spacing: 2
 
                     RowLayout {
@@ -719,7 +787,7 @@ ColumnLayout {
                         PadIcon {
                             visible: pad.classes.length === 0 && value !== ""
                             value: pad.modelData.glyph ?? ""
-                            size: 20
+                            size: 24
                         }
 
                         Repeater {
@@ -734,6 +802,8 @@ ColumnLayout {
                         }
 
                         Text {
+                            Layout.maximumWidth: Math.max(40, root.tileWidth - 70)
+                            elide: Text.ElideRight
                             text: pad.modelData.label ?? pad.modelData.name
                             font.family: Theme.fontFamily
                             font.pixelSize: Theme.fontSizeSmall
@@ -744,7 +814,7 @@ ColumnLayout {
 
                     Text {
                         Layout.alignment: Qt.AlignHCenter
-                        visible: text !== ""
+                        visible: text !== "" && pad.capture === null
                         text: pad.modelData.keys ?? ""
                         font.family: Theme.fontMono
                         font.pixelSize: Theme.fontSizeLabel
