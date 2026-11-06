@@ -673,4 +673,112 @@ ColumnLayout {
             }
         }
     }
+
+    // ── SCRATCHPAD TILES ────────────────────────────────────────────────────
+    //
+    // `overviewScratchpads`: one tile per scratchpad under the strip, each
+    // with its apps and the key that opens it. A click runs its command or
+    // toggles its workspace; a window dropped on one is sent there.
+    RowLayout {
+        visible: (SettingsService.overviewScratchpads ?? []).length > 0
+        Layout.fillWidth: true
+        Layout.fillHeight: false
+        Layout.preferredHeight: 76
+        spacing: root.gap
+
+        Repeater {
+            model: Array.from(SettingsService.overviewScratchpads ?? [])
+
+            Rectangle {
+                id: pad
+
+                required property var modelData
+                readonly property string workspace: `special:${pad.modelData.name}`
+                readonly property var classes: WindowService.distinctClasses(
+                    HyprlandService.specialClients.filter(client => client.workspace.name === pad.workspace)
+                ).slice(0, 3)
+                readonly property bool open: HyprlandService.specialOn(root.screenName) === pad.workspace
+
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                radius: Theme.radiusLarge
+                color: padDrop.containsDrag ? Qt.alpha(Theme.accent, 0.25)
+                    : padMouse.containsMouse ? Theme.islandSurfaceHover : Theme.islandSurface
+                border.color: pad.open || padDrop.containsDrag ? Theme.accent : "transparent"
+                border.width: 2
+
+                ColumnLayout {
+                    anchors.centerIn: parent
+                    spacing: 2
+
+                    RowLayout {
+                        Layout.alignment: Qt.AlignHCenter
+                        spacing: 6
+
+                        Text {
+                            visible: pad.classes.length === 0
+                            text: pad.modelData.glyph ?? ""
+                            font.family: Theme.fontMono
+                            font.pixelSize: 18
+                            color: Theme.textMuted
+                        }
+
+                        Repeater {
+                            model: pad.classes
+
+                            IconImage {
+                                required property string modelData
+
+                                implicitSize: 20
+                                source: WindowService.iconFor(modelData)
+                            }
+                        }
+
+                        Text {
+                            text: pad.modelData.label ?? pad.modelData.name
+                            font.family: Theme.fontFamily
+                            font.pixelSize: Theme.fontSizeSmall
+                            font.weight: Font.DemiBold
+                            color: Theme.text
+                        }
+                    }
+
+                    Text {
+                        Layout.alignment: Qt.AlignHCenter
+                        visible: text !== ""
+                        text: pad.modelData.keys ?? ""
+                        font.family: Theme.fontMono
+                        font.pixelSize: Theme.fontSizeLabel
+                        color: Theme.textMuted
+                    }
+                }
+
+                MouseArea {
+                    id: padMouse
+
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: {
+                        root.closed()
+                        if ((pad.modelData.command ?? "") !== "")
+                            Quickshell.execDetached(["sh", "-c", pad.modelData.command])
+                        else
+                            Hyprland.dispatch(`hl.dsp.workspace.toggle_special("${pad.modelData.name}")`)
+                    }
+                }
+
+                DropArea {
+                    id: padDrop
+
+                    anchors.fill: parent
+                    onDropped: dropped => {
+                        if (ghost.client)
+                            HyprlandService.moveClientToNamed(ghost.client.address, pad.workspace)
+                        dropped.accept()
+                    }
+                }
+            }
+        }
+    }
 }
