@@ -52,8 +52,13 @@ FocusScope {
     readonly property Carousel strip:
         root.onPalette ? palettes : root.onAnimated ? animations : wallpapers
 
-    readonly property var centredWallpaper: WallpaperService.wallpapers[wallpapers.current] ?? null
-    readonly property var centredAnimation: WallpaperService.animated[animations.current] ?? null
+    // The search narrows the strips (fuzzy, best match first).
+    property string query: ""
+    readonly property var shownWallpapers: root.matching(WallpaperService.wallpapers)
+    readonly property var shownAnimated: root.matching(WallpaperService.animated)
+
+    readonly property var centredWallpaper: root.shownWallpapers[wallpapers.current] ?? null
+    readonly property var centredAnimation: root.shownAnimated[animations.current] ?? null
     readonly property var centredPalette: ThemeService.availableThemes[palettes.current] ?? null
 
     Component.onCompleted: {
@@ -64,9 +69,9 @@ FocusScope {
     // Initial values for the strips' `current`, so they open on what is
     // applied instead of sliding there from the first tile. `settle` follows
     // the list when the scan returns a moment after opening.
-    readonly property int appliedWallpaper: Math.max(0, WallpaperService.wallpapers.findIndex(
+    readonly property int appliedWallpaper: Math.max(0, root.shownWallpapers.findIndex(
         entry => entry.path === WallpaperService.chosen))
-    readonly property int appliedAnimation: Math.max(0, WallpaperService.animated.findIndex(
+    readonly property int appliedAnimation: Math.max(0, root.shownAnimated.findIndex(
         entry => entry.path === WallpaperService.chosen))
     readonly property int activePalette: Math.max(0, ThemeService.availableThemes.findIndex(
         entry => entry.id === ThemeService.activeId))
@@ -132,9 +137,46 @@ FocusScope {
             root.strip.step(-5)
         else if (event.key === Qt.Key_PageDown)
             root.strip.step(5)
-        else
+        // Typing searches the strip by name.
+        else if (event.text.length === 1 && event.text.trim() !== "" && !root.onPalette) {
+            search.text += event.text
+            search.forceActiveFocus()
+        } else
             return
         event.accepted = true
+    }
+
+    // Fuzzy matching, as a launcher does. Every character of the
+    // query must appear in the name in order; runs of adjacent characters,
+    // matches at a word's start and a match early in the name score higher.
+    // -1 when it does not match.
+    function fuzzyScore(name: string, query: string): int {
+        const haystack = name.toLowerCase()
+        const needle = query.toLowerCase().replace(/\s+/g, "")
+        let score = 0
+        let from = 0
+        let previous = -2
+        for (const character of needle) {
+            const found = haystack.indexOf(character, from)
+            if (found < 0)
+                return -1
+            score += found === previous + 1 ? 8 : 1
+            if (found === 0 || /[\s\-_.]/.test(haystack[found - 1]))
+                score += 4
+            previous = found
+            from = found + 1
+        }
+        return score * 100 - haystack.indexOf(needle[0] ?? "")
+    }
+
+    function matching(entries: var): var {
+        if (root.query.trim() === "")
+            return entries
+        return entries
+            .map(entry => ({ entry: entry, score: root.fuzzyScore(String(entry.name ?? ""), root.query) }))
+            .filter(scored => scored.score >= 0)
+            .sort((first, second) => second.score - first.score)
+            .map(scored => scored.entry)
     }
 
     ColumnLayout {
@@ -160,7 +202,7 @@ FocusScope {
                 y: (1 - root.shownIndex) * pages.height
                 opacity: root.shownIndex === 1 ? 1 : 0
                 current: root.appliedWallpaper
-                model: WallpaperService.wallpapers
+                model: root.shownWallpapers
                 tileWidth: root.tileWidth
                 tileHeight: root.tileHeight
                 centreScale: root.centreScale
@@ -213,7 +255,7 @@ FocusScope {
                 y: (0 - root.shownIndex) * pages.height
                 opacity: root.onAnimated ? 1 : 0
                 current: root.appliedAnimation
-                model: WallpaperService.animated
+                model: root.shownAnimated
                 tileWidth: root.tileWidth
                 tileHeight: root.tileHeight
                 centreScale: root.centreScale
@@ -260,7 +302,7 @@ FocusScope {
                 x: (pages.width - width) / 2
                 y: animations.y + (pages.height - height) / 2
                 width: pages.width - 4 * root.gap
-                visible: WallpaperService.animated.length === 0
+                visible: root.shownAnimated.length === 0
                 opacity: animations.opacity
                 horizontalAlignment: Text.AlignHCenter
                 wrapMode: Text.Wrap
@@ -351,11 +393,75 @@ FocusScope {
             Layout.fillWidth: true
             spacing: root.gap
 
+            // The search, a pill on the wallpaper pages. Its
+            // placeholder is the centred entry's name.
+            Rectangle {
+                visible: !root.onPalette
+                Layout.preferredWidth: 300
+                Layout.preferredHeight: 28
+                radius: height / 2
+                color: Theme.islandSurface
+                border.color: search.activeFocus ? Theme.accent : "transparent"
+                border.width: 1
+
+                Text {
+                    x: 12
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: "󰍉"
+                    font.family: Theme.fontMono
+                    font.pixelSize: Theme.fontSizeSmall
+                    color: Theme.textMuted
+                }
+
+                TextInput {
+                    id: search
+
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.leftMargin: 32
+                    anchors.rightMargin: 12
+                    anchors.verticalCenter: parent.verticalCenter
+                    clip: true
+                    font.family: Theme.fontFamily
+                    font.pixelSize: Theme.fontSizeSmall
+                    color: Theme.text
+                    selectionColor: Theme.accent
+                    // The best match comes first; an empty query goes back to
+                    // what is applied.
+                    onTextChanged: {
+                        root.query = search.text
+                        if (search.text.trim() === "")
+                            root.settle()
+                        else
+                            root.strip.goTo(0)
+                    }
+                    Keys.onLeftPressed: root.strip.step(-1)
+                    Keys.onRightPressed: root.strip.step(1)
+                    Keys.onReturnPressed: root.apply()
+                    Keys.onEnterPressed: root.apply()
+                    Keys.onEscapePressed: event => {
+                        if (search.text === "") {
+                            event.accepted = false
+                            return
+                        }
+                        search.text = ""
+                        root.forceActiveFocus()
+                    }
+
+                    Text {
+                        anchors.fill: parent
+                        visible: search.text === ""
+                        text: root.onAnimated ? (root.centredAnimation?.name ?? "") : (root.centredWallpaper?.name ?? "")
+                        elide: Text.ElideRight
+                        font: search.font
+                        color: Theme.textMuted
+                    }
+                }
+            }
+
             Text {
                 Layout.fillWidth: true
-                text: root.onPalette ? (root.centredPalette?.badge ?? "")
-                    : root.onAnimated ? (root.centredAnimation?.name ?? "")
-                    : (root.centredWallpaper?.name ?? "")
+                text: root.onPalette ? (root.centredPalette?.badge ?? "") : ""
                 elide: Text.ElideRight
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.fontSizeSmall
@@ -366,7 +472,7 @@ FocusScope {
             // applied.
             Text {
                 text: root.strip.count === 0
-                    ? (WallpaperService.scanning ? "Scanning…" : "")
+                    ? (WallpaperService.scanning ? "Scanning…" : root.query !== "" ? "No match" : "")
                     : `${root.strip.current + 1}/${root.strip.count}`
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.fontSizeSmall
