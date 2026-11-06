@@ -59,6 +59,7 @@ Item {
     property var shownApp: null
     onAppChanged: if (root.app !== null) root.shownApp = root.app
     onShownAppChanged: root.layerShift = 0
+    onOpenChanged: if (!root.open) root.layerShift = 0
 
     readonly property int padding: 10
     readonly property int cardWidth: root.menu ? 272 : 360
