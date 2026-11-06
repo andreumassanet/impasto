@@ -17,6 +17,7 @@ import Quickshell.Widgets
 
 import "../../theme"
 import "../../services"
+import "../../components"
 
 // Workspaces in numbered order, each a scale model of the screen: every window
 // is drawn at its real position and size divided by one factor, so a
@@ -715,12 +716,10 @@ ColumnLayout {
                         Layout.alignment: Qt.AlignHCenter
                         spacing: 6
 
-                        Text {
-                            visible: pad.classes.length === 0
-                            text: pad.modelData.glyph ?? ""
-                            font.family: Theme.fontMono
-                            font.pixelSize: 18
-                            color: Theme.textMuted
+                        PadIcon {
+                            visible: pad.classes.length === 0 && value !== ""
+                            value: pad.modelData.glyph ?? ""
+                            size: 20
                         }
 
                         Repeater {

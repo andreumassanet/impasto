@@ -14,8 +14,8 @@ import Quickshell.Widgets
 import "../../theme"
 import "../../services"
 
-// Special workspaces are one workspace here, named "special" whatever
-// Hyprland calls the one that is open. While it is open on this screen the
+// A special workspace is named after its scratchpad in the settings, or
+// "special" when it has none. While it is open on this screen the
 // pill shows the apps inside it, as a numbered workspace does, and a click
 // closes it.
 Rectangle {
@@ -27,6 +27,14 @@ Rectangle {
     readonly property int iconSize: root.slotHeight - 8
     // `special:name`, or "" while none is open on this screen.
     readonly property string workspaceName: HyprlandService.specialOn(root.screenName)
+
+    // What the scratchpad is called in Settings → Scratchpads, else "special".
+    readonly property string title: {
+        const name = root.workspaceName.replace(/^special:/, "")
+        const pad = Array.from(SettingsService.overviewScratchpads ?? [])
+            .find(entry => entry.name === name)
+        return pad ? (pad.label || pad.name) : Tr.t("special")
+    }
 
     visible: root.workspaceName !== ""
     implicitHeight: root.slotHeight
@@ -44,7 +52,7 @@ Rectangle {
 
         Text {
             anchors.verticalCenter: parent.verticalCenter
-            text: "special"
+            text: root.title
             font.family: Theme.fontFamily
             font.pixelSize: Theme.fontSizeSmall
             font.weight: Font.DemiBold

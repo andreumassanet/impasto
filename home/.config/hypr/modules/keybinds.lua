@@ -401,17 +401,33 @@ bind("", hl.dsp.global("quickshell:captureText"),   { description = "Shell · Re
 -- combination empty for none). Each is a special workspace: its key shows or
 -- hides it, and starts the command on it first when it holds no window. The
 -- key is the user's choice, so it replaces whatever else holds it.
+--
+-- Done here rather than by a script: a key press costs no process.
 do
+    -- The command as a shell word, started in its own systemd scope under
+    -- UWSM so it does not die with the compositor, and plainly without it.
+    local function start_line(command)
+        local quoted = "'" .. command:gsub("'", "'\\''") .. "'"
+        return "sh -c 'if command -v uwsm-app >/dev/null; then exec uwsm-app -- sh -c \"$1\"; "
+            .. "else exec sh -c \"$1\"; fi' _ " .. quoted
+    end
+
+    local function toggle_scratchpad(name, command)
+        local workspace = hl.get_workspace("special:" .. name)
+        if command ~= "" and (workspace == nil or workspace.windows == 0) then
+            hl.dispatch(hl.dsp.exec_cmd(start_line(command), { workspace = "special:" .. name }))
+        end
+        hl.dispatch(hl.dsp.workspace.toggle_special(name))
+    end
+
     local state = os.getenv("XDG_STATE_HOME") or (os.getenv("HOME") .. "/.local/state")
     local file  = io.open(state .. "/quickshell/scratchpads.tsv")
     if file then
-        local script = os.getenv("HOME") .. "/.config/quickshell/scripts/scratchpad.sh"
         for line in file:lines() do
             local name, combination, label, command = line:match("^([^#\t][^\t]*)\t([^\t]*)\t([^\t]*)\t?(.*)$")
             if name and combination ~= "" then
-                local line_to_run = "'" .. script .. "' '" .. name .. "' '" .. command:gsub("'", "'\\''") .. "'"
                 hl.unbind(combination)
-                hl.bind(combination, hl.dsp.exec_cmd(line_to_run),
+                hl.bind(combination, function() toggle_scratchpad(name, command) end,
                         { description = "Workspaces · Scratchpad " .. (label ~= "" and label or name) })
             end
         end

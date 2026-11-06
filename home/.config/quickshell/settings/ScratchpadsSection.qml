@@ -55,7 +55,7 @@ SettingsSection {
 
     SettingGroup {
         title: Tr.t("Scratchpads")
-        note: Tr.t("Special workspaces you toggle with a key. Each has a name, an icon, a key and what to run.")
+        note: Tr.t("Special workspaces you toggle with a key. Each has a name, an icon, a key and what to run. The bar's special pill takes the label from here.")
         hint: Tr.t("The key opens the scratchpad, or hides it when it is open; when it holds no window, the command starts first. A command is an app, or the path of a script, and runs through the shell, so arguments work. Write the key as Super+Ctrl+M or Super+grave. A key you set here replaces any other bind on it. Leave the command empty for a plain scratchpad you send windows to.")
     }
 
@@ -75,9 +75,18 @@ SettingsSection {
 
             SettingField {
                 label: Tr.t("Icon")
-                reading: Tr.t("One glyph from the icon font, shown on its overview tile")
+                reading: Tr.t("An application's icon name (firefox), the path of an image, or a glyph")
                 value: card.modelData.glyph ?? ""
                 onEdited: value => root.edit(card.index, "glyph", value)
+
+                PadIcon {
+                    anchors.right: parent.right
+                    anchors.rightMargin: 330
+                    anchors.verticalCenter: parent.verticalCenter
+                    value: card.modelData.glyph ?? ""
+                    size: 22
+                    color: Theme.text
+                }
             }
 
             SettingField {
