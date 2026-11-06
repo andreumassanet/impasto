@@ -18,8 +18,8 @@ import "./faces/sticker"
 // registry per family, falling back within that registry for modules without a
 // row; Analogue and Sticker each have a single registry whose faces lay
 // themselves out at any size. Notes always use NoteFace, the spectrum is its
-// bars and the lyrics are LyricsFace in every theme. Faces read their colours
-// from the widget's resolved `ink`.
+// bars, the lyrics are LyricsFace and the devices are DevicesFace in every
+// theme. Faces read their colours from the widget's resolved `ink`.
 Item {
     id: root
 
@@ -42,6 +42,8 @@ Item {
         sourceComponent: {
             if (root.moduleId === "lyrics")
                 return lyrics
+            if (root.moduleId === "devices")
+                return devices
             if (root.analogue)
                 return analogue
             if (root.sticker)
@@ -59,6 +61,11 @@ Item {
     Component {
         id: lyrics
         LyricsFace { family: root.family; ink: root.ink }
+    }
+
+    Component {
+        id: devices
+        DevicesFace { family: root.family; ink: root.ink }
     }
 
     Component {
