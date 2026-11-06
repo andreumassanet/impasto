@@ -221,6 +221,21 @@ knowing first:
   locks
 - <kbd>SUPER</kbd> <kbd>H</kbd> every other key, on the island
 
+### Your own Hyprland changes
+
+Keep them out of `~/.config/hypr/modules/`, where an update would meet them.
+A file in `~/.config/hypr/custom/` named like a module (`keybinds.lua` for
+`modules/keybinds.lua`, and the same for `monitors`, `autostart`, `env`,
+`look`, `animations`, `input` and `windowrules`) is loaded right after it, so
+it can change what the module set. `setup` never writes to `custom/`. To
+change a key, unbind it first:
+
+```lua
+-- ~/.config/hypr/custom/keybinds.lua
+hl.unbind("SUPER + D")
+hl.bind("SUPER + D", hl.dsp.exec_cmd("drawio"), { description = "App: draw.io" })
+```
+
 ## Credits
 
 These are worth your time whether or not you use this repository. No code was
