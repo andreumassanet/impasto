@@ -474,31 +474,51 @@ def get_current_wallpaper():
     return ""
 
 
+def collection_files():
+    """Every file under the wallpapers folder, folders inside it included.
+
+    A collection sorted into folders (by resolution, by theme) is listed as
+    one. Hidden folders are skipped, and links to folders are followed.
+    """
+    for folder, subfolders, names in os.walk(WALLPAPERS_DIR, followlinks=True):
+        subfolders[:] = sorted(name for name in subfolders if not name.startswith("."))
+        for name in sorted(names):
+            if not name.startswith("."):
+                yield folder, name
+
+
+def in_animated_folder(folder):
+    relative = os.path.relpath(folder, WALLPAPERS_DIR)
+    return "animated" in relative.split(os.sep)
+
+
 def list_wallpapers():
     if not os.path.isdir(WALLPAPERS_DIR):
         return []
     entries = []
-    for name in sorted(os.listdir(WALLPAPERS_DIR)):
-        if name.startswith("."):
-            continue
-        path = os.path.join(WALLPAPERS_DIR, name)
-        if os.path.isfile(path) and name.lower().endswith(IMAGE_EXTENSIONS):
+    for folder, name in collection_files():
+        path = os.path.join(folder, name)
+        if (name.lower().endswith(IMAGE_EXTENSIONS) and not in_animated_folder(folder)
+                and os.path.isfile(path)):
             entries.append({"name": pretty_name(name), "path": path})
     return entries
 
 
 def list_animated():
-    # Made here so there is a folder to drop the first video into.
+    # Made here so there is a folder to drop the first video into, when the
+    # collection has no `animated` folder anywhere in it.
     try:
-        os.makedirs(ANIMATED_DIR, exist_ok=True)
+        os.makedirs(WALLPAPERS_DIR, exist_ok=True)
+        if not any(in_animated_folder(folder) for folder, _ in collection_files()):
+            os.makedirs(ANIMATED_DIR, exist_ok=True)
     except OSError:
         return []
     entries = []
-    for name in sorted(os.listdir(ANIMATED_DIR)):
-        path = os.path.join(ANIMATED_DIR, name)
-        if name.startswith(".") or not os.path.isfile(path):
+    for folder, name in collection_files():
+        path = os.path.join(folder, name)
+        if not in_animated_folder(folder) or not name.lower().endswith(MOTION_EXTENSIONS):
             continue
-        if not name.lower().endswith(MOTION_EXTENSIONS):
+        if not os.path.isfile(path):
             continue
         poster = poster_of(path)
         if poster:
