@@ -26,6 +26,9 @@ ColumnLayout {
     // about.
     property string figure: ""
     property color figureColor: Theme.text
+    // Large by default, being the one number the card is about; a card whose
+    // heading is all data sets it to the heading's size.
+    property int figureSize: Theme.cardFigure
 
     default property alias rows: body.data
 
@@ -74,7 +77,7 @@ ColumnLayout {
             visible: root.figure !== ""
             text: root.figure
             font.family: Theme.fontFamily
-            font.pixelSize: Theme.cardFigure
+            font.pixelSize: root.figureSize
             font.weight: Font.DemiBold
             color: root.figureColor
         }
