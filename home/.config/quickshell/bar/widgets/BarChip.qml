@@ -35,6 +35,8 @@ Item {
     property string ownShape: ""
     property string ownFigure: ""
     property string ownWhen: ""
+    // A connected device (`DeviceService`) under the "devices" piece.
+    property var device: null
     readonly property string figure: ModuleService.figureOf(root.ownFigure)
 
     readonly property bool button: ModuleService.isButton(root.moduleId)
@@ -96,6 +98,7 @@ Item {
 
         visible: !root.button
         moduleId: root.button || !ModuleService.shows(root.moduleId, root.ownWhen) ? "" : root.moduleId
+        device: root.device
         shape: ModuleService.shapeOf(root.moduleId, root.ownShape)
         alone: root.alone
         reveal: root.reveal

@@ -21,8 +21,10 @@ import Quickshell.Io
 Singleton {
     id: root
 
-    // 30 minutes.
-    readonly property int pollInterval: 1800000
+    // Minutes between two looks (`SettingsService.updatesCheckMinutes`); 0 is
+    // only when asked.
+    readonly property int pollInterval: SettingsService.updatesCheckMinutes * 60000
+    readonly property string every: SettingsService.periodLabel(SettingsService.updatesCheckMinutes)
 
     property int watchers: 0
     property bool available: false
@@ -77,9 +79,9 @@ Singleton {
     }
 
     readonly property Timer poller: Timer {
-        interval: root.pollInterval
+        interval: Math.max(60000, root.pollInterval)
         repeat: true
-        running: root.watchers > 0
+        running: root.watchers > 0 && root.pollInterval > 0
         onTriggered: root.refresh()
     }
 

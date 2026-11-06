@@ -47,7 +47,9 @@ Singleton {
         { id: "volume",        name: "Volume",        bar: true,  width: Theme.cardWidth, height: Theme.cardHeight(2, 0) },
         { id: "brightness",    name: "Brightness",    bar: true,  width: Theme.cardWidth, height: Theme.cardHeight(1, 0) },
         { id: "network",       name: "Network",       bar: true,  width: Theme.cardWidth, height: Theme.cardHeight(2, 0) },
+        { id: "netspeed",      name: "Network speed", bar: true,  desk: false, width: Theme.cardWidth, height: Theme.cardHeight(3, 154) },
         { id: "bluetooth",     name: "Bluetooth",     bar: true,  width: Theme.cardWidth, height: Theme.cardHeight(3, 0) },
+        { id: "devices",       name: "Devices",       bar: true,  width: Theme.cardWidth, height: Theme.cardHeight(2, 0) },
         { id: "notifications", name: "Notifications", bar: true,  desk: false, width: Theme.cardWidth, height: Theme.cardHeight(7, 0) },
         { id: "weather",       name: "Weather",       bar: true,  width: Theme.cardWidth, height: Theme.cardHeight(0, 50) },
         { id: "markets",       name: "Markets",       bar: true,  width: Theme.cardWidth, height: MarketsService.cardHeight },
@@ -179,10 +181,12 @@ Singleton {
     readonly property var ringed: ["media", "timer", "claude", "codex", "battery", "volume",
         "brightness", "stats", "pet"]
 
-    // A piece's own shape when it has one, the bar's when it does not.
+    // A piece's own shape when it has one, the bar's when it does not. A
+    // device measures too, but only a chip for a device has a ring
+    // (`ChipFace`), so it is not in `ringed`.
     function shapeOf(id: string, own: var): string {
         const chosen = own ? own : SettingsService.chipShape
-        return chosen === "ring" && root.ringed.indexOf(id) >= 0 ? "ring" : "icon"
+        return chosen === "ring" && (root.ringed.indexOf(id) >= 0 || id === "devices") ? "ring" : "icon"
     }
 
     function figureOf(own: var): string {
@@ -198,8 +202,12 @@ Singleton {
         switch (id) {
         case "network":
             return NetworkService.icon
+        case "netspeed":
+            return "󰓅"
         case "bluetooth":
             return BluetoothService.icon
+        case "devices":
+            return "󰂯"
         case "volume":
             return AudioService.icon
         case "brightness":
@@ -270,6 +278,8 @@ Singleton {
             return PetService.hatched ? `Lv ${PetService.level}` : "Egg"
         case "network":
             return NetworkService.connectionName
+        case "netspeed":
+            return `↓ ${StatsService.rate(StatsService.networkDown)}  ↑ ${StatsService.rate(StatsService.networkUp)}`
         case "bluetooth":
             return BluetoothService.summary
         case "calendar":
@@ -291,6 +301,7 @@ Singleton {
             return 150
         case "network":
         case "bluetooth":
+        case "devices":
             return 110
         }
         return 0
@@ -489,6 +500,24 @@ Singleton {
         root.openHost = ""
     }
 
+    // How many lines the network's name takes in the speed card, which wraps it
+    // (at most three). Measured at the card's own type and inner width.
+    readonly property FontMetrics netNameMetrics: FontMetrics {
+        font.family: Theme.fontFamily
+        font.pixelSize: Theme.fontSizeRegular
+        font.weight: Font.DemiBold
+    }
+
+    // The graph block (legend, plot, time axis) and the button, in the speed
+    // card; each sits a row gap and 4 px below what is above it.
+    readonly property int netGraphHeight: 102
+    readonly property int netButtonHeight: 28
+
+    function netNameLines(): int {
+        const room = Theme.cardWidth - 2 * (Theme.cardInset + Theme.cardPadding)
+        return Math.max(1, Math.min(3, Math.ceil(root.netNameMetrics.advanceWidth(NetworkService.connectionName) / (0.9 * room))))
+    }
+
     // The catalogue size, except network and Bluetooth, which open the
     // control centre's lists, an empty notification list, which is short,
     // and the cards whose rows come and go, sized from their count.
@@ -496,11 +525,20 @@ Singleton {
         if (id === "network" || id === "bluetooth")
             return { width: 420, height: 500 }
         const item = root.entry(id)
+        // The name's lines, a line per interface, the totals and the graph.
+        if (id === "netspeed")
+            return { width: item.width,
+                     height: Theme.cardHeight(2 + Math.max(1, SystemMonitorService.addresses.length),
+                                              (Theme.cardRowGap + 4 + root.netGraphHeight)
+                                              + (Theme.cardRowGap + 4 + root.netButtonHeight)
+                                              + (root.netNameLines() - 1) * 17) }
         if (id === "notifications")
             return { width: item.width,
                      height: Theme.cardHeight(Math.min(6, NotificationService.history.length) + 1, 0) }
         if (id === "updates")
             return { width: item.width, height: Theme.cardHeight(Math.min(3, UpdatesService.updates.length) + 1, 0) }
+        if (id === "devices")
+            return { width: item.width, height: Theme.cardHeight(Math.max(1, DeviceService.devices.length), 0) }
         if (id === "games")
             return { width: item.width, height: Theme.cardHeight(Math.min(3, GamesService.ranked.length) + 1, 0) }
         if (id === "notes")
@@ -584,11 +622,19 @@ Singleton {
         case "brightness":
             // A desktop has no backlight, the way it has no battery.
             return BrightnessService.available
+        case "netspeed":
+            // Reading the addresses builds the service, which lists the
+            // interfaces the card is sized from.
+            return SystemMonitorService.addresses !== undefined
         case "network":
             // Disconnected is still a reading.
             return true
         case "bluetooth":
             return BluetoothService.available
+        case "devices":
+            // The pieces are drawn one per device (`BarZone`); with none
+            // connected there is nothing to show or open.
+            return DeviceService.devices.length > 0
         case "weather":
             // Builds the service, which runs its first fetch.
             return WeatherService.available

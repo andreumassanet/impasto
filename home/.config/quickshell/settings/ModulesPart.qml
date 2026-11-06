@@ -86,13 +86,46 @@ ColumnLayout {
         }
     }
 
+    // ── ADDED PIECES ────────────────────────────────────────────────────────
+    //
+    // Pieces that are not on the bar until chosen. A switch places the piece at
+    // the end of its side, with its figure showing, or takes it off, and follows
+    // the layout editor below.
+    SettingGroup {
+        title: Tr.t("Added pieces")
+        note: Tr.t("Extra pieces for the bar, off until you turn them on.")
+        hint: Tr.t("A switch puts the piece at the end of its side of the bar, or takes it off. The layout below moves it anywhere.")
+
+        Repeater {
+            model: [
+                { id: "netspeed", label: "Network speed", side: "left", figure: "on",
+                  note: "Download and upload speed, with a card of the connection." }
+            ]
+
+            SettingRow {
+                id: addedRow
+
+                required property var modelData
+
+                label: Tr.t(addedRow.modelData.label)
+                reading: Tr.t(addedRow.modelData.note)
+
+                ToggleSwitch {
+                    checked: SettingsService.onBar(addedRow.modelData.id)
+                    onToggled: checked => SettingsService.setOnBar(
+                        addedRow.modelData.id, checked, addedRow.modelData.side, addedRow.modelData.figure)
+                }
+            }
+        }
+    }
+
     // ── WHAT THE BAR CARRIES ────────────────────────────────────────────────
     //
     // The editor draws its own surfaces: the bar, and the catalogue under it.
     SettingGroup {
         title: Tr.t("Layout")
         note: Tr.t("Drag a piece from the catalogue onto the bar.")
-        hint: Tr.t("Drop a piece on either half of the bar to place it on that side of the island; drag it along to move it or off the bar to remove it, and click it to give it its own shape and figure. Adjacent modules share a capsule, and a split starts a new one.")
+        hint: Tr.t("Drop a piece on either half of the bar to place it on that side of the island; drag it along to move it or off the bar to remove it, and click it to give it its own shape and figure. Adjacent modules share a capsule, and a split starts a new one. Devices puts a chip on the bar for each connected device that reports a battery, such as a mouse or earbuds.")
         bare: true
 
         LayoutEditor {
