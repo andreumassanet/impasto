@@ -310,11 +310,14 @@ files_in() {
 
 # What a shell-only install copies out of home/: the shell, Hyprland's files
 # but never custom/ (the user's own, which no install writes), the data the
-# shell reads and the command that talks to it.
+# shell reads, its font and file-manager icon, and the command that talks to
+# it with its completion. Wallpapers and the other apps' configs are not.
 shell_part() {
     case $1 in
         .config/hypr/custom|.config/hypr/custom/*) return 1 ;;
         .config/quickshell/*|.config/hypr/*|.local/share/impasto/*|.local/bin/impasto) return 0 ;;
+        .local/share/fonts/GrapeNuts-*|.local/share/icons/hicolor/scalable/apps/impasto-files.svg) return 0 ;;
+        .local/share/zsh/site-functions/_impasto) return 0 ;;
     esac
     return 1
 }
