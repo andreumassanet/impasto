@@ -49,10 +49,22 @@ QtObject {
         return root.perScreen ? Math.max(0, root.screenOrder.indexOf(monitor)) * 10 : 0
     }
 
-    // The number a screen shows a workspace as: its own are numbered from 1,
-    // and another screen's keep their id.
+    // The ten a screen is showing: its own, or, while it is on a workspace
+    // outside them (a further layer of ten, 31-40), that workspace's. Without
+    // this the strip stays on the screen's own ten and the workspace it is on
+    // is nowhere in it.
+    function blockOn(monitor: string): int {
+        const own = root.baseOn(monitor)
+        if (!root.perScreen)
+            return own
+        const active = root.activeOn(monitor)
+        return active > 0 ? Math.floor((active - 1) / 10) * 10 : own
+    }
+
+    // The number a screen shows a workspace as: those of the ten it shows are
+    // numbered from 1, and another screen's keep their id.
     function numberOn(workspaceId: int, monitor: string): int {
-        const own = workspaceId - root.baseOn(monitor)
+        const own = workspaceId - root.blockOn(monitor)
         return own >= 1 && own <= 10 ? own : workspaceId
     }
 
@@ -118,7 +130,7 @@ QtObject {
     function isVisibleOn(workspaceId: int, monitor: string): bool {
         if (!root.perScreen)
             return root.isVisible(workspaceId)
-        const own = workspaceId - root.baseOn(monitor)
+        const own = workspaceId - root.blockOn(monitor)
         if (own >= 1 && own <= root.slots)
             return true
         const used = root.isOccupied(workspaceId) || root.activeOn(monitor) === workspaceId
@@ -134,6 +146,13 @@ QtObject {
     function focus(workspaceId: int): void {
         Hyprland.dispatch(
             `hl.dsp.focus({ workspace = ${workspaceId}, on_current_monitor = true })`)
+    }
+
+    // The special workspace open on a screen (`special:name`), or "" when none
+    // is, or the screen is unknown. From the monitor list the events keep.
+    function specialOn(monitorName: string): string {
+        const monitor = root.monitors.find(candidate => candidate.name === monitorName)
+        return monitor?.specialWorkspace?.name ?? ""
     }
 
     // The screen a workspace is on, or "" for one nobody has made yet.
@@ -246,6 +265,18 @@ QtObject {
     // window closes.
     property bool watchClients: false
 
+    // The same for the workspace strip's app icons, kept apart because the
+    // dock binds `watchClients` and a second binding would undo its own.
+    property bool watchIcons: false
+    readonly property bool clientsWanted: root.watchClients || root.watchIcons
+    onWatchIconsChanged: {
+        if (root.watchIcons)
+            root.loadClients()
+    }
+
+    // The windows on special workspaces, which `clients` leaves out.
+    property var specialClients: []
+
     // Address (`0x…`) of the window with keyboard focus, or "". Not
     // `focusHistoryID == 0`, which stays on the last window after focus moves
     // to an empty workspace. Updated from `activewindowv2`, which sends the
@@ -279,6 +310,8 @@ QtObject {
                     return
                 root.clients = list.filter(client => client.mapped && client.workspace
                     && client.workspace.id > 0)
+                root.specialClients = list.filter(client => client.mapped
+                    && String(client.workspace?.name ?? "").startsWith("special:"))
             }
         }
     }
@@ -289,7 +322,7 @@ QtObject {
         interval: 30
         onTriggered: {
             root.refresh()
-            if (root.watchClients || root.clients.length > 0)
+            if (root.clientsWanted || root.clients.length > 0)
                 root.loadClients()
         }
     }
@@ -466,8 +499,11 @@ QtObject {
             // `WORKSPACEID,WORKSPACENAME,MONITORNAME`: a whole workspace has
             // gone to another screen, so both screens are showing something
             // else now. A screen plugged in is showing one from the start.
+            // `activespecial` (`NAME,MONITOR`, the name empty when it closes)
+            // changes what a screen shows in the same way.
             case "moveworkspace":
             case "moveworkspacev2":
+            case "activespecial":
             case "monitoradded":
             case "monitoraddedv2":
                 root.loadMonitors()
@@ -480,7 +516,7 @@ QtObject {
                 break
             case "activewindowv2":
                 root.focusedAddress = event.data === "" ? "" : `0x${event.data}`
-                if (root.watchClients)
+                if (root.clientsWanted)
                     root.clientsSoon.restart()
                 break
             }
