@@ -310,6 +310,47 @@ ShellRoot {
         onPressed: root.island?.toggle("launcher")
     }
 
+    // ── SUPER ALONE ─────────────────────────────────────────────────────────
+    //
+    // Tap Super for the launcher, hold it for the workspace numbers. Both are
+    // off until a key is set for them (Settings > Keys). `workspaceNumber` is
+    // bound on press and on release of Super itself; `superTap` on the release
+    // of Super with no other key pressed in between, which Hyprland decides.
+    // A tap is short: a held Super that was let go does not open the launcher.
+    readonly property int tapLimit: 600     // ms
+    readonly property int tapMinimum: 40    // programs that send Super chords press and release within a few ms
+
+    GlobalShortcut {
+        name: "workspaceNumber"
+        description: "Show the workspace numbers while Super is held"
+        onPressed: {
+            HyprlandService.superAt = Date.now()
+            HyprlandService.superHeld = true
+        }
+        onReleased: {
+            HyprlandService.superHeld = false
+            superAtClear.restart()
+        }
+    }
+
+    // The release of `superTap` can arrive before or after this one's own.
+    Timer {
+        id: superAtClear
+
+        interval: 250
+        onTriggered: HyprlandService.superAt = 0
+    }
+
+    GlobalShortcut {
+        name: "superTap"
+        description: "Open the launcher when Super is tapped"
+        onPressed: {
+            const held = Date.now() - HyprlandService.superAt
+            if (HyprlandService.superAt === 0 || (held >= root.tapMinimum && held < root.tapLimit))
+                root.island?.toggle("launcher")
+        }
+    }
+
     // ── LID ─────────────────────────────────────────────────────────────────
     //
     // Handled here rather than with `switch:` binds in Lua. MonitorService's

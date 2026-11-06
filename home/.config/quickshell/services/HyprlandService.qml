@@ -63,6 +63,15 @@ QtObject {
                    ...root.named.map(workspace => workspace.id))
         : root.maximum
 
+    // ── SUPER ───────────────────────────────────────────────────────────────
+    //
+    // Whether Super is down, and when it went down (0 when nothing is bound to
+    // report it). Fed by the `workspaceNumber` shortcut; the workspace strip
+    // shows every number while it is true, and a quick `superTap` after it
+    // opens the launcher.
+    property bool superHeld: false
+    property real superAt: 0
+
     property int activeId: 1
     property var occupiedIds: []
 
@@ -134,6 +143,13 @@ QtObject {
     function focus(workspaceId: int): void {
         Hyprland.dispatch(
             `hl.dsp.focus({ workspace = ${workspaceId}, on_current_monitor = true })`)
+    }
+
+    // The special workspace open on a screen (`special:name`), or "" when none
+    // is, or the screen is unknown. From the monitor list the events keep.
+    function specialOn(monitorName: string): string {
+        const monitor = root.monitors.find(candidate => candidate.name === monitorName)
+        return monitor?.specialWorkspace?.name ?? ""
     }
 
     // The screen a workspace is on, or "" for one nobody has made yet.
@@ -246,6 +262,18 @@ QtObject {
     // window closes.
     property bool watchClients: false
 
+    // The same for the workspace strip's app icons, kept apart because the
+    // dock binds `watchClients` and a second binding would undo its own.
+    property bool watchIcons: false
+    readonly property bool clientsWanted: root.watchClients || root.watchIcons
+    onWatchIconsChanged: {
+        if (root.watchIcons)
+            root.loadClients()
+    }
+
+    // The windows on special workspaces, which `clients` leaves out.
+    property var specialClients: []
+
     // Address (`0x…`) of the window with keyboard focus, or "". Not
     // `focusHistoryID == 0`, which stays on the last window after focus moves
     // to an empty workspace. Updated from `activewindowv2`, which sends the
@@ -279,6 +307,8 @@ QtObject {
                     return
                 root.clients = list.filter(client => client.mapped && client.workspace
                     && client.workspace.id > 0)
+                root.specialClients = list.filter(client => client.mapped
+                    && String(client.workspace?.name ?? "").startsWith("special:"))
             }
         }
     }
@@ -289,7 +319,7 @@ QtObject {
         interval: 30
         onTriggered: {
             root.refresh()
-            if (root.watchClients || root.clients.length > 0)
+            if (root.clientsWanted || root.clients.length > 0)
                 root.loadClients()
         }
     }
@@ -466,8 +496,11 @@ QtObject {
             // `WORKSPACEID,WORKSPACENAME,MONITORNAME`: a whole workspace has
             // gone to another screen, so both screens are showing something
             // else now. A screen plugged in is showing one from the start.
+            // `activespecial` (`NAME,MONITOR`, the name empty when it closes)
+            // changes what a screen shows in the same way.
             case "moveworkspace":
             case "moveworkspacev2":
+            case "activespecial":
             case "monitoradded":
             case "monitoraddedv2":
                 root.loadMonitors()
@@ -480,7 +513,7 @@ QtObject {
                 break
             case "activewindowv2":
                 root.focusedAddress = event.data === "" ? "" : `0x${event.data}`
-                if (root.watchClients)
+                if (root.clientsWanted)
                     root.clientsSoon.restart()
                 break
             }
