@@ -187,6 +187,10 @@ Usage: ./setup <command> [options]
   splash      the boot splash: chooses the theme, adds splash to the kernel
               command line and rebuilds the initramfs (asks for a password)
 
+  report      what a shell-only install leaves out, and what that costs: the
+              missing packages, the files not installed, the extras not run,
+              written to ~/impasto-shell-only-report.md (also at the end of
+              every shell-only install and update)
   files       the installed files you have edited or deleted, and each one
               put back: files [list | restore | reset | keep] [path…], paths
               as list prints them, under $HOME
@@ -993,6 +997,132 @@ verb_plugins() {
     act rm -f "$PLUGINS_PENDING"
 }
 
+# ── REPORT ──────────────────────────────────────────────────────────────────
+#
+# A shell-only install leaves most of impasto out on purpose, and some of the
+# shell's features lean on what it left out. This writes down which, so
+# nothing is found by clicking a button that does nothing.
+
+REPORT=${IMPASTO_REPORT:-$HOME/impasto-shell-only-report.md}
+
+# The entries of a package list as `section<TAB>package<TAB>what it is for`,
+# for those not installed. A section is a `# ── NAME ──` line.
+missing_entries() {
+    local file=$1 line section= package comment
+    local -a entries=() wanted=()
+    while IFS= read -r line; do
+        if [[ $line =~ ^#\ ──\ (.+)\ ─+$ ]]; then section=${BASH_REMATCH[1]}; continue; fi
+        [[ $line =~ ^[[:space:]]*([A-Za-z0-9@._+-]+)[[:space:]]*(#[[:space:]]*(.*))?$ ]] || continue
+        package=${BASH_REMATCH[1]} comment=${BASH_REMATCH[3]:-}
+        entries+=("$section"$'\t'"$package"$'\t'"$comment")
+        wanted+=("$package")
+    done < "$file"
+    (( ${#wanted[@]} )) || return 0
+    local -A absent=()
+    while IFS= read -r package; do absent[$package]=1; done < <(pacman -T "${wanted[@]}" || true)
+    for line in "${entries[@]}"; do
+        package=${line#*$'\t'}; package=${package%%$'\t'*}
+        if [[ -n ${absent[$package]:-} ]]; then printf '%s\n' "$line"; fi
+    done
+}
+
+# `home/` or `system/` files a shell-only install skipped, grouped by where
+# they would have landed.
+skipped_groups() {
+    local tree=$1 rel group
+    local -A count=()
+    while IFS= read -r rel; do
+        if [[ $tree == home ]] && shell_part "$rel"; then continue; fi
+        case $rel in
+            .config/hypr/custom|.config/hypr/custom/*) continue ;;
+        esac
+        group=$(printf '%s' "$rel" | awk -F/ '{ n = ($1 == ".local" || $1 == "usr") ? 3 : (($1 == ".config" || $1 == "etc") ? 2 : 1); out = $1; for (i = 2; i <= n && i <= NF; i++) out = out "/" $i; print out }')
+        count[$group]=$(( ${count[$group]:-0} + 1 ))
+    done < <(files_in "$tree")
+    for group in "${!count[@]}"; do printf '%s\t%s\n' "$group" "${count[$group]}"; done | sort
+}
+
+verb_report() {
+    section report
+    if (( DRY )); then say "would write $REPORT"; return 0; fi
+    local line section package comment last
+    {
+        printf '# Impasto, shell only: what is missing\n\n'
+        printf 'Written by `./setup report` on %s, for the install in `%s` (version %s).\n\n' \
+            "$(date '+%Y-%m-%d %H:%M')" "$REPO" "$(version)"
+        printf 'A **shell-only** install (`--shell-only`) puts the shell and Hyprland'"'"'s own files in place and nothing else: no packages, nothing under `/`, no other program'"'"'s config, no plugins and none of the extras. That keeps it out of a desk that already has its own setup, and it means the features below need something that is not there. Each one **disables itself or degrades** until you add it.\n\n'
+        printf 'To get all of it: `./setup install --full`. To add one thing: the command beside it.\n\n'
+
+        for list in pacman aur; do
+            if [[ $list == pacman ]]; then
+                printf '## Missing packages (official repositories)\n\n'
+            else
+                printf '## Missing packages (AUR, all optional)\n\n'
+            fi
+            last=
+            local any=0
+            while IFS=$'\t' read -r section package comment; do
+                any=1
+                if [[ $section != "$last" ]]; then printf '\n### %s\n\n' "${section:-Other}"; last=$section; fi
+                printf -- '- `%s`%s\n' "$package" "${comment:+ — $comment}"
+            done < <(missing_entries "$REPO/packages/$list.txt")
+            (( any )) || printf 'None: everything on the list is installed.\n'
+            if [[ $list == pacman ]]; then
+                printf '\nInstall them: `./setup packages`, or `sudo pacman -S --needed <names>`.\n\n'
+            else
+                printf '\nInstall them: `./setup packages` (uses yay or paru).\n\n'
+            fi
+        done
+
+        printf '## Left out of $HOME\n\n'
+        printf 'Other programs'"'"' configs and data that `./setup sync --full` would copy (the files are in the repository, only not installed):\n\n'
+        while IFS=$'\t' read -r package comment; do
+            printf -- '- `~/%s` — %s file(s)\n' "$package" "$comment"
+        done < <(skipped_groups home)
+        printf '\nThe bundled **wallpapers** are among them: without them the settings'"'"' profile previews show empty frames, and the wallpaper picker lists only what is in `~/.local/share/wallpapers`.\n\n'
+
+        printf '## Left out of `/`\n\n'
+        while IFS=$'\t' read -r package comment; do
+            printf -- '- `/%s` — %s file(s)\n' "$package" "$comment"
+        done < <(skipped_groups system)
+        printf '\nThese are the login screen (greeter and its theme), the PAM rules for the lock screen and face unlock, the boot splash, and system units. Without them: the lock screen works with a password only, no impasto greeter, no splash. Install: `./setup system` (asks for a password).\n\n'
+
+        printf '## Hyprland plugins\n\n'
+        if command -v hyprpm >/dev/null 2>&1 && hyprpm list 2>/dev/null | grep -qi 'hyprglass'; then
+            printf 'Built.\n\n'
+        else
+            printf 'Not built: **hyprglass** (the glass windows and refraction, Settings → Windows) and **dynamic-cursors** (shake to find the pointer). Build: `./setup plugins`.\n\n'
+        fi
+
+        printf '## Extras, each once\n\n'
+        printf '| Extra | What it gives | State | Command |\n|---|---|---|---|\n'
+        local entry state
+        for entry in \
+            'defaults|What opens which file, dark GTK with the impasto icons' \
+            'cursors|The vector cursor in the chosen colour' \
+            'spotify|Spotify patched to take the palette (needs spicetify)' \
+            'vscodium|The editor'"'"'s extensions and settings' \
+            'nautilus|The file manager'"'"'s settings and sidebar' \
+            'vesktop|The palette'"'"'s theme ticked in Vencord' \
+            'face|Unlock the lock screen with your face (needs an infrared camera)' \
+            'camera|Webcam effects and gesture reactions (virtual camera and models)' \
+            'splash|The boot splash (rebuilds the initramfs)'; do
+            package=${entry%%|*} comment=${entry#*|}
+            if applied "$package"; then state=done; else state='not run'; fi
+            printf '| %s | %s | %s | `./setup %s` |\n' "$package" "$comment" "$state" "$package"
+        done
+        printf '\n'
+
+        printf '## What this means in the shell\n\n'
+        printf -- '- **Capture and recording** need `satty`, `tesseract`, `wf-recorder` (or `wl-screenrec`): the annotate and read-text destinations and the recorder are off without them.\n'
+        printf -- '- **Night light, colour picker, update count, power profile, battery and brightness** each need their package from the quick-controls list above.\n'
+        printf -- '- **Camera effects, face unlock, virtual machines, themed apps** are the extras and `quickemu` above; their panels are hidden or empty until installed.\n'
+        printf -- '- **Icons and type**: without `papirus-icon-theme`, `whitesur-icon-theme` and the font packages, application icons and glyphs fall back to what the system has.\n'
+        printf -- '- **Your own config** (`~/.config/hypr/custom/`) is never touched by any install: nothing here changes it.\n'
+    } > "$REPORT"
+    say "wrote $REPORT"
+}
+
 verb_install() {
     SECONDS=0
     load_install_mode
@@ -1007,6 +1137,7 @@ verb_install() {
     fi
     verb_sync
     save_install_mode
+    if (( SHELL_ONLY )); then verb_report; fi
     if (( ! SKIP_SYSTEM )); then verb_system; fi
     if (( ! SKIP_PLUGINS )); then verb_plugins; fi
     if (( ! SKIP_EXTRAS )); then extras; fi
@@ -1869,6 +2000,7 @@ main() {
         face)      verb_face ;;
         camera)    verb_camera ;;
         splash)    verb_splash ;;
+        report)    verb_report ;;
         files)     verb_files ;;
         check)     verb_check ;;
         help|-h|--help) usage ;;
