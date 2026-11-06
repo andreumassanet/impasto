@@ -155,6 +155,8 @@ up the login screen, the plugins and the programs around the shell. Run
 | `--skip-system` | leave `/` alone — no login screen, no printing, and no password for it |
 | `--skip-plugins` | no shake to find, no glass |
 | `--skip-extras` | leave Nautilus, VSCodium, Vesktop, Spotify, GTK, face unlock, the camera and the boot splash alone |
+| `--shell-only` | only the shell and Hyprland: `~/.config/quickshell`, `~/.config/hypr` (never its `custom/` folder), the shell's data and the `impasto` command. No packages, no `/`, no other program's config. Remembered, so `update` and `sync` keep to it |
+| `--full` | everything again, and forget `--shell-only` |
 | `--aur-helper yay\|paru` | which helper builds the AUR half — built from the AUR if you have neither |
 | `--noconfirm` | take the default at every question |
 | `-n`, `--dry-run` | say what would happen, and do none of it |
