@@ -741,24 +741,6 @@ FocusScope {
 
             DashCard {
                 title: WeatherService.place !== "" ? `Now · ${WeatherService.place}, ${WeatherService.region}` : "Now"
-                corner: [
-                    Text {
-                        anchors.verticalCenter: parent.verticalCenter
-                        text: WeatherService.refreshing ? Tr.t("Syncing…")
-                            : WeatherService.available
-                                ? `${Tr.t("Read")} ${WeatherService.age} · ${Tr.t(SettingsService.periodLabel(SettingsService.weatherRefreshMinutes)).toLowerCase()}`
-                                : ""
-                        font.family: Theme.fontFamily
-                        font.pixelSize: Theme.fontSizeLabel
-                        color: Theme.textMuted
-                    },
-                    PillButton {
-                        text: Tr.t("Sync now")
-                        icon: "󰑐"
-                        enabled: !WeatherService.refreshing
-                        onClicked: WeatherService.refresh()
-                    }
-                ]
                 Layout.row: 0
                 Layout.column: 0
                 Layout.columnSpan: 2
@@ -935,6 +917,26 @@ FocusScope {
 
             DashCard {
                 title: "Next hours"
+                // The sync state and button live here: the corner of the card
+                // above is the facts' tiles' neighbour, this one has room.
+                corner: [
+                    Text {
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: WeatherService.refreshing ? Tr.t("Syncing…")
+                            : WeatherService.available
+                                ? `${Tr.t("Read")} ${WeatherService.age} · ${Tr.t(SettingsService.periodLabel(SettingsService.weatherRefreshMinutes)).toLowerCase()}`
+                                : ""
+                        font.family: Theme.fontFamily
+                        font.pixelSize: Theme.fontSizeLabel
+                        color: Theme.textMuted
+                    },
+                    PillButton {
+                        text: Tr.t("Sync now")
+                        icon: "󰑐"
+                        enabled: !WeatherService.refreshing
+                        onClicked: WeatherService.refresh()
+                    }
+                ]
                 Layout.row: 1
                 Layout.column: 0
                 Layout.columnSpan: 2
