@@ -91,6 +91,7 @@ Singleton {
     readonly property alias recorderAudio: config.recorderAudio
     readonly property alias captureShape: config.captureShape
     readonly property alias captureKind: config.captureKind
+    readonly property alias captureScreens: config.captureScreens
     readonly property alias notesHandwriting: config.notesHandwriting
     readonly property alias deckOnEmpty: config.deckOnEmpty
     readonly property alias spectrumOnEmpty: config.spectrumOnEmpty
@@ -346,7 +347,7 @@ Singleton {
         "doNotDisturb", "nightLight", "nightTemperature", "barHidden", "desktopHidden",
         "gameMode", "powerTileProfile",
         "cameraEnabled", "cameraEffect", "cameraReactions",
-        "recorderAudio", "captureShape", "captureKind"
+        "recorderAudio", "captureShape", "captureKind", "captureScreens"
     ]
 
     // A Store never read from disk: its initialisers are the defaults.
@@ -660,6 +661,9 @@ Singleton {
         // destination is not stored: it resets to saving a file.
         property string captureShape: "region"
         property string captureKind: "photo"
+        // "all": the capture surface opens on every screen; "focused": on the
+        // one with the keyboard.
+        property string captureScreens: "focused"
 
         // Note bodies in the handwriting font instead of the UI font.
         property bool notesHandwriting: true
