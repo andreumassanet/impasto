@@ -448,6 +448,47 @@ ShellRoot {
         onPressed: SettingsService.set("desktopHidden", !SettingsService.desktopHidden)
     }
 
+    // Arranging the desktop widgets: drag, resize, add and remove.
+    GlobalShortcut {
+        name: "widgetsEdit"
+        description: "Arrange the desktop widgets"
+        onPressed: DesktopService.edit(!DesktopService.editing)
+    }
+
+    GlobalShortcut {
+        name: "media"
+        description: "Open the media panel"
+        onPressed: root.island?.toggle("player")
+    }
+
+    // Wi-Fi first; with connectivityTabs the other two are a tab away.
+    GlobalShortcut {
+        name: "connectivity"
+        description: "Open Wi-Fi, Bluetooth and Sound"
+        onPressed: root.island?.toggle("wifi")
+    }
+
+    // The application grid; the island's launcher when there is no drawer.
+    GlobalShortcut {
+        name: "apps"
+        description: "Open the application grid"
+        onPressed: {
+            if (SettingsService.launcherDesign === "island") {
+                root.island?.toggle("launcher")
+                return
+            }
+            root.island?.close()
+            DrawerService.openLauncher("apps", "")
+        }
+    }
+
+    // Closes the notification on the island, telling its application.
+    GlobalShortcut {
+        name: "dismissNotification"
+        description: "Dismiss the notification"
+        onPressed: NotificationService.close()
+    }
+
     GlobalShortcut {
         name: "game"
         description: "Turn game mode on or off"
