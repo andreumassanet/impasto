@@ -171,6 +171,26 @@ Nothing is linked: `setup` copies, keeps a backup of anything in the way, and
 never overwrites a file you edited.
 
 <details>
+<summary><b>Your own Hyprland changes</b></summary>
+<br>
+
+A file in `~/.config/hypr/custom/` named like a module in
+`~/.config/hypr/modules/` is loaded right after it, so it can change what the
+module set, and `setup update` never touches it. A file that is not there is
+skipped.
+
+```lua
+-- ~/.config/hypr/custom/keybinds.lua
+hl.bind("SUPER + D", hl.dsp.exec_cmd("drawio"), { description = "App: draw.io" })
+```
+
+The modules are `monitors`, `autostart`, `env`, `look`, `animations`,
+`input`, `keybinds` and `windowrules`. To change an existing key, use
+Settings → Keys instead.
+
+</details>
+
+<details>
 <summary><b>Components</b></summary>
 <br>
 
