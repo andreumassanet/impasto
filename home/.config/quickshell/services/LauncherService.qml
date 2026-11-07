@@ -263,7 +263,46 @@ QtObject {
 
         // Every match: the panel caps its visible height at `maxResults`
         // rows and the rest scrolls, as the doors' list does.
-        return root.rank(term)
+        const applications = root.rank(term)
+        return SettingsService.launcherFallbacks
+            ? applications.concat(root.fallbacks(raw)) : applications
+    }
+
+    // ── FALLBACK ROWS ───────────────────────────────────────────────────────
+    //
+    // Under the applications, when `launcherFallbacks` is on: open what looks
+    // like an address, search the web, or run the text as a command, in the
+    // background or in a terminal that stays open. Each row carries its
+    // `argv`, not a function, which a model would drop on the way to a click.
+    readonly property string defaultSearchUrl: "https://www.google.com/search?q="
+
+    // Optional scheme, a dotted host, optional port and path, no spaces.
+    readonly property var addressPattern: /^(https?:\/\/)?[\w-]+(\.[\w-]+)+(:\d+)?(\/\S*)?$/
+
+    function fallbacks(text: string): var {
+        const query = text.trim()
+        if (query === "")
+            return []
+        const searchUrl = SettingsService.launcherSearchUrl || root.defaultSearchUrl
+        const searchHost = (searchUrl.match(/^https?:\/\/([^\/?#]+)/) ?? [])[1] ?? ""
+        const rows = []
+        if (root.addressPattern.test(query))
+            rows.push({ kind: "command", id: "open", icon: "󰖟",
+                        name: Tr.t("Open %1").arg(query), subtitle: Tr.t("In the browser"),
+                        argv: ["xdg-open", /^https?:\/\//.test(query) ? query : `https://${query}`] })
+        rows.push({ kind: "command", id: "web", icon: "󰜏",
+                    name: Tr.t("Search the web for “%1”").arg(query),
+                    subtitle: searchHost || Tr.t("Web search"),
+                    argv: ["xdg-open", searchUrl + encodeURIComponent(query)] })
+        rows.push({ kind: "command", id: "run", icon: "󰆍",
+                    name: Tr.t("Run %1").arg(query), subtitle: Tr.t("As a command, in the background"),
+                    argv: ["sh", "-c", query] })
+        // The command is an argument, never part of the script; `--hold`
+        // keeps the window and its output once it ends.
+        rows.push({ kind: "command", id: "terminal", icon: "󰞷",
+                    name: Tr.t("Run %1 in a terminal").arg(query), subtitle: Tr.t("Stays open at the end"),
+                    argv: ["kitty", "--hold", "sh", "-c", query] })
+        return rows
     }
 
     // All applications matching `term`, sorted by:
@@ -484,6 +523,8 @@ QtObject {
             ClipboardService.copy(entry.id)
         else if (entry.kind === "emoji")
             EmojiService.copy(entry.item)
+        else if (entry.kind === "command")
+            Quickshell.execDetached(entry.argv)
         // `panel` and `mode` entries are handled by the launcher panel: the
         // service does not know about the island, and a mode row keeps the
         // launcher open.

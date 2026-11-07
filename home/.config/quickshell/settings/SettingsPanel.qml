@@ -70,7 +70,7 @@ Item {
           tabs: [{ id: "results", label: Tr.t("Results") },
                  { id: "sigils", label: Tr.t("Sigils") },
                  { id: "clipboard", label: Tr.t("Clipboard") }],
-          keywords: "launcher search apps results calculate run window timer note task board prefix sigil order recent frequency clipboard history copy paste images wipe lock",
+          keywords: "launcher search apps results fallback fallbacks web address url browser terminal command calculate run window timer note task board prefix sigil order recent frequency clipboard history copy paste images wipe lock",
           page: launcherPage },
 
         { id: "dock", category: "shell", icon: "󱂩", label: Tr.t("Dock"),

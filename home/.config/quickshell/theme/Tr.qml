@@ -692,6 +692,22 @@ QtObject {
             "No animated wallpapers yet. Videos in ~/.local/share/wallpapers/animated show up here.":
                 "Aún no hay fondos animados. Los vídeos que pongas en ~/.local/share/wallpapers/animated aparecen aquí.",
             "Apps": "Aplicaciones",
+            "Open %1": "Abrir %1",
+            "In the browser": "En el navegador",
+            "Search the web for “%1”": "Buscar «%1» en la web",
+            "Web search": "Búsqueda web",
+            "Run %1": "Ejecutar %1",
+            "As a command, in the background": "Como comando, en segundo plano",
+            "Run %1 in a terminal": "Ejecutar %1 en una terminal",
+            "Stays open at the end": "Queda abierta al terminar",
+            "Fallbacks": "Alternativas",
+            "Rows under the applications that act on the text as typed.": "Filas bajo las aplicaciones que actúan sobre el texto escrito.",
+            "Open an address, search the web, run the text as a command, or run it in a terminal that stays open. Only in the plain-text mode; a command runs as soon as its row is chosen.": "Abrir una dirección, buscar en la web, ejecutar el texto como comando o en una terminal que queda abierta. Solo en el modo de texto normal; un comando se ejecuta en cuanto eliges su fila.",
+            "Offer fallback rows": "Ofrecer alternativas",
+            "Open, search, run": "Abrir, buscar, ejecutar",
+            "Applications only": "Solo aplicaciones",
+            "Web search address": "Dirección de búsqueda web",
+            "The text is added at the end, encoded": "El texto se añade al final, codificado",
 
             "Clipboard history": "Historial del portapapeles",
             "Everything copied, searchable from the launcher.":
