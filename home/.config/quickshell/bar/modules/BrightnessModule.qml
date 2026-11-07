@@ -66,10 +66,10 @@ Item {
         id: detail
 
         ModuleCard {
-            title: "Brightness"
+            title: Tr.t("Brightness")
             subtitle: BrightnessService.several
-                ? `${BrightnessService.dimmable.length} screens`
-                : "One screen"
+                ? Tr.t("%1 screens").arg(BrightnessService.dimmable.length)
+                : Tr.t("One screen")
             figure: `${BrightnessService.percent}%`
 
             Component.onCompleted: BrightnessService.refresh()

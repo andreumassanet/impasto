@@ -70,8 +70,8 @@ Card {
         Text {
             Layout.fillWidth: true
             text: WeatherService.available
-                ? `${WeatherService.description}  ·  feels ${WeatherService.feelsLike}°`
-                : "No reading"
+                ? Tr.t("%1  ·  feels %2°").arg(WeatherService.description).arg(WeatherService.feelsLike)
+                : Tr.t("No reading")
             elide: Text.ElideRight
             font.family: Theme.fontFamily
             font.pixelSize: Theme.fontSizeSmall
@@ -148,8 +148,8 @@ Card {
                 Text {
                     Layout.fillWidth: true
                     text: WeatherService.available
-                        ? `${WeatherService.description}  ·  feels ${WeatherService.feelsLike}°`
-                        : "No reading"
+                        ? Tr.t("%1  ·  feels %2°").arg(WeatherService.description).arg(WeatherService.feelsLike)
+                        : Tr.t("No reading")
                     elide: Text.ElideRight
                     font.family: Theme.fontFamily
                     font.pixelSize: Theme.fontSizeSmall

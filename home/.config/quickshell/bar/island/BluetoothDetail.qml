@@ -91,8 +91,8 @@ ColumnLayout {
             Text {
                 Layout.fillWidth: true
                 text: BluetoothService.enabled
-                    ? (BluetoothService.discovering ? "Looking for devices…" : BluetoothService.summary)
-                    : "Adapter off"
+                    ? (BluetoothService.discovering ? Tr.t("Looking for devices…") : BluetoothService.summary)
+                    : Tr.t("Adapter off")
                 elide: Text.ElideRight
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.fontSizeSmall
@@ -115,7 +115,7 @@ ColumnLayout {
         visible: root.listed.length === 0
         horizontalAlignment: Text.AlignHCenter
         verticalAlignment: Text.AlignVCenter
-        text: BluetoothService.enabled ? "Nothing found yet" : "Turn Bluetooth on to see devices"
+        text: BluetoothService.enabled ? Tr.t("Nothing found yet") : Tr.t("Turn Bluetooth on to see devices")
         font.family: Theme.fontFamily
         font.pixelSize: Theme.fontSizeSmall
         color: Theme.textMuted
@@ -181,10 +181,10 @@ ColumnLayout {
                     Text {
                         Layout.fillWidth: true
                         text: {
-                            if (entry.modelData.pairing) return "Pairing…"
+                            if (entry.modelData.pairing) return Tr.t("Pairing…")
                             const bits = []
-                            bits.push(entry.modelData.connected ? "Connected"
-                                : (entry.modelData.paired ? "Paired" : "Available"))
+                            bits.push(Tr.t(entry.modelData.connected ? "Connected"
+                                : (entry.modelData.paired ? "Paired" : "Available")))
                             if (entry.modelData.batteryAvailable)
                                 bits.push(`${Math.round(entry.modelData.battery * 100)}%`)
                             return bits.join(" · ")
@@ -236,8 +236,8 @@ ColumnLayout {
 
             Text {
                 text: BluetoothService.unnamedCount === 1
-                    ? "1 unnamed device nearby"
-                    : `${BluetoothService.unnamedCount} unnamed devices nearby`
+                    ? Tr.t("1 unnamed device nearby")
+                    : Tr.t("%1 unnamed devices nearby").arg(BluetoothService.unnamedCount)
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.fontSizeLabel
                 color: unnamedMouse.containsMouse ? Theme.text : Theme.textMuted

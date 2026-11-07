@@ -63,14 +63,14 @@ Singleton {
         if (!root.available)
             return ""
         if (root.full)
-            return "Fully charged"
+            return Tr.t("Fully charged")
         const seconds = root.charging ? root.secondsToFull : root.secondsToEmpty
         if (seconds <= 0)
-            return root.charging ? "Charging" : ""
+            return root.charging ? Tr.t("Charging") : ""
         const hours = Math.floor(seconds / 3600)
         const minutes = Math.round((seconds % 3600) / 60)
         const span = hours > 0 ? `${hours} h ${minutes} min` : `${minutes} min`
-        return root.charging ? `${span} to full` : `${span} left`
+        return root.charging ? Tr.t("%1 to full").arg(span) : Tr.t("%1 left").arg(span)
     }
 
     // ── DETAILS ─────────────────────────────────────────────────────────────
@@ -93,10 +93,10 @@ Singleton {
         if (!root.available)
             return ""
         if (root.full)
-            return "Full"
+            return Tr.t("Full")
         if (root.charging)
-            return "Charging"
-        return "On battery"
+            return Tr.t("Charging")
+        return Tr.t("On battery")
     }
 
     readonly property string icon: {
