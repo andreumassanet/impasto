@@ -97,6 +97,7 @@ Singleton {
     readonly property alias workspaceCount: config.workspaceCount
     readonly property alias workspaceMax: config.workspaceMax
     readonly property alias workspaceMode: config.workspaceMode
+    readonly property alias workspaceNumbers: config.workspaceNumbers
     readonly property alias workspaceStyle: config.workspaceStyle
     readonly property alias workspaceApps: config.workspaceApps
     readonly property alias motionScale: config.motionScale
@@ -679,6 +680,9 @@ Singleton {
         // `shared`: every screen shares the same workspaces. `screen`: each
         // has ten of its own, the main screen 1–10 and the rest after it.
         property string workspaceMode: "shared"
+        // "block": a screen numbers its own ten from 1; "real": every workspace
+        // shows its own number, so 23 reads as 23.
+        property string workspaceNumbers: "block"
         // How the strip draws each workspace: a shape (`dots`, `bars`, `rings`)
         // or its number written out (`numbers`, `roman`, `kanji`, `greek`).
         property string workspaceStyle: "dots"

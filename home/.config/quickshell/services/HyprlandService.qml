@@ -49,9 +49,12 @@ QtObject {
         return root.perScreen ? Math.max(0, root.screenOrder.indexOf(monitor)) * 10 : 0
     }
 
-    // The number a screen shows a workspace as: its own are numbered from 1,
-    // and another screen's keep their id.
+    // The number a screen shows a workspace as. By default its own are numbered
+    // from 1 and another screen's keep their id; with `workspaceNumbers` set to
+    // "real", every workspace shows its own number.
     function numberOn(workspaceId: int, monitor: string): int {
+        if (SettingsService.workspaceNumbers === "real")
+            return workspaceId
         const own = workspaceId - root.baseOn(monitor)
         return own >= 1 && own <= 10 ? own : workspaceId
     }
