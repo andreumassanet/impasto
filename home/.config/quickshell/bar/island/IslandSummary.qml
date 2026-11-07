@@ -201,12 +201,10 @@ Item {
             font.pixelSize: Math.round(slot.width * 0.82)
         }
 
-        WeatherIcon {
-            anchors.centerIn: parent
+        Glyph {
             visible: root.face === "weather"
-            name: WeatherService.icon
-            glyph: WeatherService.glyph
-            size: Math.round(slot.width * 0.9)
+            text: WeatherService.glyph
+            font.pixelSize: Math.round(slot.width * 0.86)
         }
 
         Row {

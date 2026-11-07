@@ -73,7 +73,6 @@ ToggleSwitch     1.0 components/ToggleSwitch.qml
 SegmentedControl 1.0 components/SegmentedControl.qml
 SettingRow       1.0 components/SettingRow.qml
 RingIndicator    1.0 components/RingIndicator.qml
-WeatherIcon      1.0 components/WeatherIcon.qml
 ContributionGrid 1.0 components/ContributionGrid.qml
 Sparkline        1.0 components/Sparkline.qml
 UsageBars        1.0 components/UsageBars.qml

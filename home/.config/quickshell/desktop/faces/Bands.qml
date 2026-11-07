@@ -101,11 +101,12 @@ Item {
             readingSize: Theme.fontSizeDisplay
             extraShare: 0.55
 
-            WeatherIcon {
+            Text {
                 anchors.centerIn: parent
-                name: WeatherService.available ? WeatherService.icon : ""
-                glyph: WeatherService.available ? WeatherService.glyph : ""
-                size: 40
+                text: WeatherService.available ? WeatherService.glyph : "󰅤"
+                font.family: Theme.fontMono
+                font.pixelSize: 34
+                color: root.ink.text
             }
 
             extra: [
@@ -141,11 +142,12 @@ Item {
                                     color: root.ink.muted
                                 }
 
-                                WeatherIcon {
+                                Text {
                                     anchors.horizontalCenter: parent.horizontalCenter
-                                    name: block.modelData.icon ?? ""
-                                    glyph: block.modelData.glyph
-                                    size: 28
+                                    text: block.modelData.glyph
+                                    font.family: Theme.fontMono
+                                    font.pixelSize: 24
+                                    color: root.ink.text
                                 }
 
                                 Text {

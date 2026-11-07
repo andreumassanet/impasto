@@ -75,11 +75,12 @@ Item {
                 ? `${WeatherService.description} · ${Tr.t("feels %1°").arg(WeatherService.feelsLike)} · ${WeatherService.high}° / ${WeatherService.low}°`
                 : `${Tr.t("feels %1°").arg(WeatherService.feelsLike)} · ${WeatherService.high}° / ${WeatherService.low}°`
 
-            WeatherIcon {
+            Text {
                 anchors.centerIn: parent
-                name: WeatherService.available ? WeatherService.icon : ""
-                glyph: WeatherService.available ? WeatherService.glyph : ""
-                size: 40
+                text: WeatherService.available ? WeatherService.glyph : "󰅤"
+                font.family: Theme.fontMono
+                font.pixelSize: 34
+                color: root.ink.text
             }
 
             body: [
@@ -121,11 +122,12 @@ Item {
                                         color: root.ink.muted
                                     }
 
-                                    WeatherIcon {
+                                    Text {
                                         anchors.horizontalCenter: parent.horizontalCenter
-                                        name: block.modelData.icon ?? ""
-                                        glyph: block.modelData.glyph
-                                        size: 30
+                                        text: block.modelData.glyph
+                                        font.family: Theme.fontMono
+                                        font.pixelSize: 26
+                                        color: root.ink.text
                                     }
 
                                     Text {

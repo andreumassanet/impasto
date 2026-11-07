@@ -380,11 +380,12 @@ Item {
                 : `${WeatherService.high}° / ${WeatherService.low}°`
             extraShare: 0.45
 
-            WeatherIcon {
+            Text {
                 anchors.centerIn: parent
-                name: WeatherService.available ? WeatherService.icon : ""
-                glyph: WeatherService.available ? WeatherService.glyph : ""
-                size: 40
+                text: WeatherService.available ? WeatherService.glyph : "󰅤"
+                font.family: Theme.fontMono
+                font.pixelSize: 34
+                color: root.ink.text
             }
 
             extra: [
@@ -420,11 +421,12 @@ Item {
                                     color: root.ink.muted
                                 }
 
-                                WeatherIcon {
+                                Text {
                                     anchors.horizontalCenter: parent.horizontalCenter
-                                    name: block.modelData.icon ?? ""
-                                    glyph: block.modelData.glyph
-                                    size: 24
+                                    text: block.modelData.glyph
+                                    font.family: Theme.fontMono
+                                    font.pixelSize: 20
+                                    color: root.ink.text
                                 }
 
                                 Text {
