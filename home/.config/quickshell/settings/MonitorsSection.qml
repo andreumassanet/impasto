@@ -414,6 +414,22 @@ SettingsSection {
                 }
             }
         }
+
+        // Every screen's brightness, not the selected one's.
+        SettingGroup {
+            title: Tr.t("Brightness")
+
+            SettingRow {
+                label: Tr.t("Dim below the backlight")
+                reading: SettingsService.brightnessBelowFloor
+                    ? Tr.t("Darker still past the lowest level") : Tr.t("Stops at the lowest level")
+
+                ToggleSwitch {
+                    checked: SettingsService.brightnessBelowFloor
+                    onToggled: checked => SettingsService.set("brightnessBelowFloor", checked)
+                }
+            }
+        }
     }
 
 

@@ -45,7 +45,7 @@ Item {
                 RingIndicator {
                     anchors.fill: parent
                     thickness: 2.5
-                    progress: BrightnessService.percent / 100
+                    progress: BrightnessService.slider / 100
                     trackColor: Theme.indicatorDim
                     fillColor: Theme.indicator
 
@@ -70,7 +70,7 @@ Item {
             subtitle: BrightnessService.several
                 ? Tr.t("%1 screens").arg(BrightnessService.dimmable.length)
                 : Tr.t("One screen")
-            figure: `${BrightnessService.percent}%`
+            figure: `${BrightnessService.slider}%`
 
             Component.onCompleted: BrightnessService.refresh()
 
@@ -78,7 +78,7 @@ Item {
             mark: RingIndicator {
                 anchors.fill: parent
                 thickness: 3
-                progress: BrightnessService.percent / 100
+                progress: BrightnessService.slider / 100
                 trackColor: Theme.indicatorDim
                 fillColor: Theme.indicator
 
@@ -103,8 +103,8 @@ Item {
 
                     glyph: screen.modelData.icon
                     name: screen.modelData.title
-                    value: screen.modelData.percent
-                    onMoved: value => screen.modelData.setPercent(value)
+                    value: screen.modelData.slider
+                    onMoved: value => screen.modelData.setSlider(value)
                 }
             }
         }

@@ -128,6 +128,7 @@ Singleton {
     readonly property alias nightLight: config.nightLight
     readonly property alias nightTemperature: config.nightTemperature
     readonly property alias powerTileProfile: config.powerTileProfile
+    readonly property alias brightnessBelowFloor: config.brightnessBelowFloor
     readonly property alias lidPolicy: config.lidPolicy
     readonly property alias idleLock: config.idleLock
     readonly property alias idleScreen: config.idleScreen
@@ -347,7 +348,7 @@ Singleton {
         "userName", "userAvatar", "language", "keyboard", "weatherPlace", "githubUser", "markets",
         "emojiTone",
         "doNotDisturb", "nightLight", "nightTemperature", "barHidden", "desktopHidden",
-        "gameMode", "powerTileProfile",
+        "gameMode", "powerTileProfile", "brightnessBelowFloor",
         "cameraEnabled", "cameraEffect", "cameraReactions",
         "recorderAudio", "captureShape", "captureKind"
     ]
@@ -892,6 +893,10 @@ Singleton {
         // one picked that is not balanced. Saver first, the one a laptop
         // leaves the house in.
         property string powerTileProfile: "power-saver"
+
+        // Past the backlight's floor the picture dims further, through the
+        // gamma (`BrightnessService`, `SunsetService`).
+        property bool brightnessBelowFloor: false
 
         // Closing the lid with another screen connected: `off` disables the
         // panel and moves its workspaces, `keep` leaves it on, `system`

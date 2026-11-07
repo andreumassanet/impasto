@@ -242,7 +242,7 @@ Singleton {
         case "volume":
             return AudioService.muted ? Tr.t("Muted") : `${AudioService.volume}%`
         case "brightness":
-            return `${BrightnessService.percent}%`
+            return `${BrightnessService.slider}%`
         case "battery":
             return `${BatteryService.percent}%`
         case "weather":
