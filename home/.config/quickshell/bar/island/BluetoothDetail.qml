@@ -24,6 +24,15 @@ ColumnLayout {
     id: root
 
     signal back()
+    signal pageRequested(string panel)
+
+    Keys.onPressed: event => event.accepted = tabs.handle(event, index => root.activate(index))
+
+    // The Nth device in the list: pair, connect or disconnect it.
+    function activate(index: int): void {
+        if (index < root.listed.length)
+            BluetoothService.connectDevice(root.listed[index])
+    }
 
     // No back arrow when opened from the bar, where there is nothing to go
     // back to.
@@ -41,8 +50,20 @@ ColumnLayout {
     Component.onCompleted: {
         if (BluetoothService.enabled)
             BluetoothService.setDiscovering(true)
+        // Focus on open, or Tab goes to whatever had the keyboard before.
+        if (tabs.visible)
+            root.forceActiveFocus()
     }
     Component.onDestruction: BluetoothService.setDiscovering(false)
+
+    // Only in the island: the module card has no panel to switch to.
+    ConnectivityTabs {
+        id: tabs
+
+        visible: SettingsService.connectivityTabs && root.backable
+        page: "bluetooth"
+        onPageRequested: panel => root.pageRequested(panel)
+    }
 
     // The heading a module's card has (`ModuleCard`), with the back arrow in
     // front of it when there is somewhere to go back to.
