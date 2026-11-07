@@ -9,12 +9,14 @@
 # │                                                                          │
 # ╰──────────────────────────────────────────────────────────────────────────╯
 
-"""Read and toggle the radios and power profile.
+"""Read and toggle the radios, and read the power profile.
 
-Only what nothing else can push: NetworkManager, bluez and
-power-profiles-daemon have no interface the shell can subscribe to, so these
-are polled while a panel is open. Volume, brightness and battery are pushed
-by Pipewire, sysfs and UPower and are handled in QML, not here.
+Only what nothing else can push: NetworkManager and bluez have no interface
+the shell can subscribe to, so they are polled while a panel is open. The
+power profile is read here only to tell whether power-profiles-daemon
+answers; the shell follows and sets it over D-Bus. Volume, brightness and
+battery are pushed by Pipewire, sysfs and UPower and are handled in QML, not
+here.
 
 Missing tools degrade to `None`, which the UI renders as an unavailable
 control instead of failing.
@@ -76,18 +78,13 @@ def toggle(target):
             return False
         return run("bluetoothctl", "power", "off" if state else "on") is not None
 
-    if target == "power-profile":
-        current = power_profile()
-        target_profile = "balanced" if current == "performance" else "performance"
-        return run("powerprofilesctl", "set", target_profile) is not None
-
     sys.stderr.write(f"Unknown toggle target: {target}\n")
     return False
 
 
 def main():
     if len(sys.argv) < 2:
-        sys.stderr.write("Usage: system.py status | toggle <wifi|bluetooth|power-profile>\n")
+        sys.stderr.write("Usage: system.py status | toggle <wifi|bluetooth>\n")
         sys.exit(1)
 
     action = sys.argv[1]

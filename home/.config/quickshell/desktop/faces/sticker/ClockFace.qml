@@ -121,8 +121,8 @@ Item {
                 y: plate.y + plate.height - height * 0.35
                 seed: root.seed + "date"
                 hue: root.ink.red
-                reading: Qt.formatDateTime(clock.date, "dddd")
-                note: Qt.formatDateTime(clock.date, "d MMMM yyyy")
+                reading: Tr.date(clock.date, "dddd")
+                note: Tr.date(clock.date, "d MMMM yyyy")
                 size: 1.5
                 room: root.width * 0.8
             }
@@ -134,7 +134,7 @@ Item {
 
         Item {
             // The time as the setting writes it, split into what gets a sticker.
-            readonly property string stamp: Qt.formatDateTime(clock.date, SettingsService.clockFormat)
+            readonly property string stamp: Tr.date(clock.date, SettingsService.clockFormat)
             readonly property var parts: stamp.split(" ")[0].split("")
             readonly property var hues: [root.ink.accent, root.ink.red, root.ink.yellow,
                                          root.ink.green, root.ink.blue]
@@ -188,9 +188,9 @@ Item {
                 y: parent.band ? (parent.height - height) / 2 : parent.height - height - root.height * 0.02
                 seed: root.seed + "date"
                 hue: root.ink.paper
-                reading: parent.band ? Qt.formatDateTime(clock.date, "dddd")
+                reading: parent.band ? Tr.date(clock.date, "dddd")
                     : time.parent.stamp.split(" ")[1] ?? ""
-                note: parent.band ? Qt.formatDateTime(clock.date, "d MMMM yyyy") : ""
+                note: parent.band ? Tr.date(clock.date, "d MMMM yyyy") : ""
                 size: parent.band ? 1.6 : 0.9
                 room: parent.band ? parent.width - x - root.height * 0.1 : root.height
             }

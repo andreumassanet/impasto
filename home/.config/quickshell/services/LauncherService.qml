@@ -30,29 +30,29 @@ QtObject {
     // (`SettingsService.launcherPrefixDefaults`).
     readonly property var modes: [
         { id: "calculate", prefix: SettingsService.launcherPrefix("calculate"),
-          label: "Calculate", icon: "󰃬",
-          hint: "Work something out",  empty: "An expression — 12 * 34, (5 + 5) / 2" },
+          label: Tr.t("Calculate"), icon: "󰃬",
+          hint: Tr.t("Work something out"), empty: Tr.t("An expression — 12 * 34, (5 + 5) / 2") },
         { id: "desk",      prefix: SettingsService.launcherPrefix("desk"),
-          label: "Desk",      icon: "󰍜",
-          hint: "Open a panel or an action",
-          empty: "Nothing on the desk by that name" },
+          label: Tr.t("Desk"), icon: "󰍜",
+          hint: Tr.t("Open a panel or an action"),
+          empty: Tr.t("Nothing on the desk by that name") },
         { id: "windows",   prefix: SettingsService.launcherPrefix("windows"),
-          label: "Windows",   icon: "󰖯",
-          hint: "Find an open window", empty: "No window by that name is open" },
+          label: Tr.t("Windows"), icon: "󰖯",
+          hint: Tr.t("Find an open window"), empty: Tr.t("No window by that name is open") },
         { id: "timer",     prefix: SettingsService.launcherPrefix("timer"),
-          label: "Timer",     icon: "󰔟",
-          hint: "Start a countdown",   empty: "A duration — 25m, 90s, 1:30" },
+          label: Tr.t("Timer"), icon: "󰔟",
+          hint: Tr.t("Start a countdown"), empty: Tr.t("A duration — 25m, 90s, 1:30") },
         { id: "clipboard", prefix: SettingsService.launcherPrefix("clipboard"),
-          label: "Clipboard", icon: "󰅍",
-          hint: "Copy something again",
+          label: Tr.t("Clipboard"), icon: "󰅍",
+          hint: Tr.t("Copy something again"),
           empty: ClipboardService.entries.length === 0
-              ? "Nothing has been copied yet" : "Nothing copied says that" },
+              ? Tr.t("Nothing has been copied yet") : Tr.t("Nothing copied says that") },
         { id: "emoji",     prefix: SettingsService.launcherPrefix("emoji"),
-          label: "Emoji",     icon: "󰇲",
-          hint: "Copy an emoji",       empty: "No emoji by that name" },
-        { id: "apps",      prefix: "",  label: "Apps",      icon: "󰀻",
-          hint: "Search applications",
-          empty: `No application matches. Type ${SettingsService.launcherPrefix("desk")} for what the shell itself can do.` }
+          label: Tr.t("Emoji"), icon: "󰇲",
+          hint: Tr.t("Copy an emoji"), empty: Tr.t("No emoji by that name") },
+        { id: "apps",      prefix: "",  label: Tr.t("Apps"), icon: "󰀻",
+          hint: Tr.t("Search applications"),
+          empty: Tr.t("No application matches. Type %1 for what the shell itself can do.").arg(SettingsService.launcherPrefix("desk")) }
     ]
 
     function modeFor(query: string): var {
@@ -284,7 +284,7 @@ QtObject {
             return []
         return [{
             kind: "calculation", id: "", icon: "󰃬",
-            name: `${value}`, subtitle: `${expression}  ·  Enter copies it`
+            name: `${value}`, subtitle: Tr.t("%1  ·  Enter copies it").arg(expression)
         }]
     }
 
@@ -355,8 +355,8 @@ QtObject {
             return []
         return [{
             kind: "timer", id: "", icon: "󰔟",
-            name: `Start a ${root.spell(milliseconds)} timer`,
-            subtitle: "Counts down on the island",
+            name: Tr.t("Start a %1 timer").arg(root.spell(milliseconds)),
+            subtitle: Tr.t("Counts down on the island"),
             milliseconds: milliseconds
         }]
     }
@@ -403,7 +403,7 @@ QtObject {
             found.push({
                 kind: "window", id: client.address, icon: "󰖯",
                 name: client.title || client.class,
-                subtitle: `${client.class}  ·  workspace ${client.workspace.id}`
+                subtitle: Tr.t("%1  ·  workspace %2").arg(client.class).arg(client.workspace.id)
             })
         }
         return found

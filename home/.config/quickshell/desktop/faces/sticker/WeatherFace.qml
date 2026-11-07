@@ -41,10 +41,10 @@ Spread {
 
     line: face.known ? WeatherService.place : ""
     hue: face.tint
-    reading: !face.known ? "No forecast"
+    reading: !face.known ? Tr.t("No forecast")
         : WeatherService.description !== "" ? WeatherService.description : WeatherService.place
     note: face.known ? `${WeatherService.place} · ${WeatherService.high}° / ${WeatherService.low}°`
-        : "no reading yet"
+        : Tr.t("no reading yet")
     filled: face.ahead.length > 0
 
     Tone { id: tone; hue: face.tint }

@@ -152,7 +152,7 @@ up the login screen, the plugins and the programs around the shell. Run
 | Flag | |
 |---|---|
 | `--skip-packages` | install nothing; copy and build only |
-| `--skip-system` | leave `/` alone — no login screen, and no password for it |
+| `--skip-system` | leave `/` alone — no login screen, no printing, and no password for it |
 | `--skip-plugins` | no shake to find, no glass |
 | `--skip-extras` | leave Nautilus, VSCodium, Vesktop, Spotify, GTK, face unlock, the camera and the boot splash alone |
 | `--aur-helper yay\|paru` | which helper builds the AUR half — built from the AUR if you have neither |
@@ -197,6 +197,7 @@ never overwrites a file you edited.
 | 🎧 | Player | [Spotify](https://www.spotify.com) · [spicetify](https://spicetify.app) |
 | 🌐 | Browser | [Zen](https://zen-browser.app) |
 | 🔆 | Monitor brightness | [ddcutil](https://www.ddcutil.com) |
+| 🖨️ | Printing | [CUPS](https://openprinting.github.io/cups/) · [Avahi](https://avahi.org) |
 | 🔑 | Login screen | [SDDM](https://github.com/sddm/sddm) |
 | 🎨 | Boot splash | [Plymouth](https://gitlab.freedesktop.org/plymouth/plymouth) |
 | 👤 | Face unlock | [howdy-next](https://codeberg.org/nathawat/howdy-next) |

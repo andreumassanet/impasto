@@ -19,13 +19,16 @@ import "../../../components"
 Card {
     id: root
 
+    // The cover opens the media card; the buttons stay the player's.
+    signal panelRequested(string panel)
+
     Component.onCompleted: MediaService.subscribe()
     Component.onDestruction: MediaService.release()
 
     Text {
         anchors.centerIn: parent
         visible: !MediaService.available
-        text: "Nothing playing"
+        text: Tr.t("Nothing playing")
         font.family: Theme.fontFamily
         font.pixelSize: Theme.fontSizeSmall
         color: Theme.textMuted
@@ -65,6 +68,13 @@ Card {
                     font.family: Theme.fontMono
                     font.pixelSize: 22
                     color: Theme.accent
+                }
+
+                HoverHandler { cursorShape: Qt.PointingHandCursor }
+
+                TapHandler {
+                    gesturePolicy: TapHandler.ReleaseWithinBounds
+                    onTapped: root.panelRequested("media")
                 }
             }
 

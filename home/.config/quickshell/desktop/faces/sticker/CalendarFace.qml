@@ -58,11 +58,11 @@ Item {
 
     function agendaLine(): string {
         if (root.dueToday > 0)
-            return `${root.dueToday} to do today`
+            return Tr.t("%1 to do today").arg(root.dueToday)
         const next = TasksService.next
         if (next)
             return `${next.text} · ${TasksService.dueLabel(next.due)}`
-        return "nothing due"
+        return Tr.t("nothing due")
     }
 
     component Day: Cut {
@@ -78,7 +78,7 @@ Item {
 
             Text {
                 anchors.horizontalCenter: parent.horizontalCenter
-                text: Qt.formatDateTime(root.today, "dddd").toUpperCase()
+                text: Tr.date(root.today, "dddd").toUpperCase()
                 font.family: Theme.fontFamily
                 font.pixelSize: Math.max(Theme.fontSizeLabel - 1, Math.round(day.side * 0.08))
                 font.weight: Font.Bold
@@ -125,7 +125,7 @@ Item {
             ink: root.ink
             seed: root.seed
             hue: root.ink.red
-            reading: Qt.formatDateTime(root.today, "MMMM")
+            reading: Tr.date(root.today, "MMMM")
             note: root.agendaLine()
 
             Day {
@@ -181,7 +181,7 @@ Item {
 
                 x: sheet.side * 0.08
                 y: sheet.side * 0.06
-                text: Qt.formatDateTime(root.today, "MMMM")
+                text: Tr.date(root.today, "MMMM")
                 font.family: Theme.fontFamily
                 font.pixelSize: Math.round(sheet.side * 0.09)
                 font.weight: Font.Bold
@@ -201,7 +201,7 @@ Item {
                 columns: 7
 
                 Repeater {
-                    model: ["M", "T", "W", "T", "F", "S", "S"]
+                    model: Tr.t("M T W T F S S").split(" ")
 
                     Item {
                         required property var modelData

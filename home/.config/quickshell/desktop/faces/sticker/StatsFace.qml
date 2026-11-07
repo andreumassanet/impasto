@@ -34,7 +34,7 @@ Item {
         root.celsius !== null
             ? { word: "TEMP", figure: `${Math.round(root.celsius)}°`, fraction: root.celsius / 100,
                 hue: root.ink.yellow }
-            : { word: "LOAD", figure: StatsService.load[0].toFixed(1), fraction: Math.min(1, StatsService.load[0] / 8),
+            : { word: Tr.t("LOAD"), figure: StatsService.load[0].toFixed(1), fraction: Math.min(1, StatsService.load[0] / 8),
                 hue: root.ink.yellow }
     ]
 

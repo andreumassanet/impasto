@@ -164,8 +164,8 @@ Usage: ./setup <command> [options]
 
   packages    install what packages/pacman.txt and packages/aur.txt list
   sync        copy home/ into $HOME — how a change in the repository lands
-  system      copy system/ into /, and switch the login screen on where no
-              other display manager is (asks for a password)
+  system      copy system/ into /, switch the login screen on where no
+              other display manager is, and printing (asks for a password)
   plugins     build and enable the two Hyprland plugins with hyprpm
 
   defaults    what opens which file, and dark GTK with the impasto icons
@@ -704,8 +704,31 @@ verb_system() {
     # User pictures for the greeter and the lock screen. Never removed.
     act $SUDO install -d -m 755 "$ROOT/var/lib/impasto/faces"
     display_manager
+    printing
     i2c_dev
     SUDO=
+}
+
+# Printing: CUPS on its socket, Avahi for the printers on the network, and
+# mdns in nsswitch.conf so their .local names resolve. Once, and only where
+# CUPS is installed; a printer still needs adding, by hand or in
+# system-config-printer.
+printing() {
+    applied printing && return 0
+    [[ -f $ROOT/usr/lib/systemd/system/cups.socket ]] || return 0
+    local -a now=()
+    if [[ -z $ROOT ]]; then now=(--now); fi
+    if ! act $SUDO systemctl ${ROOT:+--root="$ROOT"} enable "${now[@]}" cups.socket avahi-daemon.service \
+            >/dev/null 2>&1; then
+        say 'skipped  printing could not be enabled'
+        return 0
+    fi
+    local nss=$ROOT/etc/nsswitch.conf
+    if [[ -f $ROOT/usr/lib/libnss_mdns_minimal.so.2 && -f $nss ]] && ! grep -q '^hosts:.*mdns' "$nss"; then
+        act $SUDO sed -i -E '/^hosts:/{s/ (resolve|dns)/ mdns_minimal [NOTFOUND=return]&/}' "$nss"
+    fi
+    say 'enabled  printing: cups, and avahi to find the printers on the network'
+    stamp printing
 }
 
 # ddcutil reaches external monitors through /dev/i2c-*. Its package loads
@@ -1606,7 +1629,7 @@ menu() {
 # What install may leave out, in the order it does it. Each row is a --skip.
 PARTS=(
     'packages:the packages'
-    'system:the login screen'
+    'system:the login screen and printing'
     'plugins:the plugins'
     'extras:the extras'
 )
