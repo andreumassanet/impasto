@@ -104,6 +104,8 @@ Rectangle {
         servers:    { width: ServersService.panelWidth, height: ServersService.panelHeight },
         screentime: { width: 940,  height: 614 },
         camera:     { width: CameraService.panelWidth, height: CameraService.panelHeight },
+        // The newest recordings, four rows.
+        capture:    { width: 420,  height: 280 },
         // A row per creature, plus one for the next egg.
         pet:        { width: 560,  height: 205 + 62 * PetService.family.length },
         // The shelf of cards, or the game being played at its own size.
@@ -188,6 +190,7 @@ Rectangle {
         servers: serversPanel,
         screentime: screenTimePanel,
         camera: cameraPanel,
+        capture: capturePanel,
         pet: petPanel,
         games: gamesPanel,
         notes: notesPanel,
@@ -668,6 +671,11 @@ Rectangle {
     Component {
         id: cameraPanel
         CameraPanel { onClosed: root.close() }
+    }
+
+    Component {
+        id: capturePanel
+        CapturePanel { onClosed: root.close() }
     }
 
     Component {
