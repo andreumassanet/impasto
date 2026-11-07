@@ -123,7 +123,6 @@ Sticky           1.0 components/Sticky.qml
 PopMenu          1.0 components/PopMenu.qml
 CornerGuard      1.0 components/CornerGuard.qml
 ScreenCorner     1.0 components/ScreenCorner.qml
-DimLayer         1.0 components/DimLayer.qml
 BezelOutline     1.0 components/BezelOutline.qml
 BezelShape       1.0 components/BezelShape.qml
 

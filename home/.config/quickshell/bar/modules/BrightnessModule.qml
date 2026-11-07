@@ -70,7 +70,7 @@ Item {
             subtitle: BrightnessService.several
                 ? Tr.t("%1 screens").arg(BrightnessService.dimmable.length)
                 : Tr.t("One screen")
-            figure: `${BrightnessService.percent}%`
+            figure: `${BrightnessService.slider}%`
 
             Component.onCompleted: BrightnessService.refresh()
 

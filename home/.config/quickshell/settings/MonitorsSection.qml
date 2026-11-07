@@ -422,7 +422,7 @@ SettingsSection {
             SettingRow {
                 label: Tr.t("Dim below the backlight")
                 reading: SettingsService.brightnessBelowFloor
-                    ? Tr.t("A dark layer past the lowest level") : Tr.t("Stops at the lowest level")
+                    ? Tr.t("Darker still past the lowest level") : Tr.t("Stops at the lowest level")
 
                 ToggleSwitch {
                     checked: SettingsService.brightnessBelowFloor

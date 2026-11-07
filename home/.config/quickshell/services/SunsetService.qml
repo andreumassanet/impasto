@@ -18,10 +18,12 @@ import "../theme"
 // Night light through hyprsunset, which sets the gamma ramp. Unlike a screen
 // shader, that stays out of screenshots and survives `hyprctl reload`.
 //
-// The shell owns the process: running means on, and the compositor restores
-// the ramp when the client disconnects. Temperature changes go through
-// `hyprctl hyprsunset` rather than a restart, which would flash daylight,
-// coalesced to 120 ms while a slider is dragged.
+// The same process darkens the picture past the backlight's floor
+// (`BrightnessService.dim`), as a gamma below 100 %, so it runs while either
+// is wanted, at the identity when only the dim is. The compositor restores
+// the ramp when the client disconnects. Changes go through `hyprctl
+// hyprsunset` rather than a restart, which would flash daylight, coalesced
+// to 120 ms while a slider is dragged.
 Singleton {
     id: root
 
@@ -36,7 +38,9 @@ Singleton {
     // hyprsunset is optional; checked once so the tile can say it is missing.
     property bool available: false
 
-    readonly property bool on: root.filter.running
+    readonly property bool on: SettingsService.nightLight && root.filter.running
+
+    readonly property int gamma: Math.round(100 * (1 - BrightnessService.dim))
 
     readonly property string detail: {
         if (!root.available)
@@ -74,8 +78,10 @@ Singleton {
     // touches this singleton at startup so that happens before anything
     // opens the control centre.
     readonly property Process filter: Process {
-        command: ["hyprsunset", "--temperature", String(root.temperature)]
-        running: SettingsService.nightLight && root.available
+        command: ["hyprsunset",
+            ...(SettingsService.nightLight ? ["--temperature", String(root.temperature)] : ["--identity"]),
+            "--gamma", String(root.gamma)]
+        running: root.available && (SettingsService.nightLight || root.gamma < 100)
 
         // Exited on its own, usually because another client already holds
         // the gamma ramp. Turn the setting off to match, and say so.
@@ -87,15 +93,21 @@ Singleton {
         }
     }
 
-    onTemperatureChanged: {
-        if (root.on)
+    // Started with whatever is wanted then; later changes are pushed.
+    readonly property var wanted: [SettingsService.nightLight, root.temperature, root.gamma]
+    onWantedChanged: {
+        if (root.filter.running)
             root.retune.restart()
     }
 
     readonly property Timer retune: Timer {
         interval: 120
-        onTriggered: Quickshell.execDetached(
-            ["hyprctl", "hyprsunset", "temperature", String(root.temperature)])
+        onTriggered: {
+            Quickshell.execDetached(SettingsService.nightLight
+                ? ["hyprctl", "hyprsunset", "temperature", String(root.temperature)]
+                : ["hyprctl", "hyprsunset", "identity"])
+            Quickshell.execDetached(["hyprctl", "hyprsunset", "gamma", String(root.gamma)])
+        }
     }
 
     function toggle(): void {

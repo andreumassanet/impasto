@@ -348,7 +348,7 @@ Singleton {
         "userName", "userAvatar", "language", "keyboard", "weatherPlace", "githubUser", "markets",
         "emojiTone",
         "doNotDisturb", "nightLight", "nightTemperature", "barHidden", "desktopHidden",
-        "gameMode", "powerTileProfile",
+        "gameMode", "powerTileProfile", "brightnessBelowFloor",
         "cameraEnabled", "cameraEffect", "cameraReactions",
         "recorderAudio", "captureShape", "captureKind"
     ]
@@ -894,8 +894,8 @@ Singleton {
         // leaves the house in.
         property string powerTileProfile: "power-saver"
 
-        // Past the backlight's floor a screen dims further with a dark layer
-        // over it alone (`DimLayer`, `BrightnessService`).
+        // Past the backlight's floor the picture dims further, through the
+        // gamma (`BrightnessService`, `SunsetService`).
         property bool brightnessBelowFloor: false
 
         // Closing the lid with another screen connected: `off` disables the
