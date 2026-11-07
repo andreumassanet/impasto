@@ -73,7 +73,7 @@ Item {
             // Hatched pets show their name, then their species.
             title: PetService.titleOf(PetService.pet)
             subtitle: PetService.moodLine
-            figure: PetService.hatched ? `Lv ${PetService.level}` : ""
+            figure: PetService.hatched ? Tr.t("Lv %1").arg(PetService.level) : ""
 
             mark: Item {
                 anchors.fill: parent
@@ -124,7 +124,7 @@ Item {
             }
 
             CardLimit {
-                name: "Next level"
+                name: Tr.t("Next level")
                 fraction: PetService.progress
                 tint: bigFace.coat
                 note: `${PetService.xp}/${PetService.threshold}`
@@ -139,7 +139,7 @@ Item {
                     Layout.fillWidth: true
                     Layout.preferredWidth: 0
                     implicitHeight: Theme.cardRow
-                    text: PetService.canFeed ? "Feed" : "Fed"
+                    text: PetService.canFeed ? Tr.t("Feed") : Tr.t("Fed")
                     enabled: PetService.canFeed
                     onClicked: PetService.feed()
                 }
@@ -148,7 +148,7 @@ Item {
                     Layout.fillWidth: true
                     Layout.preferredWidth: 0
                     implicitHeight: Theme.cardRow
-                    text: PetService.canPlay ? "Play" : "Played"
+                    text: PetService.canPlay ? Tr.t("Play") : Tr.t("Played")
                     enabled: PetService.canPlay
                     onClicked: PetService.play()
                 }

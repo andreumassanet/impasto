@@ -19,13 +19,13 @@ Instrument {
 
     readonly property bool none: UpdatesService.count === 0
 
-    line: UpdatesService.checking ? "Checking"
-        : (!UpdatesService.available ? "Cannot check"
-            : (face.none ? "Up to date" : `${UpdatesService.count} pending`))
+    line: UpdatesService.checking ? Tr.t("Checking")
+        : (!UpdatesService.available ? Tr.t("Cannot check")
+            : (face.none ? Tr.t("Up to date") : Tr.t("%1 pending").arg(UpdatesService.count)))
     reading: UpdatesService.available || UpdatesService.checking ? `${UpdatesService.count}` : "—"
-    note: UpdatesService.checking ? "checking"
-        : !UpdatesService.available ? "cannot check"
-        : `${face.none ? "up to date" : "pending"}${UpdatesService.age !== "" ? " · " + UpdatesService.age : ""}`
+    note: UpdatesService.checking ? Tr.t("checking")
+        : !UpdatesService.available ? Tr.t("cannot check")
+        : `${face.none ? Tr.t("up to date") : Tr.t("pending")}${UpdatesService.age !== "" ? " · " + UpdatesService.age : ""}`
     tint: face.none ? face.ink.muted : face.ink.text
     filled: true
 

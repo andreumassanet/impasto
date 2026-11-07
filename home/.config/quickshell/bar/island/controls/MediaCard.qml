@@ -28,7 +28,7 @@ Card {
     Text {
         anchors.centerIn: parent
         visible: !MediaService.available
-        text: "Nothing playing"
+        text: Tr.t("Nothing playing")
         font.family: Theme.fontFamily
         font.pixelSize: Theme.fontSizeSmall
         color: Theme.textMuted

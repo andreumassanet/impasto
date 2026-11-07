@@ -49,8 +49,12 @@ PanelWindow {
     // through a ground that is not solid.
     WlrLayershell.namespace: "impasto-bar"
     // A request for root rises over a full-screen window, which covers the
-    // top layer; the bar goes back down once it is answered.
+    // top layer; the bar goes back down once it is answered. So does a
+    // volume or brightness readout on a covered screen, held up until the
+    // island has slid away again.
     WlrLayershell.layer: island.state.openPanel === "auth" && island.expanded
+        || root.covered && (island.state.layer === island.state.layerOsd
+            || face.y > -2 * root.collapsedHeight)
         ? WlrLayer.Overlay : WlrLayer.Top
     // What is drawn here takes the island's glass (`Theme.surfaceIn`).
     readonly property bool glassy: true
@@ -234,8 +238,11 @@ PanelWindow {
 
     // Zen (`barHidden`): the bar waits above the screen and the island comes
     // down only for what it has to show — a panel, a notification, a
-    // transient — with the sides left up there.
-    readonly property bool zen: SettingsService.barHidden
+    // transient — with the sides left up there. A screen under a full-screen
+    // window is zen on its own, and only the readout rises over the window.
+    readonly property bool covered: !!root.screen
+        && DockService.coveredScreens.includes(` ${root.screen.name} `)
+    readonly property bool zen: SettingsService.barHidden || root.covered
     readonly property bool called: island.state.layer !== island.state.layerModules
         && island.state.layer !== island.state.layerSummary
     readonly property bool away: root.zen && !root.called

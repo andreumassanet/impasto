@@ -31,11 +31,11 @@ Instrument {
 
     readonly property bool known: WeatherService.available
 
-    line: face.known ? `${WeatherService.temperature}° · ${WeatherService.place}` : "No reading"
+    line: face.known ? `${WeatherService.temperature}° · ${WeatherService.place}` : Tr.t("No reading")
     reading: face.known ? `${WeatherService.temperature}°` : "—"
     note: {
         if (!face.known)
-            return "no reading yet"
+            return Tr.t("no reading yet")
         const range = `${WeatherService.high}° / ${WeatherService.low}°`
         return WeatherService.description !== ""
             ? `${WeatherService.place} · ${WeatherService.description} · ${range}`

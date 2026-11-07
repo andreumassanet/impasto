@@ -84,7 +84,7 @@ Item {
                 width: parent.width
                 horizontalAlignment: Text.AlignHCenter
                 elide: Text.ElideRight
-                text: root.lost ? "Picture not found" : "No picture"
+                text: root.lost ? Tr.t("Picture not found") : Tr.t("No picture")
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.fontSizeSmall
                 font.weight: Font.DemiBold
@@ -95,7 +95,7 @@ Item {
                 width: parent.width
                 horizontalAlignment: Text.AlignHCenter
                 elide: Text.ElideRight
-                text: root.lost ? "Edit it to choose another" : "Edit it to choose one"
+                text: root.lost ? Tr.t("Edit it to choose another") : Tr.t("Edit it to choose one")
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.fontSizeLabel
                 color: root.ink.muted

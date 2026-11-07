@@ -30,7 +30,8 @@ Card {
 
     // Weeks start on Monday; JavaScript counts from Sunday, hence the shift
     // wherever a weekday index is used.
-    readonly property var weekdays: ["M", "T", "W", "T", "F", "S", "S"]
+    // One key, split: the letters repeat, so they cannot be keys one by one.
+    readonly property var weekdays: Tr.t("M T W T F S S").split(" ")
 
     // Ticks at midnight; nothing here changes sooner.
     SystemClock {
@@ -88,7 +89,7 @@ Card {
 
             Text {
                 Layout.fillWidth: true
-                text: dayPage.date ? Qt.formatDate(dayPage.date, "dddd d MMMM") : ""
+                text: dayPage.date ? Tr.date(dayPage.date, "dddd d MMMM") : ""
                 elide: Text.ElideRight
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.fontSizeSmall
@@ -100,7 +101,7 @@ Card {
                 text: {
                     const n = dayPage.due.length
                     const left = dayPage.due.filter(task => task.state !== "done").length
-                    return n === 0 ? "" : `${left} of ${n}`
+                    return n === 0 ? "" : Tr.t("%1 of %2").arg(left).arg(n)
                 }
                 font.family: Theme.fontMono
                 font.pixelSize: Theme.fontSizeLabel
@@ -148,7 +149,7 @@ Card {
             spacing: 6
 
             Text {
-                text: Qt.formatDateTime(root.shown, "MMMM")
+                text: Tr.date(root.shown, "MMMM")
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.fontSizeMedium
                 font.weight: Font.DemiBold
@@ -167,7 +168,7 @@ Card {
             // Today's weekday while showing the current month, otherwise a way
             // back to it.
             Text {
-                text: Qt.formatDateTime(root.today, "dddd")
+                text: Tr.date(root.today, "dddd")
                 visible: root.showingThisMonth
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.fontSizeSmall
@@ -176,7 +177,7 @@ Card {
 
             PillButton {
                 visible: !root.showingThisMonth
-                text: "Today"
+                text: Tr.t("Today")
                 implicitHeight: 22
                 horizontalPadding: 9
                 onClicked: root.offsetMonths = 0

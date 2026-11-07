@@ -14,6 +14,8 @@ import Quickshell
 import Quickshell.Hyprland
 import Quickshell.Io
 
+import "../theme"
+
 // Lists the bundled wallpapers and the animated ones, and applies them. Emits
 // `applied` instead of calling ThemeService, so the dependency only runs one
 // way.
@@ -102,7 +104,7 @@ QtObject {
             } else {
                 console.warn("Could not apply wallpaper:", root.asked)
                 // the warning alone only reaches the log
-                OsdService.requested("󰀦", "Could not apply wallpaper", -1)
+                OsdService.requested("󰀦", Tr.t("Could not apply wallpaper"), -1)
                 // `apply` named it already: read back what is really up
                 root.asked = ""
                 root.currentProcess.running = true
