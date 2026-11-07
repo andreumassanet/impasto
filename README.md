@@ -239,10 +239,6 @@ debounced to one frame.
 - [diegoMalagrida/dotfiles](https://github.com/diegoMalagrida/dotfiles) — an
   Arch Linux desk ready to install on a fresh system
 
-The system monitor (`scripts/system_monitor.py` and the service that reads it)
-comes from [end_4's illogical-impulse](https://github.com/end-4/dots-hyprland),
-GPL-3.0; the script is carried as it is.
-
 Built on [Quickshell](https://quickshell.org) and [Hyprland](https://hypr.land).
 The pointer is [Bibata](https://github.com/ful1e5/Bibata_Cursor), repainted;
 the folders are [Papirus](https://github.com/PapirusDevelopmentTeam/papirus-icon-theme),

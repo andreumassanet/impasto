@@ -43,6 +43,12 @@ Singleton {
     property var disks: []
     property real networkDown: 0
     property real networkUp: 0
+    // Bytes since the interfaces came up, and the route out: the interface
+    // the default route leaves by and its address, "" when offline.
+    property real networkReceived: 0
+    property real networkSent: 0
+    property string networkInterface: ""
+    property string networkAddress: ""
     property var temperature: null
     property int uptime: 0
 
@@ -125,6 +131,10 @@ Singleton {
         root.disks = data.disks ?? []
         root.networkDown = data.network.down
         root.networkUp = data.network.up
+        root.networkReceived = data.network.received ?? 0
+        root.networkSent = data.network.sent ?? 0
+        root.networkInterface = data.network.interface ?? ""
+        root.networkAddress = data.network.address ?? ""
         root.temperature = data.temperature
         root.uptime = data.uptime
 
