@@ -47,6 +47,7 @@ Singleton {
         { id: "volume",        name: "Volume",        bar: true,  width: Theme.cardWidth, height: Theme.cardHeight(2, 0) },
         { id: "brightness",    name: "Brightness",    bar: true,  width: Theme.cardWidth, height: Theme.cardHeight(1, 0) },
         { id: "network",       name: "Network",       bar: true,  width: Theme.cardWidth, height: Theme.cardHeight(2, 0) },
+        { id: "netspeed",      name: "Network speed", bar: true,  desk: false, width: Theme.cardWidth, height: Theme.cardHeight(3, Theme.cardRowGap + 36) },
         { id: "bluetooth",     name: "Bluetooth",     bar: true,  width: Theme.cardWidth, height: Theme.cardHeight(3, 0) },
         { id: "notifications", name: "Notifications", bar: true,  desk: false, width: Theme.cardWidth, height: Theme.cardHeight(7, 0) },
         { id: "weather",       name: "Weather",       bar: true,  width: Theme.cardWidth, height: Theme.cardHeight(0, 50) },
@@ -198,6 +199,8 @@ Singleton {
         switch (id) {
         case "network":
             return NetworkService.icon
+        case "netspeed":
+            return "󰓅"
         case "bluetooth":
             return BluetoothService.icon
         case "volume":
@@ -270,6 +273,8 @@ Singleton {
             return PetService.hatched ? Tr.t("Lv %1").arg(PetService.level) : Tr.t("Egg")
         case "network":
             return NetworkService.connectionName
+        case "netspeed":
+            return `↓ ${StatsService.rate(StatsService.networkDown)}  ↑ ${StatsService.rate(StatsService.networkUp)}`
         case "bluetooth":
             return BluetoothService.summary
         case "calendar":
@@ -601,6 +606,7 @@ Singleton {
             // shows on an unconfigured machine.
             return GithubService.available
         case "stats":
+        case "netspeed":
             // The sampler runs from boot (shell.qml touches it).
             return true
         case "screentime":
