@@ -1096,6 +1096,10 @@ PanelWindow {
             peek.label = ModuleService.peekText
         }
 
+        // The value moves while the card is up: a scroll on the volume.
+        readonly property string liveText: ModuleService.peekText
+        onLiveTextChanged: if (peek.mine && peek.liveText !== "") peek.label = peek.liveText
+
         // Centred under the piece. Joined: kept on the straight part of the
         // band's lower edge, clear of its rounded ends, so the fillets meet a
         // flat line. Always: inside the bar's width.
@@ -1110,11 +1114,15 @@ PanelWindow {
             peek.maxX < peek.minX ? peek.centred : Math.max(peek.minX, Math.min(peek.maxX, peek.centred))))
         y: peek.edgeY
         width: peekText.implicitWidth + 28
-        height: peek.mine ? peek.fullHeight : 0
-        visible: peek.height > 0.5
+        // The joined tab grows out of the band; the free pill fades in where
+        // it hangs.
+        height: peek.mine || !peek.joined ? peek.fullHeight : 0
+        opacity: peek.mine || peek.joined ? 1 : 0
+        visible: peek.height > 0.5 && peek.opacity > 0.01
         clip: true
 
         Behavior on height { NumberAnimation { duration: Theme.durationFast; easing.type: Theme.easing } }
+        Behavior on opacity { NumberAnimation { duration: Theme.durationFast; easing.type: Theme.easing } }
 
         Rectangle {
             width: parent.width

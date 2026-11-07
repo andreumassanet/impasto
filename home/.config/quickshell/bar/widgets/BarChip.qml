@@ -68,6 +68,11 @@ Item {
         return face.value !== "" ? `${name} · ${face.value}` : name
     }
 
+    onPeekLabelChanged: {
+        if (ModuleService.peekSource === root)
+            ModuleService.peekText = root.peekLabel
+    }
+
     // A moment's rest before the card, so passing over pieces shows nothing.
     Timer {
         id: peekIntent
