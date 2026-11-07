@@ -167,12 +167,12 @@ Item {
 
                 anchors.left: picture.right
                 anchors.leftMargin: 18
-                anchors.right: send.left
-                anchors.rightMargin: 12
+                anchors.right: reveal.left
+                anchors.rightMargin: 8
                 anchors.verticalCenter: parent.verticalCenter
                 opacity: root.typing ? 1 : 0
 
-                echoMode: TextInput.Password
+                echoMode: reveal.shown ? TextInput.Normal : TextInput.Password
                 passwordCharacter: "●"
                 passwordMaskDelay: 0
                 enabled: !LockService.authenticating && !LockService.leaving
@@ -225,6 +225,42 @@ Item {
                         return
                     event.accepted = !LockService.awake
                     LockService.rouse()
+                }
+            }
+
+            // Shows or hides what is typed.
+            Rectangle {
+                id: reveal
+
+                property bool shown: false
+
+                anchors.right: send.left
+                anchors.rightMargin: 8
+                anchors.verticalCenter: parent.verticalCenter
+                width: 36
+                height: 36
+                radius: width / 2
+                opacity: root.typing ? 1 : 0
+                color: revealMouse.containsMouse ? Theme.islandSurfaceHover : "transparent"
+
+                Text {
+                    anchors.centerIn: parent
+                    text: reveal.shown ? "󰈉" : "󰈈"
+                    font.family: Theme.fontMono
+                    font.pixelSize: Theme.fontSizeLarge
+                    color: Theme.textMuted
+                }
+
+                MouseArea {
+                    id: revealMouse
+
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: {
+                        reveal.shown = !reveal.shown
+                        field.forceActiveFocus()
+                    }
                 }
             }
 
