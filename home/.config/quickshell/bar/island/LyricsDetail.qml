@@ -50,34 +50,13 @@ Item {
         width: root.coverSize
         spacing: 14
 
-        ClippingRectangle {
+        CoverArt {
             width: root.coverSize
             height: width
-            radius: width * Theme.pictureCorner * 0.5
-            color: "transparent"
-
-            Image {
-                id: art
-
-                anchors.fill: parent
-                source: MediaService.artUrl
-                visible: source != "" && status === Image.Ready
-                fillMode: Image.PreserveAspectCrop
-                asynchronous: true
-                // Fixed, not the cover's size: the island grows round the
-                // panel, and a size per frame would reload it per frame.
-                sourceSize.width: 600
-                sourceSize.height: 600
-            }
-
-            Text {
-                anchors.centerIn: parent
-                visible: !art.visible
-                text: "󰎇"
-                font.family: Theme.fontMono
-                font.pixelSize: Math.round(root.coverSize * 0.6)
-                color: Theme.text
-            }
+            cornerScale: 0.5
+            equalizer: false
+            // The island animates the cover's size; one decode serves all of it.
+            sourceEdge: 600
         }
 
         Column {

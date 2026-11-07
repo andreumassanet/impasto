@@ -136,6 +136,48 @@ SettingsSection {
     }
 
     SettingGroup {
+        title: Tr.t("Media cover")
+        note: Tr.t("The picture of what is playing, in the control centre, the island, the media card and the lyrics.")
+        hint: Tr.t("The bars around a circle come from cava, which listens to the sound only while a cover with bars is visible. Without cava installed the circle stays plain.")
+
+        SettingRow {
+            label: Tr.t("Shape")
+            reading: SettingsService.mediaCover === "circle"
+                ? Tr.t("A round cover, with bars around it where there is room") : Tr.t("A rounded rectangle")
+
+            SegmentedControl {
+                options: [
+                    { id: "rectangle", label: Tr.t("Rectangle") },
+                    { id: "circle", label: Tr.t("Circle") }
+                ]
+                current: SettingsService.mediaCover
+                onSelected: id => SettingsService.set("mediaCover", id)
+            }
+        }
+    }
+
+    SettingGroup {
+        title: Tr.t("Media player")
+        note: Tr.t("What opens from the media piece, from its chip, the island and the control centre.")
+
+        SettingRow {
+            label: Tr.t("Design")
+            reading: SettingsService.mediaDesign === "panel"
+                ? Tr.t("A wide panel: the cover, the controls and the lyrics side by side")
+                : Tr.t("A card under the piece, with the lyrics opening out beside it")
+
+            SegmentedControl {
+                options: [
+                    { id: "card", label: Tr.t("Card") },
+                    { id: "panel", label: Tr.t("Panel") }
+                ]
+                current: SettingsService.mediaDesign
+                onSelected: id => SettingsService.set("mediaDesign", id)
+            }
+        }
+    }
+
+    SettingGroup {
         title: Tr.t("Notes")
         note: Tr.t("A note on the wallpaper is written the same way as one in the panel.")
 

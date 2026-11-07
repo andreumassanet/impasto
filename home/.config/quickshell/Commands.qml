@@ -253,7 +253,7 @@ Scope {
 
         readonly property var names: ["launcher", "controls", "overview", "appearance", "palette",
             "stats", "session", "pet", "games", "notes", "board", "keys", "packages",
-            "machines", "servers", "screentime", "camera", "wifi", "bluetooth", "sound", "microphone", "brightness", "nightlight", "power"]
+            "machines", "servers", "screentime", "camera", "player", "wifi", "bluetooth", "sound", "microphone", "brightness", "nightlight", "power"]
 
         function open(name: string): string {
             if (names.indexOf(name) < 0)

@@ -80,6 +80,8 @@ UsageRing        1.0 components/UsageRing.qml
 DayDial          1.0 components/DayDial.qml
 SessionRibbon    1.0 components/SessionRibbon.qml
 Spectrum         1.0 components/Spectrum.qml
+CoverRing        1.0 components/CoverRing.qml
+CoverArt         1.0 components/CoverArt.qml
 NotchFillet      1.0 components/NotchFillet.qml
 NotchOutline     1.0 components/NotchOutline.qml
 ClaudeMark       1.0 components/ClaudeMark.qml
@@ -205,6 +207,7 @@ GamesPanel       1.0 bar/island/GamesPanel.qml
 NotesPanel       1.0 bar/island/NotesPanel.qml
 BoardPanel       1.0 bar/island/BoardPanel.qml
 KeysPanel        1.0 bar/island/KeysPanel.qml
+MediaPanel       1.0 bar/island/MediaPanel.qml
 PackagesPanel    1.0 bar/island/PackagesPanel.qml
 GameBoard        1.0 bar/island/games/GameBoard.qml
 NotificationList 1.0 bar/island/controls/NotificationList.qml

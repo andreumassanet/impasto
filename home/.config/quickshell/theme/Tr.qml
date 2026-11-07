@@ -194,6 +194,26 @@ QtObject {
             "Nothing playing": "No suena nada",
             "Looking for lyrics": "Buscando la letra",
             "No lyrics for this one": "Esta no tiene letra",
+            "No lyrics": "Sin letra",
+            "Nothing is playing": "No suena nada",
+            "Player": "Reproductor",
+            "Media cover": "Carátula",
+            "The picture of what is playing, in the control centre, the island, the media card and the lyrics.":
+                "La imagen de lo que suena, en el centro de control, la isla, la tarjeta y la letra.",
+            "The bars around a circle come from cava, which listens to the sound only while a cover with bars is visible. Without cava installed the circle stays plain.":
+                "Las barras alrededor del círculo vienen de cava, que escucha el sonido solo mientras se ve una carátula con barras. Sin cava instalado el círculo queda liso.",
+            "Shape": "Forma",
+            "Rectangle": "Rectángulo",
+            "A round cover, with bars around it where there is room": "Una carátula redonda, con barras alrededor donde hay sitio",
+            "A rounded rectangle": "Un rectángulo redondeado",
+            "Media player": "Reproductor",
+            "What opens from the media piece, from its chip, the island and the control centre.":
+                "Lo que se abre desde la pieza de música, desde su ficha, la isla y el centro de control.",
+            "Design": "Diseño",
+            "Card": "Tarjeta",
+            "Panel": "Panel",
+            "A card under the piece, with the lyrics opening out beside it": "Una tarjeta bajo la pieza, con la letra desplegada a su lado",
+            "A wide panel: the cover, the controls and the lyrics side by side": "Un panel ancho: la carátula, los controles y la letra, lado a lado",
             "Lyrics, untimed": "Letra sin tiempos",
             "A region": "Una región",
             "A window": "Una ventana",
@@ -1143,6 +1163,13 @@ QtObject {
             "Look them up": "Buscarlas",
             "Looked up on lrclib.net by title and artist, which needs no account. They show in the island's glance and its media card, in the desktop's lyrics widget and on the lock screen when it is set to show them.":
                 "Se buscan en lrclib.net por título y artista, sin necesidad de cuenta. Aparecen en el vistazo de la isla y en su tarjeta de música, en el widget de letras del escritorio y en la pantalla de bloqueo cuando está configurada para mostrarlas.",
+            "Media card": "Tarjeta de música",
+            "The player in the control centre.": "El reproductor del centro de control.",
+            "The bars come from cava, which listens to the sound only while the card is open. Without cava installed the cover stays plain.":
+                "Las barras vienen de cava, que escucha el sonido solo mientras la tarjeta está abierta. Sin cava instalado, la portada queda lisa.",
+            "Ring around the cover": "Anillo alrededor de la portada",
+            "Bars move around a round cover with the music": "Barras alrededor de una portada redonda, al ritmo de la música",
+            "Plain cover": "Portada lisa",
             "Notes on the edges": "Notas en los bordes",
             "Position": "Posición",
             "Profiles, updates, language and this machine.":

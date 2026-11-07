@@ -301,6 +301,17 @@ PanelWindow {
     // (`ModuleService.activate`). Clicking the open module again closes it; any
     // other replaces it.
     function activate(id: string): void {
+        // The media piece opens the wide panel in place of its card when chosen
+        // (`SettingsService.mediaDesign`); wherever it is asked for from.
+        if (id === "media" && SettingsService.mediaDesign === "panel") {
+            if (island.state.openPanel === "player") {
+                root.dismiss()
+                return
+            }
+            ModuleService.close()
+            island.open("player")
+            return
+        }
         if (ModuleService.openId === id) {
             root.dismiss()
             return

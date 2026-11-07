@@ -274,35 +274,11 @@ Item {
         Component {
             id: mediaMark
 
-            ClippingRectangle {
+            CoverArt {
                 width: 20
                 height: 20
-                radius: width * Theme.pictureCorner
-                // None behind a picture: a player may send its logo on transparency.
-                color: art.visible ? "transparent" : Theme.surfaceHoverIn(QsWindow.window)
-
-                Component.onCompleted: MediaService.subscribe()
-                Component.onDestruction: MediaService.release()
-
-                Image {
-                    id: art
-                    anchors.fill: parent
-                    source: MediaService.artUrl
-                    visible: source != "" && status === Image.Ready
-                    fillMode: Image.PreserveAspectCrop
-                    asynchronous: true
-                    sourceSize.width: 40
-                    sourceSize.height: 40
-                }
-
-                Text {
-                    anchors.centerIn: parent
-                    visible: !art.visible
-                    text: "󰎇"
-                    font.family: Theme.fontMono
-                    font.pixelSize: 11
-                    color: Theme.indicator
-                }
+                // The equalizer beside it already moves.
+                equalizer: false
             }
         }
 
