@@ -234,7 +234,9 @@ QtObject {
             return root.emoji(term)
         }
 
-        return root.rank(term).slice(0, root.maxResults)
+        // Every match: the panel caps its visible height at `maxResults`
+        // rows and the rest scrolls, as the doors' list does.
+        return root.rank(term)
     }
 
     // All applications matching `term`, sorted by:
