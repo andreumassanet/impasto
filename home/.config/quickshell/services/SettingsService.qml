@@ -62,6 +62,8 @@ Singleton {
     readonly property alias dockOpacity: config.dockOpacity
     readonly property alias dockGround: config.dockGround
     readonly property alias terminalGround: config.terminalGround
+    readonly property alias agenda: config.agenda
+    readonly property alias agendaKhalConfig: config.agendaKhalConfig
     readonly property alias dockRunning: config.dockRunning
     readonly property alias dockEverywhere: config.dockEverywhere
     readonly property alias dockAutohide: config.dockAutohide
@@ -842,6 +844,13 @@ Singleton {
 
         // kitty's ground, as `surfaceStyle`.
         property string terminalGround: "glass"
+
+        // An agenda panel with the next two weeks from khal, opened by the
+        // agenda shortcut or `qs ipc call panel open agenda`.
+        property bool agenda: false
+
+        // khal's config file; empty is khal's own.
+        property string agendaKhalConfig: ""
 
         // Also show running applications that aren't pinned.
         property bool dockRunning: true
