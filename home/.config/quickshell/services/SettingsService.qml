@@ -91,6 +91,7 @@ Singleton {
     readonly property alias recorderAudio: config.recorderAudio
     readonly property alias captureShape: config.captureShape
     readonly property alias captureKind: config.captureKind
+    readonly property alias keysTabs: config.keysTabs
     readonly property alias notesHandwriting: config.notesHandwriting
     readonly property alias deckOnEmpty: config.deckOnEmpty
     readonly property alias spectrumOnEmpty: config.spectrumOnEmpty
@@ -661,6 +662,10 @@ Singleton {
         // destination is not stored: it resets to saving a file.
         property string captureShape: "region"
         property string captureKind: "photo"
+        // The key sheet in two tabs: impasto's own keys, and the ones a user's
+        // config adds.
+        property bool keysTabs: false
+
 
         // Note bodies in the handwriting font instead of the UI font.
         property bool notesHandwriting: true

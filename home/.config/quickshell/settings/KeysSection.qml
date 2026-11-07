@@ -192,6 +192,23 @@ SettingsSection {
         }
 
         SettingGroup {
+            title: Tr.t("The key sheet")
+            note: Tr.t("The panel and the window that list every key.")
+
+            SettingRow {
+                label: Tr.t("Core and Custom tabs")
+                reading: SettingsService.keysTabs
+                    ? Tr.t("Impasto's own keys on one tab, the ones your config adds on the other")
+                    : Tr.t("Every key in one list")
+
+                ToggleSwitch {
+                    checked: SettingsService.keysTabs
+                    onToggled: checked => SettingsService.set("keysTabs", checked)
+                }
+            }
+        }
+
+        SettingGroup {
             visible: root.own.length > 0
 
             Repeater {
