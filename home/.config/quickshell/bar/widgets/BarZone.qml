@@ -186,7 +186,7 @@ Row {
 
         Component {
             id: workspaceStrip
-            WorkspaceStrip {
+            WorkspacesWidget {
                 chromeless: group.chromeless
                 overWallpaper: group.overWallpaper
             }

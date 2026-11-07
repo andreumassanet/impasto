@@ -49,7 +49,7 @@ Item {
           tabs: [{ id: "style", label: Tr.t("Style") },
                  { id: "layout", label: Tr.t("Layout") },
                  { id: "workspaces", label: Tr.t("Workspaces") }],
-          keywords: "bar style grouped spread one capsule bezel frame rounded corners screen sides capsules wallpaper every screen monitors height margin scale ground glass classic liquid shadow layout left right split drag catalogue chip icon ring figure hover shape modules media claude battery timer volume brightness network wifi speed download upload traffic bluetooth weather stats cpu updates pet capture record screenshot buttons workspaces strip shown available shared per screen",
+          keywords: "bar style grouped spread one capsule bezel frame rounded corners screen sides capsules wallpaper every screen monitors height margin scale ground glass classic liquid shadow layout left right split drag catalogue chip icon ring figure hover shape modules media claude battery timer volume brightness network wifi speed download upload traffic bluetooth weather stats cpu updates pet capture record screenshot buttons workspaces strip dots bars rings numbers roman kanji greek apps icons shown available shared per screen",
           page: barPage },
 
         { id: "island", category: "shell", icon: "󰌢", label: Tr.t("Island"),
