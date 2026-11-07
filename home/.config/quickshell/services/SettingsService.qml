@@ -35,6 +35,11 @@ Singleton {
     readonly property alias barEverywhere: config.barEverywhere
     readonly property alias barHidden: config.barHidden
     readonly property alias screenCorners: config.screenCorners
+    readonly property alias frameMode: config.frameMode
+    readonly property alias frameThickness: config.frameThickness
+    readonly property alias slidersPlacement: config.slidersPlacement
+    readonly property alias slidersPinned: config.slidersPinned
+    readonly property alias edgeOpen: config.edgeOpen
     readonly property alias gameMode: config.gameMode
     readonly property alias barLeft: config.barLeft
     readonly property alias barRight: config.barRight
@@ -54,6 +59,7 @@ Singleton {
     readonly property alias centreRows: config.centreRows
     readonly property alias centreToggles: config.centreToggles
     readonly property alias dockEnabled: config.dockEnabled
+    readonly property alias dockStyle: config.dockStyle
     readonly property alias dockPinned: config.dockPinned
     readonly property alias dockEdge: config.dockEdge
     readonly property alias dockAlignment: config.dockAlignment
@@ -73,6 +79,9 @@ Singleton {
     readonly property alias launcherResults: config.launcherResults
     readonly property alias launcherOrder: config.launcherOrder
     readonly property alias launcherFits: config.launcherFits
+    readonly property alias launcherDesign: config.launcherDesign
+    readonly property alias launcherOnHover: config.launcherOnHover
+    readonly property alias launcherPinned: config.launcherPinned
     readonly property alias emojiTone: config.emojiTone
     readonly property alias cameraEnabled: config.cameraEnabled
     readonly property alias cameraEffect: config.cameraEffect
@@ -177,6 +186,11 @@ Singleton {
     // The island is cut into the top edge: chosen, or the bezel, which is
     // always cut in.
     readonly property bool notched: config.islandAttached || config.barStyle === "bezel"
+
+    // Under an always-on frame a floating bar hangs from the frame's inner
+    // edge, not the screen's; notched, the band already covers it.
+    readonly property int frameTopInset: config.frameMode === "always" && !root.notched
+        ? config.frameThickness : 0
 
     // Used while `barLeft`/`barRight` are null. `workspaces` is the strip,
     // `tray` the applications' icons and `split` starts a new capsule; none is
@@ -534,6 +548,25 @@ Singleton {
         // Every screen's four corners rounded off in black.
         property bool screenCorners: false
 
+        // A thin border round the screen, in the island's ground. "always":
+        // drawn all the time, with the windows kept clear of it; "open": drawn
+        // over the windows only while the island or a drawer is out; "none".
+        property string frameMode: "none"
+        property int frameThickness: 8
+
+        // Where the volume, brightness and input sliders live: `island` (the
+        // control centre's blocks) or `side` (a drawer on the right edge,
+        // and those blocks hidden).
+        property string slidersPlacement: "island"
+
+        // The sliders drawer stays out on its edge, and the windows keep
+        // clear of it.
+        property bool slidersPinned: false
+
+        // How the edge drawers wake: `hover` (the pointer rests on their
+        // edge) or `click` (a button under the bar's corner).
+        property string edgeOpen: "hover"
+
         // Game mode: no animations, blur, shadow or glass on the compositor,
         // over whatever the rest of the settings say.
         property bool gameMode: false
@@ -604,6 +637,19 @@ Singleton {
         // list. Off by default: a list that holds still is easier to aim at.
         // `launcherResults` caps it either way.
         property bool launcherFits: false
+
+        // Where the launcher key opens it: `island` (the island's panel),
+        // `drawer` (the same panel growing from the bottom edge) or `grid`
+        // (the application grid from the bottom edge).
+        property string launcherDesign: "island"
+
+        // Drawer and grid only: resting on the bottom edge opens it, and
+        // leaving without typing closes it.
+        property bool launcherOnHover: false
+
+        // Drawer and grid only: a search pill stays out on the bottom edge,
+        // and the windows keep clear of it.
+        property bool launcherPinned: false
 
         // Skin tone for emoji that have one: 0 is the default yellow, 1 to 5
         // light to dark. The person's, so it stays with the machine.
@@ -818,6 +864,10 @@ Singleton {
         // An empty dock is not drawn, so enabling it by default costs
         // nothing on a fresh install.
         property bool dockEnabled: true
+
+        // `classic` (the capsule in `dock/`) or `drawer` (the same apps in a
+        // drawer on the dock's edge, with a popout for each app's windows).
+        property string dockStyle: "classic"
 
         // Pinned desktop entry ids, in order. Name, icon and command are
         // read from the entry.
