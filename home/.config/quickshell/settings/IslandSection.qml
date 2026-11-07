@@ -89,6 +89,30 @@ SettingsSection {
                 }
             }
 
+            SettingRow {
+                label: Tr.t("Connectivity tabs")
+                reading: SettingsService.connectivityTabs
+                    ? Tr.t("Bluetooth, Wi-Fi and Sound share one panel, with Tab to switch")
+                    : Tr.t("Each opens as a panel of its own")
+
+                ToggleSwitch {
+                    checked: SettingsService.connectivityTabs
+                    onToggled: checked => SettingsService.set("connectivityTabs", checked)
+                }
+            }
+
+            SettingRow {
+                label: Tr.t("Sound effects row")
+                reading: SettingsService.soundEffects
+                    ? Tr.t("The sound panel shows whether EasyEffects is on, when it is installed")
+                    : Tr.t("The sound panel stays to outputs, inputs and applications")
+
+                ToggleSwitch {
+                    checked: SettingsService.soundEffects
+                    onToggled: checked => SettingsService.set("soundEffects", checked)
+                }
+            }
+
         }
 
         // ── CLOCK ───────────────────────────────────────────────────────────
