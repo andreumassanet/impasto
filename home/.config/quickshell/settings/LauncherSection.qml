@@ -176,7 +176,7 @@ SettingsSection {
         visible: root.tab === "results"
         title: Tr.t("Fallbacks")
         note: Tr.t("Rows under the applications that act on the text as typed.")
-        hint: Tr.t("Open an address, search the web, run it as a command, or run it in a terminal (the one named by $TERMINAL, else kitty). Only in the plain-text mode, and a command runs as soon as its row is chosen.")
+        hint: Tr.t("Open an address, search the web, run the text as a command, or run it in a terminal that stays open. Only in the plain-text mode; a command runs as soon as its row is chosen.")
 
         SettingRow {
             label: Tr.t("Offer fallback rows")

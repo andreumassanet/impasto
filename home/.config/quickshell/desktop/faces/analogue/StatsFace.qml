@@ -73,7 +73,7 @@ Item {
                 ink: root.ink
                 size: panel.gauge
                 fraction: StatsService.memoryFraction
-                label: "memory"
+                label: Tr.t("memory")
                 value: StatsService.bytes(StatsService.memoryUsed)
             }
 
@@ -85,8 +85,8 @@ Item {
 
                 Repeater {
                     model: [
-                        { figure: StatsService.load[0].toFixed(2), word: "load" },
-                        { figure: StatsService.duration(StatsService.uptime), word: "up" }
+                        { figure: StatsService.load[0].toFixed(2), word: Tr.t("load") },
+                        { figure: StatsService.duration(StatsService.uptime), word: Tr.t("up") }
                     ]
 
                     Column {
@@ -126,11 +126,11 @@ Item {
 
                 Repeater {
                     model: [
-                        { title: "Processor", reading: `${StatsService.cpu.toFixed(0)}%`,
+                        { title: Tr.t("Processor"), reading: `${StatsService.cpu.toFixed(0)}%`,
                           series: StatsService.cpuHistory },
-                        { title: "Memory", reading: StatsService.bytes(StatsService.memoryUsed),
+                        { title: Tr.t("Memory"), reading: StatsService.bytes(StatsService.memoryUsed),
                           series: StatsService.memoryHistory },
-                        { title: "Network", reading: StatsService.rate(StatsService.networkDown),
+                        { title: Tr.t("Network"), reading: StatsService.rate(StatsService.networkDown),
                           series: StatsService.downHistory }
                     ]
 

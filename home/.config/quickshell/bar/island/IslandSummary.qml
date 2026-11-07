@@ -587,7 +587,7 @@ Item {
         Text {
             id: hour
             anchors.right: parent.right
-            text: Qt.formatDateTime(clock.date, SettingsService.clockFormat)
+            text: Tr.date(clock.date, SettingsService.clockFormat)
             font.family: Theme.fontFamily
             font.pixelSize: 62
             font.weight: Font.Black

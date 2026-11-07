@@ -72,9 +72,9 @@ Singleton {
     readonly property alias petStyle: config.petStyle
     readonly property alias launcherResults: config.launcherResults
     readonly property alias launcherOrder: config.launcherOrder
-    readonly property alias launcherFits: config.launcherFits
     readonly property alias launcherFallbacks: config.launcherFallbacks
     readonly property alias launcherSearchUrl: config.launcherSearchUrl
+    readonly property alias launcherFits: config.launcherFits
     readonly property alias emojiTone: config.emojiTone
     readonly property alias cameraEnabled: config.cameraEnabled
     readonly property alias cameraEffect: config.cameraEffect
@@ -100,6 +100,7 @@ Singleton {
     readonly property alias workspaceMax: config.workspaceMax
     readonly property alias workspaceMode: config.workspaceMode
     readonly property alias workspaceStyle: config.workspaceStyle
+    readonly property alias workspaceApps: config.workspaceApps
     readonly property alias motionScale: config.motionScale
     readonly property alias motionCurve: config.motionCurve
     readonly property alias animationPreset: config.animationPreset
@@ -600,18 +601,16 @@ Singleton {
         // Order with an empty query: `recent` ranks by launch count with
         // decay; otherwise alphabetical.
         property string launcherOrder: "recent"
+        // Rows under the applications that open the text as an address,
+        // search the web for it, or run it as a command.
+        property bool launcherFallbacks: false
+        // The web search row opens this followed by the text, URL-encoded.
+        property string launcherSearchUrl: "https://www.google.com/search?q="
 
         // Fit the island to the number of results instead of a fixed-height
         // list. Off by default: a list that holds still is easier to aim at.
         // `launcherResults` caps it either way.
         property bool launcherFits: false
-
-        // With nothing matching in the plain-text mode, offer rows to open the
-        // text as an address, search the web, or run it as a command.
-        property bool launcherFallbacks: false
-
-        // The web search row opens this followed by the text, URL-encoded.
-        property string launcherSearchUrl: "https://search.brave.com/search?q="
 
         // Skin tone for emoji that have one: 0 is the default yellow, 1 to 5
         // light to dark. The person's, so it stays with the machine.
@@ -690,6 +689,8 @@ Singleton {
         // How the strip draws each workspace: a shape (`dots`, `bars`, `rings`)
         // or its number written out (`numbers`, `roman`, `kanji`, `greek`).
         property string workspaceStyle: "dots"
+        // The focused workspace's applications after its mark, in any style.
+        property bool workspaceApps: false
 
         // Percentage. 100 is the designed speed; 0 disables animation.
         property int motionScale: 100
