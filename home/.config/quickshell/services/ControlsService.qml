@@ -41,36 +41,36 @@ Singleton {
     //   detail  subtitle in the launcher's `>` mode; also searched
     //   panel   island panel it opens, or "" for the settings window
     readonly property var doors: [
-        { id: "stats",      icon: "󰕬", label: "System statistics",
-          detail: "Processor, memory, disks, the network", panel: "stats" },
-        { id: "settings",   icon: "󰒓", label: "Settings",
-          detail: "The whole desk, in a window",           panel: "" },
-        { id: "pet",        icon: "󰏩", label: "Pet",
-          detail: "The creature living on the bar",        panel: "pet" },
-        { id: "games",      icon: "󰊗", label: "Games",
-          detail: "The arcade",                            panel: "games" },
-        { id: "notes",      icon: "󰎞", label: "Notes",
-          detail: "The deck of sticky notes",              panel: "notes" },
-        { id: "board",      icon: "󰄲", label: "Task board",
-          detail: "To do, doing, done",                    panel: "board" },
-        { id: "overview",   icon: "󰕰", label: "Workspace overview",
-          detail: "Every workspace side by side",          panel: "overview" },
-        { id: "launcher",   icon: "󰍉", label: "Launcher",
-          detail: "Where you already are",                 panel: "launcher" },
-        { id: "appearance", icon: "󰏘", label: "Appearance",
-          detail: "The wallpaper and the palette",         panel: "appearance" },
-        { id: "session",    icon: "󰐥", label: "Session menu",
-          detail: "Lock, log out, suspend, restart, off",  panel: "session" },
-        { id: "keys",       icon: "󰌌", label: "Keys",
-          detail: "Every shortcut, on one sheet",          panel: "keys" },
-        { id: "packages",   icon: "󰏗", label: "Packages",
-          detail: "Updates, what is installed, the AUR",   panel: "packages" },
-        { id: "servers",    icon: "󰒋", label: "Servers",
-          detail: "The ports your projects listen on",     panel: "servers" },
-        { id: "screentime", icon: "󰔛", label: "Screen time",
-          detail: "Where the day went, app by app",        panel: "screentime" },
-        { id: "camera",     icon: "󰄀", label: "Camera",
-          detail: "Effects and reactions for your calls",  panel: "camera" }
+        { id: "stats",      icon: "󰕬", label: Tr.t("System statistics"),
+          detail: Tr.t("Processor, memory, disks, the network"), panel: "stats" },
+        { id: "settings",   icon: "󰒓", label: Tr.t("Settings"),
+          detail: Tr.t("The whole desk, in a window"),           panel: "" },
+        { id: "pet",        icon: "󰏩", label: Tr.t("Pet"),
+          detail: Tr.t("The creature living on the bar"),        panel: "pet" },
+        { id: "games",      icon: "󰊗", label: Tr.t("Games"),
+          detail: Tr.t("The arcade"),                            panel: "games" },
+        { id: "notes",      icon: "󰎞", label: Tr.t("Notes"),
+          detail: Tr.t("The deck of sticky notes"),              panel: "notes" },
+        { id: "board",      icon: "󰄲", label: Tr.t("Task board"),
+          detail: Tr.t("To do, doing, done"),                    panel: "board" },
+        { id: "overview",   icon: "󰕰", label: Tr.t("Workspace overview"),
+          detail: Tr.t("Every workspace side by side"),          panel: "overview" },
+        { id: "launcher",   icon: "󰍉", label: Tr.t("Launcher"),
+          detail: Tr.t("Where you already are"),                 panel: "launcher" },
+        { id: "appearance", icon: "󰏘", label: Tr.t("Appearance"),
+          detail: Tr.t("The wallpaper and the palette"),         panel: "appearance" },
+        { id: "session",    icon: "󰐥", label: Tr.t("Session menu"),
+          detail: Tr.t("Lock, log out, suspend, restart, off"),  panel: "session" },
+        { id: "keys",       icon: "󰌌", label: Tr.t("Keys"),
+          detail: Tr.t("Every shortcut, on one sheet"),          panel: "keys" },
+        { id: "packages",   icon: "󰏗", label: Tr.t("Packages"),
+          detail: Tr.t("Updates, what is installed, the AUR"),   panel: "packages" },
+        { id: "servers",    icon: "󰒋", label: Tr.t("Servers"),
+          detail: Tr.t("The ports your projects listen on"),     panel: "servers" },
+        { id: "screentime", icon: "󰔛", label: Tr.t("Screen time"),
+          detail: Tr.t("Where the day went, app by app"),        panel: "screentime" },
+        { id: "camera",     icon: "󰄀", label: Tr.t("Camera"),
+          detail: Tr.t("Effects and reactions for your calls"),  panel: "camera" }
     ]
 
     readonly property var defaultButtons: ["stats", "settings", "pet", "games", "notes", "board"]
@@ -238,14 +238,14 @@ Singleton {
 
     readonly property list<QtObject> toggleCatalogue: [
         Toggle {
-            key: "wifi"; icon: NetworkService.icon; label: "Wi-Fi"
+            key: "wifi"; icon: NetworkService.icon; label: Tr.t("Wi-Fi")
             detail: NetworkService.connectionName
             active: NetworkService.wifiEnabled
             expandable: true; panel: "wifi"
             action: () => NetworkService.toggleWifi()
         },
         Toggle {
-            key: "bluetooth"; icon: BluetoothService.icon; label: "Bluetooth"
+            key: "bluetooth"; icon: BluetoothService.icon; label: Tr.t("Bluetooth")
             detail: BluetoothService.summary
             active: BluetoothService.enabled
             available: BluetoothService.available
@@ -254,29 +254,30 @@ Singleton {
             action: () => { OsdService.suppressAudio(); BluetoothService.toggle() }
         },
         Toggle {
-            key: "power"; icon: "󰓅"; label: "Power"
-            detail: SystemService.powerProfile || "Unknown"
-            active: SystemService.performanceMode
-            available: SystemService.ready
-            action: () => SystemService.toggle("power-profile")
+            key: "power"; icon: SystemService.powerIcon; label: Tr.t("Power")
+            detail: Tr.t(SystemService.powerLabel || "Unknown")
+            active: SystemService.powerShifted
+            available: SystemService.powerAvailable
+            expandable: SystemService.powerAvailable; panel: "power"
+            action: () => SystemService.togglePower()
         },
         Toggle {
-            key: "focus"; icon: NotificationService.doNotDisturb ? "󰂛" : "󰂚"; label: "Focus"
-            detail: NotificationService.doNotDisturb ? "Silenced" : "Notifying"
+            key: "focus"; icon: NotificationService.doNotDisturb ? "󰂛" : "󰂚"; label: Tr.t("Focus")
+            detail: NotificationService.doNotDisturb ? Tr.t("Silenced") : Tr.t("Notifying")
             active: NotificationService.doNotDisturb
             action: () => NotificationService.toggleDoNotDisturb()
         },
         Toggle {
-            key: "microphone"; icon: AudioService.sourceIcon; label: "Microphone"
-            detail: AudioService.sourceMuted ? "Muted" : "Live"
+            key: "microphone"; icon: AudioService.sourceIcon; label: Tr.t("Microphone")
+            detail: AudioService.sourceMuted ? Tr.t("Muted") : Tr.t("Live")
             active: !AudioService.sourceMuted
             available: AudioService.sourceReady
             expandable: AudioService.sourceReady; panel: "microphone"
             action: () => AudioService.toggleSourceMute()
         },
         Toggle {
-            key: "airplane"; icon: root.airborne ? "󰀝" : "󰀞"; label: "Airplane"
-            detail: root.airborne ? "Radios off" : "Radios on"
+            key: "airplane"; icon: root.airborne ? "󰀝" : "󰀞"; label: Tr.t("Airplane")
+            detail: root.airborne ? Tr.t("Radios off") : Tr.t("Radios on")
             active: root.airborne
             action: () => {
                 const turnOn = root.airborne
@@ -287,7 +288,7 @@ Singleton {
             }
         },
         Toggle {
-            key: "nightlight"; icon: SunsetService.icon; label: "Night light"
+            key: "nightlight"; icon: SunsetService.icon; label: Tr.t("Night light")
             detail: SunsetService.detail
             active: SunsetService.on
             available: SunsetService.available
@@ -295,21 +296,21 @@ Singleton {
             action: () => SunsetService.toggle()
         },
         Toggle {
-            key: "output"; icon: AudioService.icon; label: "Output"
-            detail: AudioService.muted ? "Muted" : `${AudioService.volume}%`
+            key: "output"; icon: AudioService.icon; label: Tr.t("Output")
+            detail: AudioService.muted ? Tr.t("Muted") : `${AudioService.volume}%`
             active: !AudioService.muted
             available: AudioService.ready
             action: () => AudioService.toggleMute()
         },
         Toggle {
-            key: "dock"; icon: "󱂠"; label: "Dock"
-            detail: SettingsService.dockEnabled ? "Shown" : "Hidden"
+            key: "dock"; icon: "󱂠"; label: Tr.t("Dock")
+            detail: SettingsService.dockEnabled ? Tr.t("Shown") : Tr.t("Hidden")
             active: SettingsService.dockEnabled
             action: () => SettingsService.set("dockEnabled", !SettingsService.dockEnabled)
         },
         Toggle {
-            key: "notch"; icon: "󰌢"; label: "Notch"
-            detail: SettingsService.islandAttached ? "Attached" : "Floating"
+            key: "notch"; icon: "󰌢"; label: Tr.t("Notch")
+            detail: SettingsService.islandAttached ? Tr.t("Attached") : Tr.t("Floating")
             active: SettingsService.islandAttached
             action: () => SettingsService.set("islandAttached", !SettingsService.islandAttached)
         },
@@ -318,8 +319,9 @@ Singleton {
             readonly property var shadows: ["windowShadow", "barShadow", "dockShadow", "widgetShadow"]
             readonly property int count: shadows.filter(key => SettingsService[key]).length
 
-            key: "shadow"; icon: "󰘷"; label: "Shadows"
-            detail: count === shadows.length ? "On" : count === 0 ? "Off" : `${count} of ${shadows.length}`
+            key: "shadow"; icon: "󰘷"; label: Tr.t("Shadows")
+            detail: count === shadows.length ? Tr.t("On") : count === 0 ? Tr.t("Off")
+                : Tr.t("%1 of %2").arg(count).arg(shadows.length)
             active: count > 0
             action: () => {
                 const on = count === 0
@@ -328,14 +330,14 @@ Singleton {
             }
         },
         Toggle {
-            key: "game"; icon: "󰺵"; label: "Game mode"
-            detail: SettingsService.gameMode ? "No effects" : "Off"
+            key: "game"; icon: "󰺵"; label: Tr.t("Game mode")
+            detail: SettingsService.gameMode ? Tr.t("No effects") : Tr.t("Off")
             active: SettingsService.gameMode
             action: () => SettingsService.set("gameMode", !SettingsService.gameMode)
         },
         Toggle {
-            key: "screenshot"; icon: "󰹑"; label: "Capture"
-            detail: "Photo or video"
+            key: "screenshot"; icon: "󰹑"; label: Tr.t("Capture")
+            detail: Tr.t("Photo or video")
             available: CaptureService.can("grim")
             closes: true
             // Waits for the panel to close so it is not in the screenshot.
@@ -343,24 +345,24 @@ Singleton {
             action: () => CaptureService.open("", "", "", CaptureService.settle)
         },
         Toggle {
-            key: "annotate"; icon: "󰏫"; label: "Annotate"
-            detail: "A region, in satty"
+            key: "annotate"; icon: "󰏫"; label: Tr.t("Annotate")
+            detail: Tr.t("A region, in satty")
             available: CaptureService.can("editor")
             closes: true
             action: () => CaptureService.open("region", "photo", "editor",
                                               CaptureService.settle)
         },
         Toggle {
-            key: "text"; icon: "󱄽"; label: "Read text"
-            detail: "A region, to the clipboard"
+            key: "text"; icon: "󱄽"; label: Tr.t("Read text")
+            detail: Tr.t("A region, to the clipboard")
             available: CaptureService.can("text")
             closes: true
             action: () => CaptureService.open("region", "photo", "text",
                                               CaptureService.settle)
         },
         Toggle {
-            key: "picker"; icon: PickerService.icon; label: "Colour"
-            detail: "A pixel"
+            key: "picker"; icon: PickerService.icon; label: Tr.t("Colour")
+            detail: Tr.t("A pixel")
             active: PickerService.picking
             available: PickerService.available
             closes: true
@@ -371,18 +373,18 @@ Singleton {
         },
         Toggle {
             key: "record"; icon: RecorderService.recording ? "󰑊" : "󰕧"
-            label: "Record"
+            label: Tr.t("Record")
             detail: RecorderService.recording
-                ? RecorderService.display : RecorderService.subject
+                ? RecorderService.display : Tr.t(RecorderService.subject)
             active: RecorderService.recording
             available: RecorderService.available
             closes: true
             action: () => RecorderService.toggle()
         },
         Toggle {
-            key: "clearClipboard"; icon: "󰅍"; label: "Clear clipboard"
+            key: "clearClipboard"; icon: "󰅍"; label: Tr.t("Clear clipboard")
             detail: ClipboardService.count === 1
-                ? "1 entry kept" : `${ClipboardService.count} entries kept`
+                ? Tr.t("1 entry kept") : Tr.t("%1 entries kept").arg(ClipboardService.count)
             available: SettingsService.clipboardHistory
                 && ClipboardService.count > 0
             // A one-shot action, which also lists it in the launcher's `>`.

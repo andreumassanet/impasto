@@ -118,6 +118,19 @@ ffmpegthumbnailer            # a video's thumbnail
 gvfs                         # the trash, and mounting
 
 
+# ── PRINTING ────────────────────────────────────────────────────────────────
+
+cups                         # the print server every Print dialog asks · ./setup system
+cups-filters                 # turns what is printed into what a printer reads
+ghostscript                  # which those filters render a PDF with, and do not bring
+ipp-usb                      # a modern USB printer, without a driver
+avahi                        # finds the printers on the network
+nss-mdns                     # resolves their .local names
+gutenprint                   # drivers for older printers, the ones that need one
+system-config-printer        # adds a printer, in a window
+cups-pk-helper               # lets that window do it without root
+
+
 # ── QT ──────────────────────────────────────────────────────────────────────
 
 polkit-kde-agent             # the password dialog when the shell cannot be the agent

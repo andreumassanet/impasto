@@ -30,8 +30,20 @@ Card {
     readonly property bool beside: root.cols >= 4 && root.rows <= 2
     readonly property bool showAhead: !root.oneLine && (root.rows >= 3 || root.beside)
 
+    // A tap opens the weather: the dashboard's tab, or the weather card.
+    signal panelRequested(string panel)
+
     Component.onCompleted: WeatherService.subscribe()
     Component.onDestruction: WeatherService.release()
+
+    HoverHandler { cursorShape: Qt.PointingHandCursor }
+
+    TapHandler {
+        gesturePolicy: TapHandler.ReleaseWithinBounds
+        // With no reading there is no detail to open, and the control centre
+        // would close on nothing.
+        onTapped: if (WeatherService.available) root.panelRequested("weather")
+    }
 
     // ── LINE ────────────────────────────────────────────────────────────────
 
@@ -58,8 +70,8 @@ Card {
         Text {
             Layout.fillWidth: true
             text: WeatherService.available
-                ? `${WeatherService.description}  ·  feels ${WeatherService.feelsLike}°`
-                : "No reading"
+                ? Tr.t("%1  ·  feels %2°").arg(WeatherService.description).arg(WeatherService.feelsLike)
+                : Tr.t("No reading")
             elide: Text.ElideRight
             font.family: Theme.fontFamily
             font.pixelSize: Theme.fontSizeSmall
@@ -136,8 +148,8 @@ Card {
                 Text {
                     Layout.fillWidth: true
                     text: WeatherService.available
-                        ? `${WeatherService.description}  ·  feels ${WeatherService.feelsLike}°`
-                        : "No reading"
+                        ? Tr.t("%1  ·  feels %2°").arg(WeatherService.description).arg(WeatherService.feelsLike)
+                        : Tr.t("No reading")
                     elide: Text.ElideRight
                     font.family: Theme.fontFamily
                     font.pixelSize: Theme.fontSizeSmall

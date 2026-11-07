@@ -497,6 +497,12 @@ QtObject {
                 root.loadMonitors()
                 root.refresh()
                 break
+            // `1` or `0`: a window went full-screen or came back. The bar
+            // and the dock step aside for one, and only the client list
+            // says which screen it is on.
+            case "fullscreen":
+                root.clientsSoon.restart()
+                break
             // Focus changes only affect the client list, and only watchers
             // need it; skipping it otherwise saves a process per alt-tab.
             case "activewindow":

@@ -51,7 +51,7 @@ Item {
             visible: !GithubService.available
             horizontalAlignment: Text.AlignHCenter
             wrapMode: Text.WordWrap
-            text: SettingsService.githubUser.trim() === "" ? "No GitHub user set" : "GitHub is out of reach"
+            text: SettingsService.githubUser.trim() === "" ? Tr.t("No GitHub user set") : Tr.t("GitHub is out of reach")
             font.family: Theme.fontFamily
             font.pixelSize: Theme.fontSizeSmall
             font.weight: Font.DemiBold

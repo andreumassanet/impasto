@@ -8,6 +8,7 @@
 // ╰──────────────────────────────────────────────────────────────────────────╯
 
 import QtQuick
+import QtQuick.Layouts
 
 import "../../theme"
 import "../../services"
@@ -15,7 +16,8 @@ import "../../components"
 import "../widgets"
 
 // The ring shows the charge; the detail adds what UPower reports beyond it:
-// time remaining, charge direction, power draw and cell health.
+// time remaining, charge direction, power draw and cell health, and the power
+// profile of power-profiles-daemon, which the card can change.
 Item {
     id: root
 
@@ -48,7 +50,7 @@ Item {
         id: detail
 
         ModuleCard {
-            title: "Battery"
+            title: Tr.t("Battery")
             // The estimate is blank for a minute or two after the cable
             // changes, so the state stands on its own until it arrives.
             subtitle: BatteryService.estimate !== ""
@@ -63,24 +65,36 @@ Item {
             }
 
             CardFact {
-                name: BatteryService.charging ? "Going in" : "Coming out"
+                name: BatteryService.charging ? Tr.t("Going in") : Tr.t("Coming out")
                 value: BatteryService.watts > 0 ? `${BatteryService.watts.toFixed(1)} W` : "—"
             }
 
             CardFact {
-                name: "Energy"
+                name: Tr.t("Energy")
                 value: BatteryService.energyCapacity > 0
-                    ? `${BatteryService.energy.toFixed(1)} of ${BatteryService.energyCapacity.toFixed(1)} Wh`
+                    ? Tr.t("%1 of %2 Wh").arg(BatteryService.energy.toFixed(1)).arg(BatteryService.energyCapacity.toFixed(1))
                     : `${BatteryService.energy.toFixed(1)} Wh`
             }
 
             // Cells that don't report health get nothing here, not a guess.
             CardLimit {
                 visible: BatteryService.healthKnown
-                name: "Health"
+                name: Tr.t("Health")
                 fraction: BatteryService.health / 100
                 tint: BatteryService.health < 60 ? Theme.indicatorWarn : Theme.indicatorGood
-                note: "of new"
+                note: Tr.t("of new")
+            }
+
+            // Only where power-profiles-daemon answers.
+            SegmentedControl {
+                visible: SystemService.powerAvailable
+                Layout.fillWidth: true
+                stretch: true
+                labelled: true
+                options: SystemService.powerProfiles.map(profile =>
+                    ({ id: profile.id, label: Tr.t(profile.label), icon: profile.icon }))
+                current: SystemService.powerProfile
+                onSelected: id => SystemService.setPowerProfile(id)
             }
         }
     }

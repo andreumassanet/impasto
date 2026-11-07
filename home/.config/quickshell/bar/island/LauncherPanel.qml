@@ -226,7 +226,7 @@ ColumnLayout {
             // Only while the field is empty; it would draw over a typed sigil.
             Text {
                 anchors.verticalCenter: parent.verticalCenter
-                text: "Search…"
+                text: Tr.t("Search…")
                 visible: searchField.text === ""
                 color: Theme.textMuted
                 font: searchField.font

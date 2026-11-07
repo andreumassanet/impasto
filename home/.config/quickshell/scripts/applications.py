@@ -31,7 +31,7 @@ APPLICATION_DIRS = [
 
 
 def read_entry(path):
-    parser = configparser.ConfigParser(interpolation=None)
+    parser = configparser.ConfigParser(interpolation=None, strict=False)
     try:
         parser.read(path, encoding="utf-8")
         section = parser["Desktop Entry"]

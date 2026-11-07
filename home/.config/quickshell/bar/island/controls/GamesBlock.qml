@@ -55,7 +55,7 @@ Card {
                 spacing: 1
 
                 Text {
-                    text: "Games"
+                    text: Tr.t("Games")
                     font.family: Theme.fontFamily
                     font.pixelSize: Theme.fontSizeSmall
                     font.weight: Font.DemiBold
@@ -65,8 +65,8 @@ Card {
                 Text {
                     Layout.fillWidth: true
                     text: root.lastEntry
-                        ? `${root.lastEntry.name} · best ${GamesService.bestOf(root.last)}`
-                        : "Nothing played yet"
+                        ? Tr.t("%1 · best %2").arg(root.lastEntry.name).arg(GamesService.bestOf(root.last))
+                        : Tr.t("Nothing played yet")
                     elide: Text.ElideRight
                     font.family: Theme.fontFamily
                     font.pixelSize: Theme.fontSizeLabel
@@ -75,7 +75,7 @@ Card {
             }
 
             PillButton {
-                text: "Play"
+                text: Tr.t("Play")
                 implicitHeight: 26
                 onClicked: root.panelRequested("games")
             }

@@ -1,7 +1,7 @@
 // ╭──────────────────────────────────────────────────────────────────────────╮
 // │                                                                          │
 // │   S Y S T E M   S E R V I C E                                            │
-// │   radios and power profile · the state nothing else pushes               │
+// │   radios and power profile · polled radios, the pushed profile           │
 // │                                                                          │
 // │   github.com/andreumassanet/impasto                                      │
 // │                                                                          │
@@ -12,9 +12,14 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import Quickshell.Services.UPower
 
-// Wi-Fi, Bluetooth and the power profile have no push interface reachable
-// from here, so they are polled, only while a panel holds a subscribe().
+import "../theme"
+
+// Wi-Fi and Bluetooth have no push interface reachable from here, so they
+// are polled, only while a panel holds a subscribe(). The power profile is
+// pushed by power-profiles-daemon over D-Bus; the poll only says whether the
+// daemon answers at all.
 Singleton {
     id: root
 
@@ -25,13 +30,36 @@ Singleton {
 
     property bool wifi: false
     property bool bluetooth: false
-    property string powerProfile: ""
+    property bool powerAvailable: false
 
     // False until the first successful read, so the UI can hold back rather
     // than showing a plausible-looking default.
     property bool ready: false
 
-    readonly property bool performanceMode: root.powerProfile === "performance"
+    // The daemon's own names. Performance is offered only where the machine
+    // has it.
+    readonly property var powerProfiles: [
+        { id: "power-saver", label: "Saver", icon: "󰌪" },
+        { id: "balanced", label: "Balanced", icon: "󰗑" }
+    ].concat(PowerProfiles.hasPerformanceProfile
+        ? [{ id: "performance", label: "Performance", icon: "󰓅" }] : [])
+
+    readonly property string powerProfile: !root.powerAvailable ? ""
+        : PowerProfiles.profile === PowerProfile.PowerSaver ? "power-saver"
+        : PowerProfiles.profile === PowerProfile.Performance ? "performance" : "balanced"
+    readonly property var powerEntry:
+        root.powerProfiles.find(profile => profile.id === root.powerProfile) ?? null
+    readonly property string powerLabel: root.powerEntry?.label ?? ""
+    readonly property string powerIcon: root.powerEntry?.icon ?? "󰗑"
+    // Balanced is the resting state; the tile is lit by either other one.
+    readonly property bool powerShifted: root.powerProfile !== ""
+        && root.powerProfile !== "balanced"
+
+    // The power page, declared since the island takes its size before the
+    // panel exists: a heading and one row per profile.
+    readonly property int panelWidth: 440
+    readonly property int panelHeight: 2 * Theme.panelPadding + Theme.detailHeader
+        + Theme.detailSection(root.powerProfiles.length)
 
     readonly property Process statusProcess: Process {
         command: [root.script, "status"]
@@ -69,7 +97,7 @@ Singleton {
         // known value rather than snapping the control to a wrong one.
         if (state.wifi !== null) root.wifi = state.wifi
         if (state.bluetooth !== null) root.bluetooth = state.bluetooth
-        if (state.powerProfile) root.powerProfile = state.powerProfile
+        root.powerAvailable = Boolean(state.powerProfile)
         root.ready = true
     }
 
@@ -85,6 +113,25 @@ Singleton {
 
     function release(): void {
         root.watchers = Math.max(0, root.watchers - 1)
+    }
+
+    function setPowerProfile(id: string): void {
+        if (id !== "balanced")
+            SettingsService.set("powerTileProfile", id)
+        PowerProfiles.profile = id === "power-saver" ? PowerProfile.PowerSaver
+            : id === "performance" ? PowerProfile.Performance : PowerProfile.Balanced
+    }
+
+    // The tile's press: back to balanced, or to the last other profile
+    // picked, saver where that one is not on this machine.
+    function togglePower(): void {
+        if (root.powerShifted) {
+            root.setPowerProfile("balanced")
+            return
+        }
+        const kept = SettingsService.powerTileProfile
+        root.setPowerProfile(root.powerProfiles.some(profile => profile.id === kept)
+            ? kept : "power-saver")
     }
 
     function toggle(target: string): void {

@@ -13,6 +13,8 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 
+import "../theme"
+
 // One recording at a time. `record.py` owns the encoder, the file and the
 // pid; this owns the clock and the bar state. The recording outlives the
 // shell, so `status` is queried on startup to pick up a take in progress.
@@ -184,7 +186,7 @@ Singleton {
             root.startedAt = report.started ?? (Date.now() / 1000)
             root.seconds = report.seconds ?? 0
             if (!was)
-                OsdService.requested("󰑊", "Recording", -1)
+                OsdService.requested("󰑊", Tr.t("Recording"), -1)
             return
         }
 
@@ -193,7 +195,7 @@ Singleton {
         // fit its 260 px; the name is on the module's card.
         if (was && report.seconds !== undefined) {
             root.seconds = report.seconds
-            OsdService.requested("󰕧", `Recorded ${root.display}`, -1)
+            OsdService.requested("󰕧", Tr.t("Recorded %1").arg(root.display), -1)
         }
     }
 }

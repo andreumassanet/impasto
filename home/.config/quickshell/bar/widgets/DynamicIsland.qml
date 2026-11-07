@@ -93,6 +93,7 @@ Rectangle {
         sound:      { width: AudioService.panelWidth, height: AudioService.panelHeight },
         microphone: { width: AudioService.panelWidth, height: AudioService.microphoneHeight },
         nightlight: { width: SunsetService.panelWidth, height: SunsetService.panelHeight },
+        power:      { width: SystemService.panelWidth, height: SystemService.panelHeight },
         brightness: { width: BrightnessService.panelWidth, height: BrightnessService.panelHeight },
         bluetooth:  { width: 420,  height: 500 },
         session:    { width: 720,  height: 180 },
@@ -176,6 +177,7 @@ Rectangle {
         sound: soundDetail,
         microphone: microphoneDetail,
         nightlight: nightLightDetail,
+        power: powerDetail,
         brightness: brightnessDetail,
         bluetooth: bluetoothDetail,
         stats: statsPanel,
@@ -197,6 +199,11 @@ Rectangle {
     })
 
     function open(panel: string): void {
+        // A card in the island asking for its piece's detail.
+        if (panel === "media" || panel === "weather") {
+            ModuleService.activate(panel)
+            return
+        }
         islandState.open(panel)
     }
 
@@ -606,6 +613,11 @@ Rectangle {
     Component {
         id: nightLightDetail
         NightLightDetail { onBack: root.open("controls") }
+    }
+
+    Component {
+        id: powerDetail
+        PowerDetail { onBack: root.open("controls") }
     }
 
     Component {

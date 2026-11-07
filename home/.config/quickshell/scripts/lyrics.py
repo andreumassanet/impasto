@@ -17,7 +17,8 @@ Prints {"available": true, "synced": bool, "instrumental": bool, "lines":
 [{"t": seconds, "text": "..."}]} — `t` is -1 for unsynced lyrics — or
 {"available": false, "reason": "missing" | "network"}.
 
-Answers are cached in the state directory, a miss for a week, so a track
+Answers are cached in the state directory, a miss for a week and untimed
+lyrics for a day, so a track
 asked for again costs nothing. A failure is not cached: the shell asks
 again on its own schedule.
 """
@@ -36,6 +37,12 @@ ENDPOINT = "https://lrclib.net/api"
 TIMEOUT = 8
 AGENT = "impasto (github.com/andreumassanet/impasto)"
 MISS_TTL = 7 * 24 * 3600
+# Untimed lyrics are kept a day: a timed record may turn up under a name the
+# lookup reads better.
+PLAIN_TTL = 24 * 3600
+# Part of the cache key, so a better lookup is not answered by what the one
+# before it kept.
+LOOKUP_VERSION = "2"
 # A busy lrclib is asked once more, this long after, before giving up.
 RETRY_AFTER = 2
 
@@ -47,6 +54,9 @@ BRACKETS = re.compile(r"\s*[\(\[][^\)\]]*[\)\]]")
 # What a video title adds after a bar: the channel, the series, "Lyric Video".
 TAIL = re.compile(r"\s+[|｜].*$")
 DASH = re.compile(r"\s+[-–—]\s+")
+# "Song ft. Someone": the credit is not in the record's name. A bracketed one
+# is already gone with BRACKETS; "feat" without its stop is a word.
+FEATURING = re.compile(r"\s+(?:ft\.?|feat\.|featuring)\s.*$", re.IGNORECASE)
 
 
 def cache_dir():
@@ -92,7 +102,7 @@ def folded(text):
 
 
 def lookup(artist, title, album, seconds, sent=""):
-    """The best record over four questions, any of which may be refused.
+    """The best record over several questions, any of which may be refused.
 
     The exact record first, which lrclib matches within two seconds; then a
     search by fields, then a free search, since a busy server refuses some
@@ -125,22 +135,37 @@ def lookup(artist, title, album, seconds, sent=""):
     def take(results):
         found.extend(entry for entry in results if entry and fits(entry))
 
-    if seconds > 0 and artist:
-        params = {"artist_name": artist, "track_name": title, "duration": round(seconds)}
-        if album:
-            params["album_name"] = album
-        try:
-            take([ask("get", params)])
-        except Busy:
-            busy = True
-        if found and found[0].get("syncedLyrics"):
-            return found[0]
+    # A video title reads "Artist - Song ft. Someone" under the channel's own
+    # name: the artist the title credits, and the song without its credit.
+    headed = DASH.split(BRACKETS.sub("", title).strip(), 1)
+    credited = headed[0].strip() if len(headed) == 2 else ""
+    song = headed[-1].strip()
+    bare = FEATURING.sub("", song).strip()
 
-    song = DASH.split(BRACKETS.sub("", title).strip(), 1)[-1].strip()
+    exact = [{"artist_name": artist, "track_name": title}] if artist else []
+    # The song without its credit, under the artist the title credits, or the
+    # artist the player gave when `clean` has already split the title.
+    if bare and (credited or bare != title) and (credited or artist):
+        exact.append({"artist_name": credited or artist, "track_name": bare})
+    if seconds > 0:
+        for params in exact:
+            params = {**params, "duration": round(seconds)}
+            if album:
+                params["album_name"] = album
+            try:
+                take([ask("get", params)])
+            except Busy:
+                busy = True
+            if any(entry.get("syncedLyrics") for entry in found):
+                return min(found, key=lambda entry: not entry.get("syncedLyrics"))
+
     questions = [{"track_name": title, **({"artist_name": artist} if artist else {})},
                  {"q": f"{artist} {title}".strip()}]
     if song and song != title:
         questions.append({"track_name": song})
+    if bare and bare != song:
+        questions.append({"track_name": bare, **({"artist_name": credited} if credited else {})})
+        questions.append({"track_name": bare})
     for params in questions:
         try:
             take(ask("search", params) or [])
@@ -187,15 +212,20 @@ def report(artist, title, album, seconds):
     if not title:
         return {"available": False, "reason": "missing"}
 
-    key = hashlib.sha1(f"{artist}\n{title}\n{album}\n{round(seconds)}".encode()).hexdigest()
+    key = hashlib.sha1(f"{LOOKUP_VERSION}\n{artist}\n{title}\n{album}\n{round(seconds)}".encode()).hexdigest()
     path = os.path.join(cache_dir(), f"{key}.json")
+    stale = None
     try:
         with open(path) as file:
             kept = json.load(file)
-        if kept.get("available") or (kept.get("reason") == "missing"
-                                     and time.time() - kept.get("at", 0) < MISS_TTL):
+        age = time.time() - kept.get("at", 0)
+        timed = kept.get("synced") or kept.get("instrumental")
+        if (kept.get("available") and (timed or age < PLAIN_TTL)) or (
+                kept.get("reason") == "missing" and age < MISS_TTL):
             kept.pop("at", None)
             return kept
+        if kept.get("available"):
+            stale = kept
     except (OSError, ValueError):
         pass
 
@@ -206,8 +236,16 @@ def report(artist, title, album, seconds):
             time.sleep(RETRY_AFTER)
             entry = lookup(artist, title, album, seconds, sent)
         result = (parse(entry) if entry else None) or {"available": False, "reason": "missing"}
+        # A miss does not unlearn what was found before: it is kept another day.
+        if not result.get("available") and stale is not None:
+            stale.pop("at", None)
+            result = stale
     except Busy as error:
         sys.stderr.write(f"lyrics: {error}\n")
+        # What was kept, though old, beats nothing while lrclib is busy.
+        if stale is not None:
+            stale.pop("at", None)
+            return stale
         return {"available": False, "reason": "network"}
 
     staging = f"{path}.tmp"

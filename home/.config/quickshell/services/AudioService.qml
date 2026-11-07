@@ -159,13 +159,14 @@ Singleton {
     //
     // Declared, since the island takes its size before the panel exists: a
     // heading, then titled sections — the level, the applications playing,
-    // and the outputs. The microphone's page is the same shape, for the
+    // the outputs and the inputs. The microphone's page is the same shape, for the
     // applications recording and the inputs.
     readonly property int panelWidth: 440
     readonly property int panelHeight: 2 * Theme.panelPadding + Theme.detailHeader
         + Theme.detailSection(1)
         + (root.streams.length > 0 ? Theme.detailSection(root.streams.length) : 0)
         + Theme.detailSection(root.outputs.length)
+        + (root.inputs.length > 0 ? Theme.detailSection(root.inputs.length) : 0)
     readonly property int microphoneHeight: 2 * Theme.panelPadding + Theme.detailHeader
         + Theme.detailSection(1)
         + (root.captures.length > 0 ? Theme.detailSection(root.captures.length) : 0)
