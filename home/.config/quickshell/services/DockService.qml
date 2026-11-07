@@ -194,10 +194,14 @@ Singleton {
         return false
     }
 
+    // The workspace strip draws the focused workspace's applications when
+    // `workspaceApps` is on, so it needs the list as well.
+    readonly property bool stripApps: SettingsService.workspaceApps
+
     readonly property Binding watching: Binding {
         target: HyprlandService
         property: "watchClients"
-        value: root.enabled || root.decksExist
+        value: root.enabled || root.decksExist || root.stripApps
     }
 
     onEnabledChanged: {
@@ -205,8 +209,13 @@ Singleton {
             HyprlandService.loadClients()
     }
 
+    onStripAppsChanged: {
+        if (root.stripApps)
+            HyprlandService.loadClients()
+    }
+
     Component.onCompleted: {
-        if (root.enabled)
+        if (root.enabled || root.stripApps)
             HyprlandService.loadClients()
     }
 
