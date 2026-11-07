@@ -160,6 +160,7 @@ BatteryModule    1.0 bar/modules/BatteryModule.qml
 VolumeModule     1.0 bar/modules/VolumeModule.qml
 BrightnessModule 1.0 bar/modules/BrightnessModule.qml
 NetworkModule    1.0 bar/modules/NetworkModule.qml
+NetSpeedModule   1.0 bar/modules/NetSpeedModule.qml
 BluetoothModule  1.0 bar/modules/BluetoothModule.qml
 WeatherModule    1.0 bar/modules/WeatherModule.qml
 MarketsModule    1.0 bar/modules/MarketsModule.qml
@@ -231,6 +232,7 @@ DetailChoice     1.0 bar/island/DetailChoice.qml
 MicrophoneDetail 1.0 bar/island/MicrophoneDetail.qml
 NightLightDetail 1.0 bar/island/NightLightDetail.qml
 PowerDetail 1.0 bar/island/PowerDetail.qml
+RecordDetail 1.0 bar/island/RecordDetail.qml
 BrightnessDetail 1.0 bar/island/BrightnessDetail.qml
 TrayMenuPanel    1.0 bar/island/TrayMenuPanel.qml
 BluetoothDetail  1.0 bar/island/BluetoothDetail.qml

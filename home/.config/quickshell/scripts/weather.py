@@ -23,6 +23,7 @@ import json
 import subprocess
 import sys
 import urllib.parse
+from datetime import datetime
 
 ENDPOINT = "https://wttr.in/{place}?format=j1"
 TIMEOUT = 12
@@ -71,6 +72,19 @@ def fetch(place):
     return json.loads(result.stdout)
 
 
+def daytime_now(current, today):
+    """Whether the sun is up where the reading is: the local observation time
+    against today's sunrise and sunset. True when wttr.in sends none of them."""
+    try:
+        astronomy = today["astronomy"][0]
+        observed = datetime.strptime(current["localObsDateTime"].split(" ", 1)[1], "%I:%M %p")
+        sunrise = datetime.strptime(astronomy["sunrise"], "%I:%M %p")
+        sunset = datetime.strptime(astronomy["sunset"], "%I:%M %p")
+    except (KeyError, IndexError, ValueError):
+        return True
+    return sunrise <= observed < sunset
+
+
 def report(place):
     data = fetch(place)
     current = data["current_condition"][0]
@@ -78,10 +92,9 @@ def report(place):
     today = data["weather"][0]
 
     code = int(current["weatherCode"])
-    daytime = current["observation_time"] and True
-    # wttr.in reports observation time in UTC and `isdaytime` only per hour, so
-    # the day/night split comes from the hour blocks the day is made of.
-    hours = today["hourly"]
+    # By the observation's local time and today's sun, since wttr.in gives
+    # `isdaytime` only per hour block.
+    daytime = daytime_now(current, today)
 
     return {
         "available": True,

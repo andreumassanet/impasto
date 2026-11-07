@@ -47,6 +47,7 @@ Singleton {
         { id: "volume",        name: "Volume",        bar: true,  width: Theme.cardWidth, height: Theme.cardHeight(2, 0) },
         { id: "brightness",    name: "Brightness",    bar: true,  width: Theme.cardWidth, height: Theme.cardHeight(1, 0) },
         { id: "network",       name: "Network",       bar: true,  width: Theme.cardWidth, height: Theme.cardHeight(2, 0) },
+        { id: "netspeed",      name: "Network speed", bar: true,  desk: false, width: Theme.cardWidth, height: Theme.cardHeight(3, Theme.cardRowGap + 36) },
         { id: "bluetooth",     name: "Bluetooth",     bar: true,  width: Theme.cardWidth, height: Theme.cardHeight(3, 0) },
         { id: "notifications", name: "Notifications", bar: true,  desk: false, width: Theme.cardWidth, height: Theme.cardHeight(7, 0) },
         { id: "weather",       name: "Weather",       bar: true,  width: Theme.cardWidth, height: Theme.cardHeight(0, 50) },
@@ -198,6 +199,8 @@ Singleton {
         switch (id) {
         case "network":
             return NetworkService.icon
+        case "netspeed":
+            return "󰓅"
         case "bluetooth":
             return BluetoothService.icon
         case "volume":
@@ -237,7 +240,7 @@ Singleton {
     function valueOf(id: string): string {
         switch (id) {
         case "volume":
-            return AudioService.muted ? "Muted" : `${AudioService.volume}%`
+            return AudioService.muted ? Tr.t("Muted") : `${AudioService.volume}%`
         case "brightness":
             return `${BrightnessService.slider}%`
         case "battery":
@@ -255,7 +258,7 @@ Singleton {
             return `${NotificationService.history.length}`
         case "media":
             return MediaService.available
-                ? (MediaService.title || MediaService.identity || "Playing") : "Nothing playing"
+                ? (MediaService.title || MediaService.identity || Tr.t("Playing")) : Tr.t("Nothing playing")
         case "timer":
             return TimerService.running ? TimerService.display : "0:00"
         case "claude":
@@ -267,13 +270,15 @@ Singleton {
         case "stats":
             return `${StatsService.cpu.toFixed(0)}%`
         case "pet":
-            return PetService.hatched ? `Lv ${PetService.level}` : "Egg"
+            return PetService.hatched ? Tr.t("Lv %1").arg(PetService.level) : Tr.t("Egg")
         case "network":
             return NetworkService.connectionName
+        case "netspeed":
+            return `↓ ${StatsService.rate(StatsService.networkDown)}  ↑ ${StatsService.rate(StatsService.networkUp)}`
         case "bluetooth":
             return BluetoothService.summary
         case "calendar":
-            return Qt.formatDate(root.today.date, "ddd d")
+            return Tr.date(root.today.date, "ddd d")
         }
         return ""
     }
@@ -440,7 +445,7 @@ Singleton {
         ? Math.ceil(root.timeMetrics.advanceWidth("20:48")) : 0
     readonly property int glanceTime: root.timeMetrics.font.family !== ""
         ? Math.max(root.glanceTimeBase, Math.ceil(root.timeMetrics.advanceWidth(
-            Qt.formatTime(new Date(2000, 0, 1, 20, 48, 58), SettingsService.clockFormat))))
+            Tr.date(new Date(2000, 0, 1, 20, 48, 58), SettingsService.clockFormat))))
         : 0
     readonly property FontMetrics timeMetrics: FontMetrics {
         font.family: Theme.fontFamily
@@ -601,6 +606,7 @@ Singleton {
             // shows on an unconfigured machine.
             return GithubService.available
         case "stats":
+        case "netspeed":
             // The sampler runs from boot (shell.qml touches it).
             return true
         case "screentime":

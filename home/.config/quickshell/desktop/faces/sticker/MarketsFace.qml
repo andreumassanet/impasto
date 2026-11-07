@@ -23,10 +23,10 @@ Spread {
 
     hue: face.tint
     line: face.lead ? `${face.lead.base} ${MarketsService.short(face.lead)}`
-        : MarketsService.pairs.length === 0 ? "Nothing listed" : "No prices"
+        : MarketsService.pairs.length === 0 ? Tr.t("Nothing listed") : Tr.t("No prices")
     reading: MarketsService.price(face.lead)
     note: face.lead ? `${face.lead.base}/${face.lead.quote} · ${face.lead.period}`
-        : MarketsService.pairs.length === 0 ? "nothing on the list" : "no prices"
+        : MarketsService.pairs.length === 0 ? Tr.t("nothing on the list") : Tr.t("no prices")
 
     Tone { id: tone; hue: face.tint }
 

@@ -65,7 +65,7 @@ SettingsSection {
                 }
 
                 PreviewTile {
-                    caption: "Notch"
+                    caption: Tr.t("Notch")
                     selected: SettingsService.islandAttached
                     onPicked: SettingsService.set("islandAttached", true)
 
@@ -115,7 +115,7 @@ SettingsSection {
 
                         Text {
                             anchors.centerIn: parent
-                            text: Qt.formatDateTime(clock.date, SettingsService.clockShowsSeconds
+                            text: Tr.date(clock.date, SettingsService.clockShowsSeconds
                                 ? formatTile.modelData.id.replace("mm", "mm:ss")
                                 : formatTile.modelData.id)
                             font.family: Theme.fontFamily

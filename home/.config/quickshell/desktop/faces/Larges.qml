@@ -68,12 +68,12 @@ Item {
                     .slice(0, 4)
             }
 
-            label: WeatherService.place || "Weather"
+            label: WeatherService.place || Tr.t("Weather")
             reading: WeatherService.available ? `${WeatherService.temperature}°` : "--°"
-            note: !WeatherService.available ? "no forecast"
+            note: !WeatherService.available ? Tr.t("no forecast")
                 : WeatherService.description !== ""
-                ? `${WeatherService.description} · feels ${WeatherService.feelsLike}° · ${WeatherService.high}° / ${WeatherService.low}°`
-                : `feels ${WeatherService.feelsLike}° · ${WeatherService.high}° / ${WeatherService.low}°`
+                ? `${WeatherService.description} · ${Tr.t("feels %1°").arg(WeatherService.feelsLike)} · ${WeatherService.high}° / ${WeatherService.low}°`
+                : `${Tr.t("feels %1°").arg(WeatherService.feelsLike)} · ${WeatherService.high}° / ${WeatherService.low}°`
 
             Text {
                 anchors.centerIn: parent
@@ -152,9 +152,9 @@ Item {
         WidgetFace {
 
             ink: root.ink
-            label: "System"
+            label: Tr.t("System")
             reading: `${StatsService.cpu.toFixed(0)}%`
-            note: `load ${StatsService.load[0].toFixed(2)} · ${StatsService.window}`
+            note: `${Tr.t("load")} ${StatsService.load[0].toFixed(2)} · ${StatsService.window}`
 
             Text {
                 anchors.centerIn: parent
@@ -173,12 +173,12 @@ Item {
 
                     Repeater {
                         model: [
-                            { title: "Processor", reading: `${StatsService.cpu.toFixed(0)}%`,
+                            { title: Tr.t("Processor"), reading: `${StatsService.cpu.toFixed(0)}%`,
                               series: StatsService.cpuHistory },
-                            { title: "Memory",
+                            { title: Tr.t("Memory"),
                               reading: `${StatsService.bytes(StatsService.memoryUsed)}`,
                               series: StatsService.memoryHistory },
-                            { title: "Network",
+                            { title: Tr.t("Network"),
                               reading: StatsService.rate(StatsService.networkDown),
                               series: StatsService.downHistory }
                         ]
@@ -235,8 +235,8 @@ Item {
             ink: root.ink
             label: "Claude"
             reading: ClaudeService.available ? ClaudeService.compact(ClaudeService.blockTokens) : "—"
-            note: !ClaudeService.available ? "no usage found"
-                : `this block · ${ClaudeService.messages(ClaudeService.blockMessages)} · ${ClaudeService.resetsIn}`
+            note: !ClaudeService.available ? Tr.t("no usage found")
+                : `${Tr.t("this block")} · ${ClaudeService.messages(ClaudeService.blockMessages)} · ${ClaudeService.resetsIn}`
 
             ClaudeMark {
                 anchors.centerIn: parent
@@ -261,8 +261,8 @@ Item {
 
                         Text {
                             text: ClaudeService.sessionMeasured
-                                ? `block · ${ClaudeService.percent(ClaudeService.sessionFraction)}`
-                                : "block · against the busiest on record"
+                                ? `${Tr.t("block")} · ${ClaudeService.percent(ClaudeService.sessionFraction)}`
+                                : Tr.t("block · against the busiest on record")
                             font.family: Theme.fontFamily
                             font.pixelSize: Theme.fontSizeSmall
                             color: root.ink.muted
@@ -283,8 +283,8 @@ Item {
 
                         Text {
                             text: ClaudeService.weeklyMeasured
-                                ? `week · ${ClaudeService.percent(ClaudeService.weeklyFraction)}`
-                                : `week · ${ClaudeService.compact(ClaudeService.weekTokens)}`
+                                ? `${Tr.t("week")} · ${ClaudeService.percent(ClaudeService.weeklyFraction)}`
+                                : `${Tr.t("week")} · ${ClaudeService.compact(ClaudeService.weekTokens)}`
                             font.family: Theme.fontFamily
                             font.pixelSize: Theme.fontSizeSmall
                             color: root.ink.muted
@@ -304,7 +304,7 @@ Item {
 
                     Text {
                         width: parent.width
-                        text: `busiest block · ${ClaudeService.compact(ClaudeService.peakBlockTokens)}`
+                        text: `${Tr.t("busiest block")} · ${ClaudeService.compact(ClaudeService.peakBlockTokens)}`
                         elide: Text.ElideRight
                         font.family: Theme.fontFamily
                         font.pixelSize: Theme.fontSizeSmall
@@ -325,7 +325,7 @@ Item {
             ink: root.ink
             label: "Codex"
             reading: CodexService.figure
-            note: !CodexService.available ? "no usage found"
+            note: !CodexService.available ? Tr.t("no usage found")
                 : [CodexService.plan, CodexService.age].filter(part => part !== "").join(" · ")
 
             CodexMark {
@@ -358,7 +358,7 @@ Item {
                                 width: parent.width
                                 text: window.running
                                     ? `${CodexService.windowLine(window.modelData)} · ${Math.round(window.modelData.used * 100)}%`
-                                    : `${window.modelData.name.toLowerCase()} · renewed`
+                                    : `${window.modelData.name.toLowerCase()} · ${Tr.t("renewed")}`
                                 elide: Text.ElideRight
                                 font.family: Theme.fontFamily
                                 font.pixelSize: Theme.fontSizeSmall
@@ -436,7 +436,7 @@ Item {
                     Layout.fillWidth: true
 
                     Text {
-                        text: Qt.formatDateTime(month.today, "MMMM")
+                        text: Tr.date(month.today, "MMMM")
                         font.family: Theme.fontFamily
                         font.pixelSize: Theme.fontSizeLarge
                         font.weight: Font.DemiBold
@@ -446,7 +446,7 @@ Item {
                     Item { Layout.fillWidth: true }
 
                     Text {
-                        text: Qt.formatDateTime(month.today, "yyyy")
+                        text: Tr.date(month.today, "yyyy")
                         font.family: Theme.fontFamily
                         font.pixelSize: Theme.fontSizeSmall
                         color: root.ink.muted
@@ -464,7 +464,7 @@ Item {
                     readonly property real cellHeight: height / 7
 
                     Repeater {
-                        model: ["M", "T", "W", "T", "F", "S", "S"]
+                        model: Tr.t("M T W T F S S").split(" ")
 
                         Item {
                             required property var modelData
@@ -572,11 +572,11 @@ Item {
                     Text {
                         Layout.fillWidth: true
                         text: {
-                            const name = agenda.day === TasksService.todayKey ? "Today"
-                                : Qt.formatDate(TasksService.dateOf(agenda.day), "dddd d")
+                            const name = agenda.day === TasksService.todayKey ? Tr.t("Today")
+                                : Tr.date(TasksService.dateOf(agenda.day), "dddd d")
                             const n = agenda.due.length
                             const left = agenda.due.filter(task => task.state !== "done").length
-                            return n === 0 ? `${name} · nothing due` : `${name} · ${left} of ${n} to do`
+                            return n === 0 ? `${name} · ${Tr.t("nothing due")}` : `${name} · ${Tr.t("%1 of %2 to do").arg(left).arg(n)}`
                         }
                         elide: Text.ElideRight
                         font.family: Theme.fontFamily
@@ -688,7 +688,7 @@ Item {
                 Text {
                     Layout.fillWidth: true
                     text: MediaService.title !== "" ? MediaService.title
-                        : (MediaService.available ? MediaService.identity : "Nothing playing")
+                        : (MediaService.available ? MediaService.identity : Tr.t("Nothing playing"))
                     elide: Text.ElideRight
                     font.family: Theme.fontFamily
                     font.pixelSize: Theme.fontSizeMedium
@@ -698,7 +698,7 @@ Item {
 
                 Text {
                     Layout.fillWidth: true
-                    text: MediaService.available ? MediaService.artist : "no player"
+                    text: MediaService.available ? MediaService.artist : Tr.t("no player")
                     elide: Text.ElideRight
                     font.family: Theme.fontFamily
                     font.pixelSize: Theme.fontSizeSmall
@@ -763,10 +763,10 @@ Item {
         WidgetFace {
 
             ink: root.ink
-            label: "Tasks"
+            label: Tr.t("Tasks")
             reading: `${TasksService.pending}`
             note: TasksService.pending === 0
-                ? (TasksService.count === 0 ? "nothing yet" : "all done")
+                ? (TasksService.count === 0 ? Tr.t("nothing yet") : Tr.t("all done"))
                 : TasksService.summary
             tint: TasksService.overdue.length > 0 ? Theme.red : root.ink.text
 
@@ -825,9 +825,10 @@ Item {
         WidgetFace {
 
             ink: root.ink
-            label: MarketsService.lead ? `${MarketsService.lead.base}/${MarketsService.lead.quote}` : "Markets"
+            label: MarketsService.lead ? `${MarketsService.lead.base}/${MarketsService.lead.quote}` : Tr.t("Markets")
             note: !MarketsService.lead
-                ? (MarketsService.pairs.length === 0 ? "nothing on the list" : "no prices")
+                ? (MarketsService.pairs.length === 0 ? Tr.t("nothing on the list") : Tr.t("no prices")
+)
                 : `${MarketsService.change(MarketsService.lead)} · ${MarketsService.lead.period}`
             noteTint: MarketsService.lead ? MarketsService.tint(MarketsService.lead) : root.ink.muted
 

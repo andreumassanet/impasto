@@ -218,7 +218,7 @@ Singleton {
             readonly property string name: display.modelData?.name ?? ""
             readonly property bool panel: root.isPanel(display.name)
             readonly property string title: display.panel
-                ? "Built-in" : (display.modelData?.model || display.name)
+                ? Tr.t("Built-in") : (display.modelData?.model || display.name)
             readonly property string bus: display.panel ? "" : (root.buses[display.name] ?? "")
 
             // The panel's. A lone screen with no DDC bus keeps it too, which

@@ -199,7 +199,7 @@ Item {
             Sticky {
                 anchors.fill: parent
                 note: parent.note
-                placeholder: "No notes yet"
+                placeholder: Tr.t("No notes yet")
                 padding: root.shape.cols === 1 ? 12 : 14
                 titleSize: root.shape.rows >= 4 ? Theme.fontSizeRegular : Theme.fontSizeSmall
                 bodySize: root.shape.rows >= 4 ? 20 : 16

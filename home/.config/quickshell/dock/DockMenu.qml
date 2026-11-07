@@ -150,7 +150,8 @@ Item {
                     // workspace.
                     Text {
                         Layout.alignment: Qt.AlignVCenter
-                        text: `${window.modelData.workspace}`
+                        // A minimized window has no workspace to name.
+                        text: window.modelData.minimized ? "󰖰" : `${window.modelData.workspace}`
                         font.family: Theme.fontMono
                         font.pixelSize: Theme.fontSizeLabel
                         color: Theme.textMuted
@@ -164,7 +165,10 @@ Item {
                     hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
                     onClicked: {
-                        HyprlandService.focusWindow(window.modelData.address)
+                        if (window.modelData.minimized)
+                            HyprlandService.restoreWindow(window.modelData.address)
+                        else
+                            HyprlandService.focusWindow(window.modelData.address)
                         root.closed()
                     }
                 }

@@ -72,6 +72,8 @@ Singleton {
     readonly property alias petStyle: config.petStyle
     readonly property alias launcherResults: config.launcherResults
     readonly property alias launcherOrder: config.launcherOrder
+    readonly property alias launcherFallbacks: config.launcherFallbacks
+    readonly property alias launcherSearchUrl: config.launcherSearchUrl
     readonly property alias launcherFits: config.launcherFits
     readonly property alias emojiTone: config.emojiTone
     readonly property alias cameraEnabled: config.cameraEnabled
@@ -98,6 +100,7 @@ Singleton {
     readonly property alias workspaceMax: config.workspaceMax
     readonly property alias workspaceMode: config.workspaceMode
     readonly property alias workspaceStyle: config.workspaceStyle
+    readonly property alias workspaceApps: config.workspaceApps
     readonly property alias motionScale: config.motionScale
     readonly property alias motionCurve: config.motionCurve
     readonly property alias animationPreset: config.animationPreset
@@ -599,6 +602,11 @@ Singleton {
         // Order with an empty query: `recent` ranks by launch count with
         // decay; otherwise alphabetical.
         property string launcherOrder: "recent"
+        // Rows under the applications that open the text as an address,
+        // search the web for it, or run it as a command.
+        property bool launcherFallbacks: false
+        // The web search row opens this followed by the text, URL-encoded.
+        property string launcherSearchUrl: "https://www.google.com/search?q="
 
         // Fit the island to the number of results instead of a fixed-height
         // list. Off by default: a list that holds still is easier to aim at.
@@ -642,8 +650,9 @@ Singleton {
         property string lockClock: "stacked"
 
         // What is playing on the lock: "lyrics" (the player and its lyrics),
-        // "player" or "off"; and behind it, the "cover" blurred or the
-        // "desktop" as without music.
+        // "player" or "off". Behind the lock: the "cover" blurred while music
+        // plays and the desktop otherwise, the "desktop" (a screenshot,
+        // blurred), or the "wallpaper", so nothing that was open shows.
         property string lockMusic: "lyrics"
         property string lockMusicGround: "cover"
 
@@ -682,6 +691,8 @@ Singleton {
         // How the strip draws each workspace: a shape (`dots`, `bars`, `rings`)
         // or its number written out (`numbers`, `roman`, `kanji`, `greek`).
         property string workspaceStyle: "dots"
+        // The focused workspace's applications after its mark, in any style.
+        property bool workspaceApps: false
 
         // Percentage. 100 is the designed speed; 0 disables animation.
         property int motionScale: 100

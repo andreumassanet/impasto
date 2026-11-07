@@ -19,10 +19,10 @@ import "../../../components"
 Instrument {
     id: face
 
-    line: BatteryService.available ? `${BatteryService.percent}% · ${BatteryService.estimate}` : "No battery"
+    line: BatteryService.available ? `${BatteryService.percent}% · ${BatteryService.estimate}` : Tr.t("No battery")
     reading: BatteryService.available ? `${BatteryService.percent}%` : "—"
     note: BatteryService.available
-        ? `${BatteryService.stateWord} · ${BatteryService.estimate}` : "no battery"
+        ? `${BatteryService.stateWord} · ${BatteryService.estimate}` : Tr.t("no battery")
 
     BatteryCell {
         anchors.centerIn: parent
