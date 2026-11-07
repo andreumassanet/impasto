@@ -97,6 +97,7 @@ Item {
                 glyph: AudioService.icon
                 name: Tr.t("Volume")
                 value: AudioService.volume
+                to: AudioService.ceiling
                 dimmed: AudioService.muted
                 available: AudioService.ready
                 onMoved: value => AudioService.setVolume(value)

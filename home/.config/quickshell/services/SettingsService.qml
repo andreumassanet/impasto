@@ -62,6 +62,7 @@ Singleton {
     readonly property alias dockOpacity: config.dockOpacity
     readonly property alias dockGround: config.dockGround
     readonly property alias terminalGround: config.terminalGround
+    readonly property alias volumeMax: config.volumeMax
     readonly property alias dockRunning: config.dockRunning
     readonly property alias dockEverywhere: config.dockEverywhere
     readonly property alias dockAutohide: config.dockAutohide
@@ -842,6 +843,10 @@ Singleton {
 
         // kitty's ground, as `surfaceStyle`.
         property string terminalGround: "glass"
+
+        // The most the volume sliders reach, in percent: 100, or 150 for
+        // quiet sources. The volume keys are Hyprland's (`wpctl -l`).
+        property int volumeMax: 100
 
         // Also show running applications that aren't pinned.
         property bool dockRunning: true
