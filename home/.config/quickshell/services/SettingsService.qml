@@ -98,6 +98,7 @@ Singleton {
     readonly property alias workspaceMax: config.workspaceMax
     readonly property alias workspaceMode: config.workspaceMode
     readonly property alias workspaceStyle: config.workspaceStyle
+    readonly property alias workspaceApps: config.workspaceApps
     readonly property alias motionScale: config.motionScale
     readonly property alias motionCurve: config.motionCurve
     readonly property alias animationPreset: config.animationPreset
@@ -681,6 +682,8 @@ Singleton {
         // How the strip draws each workspace: a shape (`dots`, `bars`, `rings`)
         // or its number written out (`numbers`, `roman`, `kanji`, `greek`).
         property string workspaceStyle: "dots"
+        // The focused workspace's applications after its mark, in any style.
+        property bool workspaceApps: false
 
         // Percentage. 100 is the designed speed; 0 disables animation.
         property int motionScale: 100

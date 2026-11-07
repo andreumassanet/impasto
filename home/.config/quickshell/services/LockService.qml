@@ -232,7 +232,7 @@ Singleton {
         // retry rather than keep the password around until it does.
         if (!pam.responseRequired) {
             root.begin()
-            root.message = "Not ready — press Enter again"
+            root.message = Tr.t("Not ready — press Enter again")
             return
         }
 
@@ -255,15 +255,15 @@ Singleton {
                 return
             root.failed = true
             root.message = result === PamResult.MaxTries
-                ? "Too many attempts"
-                : "Wrong password"
+                ? Tr.t("Too many attempts")
+                : Tr.t("Wrong password")
             root.begin()
         }
 
         onError: error => {
             root.authenticating = false
             root.failed = true
-            root.message = "Authentication is unavailable"
+            root.message = Tr.t("Authentication is unavailable")
             console.warn("PAM error while unlocking:", error)
         }
     }

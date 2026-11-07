@@ -80,7 +80,7 @@ Item {
         id: detail
 
         ModuleCard {
-            title: "System"
+            title: Tr.t("System")
             subtitle: StatsService.cpuModel !== "" ? StatsService.cpuModel : StatsService.window
             figure: `${StatsService.cpu.toFixed(0)}%`
             figureColor: root.loadTint
@@ -106,15 +106,15 @@ Item {
             }
 
             CardLimit {
-                name: "Processor"
+                name: Tr.t("Processor")
                 fraction: StatsService.cpu / 100
                 known: StatsService.ready
                 tint: Theme.accent
-                note: `load ${StatsService.load[0].toFixed(2)}`
+                note: Tr.t("load %1").arg(StatsService.load[0].toFixed(2))
             }
 
             CardLimit {
-                name: "Memory"
+                name: Tr.t("Memory")
                 fraction: StatsService.memoryFraction
                 known: StatsService.memoryTotal > 0
                 tint: Theme.blue

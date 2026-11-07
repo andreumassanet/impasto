@@ -40,8 +40,8 @@ Singleton {
 
     readonly property string detail: {
         if (!root.available)
-            return "Needs hyprsunset"
-        return root.on ? `${root.temperature} K` : "Daylight"
+            return Tr.t("Needs hyprsunset")
+        return root.on ? `${root.temperature} K` : Tr.t("Daylight")
     }
 
     // Warmths to pick with one press, on the night light's page.
@@ -83,7 +83,7 @@ Singleton {
             if (!SettingsService.nightLight)
                 return
             SettingsService.set("nightLight", false)
-            OsdService.requested(root.icon, "Night light stopped", -1)
+            OsdService.requested(root.icon, Tr.t("Night light stopped"), -1)
         }
     }
 

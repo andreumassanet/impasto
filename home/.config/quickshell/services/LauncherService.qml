@@ -30,29 +30,29 @@ QtObject {
     // (`SettingsService.launcherPrefixDefaults`).
     readonly property var modes: [
         { id: "calculate", prefix: SettingsService.launcherPrefix("calculate"),
-          label: "Calculate", icon: "󰃬",
-          hint: "Work something out",  empty: "An expression — 12 * 34, (5 + 5) / 2" },
+          label: Tr.t("Calculate"), icon: "󰃬",
+          hint: Tr.t("Work something out"), empty: Tr.t("An expression — 12 * 34, (5 + 5) / 2") },
         { id: "desk",      prefix: SettingsService.launcherPrefix("desk"),
-          label: "Desk",      icon: "󰍜",
-          hint: "Open a panel or an action",
-          empty: "Nothing on the desk by that name" },
+          label: Tr.t("Desk"), icon: "󰍜",
+          hint: Tr.t("Open a panel or an action"),
+          empty: Tr.t("Nothing on the desk by that name") },
         { id: "windows",   prefix: SettingsService.launcherPrefix("windows"),
-          label: "Windows",   icon: "󰖯",
-          hint: "Find an open window", empty: "No window by that name is open" },
+          label: Tr.t("Windows"), icon: "󰖯",
+          hint: Tr.t("Find an open window"), empty: Tr.t("No window by that name is open") },
         { id: "timer",     prefix: SettingsService.launcherPrefix("timer"),
-          label: "Timer",     icon: "󰔟",
-          hint: "Start a countdown",   empty: "A duration — 25m, 90s, 1:30" },
+          label: Tr.t("Timer"), icon: "󰔟",
+          hint: Tr.t("Start a countdown"), empty: Tr.t("A duration — 25m, 90s, 1:30") },
         { id: "clipboard", prefix: SettingsService.launcherPrefix("clipboard"),
-          label: "Clipboard", icon: "󰅍",
-          hint: "Copy something again",
+          label: Tr.t("Clipboard"), icon: "󰅍",
+          hint: Tr.t("Copy something again"),
           empty: ClipboardService.entries.length === 0
-              ? "Nothing has been copied yet" : "Nothing copied says that" },
+              ? Tr.t("Nothing has been copied yet") : Tr.t("Nothing copied says that") },
         { id: "emoji",     prefix: SettingsService.launcherPrefix("emoji"),
-          label: "Emoji",     icon: "󰇲",
-          hint: "Copy an emoji",       empty: "No emoji by that name" },
-        { id: "apps",      prefix: "",  label: "Apps",      icon: "󰀻",
-          hint: "Search applications",
-          empty: `No application matches. Type ${SettingsService.launcherPrefix("desk")} for what the shell itself can do.` }
+          label: Tr.t("Emoji"), icon: "󰇲",
+          hint: Tr.t("Copy an emoji"), empty: Tr.t("No emoji by that name") },
+        { id: "apps",      prefix: "",  label: Tr.t("Apps"), icon: "󰀻",
+          hint: Tr.t("Search applications"),
+          empty: Tr.t("No application matches. Type %1 for what the shell itself can do.").arg(SettingsService.launcherPrefix("desk")) }
     ]
 
     function modeFor(query: string): var {
@@ -76,6 +76,33 @@ QtObject {
     property string query: ""
 
     readonly property var results: root.search(root.query)
+
+    // ── INDEX ───────────────────────────────────────────────────────────────
+    //
+    // A phone book's A–Z down the side of the whole list: alphabetical order,
+    // nothing typed, and more applications than fit.
+    readonly property bool indexed: root.order === "alphabetical"
+        && root.query === "" && root.results.length > root.maxResults
+
+    // The letter an application files under: its first letter without an
+    // accent, or # for anything else.
+    function letterOf(name: string): string {
+        const first = (name ?? "").normalize("NFD").charAt(0).toUpperCase()
+        return first >= "A" && first <= "Z" ? first : "#"
+    }
+
+    // Each letter present, once, with the row it starts at.
+    readonly property var letters: {
+        if (!root.indexed)
+            return []
+        const out = []
+        root.results.forEach((entry, index) => {
+            const letter = root.letterOf(entry.name)
+            if (!out.some(known => known.letter === letter))
+                out.push({ letter: letter, index: index })
+        })
+        return out
+    }
 
     // Panel metrics, shared with the layout so the height math stays in sync.
     readonly property int fieldHeight: 34
@@ -234,7 +261,9 @@ QtObject {
             return root.emoji(term)
         }
 
-        return root.rank(term).slice(0, root.maxResults)
+        // Every match: the panel caps its visible height at `maxResults`
+        // rows and the rest scrolls, as the doors' list does.
+        return root.rank(term)
     }
 
     // All applications matching `term`, sorted by:
@@ -271,7 +300,8 @@ QtObject {
                 if (keptA >= 0 && keptB >= 0 && keptA !== keptB)
                     return keptA - keptB
             }
-            return a.name.toLowerCase() < b.name.toLowerCase() ? -1 : 1
+            // Accents and case aside, so Á files under A as the index does.
+            return a.name.localeCompare(b.name, undefined, { sensitivity: "base" })
         })
         return found
     }
@@ -284,7 +314,7 @@ QtObject {
             return []
         return [{
             kind: "calculation", id: "", icon: "󰃬",
-            name: `${value}`, subtitle: `${expression}  ·  Enter copies it`
+            name: `${value}`, subtitle: Tr.t("%1  ·  Enter copies it").arg(expression)
         }]
     }
 
@@ -355,8 +385,8 @@ QtObject {
             return []
         return [{
             kind: "timer", id: "", icon: "󰔟",
-            name: `Start a ${root.spell(milliseconds)} timer`,
-            subtitle: "Counts down on the island",
+            name: Tr.t("Start a %1 timer").arg(root.spell(milliseconds)),
+            subtitle: Tr.t("Counts down on the island"),
             milliseconds: milliseconds
         }]
     }
@@ -403,7 +433,7 @@ QtObject {
             found.push({
                 kind: "window", id: client.address, icon: "󰖯",
                 name: client.title || client.class,
-                subtitle: `${client.class}  ·  workspace ${client.workspace.id}`
+                subtitle: Tr.t("%1  ·  workspace %2").arg(client.class).arg(client.workspace.id)
             })
         }
         return found

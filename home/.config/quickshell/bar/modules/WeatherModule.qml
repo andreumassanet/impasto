@@ -52,7 +52,7 @@ Item {
                 const parts = []
                 if (WeatherService.description !== "")
                     parts.push(WeatherService.description)
-                parts.push(`feels ${WeatherService.feelsLike}°`)
+                parts.push(Tr.t("feels %1°").arg(WeatherService.feelsLike))
                 if (WeatherService.age !== "")
                     parts.push(WeatherService.age)
                 return parts.join(" · ")

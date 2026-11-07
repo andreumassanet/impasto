@@ -11,6 +11,7 @@ import QtQuick
 import QtQuick.Layouts
 
 import Quickshell
+import Quickshell.Widgets
 
 import "../../theme"
 import "../../services"
@@ -58,6 +59,40 @@ Rectangle {
     // Around a number, inside its pill.
     readonly property int glyphPad: 6
     readonly property int pillHeight: Math.min(20, Theme.capsuleHeight - 10)
+    // The focused workspace's applications, one icon per class, after its
+    // mark: inside the pill in the written styles, beside the shape in the
+    // others (`workspaceApps`).
+    property bool apps: SettingsService.workspaceApps
+    readonly property int appsShown: 4
+    readonly property int appsSpacing: 5
+    readonly property int appIconSize: root.pillHeight - 6
+
+    // The icons for a workspace: its windows' classes, each once, resolved
+    // the way the dock resolves them. The preview borrows the dock's first
+    // pinned applications rather than asking for windows.
+    function appIconsOn(n: int): var {
+        const icons = []
+        if (root.preview) {
+            for (const id of DockService.pinned.slice(0, 2)) {
+                const entry = DockService.entryOf(id)
+                if (entry)
+                    icons.push(Theme.appIcon(entry.icon))
+            }
+            return icons
+        }
+        const seen = []
+        for (const client of HyprlandService.clientsOn(n)) {
+            const windowClass = client.class || client.initialClass || ""
+            if (windowClass === "" || seen.indexOf(windowClass) >= 0)
+                continue
+            seen.push(windowClass)
+            const entry = DockService.entryOf(DockService.idFor(windowClass))
+            icons.push(Theme.appIcon(entry ? entry.icon : windowClass.toLowerCase()))
+            if (icons.length === root.appsShown)
+                break
+        }
+        return icons
+    }
 
     // The number a workspace is written as, in the written styles.
     function glyphOf(n: int): string {
@@ -154,9 +189,13 @@ Rectangle {
                 readonly property bool focused: root.activeId === slot.workspaceId
                 readonly property bool occupied: root.isOccupied(slot.workspaceId)
                 readonly property bool hovered: mouse.containsMouse
+                readonly property var icons: root.apps && slot.focused
+                    ? root.appIconsOn(slot.workspaceId) : []
+                readonly property real iconsWidth: slot.icons.length
+                    * (root.appIconSize + root.appsSpacing)
 
-                // What the slot draws, gap aside.
-                readonly property real mark: {
+                // The mark alone, then with the icons after it, gap aside.
+                readonly property real shape: {
                     switch (root.style) {
                     case "bars": return root.barWidth
                     case "rings": return root.ringSize + 2
@@ -164,6 +203,7 @@ Rectangle {
                     default: return Math.max(root.pillHeight, glyph.implicitWidth + 2 * root.glyphPad)
                     }
                 }
+                readonly property real mark: slot.shape + slot.iconsWidth
 
                 Layout.preferredWidth: slot.shown ? slot.mark + root.slotSpacing : 0
                 Layout.preferredHeight: Theme.capsuleHeight
@@ -185,8 +225,9 @@ Rectangle {
                 Rectangle {
                     visible: root.style === "dots" || root.style === "bars"
                     anchors.centerIn: parent
+                    anchors.horizontalCenterOffset: -slot.iconsWidth / 2
                     width: root.style === "bars" ? root.barWidth
-                        : Math.max(0, parent.width - root.slotSpacing)
+                        : Math.max(0, slot.shape)
                     height: root.style === "dots" ? root.dotSize
                         : slot.focused ? 14 : slot.occupied ? 9 : 5
                     radius: Math.min(width, height) / 2
@@ -207,6 +248,7 @@ Rectangle {
                 Rectangle {
                     visible: root.style === "rings"
                     anchors.centerIn: parent
+                    anchors.horizontalCenterOffset: -slot.iconsWidth / 2
                     width: slot.focused ? root.ringSize + 2 : root.ringSize
                     height: width
                     radius: width / 2
@@ -235,23 +277,50 @@ Rectangle {
                 }
 
                 // The written styles: on the sliding pill when focused, in full
-                // when occupied, grey when empty.
-                Text {
-                    id: glyph
+                // when occupied, grey when empty; `apps` adds the focused
+                // workspace's icons after its number.
+                Row {
+                    id: face
 
-                    visible: root.written
                     anchors.centerIn: parent
-                    text: root.written ? root.glyphOf(root.preview ? slot.workspaceId
-                        : HyprlandService.numberOn(slot.workspaceId, root.screenName)) : ""
-                    font.family: Theme.fontFamily
-                    font.pixelSize: Theme.fontSizeSmall
-                    font.weight: Font.DemiBold
-                    font.features: { "tnum": 1 }
-                    color: slot.focused ? Theme.accentText
-                        : slot.hovered && !root.overWallpaper ? Theme.accent
-                        : slot.occupied ? Theme.text : root.dim
+                    spacing: root.appsSpacing
 
-                    Behavior on color { ColorAnimation { duration: Theme.durationFast } }
+                    // The shape is drawn above; this keeps its room.
+                    Item {
+                        visible: !root.written
+                        width: slot.shape
+                        height: 1
+                    }
+
+                    Text {
+                        id: glyph
+
+                        visible: root.written
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: root.written ? root.glyphOf(root.preview ? slot.workspaceId
+                            : HyprlandService.numberOn(slot.workspaceId, root.screenName)) : ""
+                        font.family: Theme.fontFamily
+                        font.pixelSize: Theme.fontSizeSmall
+                        font.weight: Font.DemiBold
+                        font.features: { "tnum": 1 }
+                        color: slot.focused ? Theme.accentText
+                            : slot.hovered && !root.overWallpaper ? Theme.accent
+                            : slot.occupied ? Theme.text : root.dim
+
+                        Behavior on color { ColorAnimation { duration: Theme.durationFast } }
+                    }
+
+                    Repeater {
+                        model: slot.icons
+
+                        IconImage {
+                            required property string modelData
+
+                            anchors.verticalCenter: parent.verticalCenter
+                            implicitSize: root.appIconSize
+                            source: modelData
+                        }
+                    }
                 }
 
                 // Fills the slot, gap included; a 6 px target is too small.
