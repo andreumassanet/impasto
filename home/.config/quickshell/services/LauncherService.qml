@@ -77,6 +77,33 @@ QtObject {
 
     readonly property var results: root.search(root.query)
 
+    // ── INDEX ───────────────────────────────────────────────────────────────
+    //
+    // A phone book's A–Z down the side of the whole list: alphabetical order,
+    // nothing typed, and more applications than fit.
+    readonly property bool indexed: root.order === "alphabetical"
+        && root.query === "" && root.results.length > root.maxResults
+
+    // The letter an application files under: its first letter without an
+    // accent, or # for anything else.
+    function letterOf(name: string): string {
+        const first = (name ?? "").normalize("NFD").charAt(0).toUpperCase()
+        return first >= "A" && first <= "Z" ? first : "#"
+    }
+
+    // Each letter present, once, with the row it starts at.
+    readonly property var letters: {
+        if (!root.indexed)
+            return []
+        const out = []
+        root.results.forEach((entry, index) => {
+            const letter = root.letterOf(entry.name)
+            if (!out.some(known => known.letter === letter))
+                out.push({ letter: letter, index: index })
+        })
+        return out
+    }
+
     // Panel metrics, shared with the layout so the height math stays in sync.
     readonly property int fieldHeight: 34
     readonly property int rowHeight: 48
@@ -273,7 +300,8 @@ QtObject {
                 if (keptA >= 0 && keptB >= 0 && keptA !== keptB)
                     return keptA - keptB
             }
-            return a.name.toLowerCase() < b.name.toLowerCase() ? -1 : 1
+            // Accents and case aside, so Á files under A as the index does.
+            return a.name.localeCompare(b.name, undefined, { sensitivity: "base" })
         })
         return found
     }
