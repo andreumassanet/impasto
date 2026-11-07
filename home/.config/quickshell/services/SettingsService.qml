@@ -649,8 +649,9 @@ Singleton {
         property string lockClock: "stacked"
 
         // What is playing on the lock: "lyrics" (the player and its lyrics),
-        // "player" or "off"; and behind it, the "cover" blurred or the
-        // "desktop" as without music.
+        // "player" or "off". Behind the lock: the "cover" blurred while music
+        // plays and the desktop otherwise, the "desktop" (a screenshot,
+        // blurred), or the "wallpaper", so nothing that was open shows.
         property string lockMusic: "lyrics"
         property string lockMusicGround: "cover"
 

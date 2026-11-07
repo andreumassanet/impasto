@@ -358,15 +358,29 @@ SettingsSection {
                     }
                 }
             }
+        }
 
+        SettingGroup {
+            title: Tr.t("Background")
+            note: Tr.t("Just enough to make the text underneath unreadable.")
+            hint: Tr.t("The preview uses the wallpaper, since the lock screen's own capture is taken when it locks. It applies the same blur with the capsule on top, so you can judge how it reads.")
+
+            // The lock drawn small three ways: the cover playing now as a wash
+            // (a stand-in wash when nothing plays), the desktop with its
+            // windows, and the bare wallpaper.
             SettingTiles {
                 label: Tr.t("Behind it")
-                visible: SettingsService.lockMusic !== "off"
+                reading: SettingsService.lockMusicGround === "wallpaper"
+                    ? Tr.t("Nothing that was open shows")
+                    : SettingsService.lockMusicGround === "cover"
+                    ? Tr.t("The cover while music plays, otherwise the desktop")
+                    : Tr.t("The screen as it was, blurred")
 
                 Repeater {
                     model: [
                         { id: "cover", label: "The cover" },
-                        { id: "desktop", label: "The desktop" }
+                        { id: "desktop", label: "The desktop" },
+                        { id: "wallpaper", label: "The wallpaper" }
                     ]
 
                     PreviewTile {
@@ -375,31 +389,78 @@ SettingsSection {
                         required property var modelData
 
                         readonly property bool onCover: groundTile.modelData.id === "cover"
+                        readonly property bool withWindows: groundTile.modelData.id === "desktop"
 
                         stageHeight: 120
                         caption: Tr.t(groundTile.modelData.label)
                         selected: SettingsService.lockMusicGround === groundTile.modelData.id
                         onPicked: SettingsService.set("lockMusicGround", groundTile.modelData.id)
 
-                        // The cover playing now, or the wallpaper standing in.
-                        Image {
-                            id: behind
+                        // What the lock blurs: the wallpaper, with two windows
+                        // on it for the desktop; the cover for the cover.
+                        Item {
+                            id: scene
 
                             anchors.fill: parent
-                            source: groundTile.onCover && MediaService.artUrl !== ""
-                                ? MediaService.artUrl
-                                : (WallpaperService.currentWallpaper
-                                    ? `file://${WallpaperService.currentWallpaper}` : "")
-                            fillMode: Image.PreserveAspectCrop
                             visible: false
-                            asynchronous: true
-                            sourceSize.width: groundTile.onCover ? 48 : 320
+                            layer.enabled: true
+
+                            Image {
+                                id: behind
+
+                                anchors.fill: parent
+                                visible: !groundTile.onCover
+                                source: WallpaperService.currentWallpaper
+                                    ? `file://${WallpaperService.currentWallpaper}` : ""
+                                fillMode: Image.PreserveAspectCrop
+                                asynchronous: true
+                                sourceSize.width: 320
+                            }
+
+                            Repeater {
+                                model: groundTile.withWindows
+                                    ? [Qt.rect(0.08, 0.14, 0.5, 0.62), Qt.rect(0.46, 0.3, 0.46, 0.56)] : []
+
+                                Rectangle {
+                                    required property rect modelData
+
+                                    x: modelData.x * scene.width
+                                    y: modelData.y * scene.height
+                                    width: modelData.width * scene.width
+                                    height: modelData.height * scene.height
+                                    radius: Theme.radiusSmall
+                                    color: Theme.surface
+                                    border.color: Theme.border
+                                    border.width: 1
+                                }
+                            }
+
+                            // With nothing playing, the accent stands in for
+                            // the cover's colours.
+                            Rectangle {
+                                anchors.fill: parent
+                                visible: groundTile.onCover
+                                gradient: Gradient {
+                                    orientation: Gradient.Horizontal
+                                    GradientStop { position: 0; color: Theme.red }
+                                    GradientStop { position: 0.5; color: Theme.accent }
+                                    GradientStop { position: 1; color: Theme.yellow }
+                                }
+                            }
+
+                            Image {
+                                anchors.fill: parent
+                                visible: groundTile.onCover && status === Image.Ready
+                                source: groundTile.onCover ? MediaService.artUrl : ""
+                                fillMode: Image.PreserveAspectCrop
+                                asynchronous: true
+                                sourceSize.width: 48
+                            }
                         }
 
                         MultiEffect {
                             anchors.fill: parent
-                            source: behind
-                            visible: behind.status === Image.Ready
+                            source: scene
                             blurEnabled: true
                             blur: 1
                             blurMax: groundTile.onCover ? 32 : 16
@@ -412,17 +473,19 @@ SettingsSection {
                             width: 44
                             height: 44
                             radius: 8
-                            color: Theme.accent
+                            color: groundTile.onCover ? Theme.accent : Theme.island
+
+                            Text {
+                                anchors.centerIn: parent
+                                text: groundTile.onCover ? "󰎈" : "󰌾"
+                                font.family: Theme.fontMono
+                                font.pixelSize: 18
+                                color: groundTile.onCover ? Theme.accentText : Theme.text
+                            }
                         }
                     }
                 }
             }
-        }
-
-        SettingGroup {
-            title: Tr.t("Background")
-            note: Tr.t("Just enough to make the text underneath unreadable.")
-            hint: Tr.t("The preview uses the wallpaper, since the lock screen's own capture is taken when it locks. It applies the same blur with the capsule on top, so you can judge how it reads.")
 
             SettingSlider {
                 label: Tr.t("Blur")
