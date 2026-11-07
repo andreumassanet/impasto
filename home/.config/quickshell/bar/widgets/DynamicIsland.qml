@@ -94,6 +94,7 @@ Rectangle {
         microphone: { width: AudioService.panelWidth, height: AudioService.microphoneHeight },
         nightlight: { width: SunsetService.panelWidth, height: SunsetService.panelHeight },
         power:      { width: SystemService.panelWidth, height: SystemService.panelHeight },
+        record:     { width: RecorderService.panelWidth, height: RecorderService.panelHeight },
         brightness: { width: BrightnessService.panelWidth, height: BrightnessService.panelHeight },
         bluetooth:  { width: 420,  height: 500 },
         session:    { width: 720,  height: 180 },
@@ -104,8 +105,6 @@ Rectangle {
         servers:    { width: ServersService.panelWidth, height: ServersService.panelHeight },
         screentime: { width: 940,  height: 614 },
         camera:     { width: CameraService.panelWidth, height: CameraService.panelHeight },
-        // The newest recordings, four rows.
-        capture:    { width: 420,  height: 280 },
         // A row per creature, plus one for the next egg.
         pet:        { width: 560,  height: 205 + 62 * PetService.family.length },
         // The shelf of cards, or the game being played at its own size.
@@ -180,6 +179,7 @@ Rectangle {
         microphone: microphoneDetail,
         nightlight: nightLightDetail,
         power: powerDetail,
+        record: recordDetail,
         brightness: brightnessDetail,
         bluetooth: bluetoothDetail,
         stats: statsPanel,
@@ -190,7 +190,6 @@ Rectangle {
         servers: serversPanel,
         screentime: screenTimePanel,
         camera: cameraPanel,
-        capture: capturePanel,
         pet: petPanel,
         games: gamesPanel,
         notes: notesPanel,
@@ -624,6 +623,14 @@ Rectangle {
     }
 
     Component {
+        id: recordDetail
+        RecordDetail {
+            onBack: root.open("controls")
+            onDone: root.close()
+        }
+    }
+
+    Component {
         id: bluetoothDetail
         BluetoothDetail { onBack: root.open("controls") }
     }
@@ -671,11 +678,6 @@ Rectangle {
     Component {
         id: cameraPanel
         CameraPanel { onClosed: root.close() }
-    }
-
-    Component {
-        id: capturePanel
-        CapturePanel { onClosed: root.close() }
     }
 
     Component {

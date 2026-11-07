@@ -206,7 +206,6 @@ NotesPanel       1.0 bar/island/NotesPanel.qml
 BoardPanel       1.0 bar/island/BoardPanel.qml
 KeysPanel        1.0 bar/island/KeysPanel.qml
 PackagesPanel    1.0 bar/island/PackagesPanel.qml
-CapturePanel     1.0 bar/island/CapturePanel.qml
 GameBoard        1.0 bar/island/games/GameBoard.qml
 NotificationList 1.0 bar/island/controls/NotificationList.qml
 AppearanceCard   1.0 bar/island/controls/AppearanceCard.qml
@@ -232,6 +231,7 @@ DetailChoice     1.0 bar/island/DetailChoice.qml
 MicrophoneDetail 1.0 bar/island/MicrophoneDetail.qml
 NightLightDetail 1.0 bar/island/NightLightDetail.qml
 PowerDetail 1.0 bar/island/PowerDetail.qml
+RecordDetail 1.0 bar/island/RecordDetail.qml
 BrightnessDetail 1.0 bar/island/BrightnessDetail.qml
 TrayMenuPanel    1.0 bar/island/TrayMenuPanel.qml
 BluetoothDetail  1.0 bar/island/BluetoothDetail.qml

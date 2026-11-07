@@ -12,6 +12,7 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import Qt.labs.folderlistmodel
 
 import "../theme"
 
@@ -69,6 +70,38 @@ Singleton {
         const minutes = Math.floor(total / 60)
         const rest = total % 60
         return `${minutes}:${String(rest).padStart(2, "0")}`
+    }
+
+    // ── RECENT TAKES ────────────────────────────────────────────────────────
+
+    // Where takes go, as `record.py` resolves it.
+    readonly property string directory: root.tools.directory ?? ""
+
+    // The newest takes first: they are named by the time they began, so the
+    // name sorts them. Watched, so a take just stopped is listed at once.
+    readonly property FolderListModel takes: FolderListModel {
+        folder: root.directory === "" ? "" : DesktopService.urlOf(root.directory)
+        nameFilters: ["*_impasto.mp4"]
+        showDirs: false
+        sortField: FolderListModel.Name
+        sortReversed: true
+    }
+
+    readonly property int recentShown: Math.min(4, root.takes.count)
+
+    // The recent takes, at least one row for the empty one, and the folder.
+    readonly property int panelWidth: 440
+    readonly property int panelHeight: 2 * Theme.panelPadding + Theme.detailHeader
+        + Theme.detailSection(Math.max(1, root.recentShown) + 1)
+
+    function openTake(index: int): void {
+        Qt.openUrlExternally(root.takes.get(index, "fileUrl"))
+    }
+
+    // Made first: before the first take it does not exist yet.
+    function openFolder(): void {
+        if (root.directory !== "")
+            Quickshell.execDetached(["sh", "-c", 'mkdir -p "$1" && xdg-open "$1"', "sh", root.directory])
     }
 
     readonly property Timer clock: Timer {
