@@ -279,15 +279,15 @@ Singleton {
             // File name only; the directory is always the same.
             return String(report.path ?? "").split("/").pop()
         case "clipboard":
-            return report.copied ? "Copied" : "Not copied"
+            return report.copied ? Tr.t("Copied") : Tr.t("Not copied")
         case "editor":
-            return "Opening the editor"
+            return Tr.t("Opening the editor")
         case "text":
             if (!report.characters)
-                return "No text found"
+                return Tr.t("No text found")
             return report.copied
-                ? `${report.characters} characters copied`
-                : `${report.characters} characters`
+                ? Tr.t("%1 characters copied").arg(report.characters)
+                : Tr.t("%1 characters").arg(report.characters)
         }
         return ""
     }

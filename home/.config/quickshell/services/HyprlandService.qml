@@ -240,6 +240,11 @@ QtObject {
 
     property var clients: []
 
+    // Windows minimized from the dock wait here, off every strip and
+    // overview, and the dock brings them back.
+    readonly property string minimizedWorkspace: "special:minimized"
+    property var minimizedClients: []
+
     // Keep the client list refreshed on every window event, even when it is
     // empty. Without it, refreshes only happen while the list is non-empty,
     // which is fine for the overview but freezes the dock once the last
@@ -279,6 +284,8 @@ QtObject {
                     return
                 root.clients = list.filter(client => client.mapped && client.workspace
                     && client.workspace.id > 0)
+                root.minimizedClients = list.filter(client => client.mapped
+                    && client.workspace?.name === root.minimizedWorkspace)
             }
         }
     }
@@ -359,6 +366,24 @@ QtObject {
     // `silent = true` but ignores it and switches workspace anyway.
     function moveClient(address: string, workspaceId: int): void {
         Hyprland.dispatch(`hl.dsp.window.move({ workspace = ${workspaceId}, window = "address:${address}", follow = false })`)
+        root.refresh()
+        root.loadClients()
+    }
+
+    // Away to the hidden workspace. Hyprland hands the focus to the next
+    // window where it was; focusing that workspace by hand would be the
+    // workspace already shown, which goes back to the previous one.
+    function minimizeWindow(address: string): void {
+        Hyprland.dispatch(`hl.dsp.window.move({ workspace = "${root.minimizedWorkspace}", window = "address:${address}", follow = false })`)
+        root.refresh()
+        root.loadClients()
+    }
+
+    // Back onto the workspace the focused screen is showing, focused.
+    function restoreWindow(address: string): void {
+        const workspace = root.activeOn(root.focusedMonitor) || root.activeId
+        Hyprland.dispatch(`hl.dsp.window.move({ workspace = ${workspace}, window = "address:${address}", follow = false })`)
+        root.focusWindow(address)
         root.refresh()
         root.loadClients()
     }
@@ -472,6 +497,12 @@ QtObject {
             case "monitoraddedv2":
                 root.loadMonitors()
                 root.refresh()
+                break
+            // `1` or `0`: a window went full-screen or came back. The bar
+            // and the dock step aside for one, and only the client list
+            // says which screen it is on.
+            case "fullscreen":
+                root.clientsSoon.restart()
                 break
             // Focus changes only affect the client list, and only watchers
             // need it; skipping it otherwise saves a process per alt-tab.

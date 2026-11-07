@@ -40,12 +40,12 @@ Item {
         id: detail
 
         ModuleCard {
-            title: "Notes"
+            title: Tr.t("Notes")
             subtitle: root.count === 0
-                ? "Nothing written down yet"
-                : `${root.count} ${root.count === 1 ? "note" : "notes"}`
+                ? Tr.t("Nothing written down yet")
+                : Tr.t(root.count === 1 ? "%1 note" : "%1 notes").arg(root.count)
                     + (NotesService.archived.length > 0
-                        ? ` · ${NotesService.archived.length} archived` : "")
+                        ? " · " + Tr.t("%1 archived").arg(NotesService.archived.length) : "")
 
             mark: RingIndicator {
                 anchors.fill: parent
@@ -137,7 +137,7 @@ Item {
 
                 PillButton {
                     implicitHeight: Theme.cardRow
-                    text: "New"
+                    text: Tr.t("New")
                     icon: "󰐕"
                     onClicked: {
                         NotesService.create()
@@ -147,7 +147,7 @@ Item {
 
                 PillButton {
                     implicitHeight: Theme.cardRow
-                    text: "Open"
+                    text: Tr.t("Open")
                     icon: "󰏫"
                     onClicked: root.openOn("")
                 }
