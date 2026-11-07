@@ -37,6 +37,16 @@ QtObject {
         return (table && table[text]) ? table[text] : text
     }
 
+    // One English word that two rooms say differently: the key is
+    // "room|text", and a language without that entry takes `t`'s.
+    function tIn(room: string, text: string): string {
+        if (root.language === "en")
+            return text
+        const table = root.tables[root.language]
+        const key = `${room}|${text}`
+        return (table && table[key]) ? table[key] : root.t(text)
+    }
+
     // A date in the shell's language. Qt's own formatting spells day and
     // month names in English whatever the locale, so English keeps it.
     function date(when: var, format: string): string {
@@ -1380,6 +1390,7 @@ QtObject {
             "ends %1": "termina a las %1",
             "Resume": "Reanudar",
             "Hold": "Pausar",
+            "timer|Start": "Iniciar",
             "1 update": "1 actualización",
             "%1 updates": "%1 actualizaciones",
             "as of the last sync": "según la última sincronización",

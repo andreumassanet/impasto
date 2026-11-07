@@ -146,7 +146,7 @@ Item {
                     Layout.preferredWidth: 0
                     text: {
                         if (!TimerService.running)
-                            return Tr.t("Start")
+                            return Tr.tIn("timer", "Start")
                         return TimerService.paused ? Tr.t("Resume") : Tr.t("Hold")
                     }
                     icon: {
