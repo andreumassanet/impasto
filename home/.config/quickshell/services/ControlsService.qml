@@ -378,6 +378,7 @@ Singleton {
                 ? RecorderService.display : Tr.t(RecorderService.subject)
             active: RecorderService.recording
             available: RecorderService.available
+            expandable: RecorderService.available; panel: "record"
             closes: true
             action: () => RecorderService.toggle()
         },
