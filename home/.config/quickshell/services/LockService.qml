@@ -21,9 +21,7 @@ import "../theme"
 //
 // The screenshot is a grim process rather than a ScreencopyView because it
 // has to finish before the lock surface is mapped. It goes to the runtime
-// directory (tmpfs, user-only) and is deleted on unlock. With the lock set
-// to the wallpaper there is no screenshot at all, unless the wallpaper cannot
-// be read.
+// directory (tmpfs, user-only) and is deleted on unlock.
 //
 // The password is handed straight to PAM's `respond` and never stored past
 // the field it is typed in, which every screen shares and which empties on
@@ -99,17 +97,19 @@ Singleton {
     property int shotSerial: 0
     property bool shotReady: false
 
-    // With `lockBackground: wallpaper`, the picture behind this lock instead
-    // of the capture: a file URL, latched when the lock begins, empty for a
-    // lock that uses the capture.
-    property string privateSource: ""
-    readonly property bool privateBackground: root.privateSource !== ""
-
     // Empty when that screen's capture failed, and the surface stays black.
     function shotSource(output: string): string {
+        if (root.wallpaperSource !== "")
+            return root.wallpaperSource
         return root.shotReady && output
             ? `file://${root.shotPath(output)}?v=${root.shotSerial}` : ""
     }
+
+    // With `lockMusicGround: wallpaper`, the wallpaper stands behind the lock
+    // in place of the screenshot, latched when it locks. No screenshot is
+    // taken, and a wallpaper that does not load leaves the island's black:
+    // nothing that was open ever shows.
+    property string wallpaperSource: ""
 
     signal unlocked()
 
@@ -133,66 +133,25 @@ Singleton {
         root.faceCheck.running = true
         FaceService.refresh()
         root.shotReady = false
-        root.privateSource = ""
-        root.chooseBackground()
-    }
-
-    // The wallpaper stands in for the capture only once it has decoded; an
-    // empty path, a missing file or a broken image takes the capture's path,
-    // so the lock is never held up by a picture.
-    function chooseBackground(): void {
-        const wallpaper = WallpaperService.currentWallpaper
-        if (SettingsService.lockBackground === "wallpaper" && wallpaper !== "") {
-            root.probeGiveUp.restart()
-            root.probe.source = DesktopService.urlOf(wallpaper)
+        root.wallpaperSource = ""
+        if (SettingsService.lockMusicGround === "wallpaper") {
+            const wallpaper = WallpaperService.currentWallpaper
+            root.wallpaperSource = wallpaper !== "" ? DesktopService.urlOf(wallpaper) : ""
+            root.engage()
             return
         }
-        root.captureScreen()
-    }
-
-    // Capture first, surface second — and only once the island has closed, or
-    // the screenshot shows the panel the lock came from.
-    function captureScreen(): void {
+        // Capture first, surface second — and only once the island has
+        // closed, or the screenshot shows the panel the lock came from.
         root.pendingCapture = true
         root.attemptCapture()
     }
 
-    // Decodes the wallpaper small, only to learn that it can be drawn.
-    readonly property Image probe: Image {
-        asynchronous: true
-        cache: false
-        sourceSize.width: 16
-        sourceSize.height: 16
-        onStatusChanged: {
-            if (status === Image.Ready)
-                root.probed(true)
-            else if (status === Image.Error)
-                root.probed(false)
-        }
-    }
-
-    function probed(usable: bool): void {
-        // Answered already, by the other path or by the timer.
-        if (!root.probeGiveUp.running)
-            return
-        root.probeGiveUp.stop()
-        const source = root.probe.source.toString()
-        root.probe.source = ""
-        if (usable) {
-            root.privateSource = source
-            root.engage()
-        } else {
-            root.captureScreen()
-        }
-    }
-
-    // A probe that never answers must not keep the session unlocked.
-    readonly property Timer probeGiveUp: Timer {
-        interval: 1500
-        onTriggered: {
-            root.probe.source = ""
-            root.captureScreen()
-        }
+    // The screen is covered and the password is asked for.
+    function engage(): void {
+        root.locked = true
+        root.faceMisses = 0
+        root.faceQuietUntil = 0
+        root.begin()
     }
 
     function attemptCapture(): void {
@@ -257,19 +216,10 @@ Singleton {
         }
     }
 
-    // The screen is covered and the password is asked for.
-    function engage(): void {
-        root.locked = true
-        root.faceMisses = 0
-        root.faceQuietUntil = 0
-        root.begin()
-    }
-
     function forget(): void {
         root.typed = ""
         root.shotReady = false
-        root.privateSource = ""
-        root.capsLock = false
+        root.wallpaperSource = ""
         root.eraser.running = true
     }
 
@@ -337,33 +287,6 @@ Singleton {
             root.message = Tr.t("Authentication is unavailable")
             console.warn("PAM error while unlocking:", error)
         }
-    }
-
-    // ── CAPS LOCK ───────────────────────────────────────────────────────────
-
-    // From the compositor, since Qt does not report it. Read each second, and
-    // only while a lock with the wallpaper behind it is up, where it shows.
-    property bool capsLock: false
-
-    readonly property Process capsReader: Process {
-        command: ["hyprctl", "devices", "-j"]
-        stdout: StdioCollector {
-            onStreamFinished: {
-                try {
-                    root.capsLock = (JSON.parse(text).keyboards ?? []).some(board => board.capsLock)
-                } catch (error) {
-                    root.capsLock = false
-                }
-            }
-        }
-    }
-
-    readonly property Timer capsPoll: Timer {
-        interval: 1000
-        repeat: true
-        triggeredOnStart: true
-        running: root.locked && root.privateBackground
-        onTriggered: root.capsReader.running = true
     }
 
     // ── FACE ────────────────────────────────────────────────────────────────

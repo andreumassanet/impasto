@@ -83,7 +83,6 @@ Singleton {
     readonly property alias clipboardKeep: config.clipboardKeep
     readonly property alias clipboardImages: config.clipboardImages
     readonly property alias clipboardWipeOnLock: config.clipboardWipeOnLock
-    readonly property alias lockBackground: config.lockBackground
     readonly property alias lockBlur: config.lockBlur
     readonly property alias lockClock: config.lockClock
     readonly property alias lockMusic: config.lockMusic
@@ -642,11 +641,6 @@ Singleton {
         // (`clipboard.py`).
         property bool clipboardWipeOnLock: false
 
-        // What the lock blurs: "live", a capture of the screen as it was, or
-        // "wallpaper", which shows nothing that was open. A wallpaper that
-        // cannot be read falls back to "live".
-        property string lockBackground: "live"
-
         // Enough to make text unreadable, no more.
         property int lockBlur: 32
 
@@ -655,8 +649,9 @@ Singleton {
         property string lockClock: "stacked"
 
         // What is playing on the lock: "lyrics" (the player and its lyrics),
-        // "player" or "off"; and behind it, the "cover" blurred or the
-        // "desktop" as without music.
+        // "player" or "off". Behind the lock: the "cover" blurred while music
+        // plays and the desktop otherwise, the "desktop" (a screenshot,
+        // blurred), or the "wallpaper", so nothing that was open shows.
         property string lockMusic: "lyrics"
         property string lockMusicGround: "cover"
 

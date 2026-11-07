@@ -148,7 +148,6 @@ QtObject {
             "Displays": "Pantallas",
             "Screen layout, modes and the laptop lid.":
                 "Disposición y modos de las pantallas, y la tapa del portátil.",
-            "The screen": "La pantalla",
             "The lid": "La tapa",
             "Input": "Entrada",
             "The keyboard, the pointer and the cursor.":
@@ -701,6 +700,10 @@ QtObject {
             "Run %1 in a terminal": "Ejecutar %1 en una terminal",
             "Stays open at the end": "Queda abierta al terminar",
             "Fallbacks": "Alternativas",
+            "The cover while music plays, otherwise the desktop": "La portada mientras suena música; si no, el escritorio",
+            "Nothing that was open shows": "No se ve nada de lo que había abierto",
+            "The screen as it was, blurred": "La pantalla como estaba, difuminada",
+            "The wallpaper": "El fondo de pantalla",
             "Rows under the applications that act on the text as typed.": "Filas bajo las aplicaciones que actúan sobre el texto escrito.",
             "Open an address, search the web, run the text as a command, or run it in a terminal that stays open. Only in the plain-text mode; a command runs as soon as its row is chosen.": "Abrir una dirección, buscar en la web, ejecutar el texto como comando o en una terminal que queda abierta. Solo en el modo de texto normal; un comando se ejecuta en cuanto eliges su fila.",
             "Offer fallback rows": "Ofrecer alternativas",
