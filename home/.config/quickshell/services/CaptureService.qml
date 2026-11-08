@@ -235,6 +235,8 @@ Singleton {
     }
 
     readonly property Process shooter: Process {
+        // What follows the time in a saved file's name.
+        environment: ({ IMPASTO_CAPTURE_SUFFIX: SettingsService.captureSuffix })
         stdout: StdioCollector {
             onStreamFinished: root.took(text)
         }

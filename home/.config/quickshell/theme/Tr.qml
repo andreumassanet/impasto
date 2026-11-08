@@ -157,6 +157,12 @@ QtObject {
             "Keys": "Atajos",
             "Keys in a window": "Atajos en una ventana",
             "Scratchpad": "Cajón",
+            "Captures": "Capturas",
+            "The screenshots, recordings and camera photos the shell saves, named by the time they were taken.":
+                "Las capturas, grabaciones y fotos de la cámara que guarda el shell, con el nombre de la hora en que se hicieron.",
+            "File names": "Nombre de los archivos",
+            "Time and impasto": "Hora e impasto",
+            "Time alone": "Solo la hora",
             "Every keybinding, the shell's and Hyprland's.":
                 "Todos los atajos, los del shell y los de Hyprland.",
             "Session": "Sesión",

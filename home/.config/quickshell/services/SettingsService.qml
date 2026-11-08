@@ -93,6 +93,9 @@ Singleton {
     readonly property alias userAvatar: config.userAvatar
     readonly property alias doNotDisturb: config.doNotDisturb
     readonly property alias recorderAudio: config.recorderAudio
+    readonly property alias captureNames: config.captureNames
+    // What a saved capture's name has after its time.
+    readonly property string captureSuffix: root.captureNames === "time" ? "" : "_impasto"
     readonly property alias captureShape: config.captureShape
     readonly property alias captureKind: config.captureKind
     readonly property alias controlsClock: config.controlsClock
@@ -682,6 +685,9 @@ Singleton {
         property bool doNotDisturb: false
 
         property bool recorderAudio: false
+        // Saved screenshots, recordings and photos: "impasto" names them
+        // by their time and `_impasto`, "time" by their time alone.
+        property string captureNames: "impasto"
 
         // The capture surface reopens on its last shape and kind. The
         // destination is not stored: it resets to saving a file.

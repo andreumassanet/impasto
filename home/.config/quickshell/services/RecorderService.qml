@@ -78,10 +78,12 @@ Singleton {
     readonly property string directory: root.tools.directory ?? ""
 
     // The newest takes first: they are named by the time they began, so the
-    // name sorts them. Watched, so a take just stopped is listed at once.
+    // name sorts them, with the shell's suffix or without, whichever the
+    // setting was when each was taken. Watched, so a take just stopped is
+    // listed at once.
     readonly property FolderListModel takes: FolderListModel {
         folder: root.directory === "" ? "" : DesktopService.urlOf(root.directory)
-        nameFilters: ["*_impasto.mp4"]
+        nameFilters: ["????-??-??-??????_impasto.mp4", "????-??-??-??????.mp4"]
         showDirs: false
         sortField: FolderListModel.Name
         sortReversed: true
@@ -137,6 +139,8 @@ Singleton {
     }
 
     readonly property Process action: Process {
+        // What follows the time in a saved file's name.
+        environment: ({ IMPASTO_CAPTURE_SUFFIX: SettingsService.captureSuffix })
         stdout: StdioCollector {
             onStreamFinished: root.ingest(text)
         }

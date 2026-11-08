@@ -30,9 +30,14 @@ from pathlib import Path
 
 # Saved file names; sorts chronologically as text.
 STAMP = "%Y-%m-%d-%H%M%S"
-# What follows the time in a saved file's name, so the shell's own can be told
-# from others. $IMPASTO_CAPTURE_SUFFIX replaces it; empty leaves the time alone.
-SUFFIX = os.environ.get("IMPASTO_CAPTURE_SUFFIX", "_impasto")
+
+
+def suffix():
+    """What follows the time in a saved file's name: `_impasto`, so the
+    shell's own can be told apart, unless the shell passes another in
+    $IMPASTO_CAPTURE_SUFFIX, empty for the time alone."""
+    return os.environ.get("IMPASTO_CAPTURE_SUFFIX", "_impasto")
+
 
 DESTINATIONS = ("file", "clipboard", "editor", "text")
 
@@ -235,7 +240,7 @@ def keep(cut, stamp):
         cut.unlink(missing_ok=True)
         report(error=f"Cannot write to {folder}: {error}")
         return None
-    saved = folder / f"{stamp}{SUFFIX}.png"
+    saved = folder / f"{stamp}{suffix()}.png"
     try:
         shutil.move(str(cut), saved)
     except OSError as error:
@@ -286,7 +291,7 @@ def finish(source, geometry, destination):
             cut.unlink(missing_ok=True)
             report(error=f"Cannot write to {folder}: {error}")
             return
-        saved = folder / f"{stamp}{SUFFIX}.png"
+        saved = folder / f"{stamp}{suffix()}.png"
         # Detached: satty outlives this script and owns its output and the
         # temporary file from here. Not `--fullscreen`; `windowrules.lua`
         # floats and centres it.
