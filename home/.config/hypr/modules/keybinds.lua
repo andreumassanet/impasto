@@ -247,6 +247,31 @@ end
 bind(mainMod .. " + mouse_down", hl.dsp.focus({ workspace = "m+1" }), { description = "Workspaces · Next workspace" })
 bind(mainMod .. " + mouse_up",   hl.dsp.focus({ workspace = "m-1" }), { description = "Workspaces · Previous workspace" })
 
+-- · the scratchpad: a special workspace shown over the one you are on.
+-- · SUPER + Z shows or hides it; adding SHIFT sends the window into it, or
+-- · back out to the workspace under it.
+local scratchpad = "special:scratchpad"
+
+local function scratchpad_send()
+    local window = hl.get_active_window()
+    if not window then
+        return
+    end
+    if window.workspace and window.workspace.name == scratchpad then
+        local monitor = hl.get_active_monitor()
+        if monitor and monitor.active_workspace then
+            hl.dispatch(hl.dsp.window.move({ workspace = monitor.active_workspace.id }))
+        end
+        return
+    end
+    hl.dispatch(hl.dsp.window.move({ workspace = scratchpad, follow = false }))
+end
+
+bind(mainMod .. " + Z",         hl.dsp.workspace.toggle_special("scratchpad"),
+     { description = "Workspaces · Show or hide the scratchpad" })
+bind(mainMod .. " + SHIFT + Z", scratchpad_send,
+     { description = "Workspaces · Send the window to the scratchpad or back" })
+
 
 -- ── SCREENS ─────────────────────────────────────────────────────────────────
 

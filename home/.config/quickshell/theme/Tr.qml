@@ -156,6 +156,7 @@ QtObject {
             "Pointer": "Puntero",
             "Keys": "Atajos",
             "Keys in a window": "Atajos en una ventana",
+            "Scratchpad": "Cajón",
             "Every keybinding, the shell's and Hyprland's.":
                 "Todos los atajos, los del shell y los de Hyprland.",
             "Session": "Sesión",

@@ -57,8 +57,9 @@ Item {
                 if (centre < point.x)
                     index++
             }
-            root.overSide = "row"
+            // The index first: the marker reads both as soon as the side is set.
             root.overIndex = index
+            root.overSide = "row"
             return
         }
         root.overSide = tray.contains(tray.mapFromItem(root, point.x, point.y)) ? "tray" : ""

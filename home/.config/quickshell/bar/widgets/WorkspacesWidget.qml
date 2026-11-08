@@ -334,5 +334,75 @@ Rectangle {
                 }
             }
         }
+
+        // A special workspace open over this screen, in every style: its
+        // name and the applications in it; a click hides it. Never in a
+        // preview, which is a picture of the strip and not of this screen.
+        Rectangle {
+            id: special
+
+            readonly property string name: root.preview ? ""
+                : HyprlandService.specialOn(root.screenName)
+            readonly property string short: special.name.replace(/^special:/, "")
+            readonly property var icons: {
+                const icons = []
+                const seen = []
+                for (const client of HyprlandService.specialClientsOf(special.name)) {
+                    const windowClass = client.class || client.initialClass || ""
+                    if (windowClass === "" || seen.indexOf(windowClass) >= 0)
+                        continue
+                    seen.push(windowClass)
+                    const entry = DockService.entryOf(DockService.idFor(windowClass))
+                    icons.push(Theme.appIcon(entry ? entry.icon : windowClass.toLowerCase()))
+                    if (icons.length === root.appsShown)
+                        break
+                }
+                return icons
+            }
+
+            visible: special.name !== ""
+            Layout.leftMargin: visible ? root.slotSpacing + 2 : 0
+            Layout.alignment: Qt.AlignVCenter
+            implicitWidth: visible ? specialRow.implicitWidth + 2 * root.glyphPad + 2 : 0
+            implicitHeight: root.pillHeight
+            radius: height / 2
+            color: Qt.alpha(Theme.accent, 0.22)
+            border.color: Theme.accent
+            border.width: 1
+
+            Row {
+                id: specialRow
+
+                anchors.centerIn: parent
+                spacing: root.appsSpacing
+
+                Text {
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: special.short === "scratchpad" ? Tr.t("Scratchpad") : special.short
+                    font.family: Theme.fontFamily
+                    font.pixelSize: Theme.fontSizeSmall
+                    font.weight: Font.DemiBold
+                    color: Theme.text
+                }
+
+                Repeater {
+                    model: special.icons
+
+                    IconImage {
+                        required property string modelData
+
+                        anchors.verticalCenter: parent.verticalCenter
+                        implicitSize: root.appIconSize
+                        source: modelData
+                    }
+                }
+            }
+
+            MouseArea {
+                anchors.fill: parent
+                cursorShape: Qt.PointingHandCursor
+                onClicked: HyprlandService.toggleSpecial(special.short)
+            }
+        }
     }
 }

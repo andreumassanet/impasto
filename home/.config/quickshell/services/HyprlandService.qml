@@ -136,6 +136,19 @@ QtObject {
             `hl.dsp.focus({ workspace = ${workspaceId}, on_current_monitor = true })`)
     }
 
+    // The special workspace open over a screen (`special:name`), or "" when
+    // none is; the dock's minimized windows are not one.
+    function specialOn(monitorName: string): string {
+        const monitor = root.monitors.find(candidate => candidate.name === monitorName)
+        const name = monitor?.specialWorkspace?.name ?? ""
+        return name === root.minimizedWorkspace ? "" : name
+    }
+
+    // The windows in a special workspace, by its name.
+    function specialClientsOf(name: string): var {
+        return root.specialClients.filter(client => client.workspace?.name === name)
+    }
+
     // The screen a workspace is on, or "" for one nobody has made yet.
     function monitorOf(workspaceId: int): string {
         const found = root.named.find(workspace => workspace.id === workspaceId)
@@ -245,6 +258,10 @@ QtObject {
     readonly property string minimizedWorkspace: "special:minimized"
     property var minimizedClients: []
 
+    // The windows on the other special workspaces — the scratchpad and any
+    // a user adds — which `clients` leaves out.
+    property var specialClients: []
+
     // Keep the client list refreshed on every window event, even when it is
     // empty. Without it, refreshes only happen while the list is non-empty,
     // which is fine for the overview but freezes the dock once the last
@@ -286,6 +303,11 @@ QtObject {
                     && client.workspace.id > 0)
                 root.minimizedClients = list.filter(client => client.mapped
                     && client.workspace?.name === root.minimizedWorkspace)
+                root.specialClients = list.filter(client => {
+                    const name = String(client.workspace?.name ?? "")
+                    return client.mapped && name.startsWith("special:")
+                        && name !== root.minimizedWorkspace
+                })
             }
         }
     }
@@ -322,6 +344,11 @@ QtObject {
 
     function clientsOn(workspaceId: int): var {
         return root.clients.filter(client => client.workspace.id === workspaceId)
+    }
+
+    // Shows or hides a special workspace by its name without `special:`.
+    function toggleSpecial(name: string): void {
+        Hyprland.dispatch(`hl.dsp.workspace.toggle_special("${name}")`)
     }
 
     function focusWindow(address: string): void {
@@ -487,6 +514,13 @@ QtObject {
                 const moved = String(event.data).split(",")
                 root.focusedMonitor = moved[0]
                 root.noteActive(moved[0], root.idNamed(moved[1] ?? ""))
+                break
+            // `NAME,MONITOR`, the name empty when it closes: a special
+            // workspace opened over a screen or went away, with its windows.
+            case "activespecial":
+            case "activespecialv2":
+                root.loadMonitors()
+                root.loadClients()
                 break
             // `WORKSPACEID,WORKSPACENAME,MONITORNAME`: a whole workspace has
             // gone to another screen, so both screens are showing something
