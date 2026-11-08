@@ -48,6 +48,7 @@ Singleton {
         { name: "notes",          label: "Notes",                description: "Shell · Open the notes" },
         { name: "board",          label: "Task board",           description: "Shell · Open the task board" },
         { name: "keys",           label: "Keys",                 description: "Shell · Show every key" },
+        { name: "cheatsheetWindow", label: "Keys in a window",   description: "Shell · Open the cheatsheet in a window" },
         { name: "zen",            label: "Zen",                  description: "Shell · Hide or show the bar" },
         { name: "widgets",        label: "Hide the widgets",     description: "Shell · Hide or show the desktop widgets" },
         { name: "game",           label: "Game mode",            description: "Shell · Turn game mode on or off" },
@@ -366,20 +367,27 @@ Singleton {
         return words.filter(word => word !== "")
     }
 
-    // The sheet as one list, headings between groups, keeping the rows every
-    // term of `query` begins a word of. Terms split on spaces and on `+`.
-    function sheetFind(query: string): var {
+    // The groups that still have rows, keeping the rows every term of
+    // `query` begins a word of. Terms split on spaces and on `+`.
+    function sheetGroups(query: string): var {
         const terms = query.toLowerCase().split(/[\s+]+/).filter(term => term !== "")
+        return root.sheet
+            .map(group => ({
+                name: group.name,
+                rows: group.rows.filter(row => {
+                    const words = root.sheetWords(group, row)
+                    return terms.every(term => words.some(word => word.startsWith(term)))
+                })
+            }))
+            .filter(group => group.rows.length > 0)
+    }
+
+    // The same as one list, headings between groups.
+    function sheetFind(query: string): var {
         const out = []
-        for (const group of root.sheet) {
-            const rows = group.rows.filter(row => {
-                const words = root.sheetWords(group, row)
-                return terms.every(term => words.some(word => word.startsWith(term)))
-            })
-            if (rows.length === 0)
-                continue
+        for (const group of root.sheetGroups(query)) {
             out.push({ heading: true, name: group.name })
-            for (const row of rows)
+            for (const row of group.rows)
                 out.push({ heading: false, action: row.action, caps: row.caps })
         }
         return out
