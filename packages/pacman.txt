@@ -80,6 +80,7 @@ tesseract-data-eng           # in English · one tesseract-data-* per language
 wf-recorder                  # recording · wl-screenrec, in aur.txt, goes first
 libpulse                     # pactl, which finds the output a recording hears
 pipewire-pulse               # what pactl talks to
+songrec                      # the Song tile, naming what is playing
 
 
 # ── TERMINAL PROGRAMS ───────────────────────────────────────────────────────

@@ -136,6 +136,26 @@ SettingsSection {
     }
 
     SettingGroup {
+        title: Tr.t("Media cover")
+        note: Tr.t("The picture of what is playing, in the control centre, the island, the media card and the lyrics.")
+
+        SettingRow {
+            label: Tr.t("Shape")
+            reading: SettingsService.mediaCover === "circle"
+                ? Tr.t("A round cover") : Tr.t("A rounded rectangle")
+
+            SegmentedControl {
+                options: [
+                    { id: "rectangle", label: Tr.t("Rectangle") },
+                    { id: "circle", label: Tr.t("Circle") }
+                ]
+                current: SettingsService.mediaCover
+                onSelected: id => SettingsService.set("mediaCover", id)
+            }
+        }
+    }
+
+    SettingGroup {
         title: Tr.t("Notes")
         note: Tr.t("A note on the wallpaper is written the same way as one in the panel.")
 

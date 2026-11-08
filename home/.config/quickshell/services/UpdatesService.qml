@@ -13,6 +13,8 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 
+import "../theme"
+
 // Counts pending updates (repositories and AUR) with `updates.py`. Nothing is
 // installed from here; the packages panel opens a terminal for that.
 //
@@ -54,11 +56,11 @@ Singleton {
         const minutes = Math.max(0, Math.round(
             (root.clock.date.getTime() - root.checkedAt) / 60000))
         if (minutes < 1)
-            return "just now"
+            return Tr.t("just now")
         if (minutes < 60)
-            return `${minutes} min ago`
+            return Tr.t("%1 min ago").arg(minutes)
         const hours = Math.floor(minutes / 60)
-        return `${hours} h ${minutes % 60} min ago`
+        return Tr.t("%1 h %2 min ago").arg(hours).arg(minutes % 60)
     }
 
     function subscribe(): void {

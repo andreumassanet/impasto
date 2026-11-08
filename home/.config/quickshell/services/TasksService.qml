@@ -31,9 +31,9 @@ Singleton {
     // In board order. A finished task stays on its calendar day, struck
     // through.
     readonly property var states: [
-        { id: "todo",  label: "To do", icon: "󰄰" },
-        { id: "doing", label: "Doing", icon: "󰪡" },
-        { id: "done",  label: "Done",  icon: "󰄲" }
+        { id: "todo",  label: Tr.t("To do"), icon: "󰄰" },
+        { id: "doing", label: Tr.t("Doing"), icon: "󰪡" },
+        { id: "done",  label: Tr.t("Done"),  icon: "󰄲" }
     ]
 
     function stateEntry(id: string): var {
@@ -176,13 +176,13 @@ Singleton {
     readonly property string summary: {
         const late = root.overdue.length
         if (late > 0)
-            return `${late} overdue`
+            return Tr.t("%1 overdue").arg(late)
         const today = root.pendingOn(root.todayKey)
         if (today > 0)
-            return `${today} due today`
+            return Tr.t("%1 due today").arg(today)
         if (root.next)
             return `${root.next.text} · ${root.dueLabel(root.next.due)}`
-        return root.pending > 0 ? "nothing dated" : "nothing to do"
+        return root.pending > 0 ? Tr.t("nothing dated") : Tr.t("nothing to do")
     }
 
     // today, tomorrow, yesterday, a weekday within a week, else the date.
@@ -190,18 +190,18 @@ Singleton {
         if (!day)
             return ""
         if (day === root.todayKey)
-            return "today"
+            return Tr.t("today")
         if (day === root.shifted(1))
-            return "tomorrow"
+            return Tr.t("tomorrow")
         if (day === root.shifted(-1))
-            return "yesterday"
+            return Tr.t("yesterday")
         const date = root.dateOf(day)
         if (!date)
             return day
         const week = root.shifted(6)
         if (day > root.todayKey && day <= week)
-            return Qt.formatDate(date, "dddd")
-        return Qt.formatDate(date, date.getFullYear() === root.clock.date.getFullYear()
+            return Tr.date(date, "dddd")
+        return Tr.date(date, date.getFullYear() === root.clock.date.getFullYear()
             ? "ddd d MMM" : "d MMM yyyy")
     }
 

@@ -94,6 +94,7 @@ Rectangle {
         microphone: { width: AudioService.panelWidth, height: AudioService.microphoneHeight },
         nightlight: { width: SunsetService.panelWidth, height: SunsetService.panelHeight },
         power:      { width: SystemService.panelWidth, height: SystemService.panelHeight },
+        record:     { width: RecorderService.panelWidth, height: RecorderService.panelHeight },
         brightness: { width: BrightnessService.panelWidth, height: BrightnessService.panelHeight },
         bluetooth:  { width: 420,  height: 500 },
         session:    { width: 720,  height: 180 },
@@ -180,6 +181,7 @@ Rectangle {
         microphone: microphoneDetail,
         nightlight: nightLightDetail,
         power: powerDetail,
+        record: recordDetail,
         brightness: brightnessDetail,
         bluetooth: bluetoothDetail,
         stats: statsPanel,
@@ -621,6 +623,14 @@ Rectangle {
     Component {
         id: powerDetail
         PowerDetail { onBack: root.open("controls") }
+    }
+
+    Component {
+        id: recordDetail
+        RecordDetail {
+            onBack: root.open("controls")
+            onDone: root.close()
+        }
     }
 
     Component {
