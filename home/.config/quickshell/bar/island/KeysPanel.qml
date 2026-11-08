@@ -13,6 +13,7 @@ import Quickshell
 
 import "../../theme"
 import "../../services"
+import "../../components"
 
 // A read-only sheet of key bindings: one field over one list, grouped, the
 // action on the left and the keys as caps on the right. The field narrows the
@@ -125,6 +126,18 @@ ColumnLayout {
         Layout.fillWidth: true
         Layout.preferredHeight: 1
         color: Theme.borderIn(QsWindow.window)
+    }
+
+    // impasto's keys and the user's own, when there are any of the second.
+    SegmentedControl {
+        visible: ShortcutService.sheetTabbed
+        Layout.alignment: Qt.AlignHCenter
+        options: ShortcutService.sheetTabs
+        current: ShortcutService.sheetTab
+        onSelected: id => {
+            ShortcutService.sheetTab = id
+            list.contentY = 0
+        }
     }
 
     // ── LIST ────────────────────────────────────────────────────────────────

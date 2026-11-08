@@ -90,6 +90,16 @@ FloatingWindow {
                     color: Theme.text
                 }
 
+                // impasto's keys and the user's own, when there are any of
+                // the second.
+                SegmentedControl {
+                    visible: ShortcutService.sheetTabbed
+                    Layout.leftMargin: Theme.panelPadding
+                    options: ShortcutService.sheetTabs
+                    current: ShortcutService.sheetTab
+                    onSelected: id => ShortcutService.sheetTab = id
+                }
+
                 Item { Layout.fillWidth: true }
 
                 Rectangle {

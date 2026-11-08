@@ -14,6 +14,8 @@ import Quickshell
 import Quickshell.Hyprland
 import Quickshell.Io
 
+import "../theme"
+
 // Keys belong to the profile: the `keys` setting maps each bind description
 // in `hypr/keybinds.lua` to a combination, so switching profile switches the
 // compositor's binds as well as the shell's.
@@ -299,28 +301,44 @@ Singleton {
         return key.startsWith("XF86") ? key.slice(4) : key
     }
 
-    readonly property var sheet: {
+    // impasto's own descriptions read `Category · Action`; what a user's
+    // config adds usually reads `Category: Action`, or has no category. The
+    // separator tells the two apart, and the second form is read as a
+    // category too rather than piled under "Other".
+    function sheetParts(text: string): var {
+        const dot = text.indexOf(" · ")
+        if (dot >= 0)
+            return { category: text.slice(0, dot), action: text.slice(dot + 3), origin: "core" }
+        const colon = text.indexOf(": ")
+        if (colon > 0)
+            return { category: text.slice(0, colon), action: text.slice(colon + 2), origin: "custom" }
+        return { category: "Other", action: text, origin: "custom" }
+    }
+
+    // Every group, impasto's and the user's apart even when they share a
+    // category's name.
+    readonly property var sheetAll: {
         const groups = ({})
         const order = []
         for (const bind of HyprlandService.binds) {
             const key = bind.key || ""
             if (key === "" || key.startsWith("switch:"))
                 continue
-            const text = bind.description ?? ""
-            const split = text.indexOf(" · ")
-            const category = split < 0 ? "Other" : text.slice(0, split)
-            const action = split < 0 ? (text || key) : text.slice(split + 3)
+            const parts = root.sheetParts(bind.description ?? "")
+            const category = parts.category
+            const action = parts.action !== "" ? parts.action : key
+            const slot = `${parts.origin}|${category}`
 
             // A trailing number or direction, which varies within a fold.
             const folded = action.match(/^(.*) (\d+|left|right|up|down)$/)
             const base = folded ? folded[1] : action
             const kind = !folded ? "" : (/^\d+$/.test(folded[2]) ? "digits" : "words")
 
-            if (!groups[category]) {
-                groups[category] = []
-                order.push(category)
+            if (!groups[slot]) {
+                groups[slot] = { name: category, origin: parts.origin, rows: [] }
+                order.push(slot)
             }
-            const rows = groups[category]
+            const rows = groups[slot].rows
             const same = kind === "" ? null : rows.find(row => row.base === base
                 && row.kind === kind && row.modmask === bind.modmask)
             if (same) {
@@ -332,14 +350,15 @@ Singleton {
         }
 
         const ranked = order.slice().sort((a, b) => {
-            const ia = root.sheetOrder.indexOf(a)
-            const ib = root.sheetOrder.indexOf(b)
+            const ia = root.sheetOrder.indexOf(groups[a].name)
+            const ib = root.sheetOrder.indexOf(groups[b].name)
             return (ia < 0 ? 99 + order.indexOf(a) : ia) - (ib < 0 ? 99 + order.indexOf(b) : ib)
         })
 
-        return ranked.map(category => ({
-            name: category,
-            rows: groups[category].map(row => {
+        return ranked.map(slot => ({
+            name: groups[slot].name,
+            origin: groups[slot].origin,
+            rows: groups[slot].rows.map(row => {
                 const caps = root.modifierCaps
                     .filter(modifier => row.modmask & modifier.bit)
                     .map(modifier => modifier.cap)
@@ -353,6 +372,25 @@ Singleton {
             })
         }))
     }
+
+    // With keys of the user's own, the sheet is on two tabs, impasto's and
+    // theirs; without, it is one list and there are no tabs.
+    readonly property bool sheetTabbed: root.sheetAll.some(group => group.origin === "custom")
+    property string sheetTab: "core"
+    readonly property var sheet: root.sheetTabbed
+        ? root.sheetAll.filter(group => group.origin === root.sheetTab) : root.sheetAll
+
+    // Keys on each tab, for the tab labels.
+    function tabCount(origin: string): int {
+        return root.sheetAll.filter(group => group.origin === origin)
+            .reduce((sum, group) => sum + group.rows.length, 0)
+    }
+
+    // The tabs, labelled with their counts.
+    readonly property var sheetTabs: [
+        { id: "core", label: `impasto · ${root.tabCount("core")}` },
+        { id: "custom", label: `${Tr.t("Yours")} · ${root.tabCount("custom")}` }
+    ]
 
     readonly property int sheetCount: root.sheet.reduce((sum, group) => sum + group.rows.length, 0)
 

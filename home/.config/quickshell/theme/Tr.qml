@@ -157,6 +157,7 @@ QtObject {
             "Keys": "Atajos",
             "Keys in a window": "Atajos en una ventana",
             "Scratchpad": "Cajón",
+            "Yours": "Tuyos",
             "Captures": "Capturas",
             "The screenshots, recordings and camera photos the shell saves, named by the time they were taken.":
                 "Las capturas, grabaciones y fotos de la cámara que guarda el shell, con el nombre de la hora en que se hicieron.",
