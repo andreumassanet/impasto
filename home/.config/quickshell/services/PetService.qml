@@ -13,6 +13,8 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 
+import "../theme"
+
 // Pets that live on the bar and level up while they are looked after.
 //
 // Experience comes only from feeding, playing and keeping the pet out on the
@@ -202,7 +204,7 @@ Singleton {
             root.laid()
             // Eggs can arrive while nothing shows the pet, so announce them.
             if (SettingsService.onBar("pet"))
-                OsdService.requested("󰪯", "A new egg on the shelf", -1)
+                OsdService.requested("󰪯", Tr.t("A new egg on the shelf"), -1)
         }
     }
 
@@ -322,21 +324,21 @@ Singleton {
 
     readonly property string moodLine: {
         if (!root.hatched)
-            return "An egg — feed it and it will hatch"
+            return Tr.t("An egg — feed it and it will hatch")
         switch (root.mood) {
-        case "beaming": return "Beaming"
-        case "peckish": return "Peckish — a snack is owed"
-        case "lonely":  return "Lonely — nobody has played today"
-        case "asleep":  return "Fast asleep"
+        case "beaming": return Tr.t("Beaming")
+        case "peckish": return Tr.t("Peckish — a snack is owed")
+        case "lonely":  return Tr.t("Lonely — nobody has played today")
+        case "asleep":  return Tr.t("Fast asleep")
         }
-        return "Content"
+        return Tr.t("Content")
     }
 
     function titleOf(record: var): string {
         if (!record)
-            return "Egg"
+            return Tr.t("Egg")
         if (record.hatchedAt <= 0)
-            return "Egg"
+            return Tr.t("Egg")
         return record.name !== "" ? record.name : root.speciesOf(record).label
     }
 

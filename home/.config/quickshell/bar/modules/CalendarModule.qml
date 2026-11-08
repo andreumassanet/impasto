@@ -44,7 +44,7 @@ Item {
         return list
     }
 
-    readonly property var weekdays: ["M", "T", "W", "T", "F", "S", "S"]
+    readonly property var weekdays: Tr.t("M T W T F S S").split(" ")
 
     implicitWidth: holder.implicitWidth
     implicitHeight: holder.implicitHeight
@@ -87,7 +87,7 @@ Item {
                     Text {
                         anchors.left: parent.left
                         anchors.verticalCenter: parent.verticalCenter
-                        text: Qt.formatDateTime(root.clock.date, "MMMM yyyy")
+                        text: Tr.date(root.clock.date, "MMMM yyyy")
                         font.family: Theme.fontFamily
                         font.pixelSize: Theme.fontSizeSmall
                         font.weight: Font.DemiBold
@@ -97,7 +97,7 @@ Item {
                     Text {
                         anchors.right: parent.right
                         anchors.verticalCenter: parent.verticalCenter
-                        text: Qt.formatDateTime(root.clock.date, "dddd d")
+                        text: Tr.date(root.clock.date, "dddd d")
                         font.family: Theme.fontFamily
                         font.pixelSize: Theme.fontSizeSmall
                         color: Theme.textMuted
@@ -217,14 +217,14 @@ Item {
                     Text {
                         width: parent.width
                         text: {
-                            const name = page.onToday ? "Today"
-                                : Qt.formatDate(new Date(root.today.getFullYear(),
+                            const name = page.onToday ? Tr.t("Today")
+                                : Tr.date(new Date(root.today.getFullYear(),
                                     root.today.getMonth(), page.day), "dddd d")
                             const n = page.due.length
                             const left = page.due.filter(task => task.state !== "done").length
                             if (n === 0)
-                                return `${name} · nothing due`
-                            return `${name} · ${left} of ${n} to do`
+                                return Tr.t("%1 · nothing due").arg(name)
+                            return Tr.t("%1 · %2 of %3 to do").arg(name).arg(left).arg(n)
                         }
                         elide: Text.ElideRight
                         font.family: Theme.fontFamily
