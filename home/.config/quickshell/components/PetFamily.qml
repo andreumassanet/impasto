@@ -118,7 +118,7 @@ ColumnLayout {
 
                 Text {
                     Layout.alignment: Qt.AlignVCenter
-                    text: `Lv ${member.modelData.level}`
+                    text: Tr.t("Lv %1").arg(member.modelData.level)
                     font.family: Theme.fontMono
                     font.pixelSize: Theme.fontSizeSmall
                     color: Theme.textMuted
