@@ -361,7 +361,7 @@ bind(mainMod .. " + K",         hl.dsp.global("quickshell:board"),      { descri
 -- · Spanish layout
 bind(mainMod .. " + H",         hl.dsp.global("quickshell:keys"),       { description = "Shell · Show every key" })
 
--- · the same sheet as a window over the blurred desktop
+-- · the same sheet in a window of its own
 bind(mainMod .. " + SHIFT + H", hl.dsp.global("quickshell:cheatsheetWindow"), { description = "Shell · Open the cheatsheet in a window" })
 
 -- · zen: the bar away and its band to the windows; and the widgets away

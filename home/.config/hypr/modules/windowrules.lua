@@ -53,6 +53,20 @@ hl.window_rule({
 })
 
 
+-- · the key sheet in a window, floated and sized the same way.
+hl.window_rule({
+    name  = "quickshell-keys",
+    match = {
+        class = "^(org\\.quickshell)$",
+        title = "^(Keys)$",
+    },
+
+    float  = true,
+    center = true,
+    size   = {1240, 820},
+})
+
+
 -- · imv, a look at one picture from the desk or from yazi, floats over the
 -- · layout instead of reflowing it.
 hl.window_rule({
@@ -191,19 +205,4 @@ hl.layer_rule({
 
     blur         = true,
     ignore_alpha = 0.12,
-})
-
--- · the cheatsheet window slides up over the blurred desktop, behind its
--- · translucent sheet
---
--- The layer covers the whole screen, so ignore_alpha is required or the
--- entire wallpaper gets blurred; the sheet is painted above it.
-hl.layer_rule({
-    name  = "impasto-cheatsheet",
-    match = { namespace = "^impasto-cheatsheet$" },
-
-    blur         = true,
-    xray         = true,
-    ignore_alpha = 0.3,
-    animation    = "slide bottom",
 })

@@ -206,7 +206,7 @@ GamesPanel       1.0 bar/island/GamesPanel.qml
 NotesPanel       1.0 bar/island/NotesPanel.qml
 BoardPanel       1.0 bar/island/BoardPanel.qml
 KeysPanel        1.0 bar/island/KeysPanel.qml
-CheatsheetLayer 1.0 bar/island/CheatsheetLayer.qml
+KeysWindow       1.0 bar/island/KeysWindow.qml
 PackagesPanel    1.0 bar/island/PackagesPanel.qml
 GameBoard        1.0 bar/island/games/GameBoard.qml
 NotificationList 1.0 bar/island/controls/NotificationList.qml

@@ -1,7 +1,7 @@
 // ╭──────────────────────────────────────────────────────────────────────────╮
 // │                                                                          │
-// │   C H E A T S H E E T   L A Y E R                                        │
-// │   every key in cards, over the blurred desktop                           │
+// │   K E Y S   W I N D O W                                                  │
+// │   every key in cards, in a window of its own                             │
 // │                                                                          │
 // │   github.com/andreumassanet/impasto                                      │
 // │                                                                          │
@@ -10,49 +10,32 @@
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
-import Quickshell.Wayland
-import Quickshell.Hyprland
 
 import "../../theme"
 import "../../components"
 import "../../services"
 
-// The key sheet as a layer, beside the island's `KeysPanel`: every group of
-// keys in its own card, stacked in columns. Type to filter; Escape or a click
-// outside closes it. It slides up from the bottom over the blurred desktop
-// behind its translucent sheet (the `impasto-cheatsheet` layer rule in
-// `windowrules.lua`); only the sheet takes input.
-PanelWindow {
+// The key sheet as a window, beside the island's `KeysPanel`: every group of
+// keys in its own card, stacked in columns. Type to filter; the first Escape
+// clears the filter, the next closes it. A regular toplevel like settings, so
+// Hyprland closes, floats and tiles it like any other; `windowrules.lua`
+// floats and sizes it, matched on the title.
+FloatingWindow {
     id: root
+
     CornerGuard {}
 
-    signal dismissed()
+    // Kept in sync with `visible` both ways, so closing the window from the
+    // compositor resets it and it can be opened again.
+    property bool shown: false
+
+    function toggle(): void { root.shown = !root.shown }
 
     property string filter: ""
 
     readonly property int columnCount: 3
 
-    // The island sheet's matching: every term of the filter begins a word.
-    readonly property var terms: root.filter.toLowerCase().split(/[\s+]+/).filter(term => term !== "")
-
-    // Each group once, rows that say the same thing with the same keys once
-    // (Super_L and Super_R), narrowed by the filter.
-    readonly property var groups: ShortcutService.sheet
-        .map(group => {
-            const seen = new Set()
-            return {
-                name: group.name,
-                rows: group.rows.filter(row => {
-                    const label = `${row.action}|${row.caps.join("+").replace(/_[LR]$/i, "")}`
-                    if (seen.has(label))
-                        return false
-                    seen.add(label)
-                    const words = ShortcutService.sheetWords(group, row)
-                    return root.terms.every(term => words.some(word => word.startsWith(term)))
-                })
-            }
-        })
-        .filter(group => group.rows.length > 0)
+    readonly property var groups: ShortcutService.sheetGroups(root.filter)
 
     // Masonry: each group goes to the column with the fewest rows so far.
     readonly property var columns: {
@@ -65,42 +48,34 @@ PanelWindow {
         return columns.map(column => column.groups)
     }
 
-    anchors { top: true; bottom: true; left: true; right: true }
-    exclusionMode: ExclusionMode.Ignore
-    color: "transparent"
-    mask: Region { item: sheet }
-    WlrLayershell.layer: WlrLayer.Overlay
-    WlrLayershell.namespace: "impasto-cheatsheet"
-    WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
+    // Matched by the window rule in `windowrules.lua`.
+    title: "Keys"
 
-    Component.onCompleted: {
-        HyprlandService.loadBinds()
-        field.forceActiveFocus()
+    implicitWidth: 1240
+    implicitHeight: 820
+
+    color: Theme.island
+    visible: root.shown
+
+    onVisibleChanged: {
+        if (root.visible) {
+            HyprlandService.loadBinds()
+            field.text = ""
+            root.filter = ""
+            field.forceActiveFocus()
+        } else if (root.shown) {
+            root.shown = false
+        }
     }
 
-    // A click outside the sheet closes it.
-    HyprlandFocusGrab {
-        active: true
-        windows: [root]
-        onCleared: root.dismissed()
-    }
-
-    Rectangle {
-        id: sheet
-
-        anchors.centerIn: parent
-        width: Math.min(parent.width - 120, 1320)
-        height: Math.min(parent.height - 120, column.implicitHeight + 2 * 28)
-        radius: Theme.radiusLarge + 8
-        // Over the layer's ignore_alpha (0.3, windowrules.lua), so it is blurred.
-        color: Qt.alpha(Theme.island, 0.62)
-        border.color: Theme.islandBorder
+    Item {
+        anchors.fill: parent
 
         ColumnLayout {
             id: column
 
             anchors.fill: parent
-            anchors.margins: 28
+            anchors.margins: Theme.panelPadding + Theme.radiusSmall
             spacing: 18
 
             RowLayout {
@@ -108,9 +83,9 @@ PanelWindow {
                 spacing: 14
 
                 Text {
-                    text: "Keybinds"
+                    text: Tr.t("Keys")
                     font.family: Theme.fontDisplay
-                    font.pixelSize: 26
+                    font.pixelSize: Theme.fontSizeWidget
                     font.weight: Font.DemiBold
                     color: Theme.text
                 }
@@ -119,8 +94,8 @@ PanelWindow {
 
                 Rectangle {
                     Layout.preferredWidth: 320
-                    Layout.preferredHeight: 38
-                    radius: 19
+                    Layout.preferredHeight: ShortcutService.sheetFieldHeight
+                    radius: Theme.radiusPill
                     color: Theme.islandSurface
 
                     TextInput {
@@ -138,7 +113,7 @@ PanelWindow {
                         // The first Escape clears the filter, the next closes.
                         Keys.onEscapePressed: {
                             if (root.filter === "") {
-                                root.dismissed()
+                                root.shown = false
                             } else {
                                 text = ""
                                 root.filter = ""
@@ -148,7 +123,7 @@ PanelWindow {
                         Text {
                             anchors.verticalCenter: parent.verticalCenter
                             visible: field.text === ""
-                            text: "Find a key or what it does…"
+                            text: Tr.t("Find a key, or what it does…")
                             font: field.font
                             color: Theme.textMuted
                         }
@@ -159,7 +134,6 @@ PanelWindow {
             Flickable {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-                Layout.preferredHeight: columnsRow.implicitHeight
                 contentHeight: columnsRow.implicitHeight
                 clip: true
                 boundsBehavior: Flickable.StopAtBounds
@@ -192,7 +166,7 @@ PanelWindow {
                                     width: stack.width
                                     height: cardColumn.implicitHeight + 2 * 16
                                     radius: Theme.radiusLarge
-                                    color: Qt.alpha(Theme.islandSurface, 0.7)
+                                    color: Theme.islandSurface
 
                                     ColumnLayout {
                                         id: cardColumn
@@ -244,7 +218,7 @@ PanelWindow {
 
                                                             width: Math.max(26, capLabel.implicitWidth + 14)
                                                             height: 24
-                                                            radius: 7
+                                                            radius: Theme.radiusSmall
                                                             color: Theme.islandSurfaceHover
                                                             border.color: Theme.islandBorder
 
