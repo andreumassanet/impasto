@@ -40,6 +40,7 @@ Singleton {
     readonly property alias barRight: config.barRight
     readonly property alias islandSummary: config.islandSummary
     readonly property alias lyrics: config.lyrics
+    readonly property alias mediaCover: config.mediaCover
     readonly property alias islandActivities: config.islandActivities
     readonly property alias chipShape: config.chipShape
     readonly property alias chipFigure: config.chipFigure
@@ -594,6 +595,9 @@ Singleton {
         // The playing track's lyrics, looked up on lrclib.net while
         // something on screen shows them.
         property bool lyrics: true
+
+        // The cover's shape everywhere: "rectangle" or "circle".
+        property string mediaCover: "rectangle"
 
         // Null means `besideDefaults`.
         property var islandActivities: null

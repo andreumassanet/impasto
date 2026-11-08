@@ -137,24 +137,13 @@ Item {
 
         // Drawn once loaded: a parent hidden on its own `visible` would never
         // show the picture that decides it.
-        readonly property bool cover: MediaService.artUrl !== "" && art.status === Image.Ready
+        readonly property bool cover: mediaCover.ready
 
-        ClippingRectangle {
+        CoverArt {
+            id: mediaCover
+
             anchors.fill: parent
             visible: root.face === "media" && slot.cover
-            radius: width * Theme.pictureCorner
-            color: "transparent"
-
-            Image {
-                id: art
-
-                anchors.fill: parent
-                source: MediaService.artUrl
-                fillMode: Image.PreserveAspectCrop
-                asynchronous: true
-                sourceSize.width: 288
-                sourceSize.height: 288
-            }
         }
 
         Glyph {

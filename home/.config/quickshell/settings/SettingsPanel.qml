@@ -88,7 +88,7 @@ Item {
         { id: "modules", category: "shell", icon: "󰆧", label: Tr.t("Modules"),
           blurb: Tr.t("What the modules know, on the bar, the desktop and the panels."),
           tabs: [],
-          keywords: "modules weather location place city github contributions username markets crypto bitcoin price currency exchange rate pet creature plush paper pixel egg species style lyrics lrclib song music notes note handwriting",
+          keywords: "modules weather location place city github contributions username markets crypto bitcoin price currency exchange rate pet creature plush paper pixel egg species style lyrics lrclib song music media card cover shape round circle notes note handwriting",
           page: modulesPage },
 
         { id: "appearance", category: "desk", icon: "󰏘", label: Tr.t("Appearance"),

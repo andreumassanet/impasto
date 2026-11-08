@@ -1173,6 +1173,11 @@ QtObject {
             "Look them up": "Buscarlas",
             "Looked up on lrclib.net by title and artist, which needs no account. They show in the island's glance and its media card, in the desktop's lyrics widget and on the lock screen when it is set to show them.":
                 "Se buscan en lrclib.net por título y artista, sin necesidad de cuenta. Aparecen en el vistazo de la isla y en su tarjeta de música, en el widget de letras del escritorio y en la pantalla de bloqueo cuando está configurada para mostrarlas.",
+            "Media cover": "Portada de la música",
+            "The picture of what is playing, in the control centre, the island, the media card and the lyrics.": "La imagen de lo que suena, en el centro de control, la isla, la tarjeta de música y la letra.",
+            "A round cover": "Una portada redonda",
+            "A rounded rectangle": "Un rectángulo redondeado",
+            "Rectangle": "Rectángulo",
             "Notes on the edges": "Notas en los bordes",
             "Position": "Posición",
             "Profiles, updates, language and this machine.":
