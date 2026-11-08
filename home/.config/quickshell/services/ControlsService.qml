@@ -100,11 +100,13 @@ Singleton {
 
     // ── TOP ROW ─────────────────────────────────────────────────────────────
     //
-    // Small buttons over the grid, on a left and a right side, each arranged
-    // by dragging (`TopRowEditor`, in the settings and while arranging):
-    // `centreTop` is `{ left, right }`, lists of session action and door ids.
-    // Null is the session's actions on the left and the doors the row had
-    // (`buttons`) on the right; both empty takes the row away, space and all.
+    // Small buttons over the grid, on the right, arranged by dragging
+    // (`TopRowEditor`, in the settings and while arranging); the left is the
+    // time and the battery's, when they are on. `centreTop` is
+    // `{ left, right }`, lists of session action and door ids, read as one
+    // list: a row stored with two sides keeps its order, left first. Null is
+    // the session's actions and the doors the row had (`buttons`); no
+    // buttons and nothing on the left takes the row away, space and all.
     readonly property var topCatalogue: SessionService.actions
         .map(action => Object.assign({ session: true }, action))
         .concat(root.doors.map(door => Object.assign({ session: false }, door)))
@@ -113,73 +115,50 @@ Singleton {
         return root.topCatalogue.find(entry => entry.id === id) ?? null
     }
 
-    readonly property var topSides: {
+    readonly property var topIds: {
         const kept = SettingsService.centreTop
         const clean = list => (root.stored(list) ? Array.from(list) : [])
             .filter(id => root.topEntry(id) !== null)
         if (kept && root.stored(kept.left) && root.stored(kept.right))
-            return { left: clean(kept.left), right: clean(kept.right) }
-        return {
-            left: SessionService.actions.map(action => action.id),
-            right: clean(root.buttons)
-        }
+            return clean(kept.left).concat(clean(kept.right))
+        return SessionService.actions.map(action => action.id).concat(clean(root.buttons))
     }
 
-    readonly property var topLeft: root.topSides.left.map(id => root.topEntry(id))
-    readonly property var topRight: root.topSides.right.map(id => root.topEntry(id))
-    readonly property bool hasTop: root.topLeft.length + root.topRight.length > 0
+    readonly property var topButtons: root.topIds.map(id => root.topEntry(id))
+    readonly property bool hasTop: root.topButtons.length > 0
+    // The time and the battery on the row's left.
+    readonly property bool topClock: SettingsService.controlsClock === true
+    readonly property bool topBattery: SettingsService.controlsBattery === true
+        && BatteryService.available
     // While arranging the row is there even empty, as something to click and
     // fill (`TopRowInspector`); `selected` is "top" while it is chosen.
-    readonly property bool topShown: root.hasTop || root.editing
+    readonly property bool topShown: root.hasTop || root.topClock || root.topBattery
+        || root.editing
 
-    // Those on neither side, for the editor's tray.
-    readonly property var topSpare: root.topCatalogue.filter(entry =>
-        root.topSides.left.indexOf(entry.id) < 0 && root.topSides.right.indexOf(entry.id) < 0)
+    // Those off the row, for the editor's tray.
+    readonly property var topSpare: root.topCatalogue.filter(entry => root.topIds.indexOf(entry.id) < 0)
 
-    function sideOf(id: string): string {
-        return root.topSides.left.indexOf(id) >= 0 ? "left"
-            : root.topSides.right.indexOf(id) >= 0 ? "right" : ""
+    function onTop(id: string): bool {
+        return root.topIds.indexOf(id) >= 0
     }
 
-    // On or off the row: a session action lands at the left's end, a door at
-    // the right's, as the row has always had them.
+    // On or off the row; on lands at its end.
     function toggleTop(id: string): void {
-        if (root.sideOf(id) !== "") {
-            root.placeTop(id, "", -1)
-            return
-        }
-        const entry = root.topEntry(id)
-        const side = entry && entry.session ? "left" : "right"
-        root.placeTop(id, side, (side === "left" ? root.topSides.left : root.topSides.right).length)
+        root.placeTop(id, root.onTop(id) ? -1 : root.topIds.length)
     }
 
-    // Along its own side.
+    // Along the row.
     function nudgeTop(id: string, delta: int): void {
-        const side = root.sideOf(id)
-        if (side === "")
-            return
-        const list = side === "left" ? root.topSides.left : root.topSides.right
-        root.placeTop(id, side, list.indexOf(id) + delta)
+        if (root.onTop(id))
+            root.placeTop(id, root.topIds.indexOf(id) + delta)
     }
 
-    // To the other side, at its end.
-    function flipTop(id: string): void {
-        const side = root.sideOf(id)
-        if (side === "")
-            return
-        const other = side === "left" ? "right" : "left"
-        root.placeTop(id, other, (other === "left" ? root.topSides.left : root.topSides.right).length)
-    }
-
-    // Takes `id` off wherever it is and puts it on `side` ("left", "right",
-    // or "" for off the row) at `index`.
-    function placeTop(id: string, side: string, index: int): void {
-        const left = root.topSides.left.filter(other => other !== id)
-        const right = root.topSides.right.filter(other => other !== id)
-        const target = side === "left" ? left : side === "right" ? right : null
-        if (target)
-            target.splice(Math.max(0, Math.min(index, target.length)), 0, id)
-        SettingsService.set("centreTop", { left: left, right: right })
+    // Takes `id` off the row and puts it back at `index`; -1 leaves it off.
+    function placeTop(id: string, index: int): void {
+        const ids = root.topIds.filter(other => other !== id)
+        if (index >= 0)
+            ids.splice(Math.min(index, ids.length), 0, id)
+        SettingsService.set("centreTop", { left: [], right: ids })
     }
 
     // Doors for one shortcuts block, from its own `doors` field (set in the
@@ -240,27 +219,23 @@ Singleton {
     // service owns it, so it is derived here.
     readonly property bool airborne: !NetworkService.radioOn && !BluetoothService.enabled
 
-    // Which tools the lens and music tiles need are installed; probed once.
-    property var extraTools: ({})
+    // Whether the song tile's tools are installed; probed once.
+    property var songTools: ({})
 
-    readonly property string extrasScript: Quickshell.shellPath("scripts/control_extras.py")
+    readonly property string songScript: Quickshell.shellPath("scripts/song.py")
 
-    // The region leaves the machine, so the tile needs the setting as well.
-    readonly property bool lensReady: SettingsService.lensUpload
-        && root.extraTools.grim === true && root.extraTools.slurp === true
-        && root.extraTools.curl === true
-    readonly property bool musicReady: root.extraTools.songrec === true
-        && root.extraTools.parec === true
+    readonly property bool musicReady: root.songTools.songrec === true
+        && root.songTools.parec === true
 
-    readonly property Process extrasProbe: Process {
-        command: [root.extrasScript, "tools"]
+    readonly property Process songProbe: Process {
+        command: [root.songScript, "tools"]
         running: true
         stdout: StdioCollector {
             onStreamFinished: {
                 try {
-                    root.extraTools = JSON.parse(text)
+                    root.songTools = JSON.parse(text)
                 } catch (error) {
-                    console.warn("Cannot read which tools the extra tiles need:", error)
+                    console.warn("Cannot read which tools the song tile needs:", error)
                 }
             }
         }
@@ -429,20 +404,11 @@ Singleton {
             action: () => ClipboardService.wipe()
         },
         Toggle {
-            key: "lens"; icon: "󰈈"; label: Tr.t("Lens")
-            detail: Tr.t("Select area")
-            available: root.lensReady; listed: root.lensReady
-            closes: true
-            // Waits for the panel to close so it is not in the selection.
-            action: () => Quickshell.execDetached([root.extrasScript, "lens",
-                "--wait", String(CaptureService.settle / 1000 + 0.1)])
-        },
-        Toggle {
             key: "music"; icon: "󰎈"; label: Tr.t("Song")
             detail: Tr.t("Listen")
             available: root.musicReady; listed: root.musicReady
             closes: true
-            action: () => Quickshell.execDetached([root.extrasScript, "music"])
+            action: () => Quickshell.execDetached([root.songScript, "listen"])
         }
     ]
 

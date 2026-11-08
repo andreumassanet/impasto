@@ -95,8 +95,8 @@ Singleton {
     readonly property alias recorderAudio: config.recorderAudio
     readonly property alias captureShape: config.captureShape
     readonly property alias captureKind: config.captureKind
-    readonly property alias lensUpload: config.lensUpload
     readonly property alias controlsClock: config.controlsClock
+    readonly property alias controlsBattery: config.controlsBattery
     readonly property alias tileMenuOnLabel: config.tileMenuOnLabel
     readonly property alias notesHandwriting: config.notesHandwriting
     readonly property alias deckOnEmpty: config.deckOnEmpty
@@ -688,13 +688,11 @@ Singleton {
         property string captureShape: "region"
         property string captureKind: "photo"
 
-        // The control centre's lens tile uploads a region of the screen to
-        // uguu.se, so it stays out of the list until this is on.
-        property bool lensUpload: false
-
         // The time in the middle of the control centre's top row, so it stays
         // in view while the island is open.
         property bool controlsClock: false
+        // The battery beside it, on a machine that has one.
+        property bool controlsBattery: false
         // A tile with a menu: the icon toggles it and the rest of the tile
         // opens the menu, so reaching for the menu does not switch it off.
         property bool tileMenuOnLabel: false
@@ -825,9 +823,9 @@ Singleton {
         // `ControlsService.doors`; read only as that row's default.
         property var centreButtons: null
 
-        // The top row: `{ left, right }`, session action and door ids in
-        // order. Null is the session's actions left and the doors above
-        // right; two empty sides are no row at all.
+        // The top row's buttons: `{ left, right }`, session action and door
+        // ids, read as one list, left first. Null is the session's actions
+        // and the doors above.
         property var centreTop: null
 
         // The grid's columns and rows; 0 is the default the default layout

@@ -31,7 +31,7 @@ Rectangle {
     property bool expandable: false
     // With `SettingsService.tileMenuOnLabel`, an expandable tile opens its
     // menu from anywhere on it but the icon, which is what toggles.
-    readonly property bool labelOpens: root.expandable && SettingsService.tileMenuOnLabel
+    readonly property bool labelOpens: root.expandable && SettingsService.tileMenuOnLabel === true
 
     signal toggled()
     signal expanded()

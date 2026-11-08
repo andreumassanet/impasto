@@ -465,25 +465,33 @@ QtObject {
             "The terminal's glass, over a blur": "El cristal de la terminal, sobre un desenfoque",
             "Classic": "Clásico",
             "Arrange the control centre": "Colocar el centro de control",
-            "Clicks and the clock": "Clics y reloj",
-            "Two ways the control centre answers.": "Dos maneras en que responde el centro de control.",
+            "Clicks, the clock and the battery": "Clics, reloj y batería",
+            "How a tile answers a click, and what the top row shows.":
+                "Cómo responde un botón al clic, y qué muestra la fila de arriba.",
             "Menu on the label": "Menú en la etiqueta",
             "On a tile with a menu the icon toggles and the rest opens the menu":
                 "En un icono con menú, el icono lo activa y el resto abre el menú",
             "A tile toggles wherever it is pressed; its arrow opens the menu":
                 "Un icono se activa donde se pulse; su flecha abre el menú",
             "Time in the top row": "Hora en la fila de arriba",
-            "The time stays in view in the middle of the top row while the control centre is open":
-                "La hora se queda a la vista en medio de la fila de arriba con el centro de control abierto",
+            "The time on the left of the top row": "La hora a la izquierda de la fila de arriba",
+            "The song tile": "El botón de canción",
+            "Song sends a short fingerprint of 12 seconds of what the speakers play, a call included, to Shazam through songrec. Without songrec the tile is not listed.":
+                "Canción envía a Shazam, mediante songrec, una huella corta de 12 segundos de lo que suena por los altavoces, llamadas incluidas. Sin songrec no aparece.",
+            "Song": "Canción",
+            "Listen": "Escuchar",
+            "Battery in the top row": "Batería en la fila de arriba",
+            "The charge on the left of the top row, beside the time":
+                "La carga a la izquierda de la fila de arriba, junto a la hora",
             "Keep awake": "Mantener despierto",
             "No idle lock": "Sin bloqueo por inactividad",
             "Idle as set": "Inactividad según ajustes",
             "The top row": "La fila de arriba",
             "The top row: click to choose its buttons": "La fila de arriba: haz clic para elegir sus botones",
-            "Small buttons over the grid, on either side. With none, there is no row.":
-                "Botones pequeños sobre la cuadrícula, a cualquiera de los dos lados. Sin ninguno, no hay fila.",
-            "Drag a button onto either side; drag it back here to take it off.":
-                "Arrastra un botón a cualquiera de los lados; devuélvelo aquí para quitarlo.",
+            "Small buttons over the grid, on the right; the time and the battery go on the left. With none of them, there is no row.":
+                "Botones pequeños sobre la cuadrícula, a la derecha; la hora y la batería van a la izquierda. Sin nada de eso, no hay fila.",
+            "Drag a button onto the row; drag it back here to take it off.":
+                "Arrastra un botón a la fila; devuélvelo aquí para quitarlo.",
             "Every button is on the row": "Todos los botones están en la fila",
             "Default layout": "Disposición inicial",
             "Shortcuts": "Atajos",
