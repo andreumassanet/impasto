@@ -138,12 +138,11 @@ SettingsSection {
     SettingGroup {
         title: Tr.t("Media cover")
         note: Tr.t("The picture of what is playing, in the control centre, the island, the media card and the lyrics.")
-        hint: Tr.t("The bars around a circle come from cava, which listens to the sound only while a cover with bars is visible. Without cava installed the circle stays plain.")
 
         SettingRow {
             label: Tr.t("Shape")
             reading: SettingsService.mediaCover === "circle"
-                ? Tr.t("A round cover, with bars around it where there is room") : Tr.t("A rounded rectangle")
+                ? Tr.t("A round cover") : Tr.t("A rounded rectangle")
 
             SegmentedControl {
                 options: [

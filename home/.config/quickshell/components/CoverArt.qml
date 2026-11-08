@@ -15,15 +15,12 @@ import "../theme"
 import "../services"
 
 // The cover of what is playing, as a rounded rectangle or as a circle
-// (`SettingsService.mediaCover`), the same wherever the shell shows it. A
-// circle may carry the equalizer (`CoverRing`, from cava) around it where
-// there is room: `equalizer` is false where the neighbours already have bars.
-// The size is the item's width and height; without a picture a tile and a note
+// (`SettingsService.mediaCover`), the same wherever the shell shows it. The
+// size is the item's width and height; without a picture a tile and a note
 // are drawn in its place.
 Item {
     id: root
 
-    property bool equalizer: true
     // Scales the rectangle's corner: a large cover wants a smaller radius.
     property real cornerScale: 1
     // The edge the picture is decoded at, when the item is resized by an
@@ -38,14 +35,6 @@ Item {
 
     Component.onCompleted: MediaService.subscribe()
     Component.onDestruction: MediaService.release()
-
-    CoverRing {
-        anchors.fill: parent
-        active: root.circle && root.equalizer
-        innerRadius: root.size / 2 + 3
-        reach: Math.max(4, root.size * 0.14)
-        barWidth: root.size < 40 ? 1.5 : 2
-    }
 
     // ClippingRectangle, because `clip` is rectangular and would square the
     // artwork's corners.

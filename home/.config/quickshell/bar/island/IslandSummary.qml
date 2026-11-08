@@ -144,7 +144,6 @@ Item {
 
             anchors.fill: parent
             visible: root.face === "media" && slot.cover
-            equalizer: false
         }
 
         Glyph {
