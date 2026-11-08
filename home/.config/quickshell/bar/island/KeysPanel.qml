@@ -128,14 +128,11 @@ ColumnLayout {
         color: Theme.borderIn(QsWindow.window)
     }
 
-    // Core and Custom (Settings → Keys → The key sheet).
+    // impasto's keys and the user's own, when there are any of the second.
     SegmentedControl {
-        visible: SettingsService.keysTabs
+        visible: ShortcutService.sheetTabbed
         Layout.alignment: Qt.AlignHCenter
-        options: [
-            { id: "core", label: `${Tr.t("Core")} · ${ShortcutService.tabCount("core")}` },
-            { id: "custom", label: `${Tr.t("Custom")} · ${ShortcutService.tabCount("custom")}` }
-        ]
+        options: ShortcutService.sheetTabs
         current: ShortcutService.sheetTab
         onSelected: id => {
             ShortcutService.sheetTab = id

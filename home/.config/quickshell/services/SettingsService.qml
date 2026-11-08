@@ -693,10 +693,6 @@ Singleton {
         // destination is not stored: it resets to saving a file.
         property string captureShape: "region"
         property string captureKind: "photo"
-        // The key sheet in two tabs: impasto's own keys, and the ones a user's
-        // config adds.
-        property bool keysTabs: false
-
 
         // The time in the middle of the control centre's top row, so it stays
         // in view while the island is open.
