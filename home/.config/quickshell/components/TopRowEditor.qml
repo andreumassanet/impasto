@@ -13,9 +13,10 @@ import Quickshell
 import "../theme"
 import "../services"
 
-// The row in miniature, its two sides, and a tray of the buttons on neither.
-// A button is dragged from the tray onto a side, along it, across to the
-// other, or back into the tray to take it off (`ControlsService.placeTop`).
+// The row in miniature and a tray of the buttons off it. A button is dragged
+// from the tray onto the row, along it, or back into the tray to take it off
+// (`ControlsService.placeTop`). The row's buttons sit on its right; the left
+// is the time and the battery's.
 // Used on the settings page and while the control centre is arranged, so the
 // two cannot differ. Nothing moves until the drop; a bar marks where it lands.
 Item {
@@ -30,10 +31,8 @@ Item {
 
     readonly property int piece: 32
     readonly property int pad: 10
-    // On the row, as large as there is room for: every button fits, with a
-    // gap down the middle.
-    readonly property int placed: ControlsService.topSides.left.length
-        + ControlsService.topSides.right.length
+    // On the row, as large as there is room for: every button fits.
+    readonly property int placed: ControlsService.topIds.length
     readonly property int rowPiece: root.placed === 0 ? root.piece : Math.min(root.piece,
         Math.floor((root.width - 2 * root.pad - 24 - 4 * (root.placed - 1)) / root.placed))
 
@@ -46,24 +45,21 @@ Item {
         return ControlsService.topEntry(id)
     }
 
-    // The side under a point of this item's, the index a drop there takes,
-    // and the tray; nothing, off both.
+    // "row" and the index a drop there takes, "tray", or nothing, off both.
     function aim(point: point): void {
-        const onStage = stage.contains(stage.mapFromItem(root, point.x, point.y))
-        if (onStage) {
-            const side = point.x < root.width / 2 ? "left" : "right"
-            const row = side === "left" ? leftRow : rightRow
+        if (stage.contains(stage.mapFromItem(root, point.x, point.y))) {
             let index = 0
-            for (let k = 0; k < row.children.length; k++) {
-                const child = row.children[k]
+            for (let k = 0; k < buttonRow.children.length; k++) {
+                const child = buttonRow.children[k]
                 if (!child.pieceId || child.pieceId === root.held)
                     continue
                 const centre = child.mapToItem(root, child.width / 2, 0).x
                 if (centre < point.x)
                     index++
             }
-            root.overSide = side
+            // The index first: the marker reads both as soon as the side is set.
             root.overIndex = index
+            root.overSide = "row"
             return
         }
         root.overSide = tray.contains(tray.mapFromItem(root, point.x, point.y)) ? "tray" : ""
@@ -71,10 +67,10 @@ Item {
     }
 
     function drop(): void {
-        if (root.overSide === "left" || root.overSide === "right")
-            ControlsService.placeTop(root.held, root.overSide, root.overIndex)
+        if (root.overSide === "row")
+            ControlsService.placeTop(root.held, root.overIndex)
         else if (root.overSide === "tray")
-            ControlsService.placeTop(root.held, "", -1)
+            ControlsService.placeTop(root.held, -1)
         root.held = ""
         root.overSide = ""
         root.overIndex = -1
@@ -82,17 +78,16 @@ Item {
 
     // Where the marker stands for the current aim, in the stage's frame.
     readonly property real markX: {
-        if (root.overSide !== "left" && root.overSide !== "right")
+        if (root.overSide !== "row")
             return -1
-        const row = root.overSide === "left" ? leftRow : rightRow
         const kids = []
-        for (let k = 0; k < row.children.length; k++) {
-            const child = row.children[k]
+        for (let k = 0; k < buttonRow.children.length; k++) {
+            const child = buttonRow.children[k]
             if (child.pieceId && child.pieceId !== root.held)
                 kids.push(child)
         }
         if (kids.length === 0)
-            return root.overSide === "left" ? root.pad - 3 : stage.width - root.pad + 1
+            return stage.width - root.pad + 1
         if (root.overIndex >= kids.length) {
             const last = kids[kids.length - 1]
             return last.mapToItem(stage, last.width, 0).x + 1
@@ -157,7 +152,7 @@ Item {
         width: root.width
         spacing: 10
 
-        // The row, black as the island is, split down the middle.
+        // The row, black as the island is.
         Rectangle {
             id: stage
 
@@ -165,33 +160,11 @@ Item {
             height: root.piece + 2 * root.pad
             radius: Theme.radiusLarge
             color: Theme.island
-            border.color: root.overSide === "left" || root.overSide === "right"
-                ? Theme.accent : Theme.islandBorder
+            border.color: root.overSide === "row" ? Theme.accent : Theme.islandBorder
             border.width: 1
 
-            Rectangle {
-                anchors.horizontalCenter: parent.horizontalCenter
-                anchors.verticalCenter: parent.verticalCenter
-                width: 1
-                height: parent.height - 2 * root.pad
-                color: Theme.hairline
-            }
-
             Row {
-                id: leftRow
-
-                x: root.pad
-                anchors.verticalCenter: parent.verticalCenter
-                spacing: 4
-
-                Repeater {
-                    model: ControlsService.topSides.left
-                    Piece { required property string modelData; pieceId: modelData; side: root.rowPiece }
-                }
-            }
-
-            Row {
-                id: rightRow
+                id: buttonRow
 
                 anchors.right: parent.right
                 anchors.rightMargin: root.pad
@@ -199,7 +172,7 @@ Item {
                 spacing: 4
 
                 Repeater {
-                    model: ControlsService.topSides.right
+                    model: ControlsService.topIds
                     Piece { required property string modelData; pieceId: modelData; side: root.rowPiece }
                 }
             }
@@ -223,7 +196,7 @@ Item {
             text: {
                 const shown = root.entryOf(root.held !== "" ? root.held : root.pointed)
                 return shown ? Tr.t(shown.label)
-                    : Tr.t("Drag a button onto either side; drag it back here to take it off.")
+                    : Tr.t("Drag a button onto the row; drag it back here to take it off.")
             }
             elide: Text.ElideRight
             font.family: Theme.fontFamily

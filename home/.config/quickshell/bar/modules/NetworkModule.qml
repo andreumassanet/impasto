@@ -63,14 +63,15 @@ Item {
 
                 Text {
                     Layout.fillWidth: true
-                    text: "Wi-Fi"
+                    text: Tr.t("Wi-Fi")
                     font.family: Theme.fontFamily
                     font.pixelSize: Theme.fontSizeSmall
                     color: Theme.textMuted
                 }
 
                 Text {
-                    text: NetworkService.wifiConnected ? "connected" : (NetworkService.wifiEnabled ? "on" : "off")
+                    text: NetworkService.wifiConnected ? Tr.t("connected")
+                        : (NetworkService.wifiEnabled ? Tr.t("on") : Tr.t("off"))
                     font.family: Theme.fontMono
                     font.pixelSize: Theme.fontSizeSmall
                     color: Theme.text
@@ -83,11 +84,11 @@ Item {
             }
 
             CardFact {
-                name: "Link"
+                name: Tr.t("Link")
                 value: {
-                    const link = NetworkService.wiredConnected ? "Wired"
-                        : NetworkService.wifiConnected ? "Wireless" : "None"
-                    return NetworkService.online ? `${link} · internet reached` : link
+                    const link = NetworkService.wiredConnected ? Tr.t("Wired")
+                        : NetworkService.wifiConnected ? Tr.t("Wireless") : Tr.t("None")
+                    return NetworkService.online ? Tr.t("%1 · internet reached").arg(link) : link
                 }
             }
         }

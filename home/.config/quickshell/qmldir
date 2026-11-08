@@ -80,6 +80,7 @@ UsageRing        1.0 components/UsageRing.qml
 DayDial          1.0 components/DayDial.qml
 SessionRibbon    1.0 components/SessionRibbon.qml
 Spectrum         1.0 components/Spectrum.qml
+CoverArt         1.0 components/CoverArt.qml
 NotchFillet      1.0 components/NotchFillet.qml
 NotchOutline     1.0 components/NotchOutline.qml
 ClaudeMark       1.0 components/ClaudeMark.qml
@@ -159,6 +160,7 @@ BatteryModule    1.0 bar/modules/BatteryModule.qml
 VolumeModule     1.0 bar/modules/VolumeModule.qml
 BrightnessModule 1.0 bar/modules/BrightnessModule.qml
 NetworkModule    1.0 bar/modules/NetworkModule.qml
+NetSpeedModule   1.0 bar/modules/NetSpeedModule.qml
 BluetoothModule  1.0 bar/modules/BluetoothModule.qml
 WeatherModule    1.0 bar/modules/WeatherModule.qml
 MarketsModule    1.0 bar/modules/MarketsModule.qml
@@ -204,7 +206,7 @@ GamesPanel       1.0 bar/island/GamesPanel.qml
 NotesPanel       1.0 bar/island/NotesPanel.qml
 BoardPanel       1.0 bar/island/BoardPanel.qml
 KeysPanel        1.0 bar/island/KeysPanel.qml
-CheatsheetLayer 1.0 bar/island/CheatsheetLayer.qml
+KeysWindow       1.0 bar/island/KeysWindow.qml
 PackagesPanel    1.0 bar/island/PackagesPanel.qml
 GameBoard        1.0 bar/island/games/GameBoard.qml
 NotificationList 1.0 bar/island/controls/NotificationList.qml
@@ -231,6 +233,7 @@ DetailChoice     1.0 bar/island/DetailChoice.qml
 MicrophoneDetail 1.0 bar/island/MicrophoneDetail.qml
 NightLightDetail 1.0 bar/island/NightLightDetail.qml
 PowerDetail 1.0 bar/island/PowerDetail.qml
+RecordDetail 1.0 bar/island/RecordDetail.qml
 BrightnessDetail 1.0 bar/island/BrightnessDetail.qml
 TrayMenuPanel    1.0 bar/island/TrayMenuPanel.qml
 BluetoothDetail  1.0 bar/island/BluetoothDetail.qml

@@ -27,8 +27,19 @@ Singleton {
     readonly property int screenAfter: SettingsService.idleScreen
     readonly property int suspendAfter: SettingsService.idleSuspend
 
+    // Keeps the screen on: while set, none of the three acts. Not stored, so
+    // a new session starts as the settings say.
+    property bool keepAwake: false
+
+    // A screen already turned off by idle comes back on when keeping awake
+    // starts: nothing but this and SUPER + SHIFT + D wakes it.
+    onKeepAwakeChanged: {
+        if (root.keepAwake)
+            root.screen(true)
+    }
+
     readonly property IdleMonitor lockWatch: IdleMonitor {
-        enabled: root.lockAfter > 0
+        enabled: root.lockAfter > 0 && !root.keepAwake
         timeout: root.lockAfter * 60
         respectInhibitors: true
 
@@ -40,14 +51,14 @@ Singleton {
     }
 
     readonly property IdleMonitor screenWatch: IdleMonitor {
-        enabled: root.screenAfter > 0
+        enabled: root.screenAfter > 0 && !root.keepAwake
         timeout: root.screenAfter * 60
         respectInhibitors: true
         onIsIdleChanged: root.screen(!screenWatch.isIdle)
     }
 
     readonly property IdleMonitor sleepWatch: IdleMonitor {
-        enabled: root.suspendAfter > 0
+        enabled: root.suspendAfter > 0 && !root.keepAwake
         timeout: root.suspendAfter * 60
         respectInhibitors: true
 

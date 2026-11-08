@@ -78,7 +78,7 @@ SettingsSection {
             return Tr.t("The remote did not answer")
         if (VersionService.behind === 0)
             return `${Tr.t("Up to date")} · ${Tr.t("checked at")} `
-                + Qt.formatTime(new Date(VersionService.checkedAt),
+                + Tr.date(new Date(VersionService.checkedAt),
                                 SettingsService.clockFormat)
         // What it would become is the Update row's, below it.
         return `${VersionService.behind} `
