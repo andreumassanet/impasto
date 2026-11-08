@@ -19,12 +19,12 @@ Spread {
     id: face
 
     hue: face.ink.accent
-    reading: !CodexService.available ? "No usage found"
-        : CodexService.fullest ? `${CodexService.figure} of the ${CodexService.fullestName}`
-        : "Nothing to read yet"
-    note: !CodexService.available ? "nothing to read"
+    reading: !CodexService.available ? Tr.t("No usage found")
+        : CodexService.fullest ? Tr.t("%1 of the %2").arg(CodexService.figure).arg(CodexService.fullestName)
+        : Tr.t("Nothing to read yet")
+    note: !CodexService.available ? Tr.t("nothing to read")
         : CodexService.fullest ? CodexService.windowLine(CodexService.fullest)
-        : "until Codex runs again"
+        : Tr.t("until Codex runs again")
 
     Tone { id: tone; hue: face.ink.accent }
 

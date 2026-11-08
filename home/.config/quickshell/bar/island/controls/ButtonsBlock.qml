@@ -122,7 +122,7 @@ Item {
                     Text {
                         id: tip
                         anchors.centerIn: parent
-                        text: round.isArmed ? `${round.modelData.label}?` : round.modelData.label
+                        text: round.isArmed ? Tr.t("%1?").arg(Tr.t(round.modelData.label)) : Tr.t(round.modelData.label)
                         font.family: Theme.fontFamily
                         font.pixelSize: Theme.fontSizeSmall
                         font.weight: Font.DemiBold
