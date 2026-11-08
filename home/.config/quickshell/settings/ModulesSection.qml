@@ -156,6 +156,26 @@ SettingsSection {
     }
 
     SettingGroup {
+        title: Tr.t("Captures")
+        note: Tr.t("The screenshots, recordings and camera photos the shell saves, named by the time they were taken.")
+
+        SettingRow {
+            label: Tr.t("File names")
+            reading: SettingsService.captureNames === "time"
+                ? "2026-11-08-125800.png" : "2026-11-08-125800_impasto.png"
+
+            SegmentedControl {
+                options: [
+                    { id: "impasto", label: Tr.t("Time and impasto") },
+                    { id: "time", label: Tr.t("Time alone") }
+                ]
+                current: SettingsService.captureNames
+                onSelected: id => SettingsService.set("captureNames", id)
+            }
+        }
+    }
+
+    SettingGroup {
         title: Tr.t("Notes")
         note: Tr.t("A note on the wallpaper is written the same way as one in the panel.")
 

@@ -218,6 +218,8 @@ Singleton {
     signal snapped(bool ok)
 
     readonly property Process snapper: Process {
+        // What follows the time in a saved file's name.
+        environment: ({ IMPASTO_CAPTURE_SUFFIX: SettingsService.captureSuffix })
         command: [root.script, "snap"]
         stdout: StdioCollector {
             onStreamFinished: {
