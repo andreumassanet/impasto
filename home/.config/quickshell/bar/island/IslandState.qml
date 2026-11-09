@@ -98,7 +98,7 @@ QtObject {
         enabled: root.active
 
         function onRequested(icon: string, label: string, progress: real): void {
-            if (root.openPanel !== "")
+            if (root.openPanel !== "" || !OsdService.showsOnIsland(progress))
                 return
             root.transientIcon = icon
             root.transientLabel = label

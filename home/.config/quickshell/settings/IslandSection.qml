@@ -242,4 +242,51 @@ SettingsSection {
             }
         }
     }
+
+    // ── CHANGES OF STATE ────────────────────────────────────────────────────
+
+    SettingGroup {
+        visible: root.tab === "notifications"
+        title: Tr.t("Changes of state")
+        note: Tr.t("Say what changed when the microphone, a radio, a lock key or the like is switched.")
+        hint: Tr.t("On the island is the readout that also shows the volume and brightness. As a notification, the changes without a level come as notifications and the volume and brightness stay on the island. Notifications follow Do not disturb, so switching it on is not announced that way. Both show over a full-screen window.")
+
+        SettingRow {
+            label: Tr.t("Shown")
+
+            SegmentedControl {
+                options: [
+                    { id: "island", label: Tr.t("On the island") },
+                    { id: "notification", label: Tr.t("As a notification") },
+                    { id: "off", label: Tr.t("Off") }
+                ]
+                current: SettingsService.osdStyle
+                onSelected: id => SettingsService.set("osdStyle", id)
+            }
+        }
+
+        Repeater {
+            model: [
+                { key: "osdAudio", label: Tr.t("Sound"), note: Tr.t("Microphone muted, output or input switched") },
+                { key: "osdRadios", label: Tr.t("Radios"), note: Tr.t("Wi-Fi, Bluetooth and airplane mode") },
+                { key: "osdLocks", label: Tr.t("Lock keys"), note: Tr.t("Caps Lock and Num Lock") },
+                { key: "osdSession", label: Tr.t("Session"), note: Tr.t("Keep awake, do not disturb, night light") }
+            ]
+
+            SettingRow {
+                id: groupRow
+
+                required property var modelData
+
+                label: groupRow.modelData.label
+                reading: groupRow.modelData.note
+                enabled: SettingsService.osdStyle !== "off"
+
+                ToggleSwitch {
+                    checked: SettingsService[groupRow.modelData.key]
+                    onToggled: checked => SettingsService.set(groupRow.modelData.key, checked)
+                }
+            }
+        }
+    }
 }

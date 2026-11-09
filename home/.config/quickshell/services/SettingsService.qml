@@ -92,6 +92,11 @@ Singleton {
     readonly property alias userName: config.userName
     readonly property alias userAvatar: config.userAvatar
     readonly property alias doNotDisturb: config.doNotDisturb
+    readonly property alias osdStyle: config.osdStyle
+    readonly property alias osdAudio: config.osdAudio
+    readonly property alias osdRadios: config.osdRadios
+    readonly property alias osdLocks: config.osdLocks
+    readonly property alias osdSession: config.osdSession
     readonly property alias recorderAudio: config.recorderAudio
     readonly property alias captureNames: config.captureNames
     // What a saved capture's name has after its time.
@@ -683,6 +688,16 @@ Singleton {
 
         // Persisted so silent mode survives a restart.
         property bool doNotDisturb: false
+
+        // Where a change of state is announced: "island" (the island's
+        // readout), "notification" (a notification, with levels such as the
+        // volume staying on the island) or "off". The four below choose which
+        // new kinds of change are announced at all.
+        property string osdStyle: "island"
+        property bool osdAudio: true
+        property bool osdRadios: true
+        property bool osdLocks: true
+        property bool osdSession: true
 
         property bool recorderAudio: false
         // Saved screenshots, recordings and photos: "impasto" names them
