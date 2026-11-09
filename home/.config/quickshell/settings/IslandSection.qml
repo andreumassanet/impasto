@@ -249,7 +249,7 @@ SettingsSection {
         visible: root.tab === "notifications"
         title: Tr.t("Changes of state")
         note: Tr.t("Say what changed when the microphone, a radio, a lock key or the like is switched.")
-        hint: Tr.t("On the island is the readout that also shows the volume and brightness. As a notification, the changes without a level come as notifications and the volume and brightness stay on the island. Notifications follow Do not disturb, so switching it on is not announced that way. Both show over a full-screen window.")
+        hint: Tr.t("On the island is the readout that also shows the volume and brightness. As a notification, the changes without a level come as notifications and the volume and brightness stay on the island. Notifications follow Do not disturb, so switching it on is not announced that way, and one can replace the notification on screen. Off also hides the volume, brightness and charging readouts. Both show over a full-screen window.")
 
         SettingRow {
             label: Tr.t("Shown")

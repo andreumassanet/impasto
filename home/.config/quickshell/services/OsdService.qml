@@ -76,7 +76,7 @@ Singleton {
         onTriggered: {
             root.wasWifi = NetworkService.wifiEnabled
             root.wasBluetooth = BluetoothService.enabled
-            root.wasAirborne = ControlsService.airborne
+            root.micSource = AudioService.source
             root.armed = true
         }
     }
@@ -147,11 +147,20 @@ Singleton {
     // ── STATE CHANGES ───────────────────────────────────────────────────────
     //
     // Read off the services, so a change is announced whatever made it: a
-    // key, a tile, `wpctl`, another program.
+    // key, a tile, `wpctl`, another program (Wi-Fi excepted, see below).
+
+    // Another default input has its own mute state; that is a switch of
+    // device, announced below, and not the user muting.
+    property var micSource: null
 
     readonly property Connections microphone: Connections {
         target: AudioService
+        enabled: !root.audioSuppressed
         function onSourceMutedChanged(): void {
+            if (root.micSource !== AudioService.source) {
+                root.micSource = AudioService.source
+                return
+            }
             root.announce("audio", AudioService.sourceIcon,
                           AudioService.sourceMuted ? Tr.t("Microphone muted") : Tr.t("Microphone live"))
         }
@@ -187,30 +196,32 @@ Singleton {
         }
     }
 
-    // Turning airplane mode on flips Wi-Fi and Bluetooth as well; one pass
-    // after they settle says only the largest thing that happened.
+    // Airplane mode flips Wi-Fi and Bluetooth together. Bluetooth answers at
+    // once and Wi-Fi after nmcli has run, so one pass waits for both and says
+    // only the largest thing that happened: airplane when both moved, else the
+    // one radio. Wi-Fi switched outside the shell is not seen until the
+    // shell next asks nmcli, so it is not announced.
     property bool wasWifi: false
     property bool wasBluetooth: false
-    property bool wasAirborne: false
 
     readonly property Timer radiosTimer: Timer {
-        interval: 200
+        interval: 1000
         onTriggered: {
             const wifi = NetworkService.wifiEnabled
             const bluetooth = BluetoothService.enabled
-            const airborne = ControlsService.airborne
-            if (airborne !== root.wasAirborne)
-                root.announce("radios", airborne ? "󰀝" : "󰀞",
-                              airborne ? Tr.t("Airplane mode on") : Tr.t("Airplane mode off"))
-            else if (wifi !== root.wasWifi)
+            const wifiMoved = wifi !== root.wasWifi
+            const bluetoothMoved = bluetooth !== root.wasBluetooth
+            if (wifiMoved && bluetoothMoved && wifi === bluetooth)
+                root.announce("radios", wifi ? "󰀞" : "󰀝",
+                              wifi ? Tr.t("Airplane mode off") : Tr.t("Airplane mode on"))
+            else if (wifiMoved)
                 root.announce("radios", wifi ? "󰖩" : "󰖪",
                               wifi ? Tr.t("Wi-Fi on") : Tr.t("Wi-Fi off"))
-            else if (bluetooth !== root.wasBluetooth)
+            else if (bluetoothMoved)
                 root.announce("radios", bluetooth ? "󰂯" : "󰂲",
                               bluetooth ? Tr.t("Bluetooth on") : Tr.t("Bluetooth off"))
             root.wasWifi = wifi
             root.wasBluetooth = bluetooth
-            root.wasAirborne = airborne
         }
     }
 
@@ -280,6 +291,7 @@ Singleton {
 
         path: root.ledDirectory === "" ? "" : `${root.ledDirectory}${key.led}/brightness`
         watchChanges: false
+        printErrors: false
 
         onLoaded: {
             const now = text().trim() !== "0"
@@ -298,6 +310,13 @@ Singleton {
         interval: 500
         repeat: true
         running: root.ledDirectory !== "" && root.groups.locks && root.style !== "off"
+        // The next reading after being off is a starting state, not a change.
+        onRunningChanged: {
+            if (running)
+                return
+            root.capsLock.known = false
+            root.numLock.known = false
+        }
         onTriggered: {
             root.capsLock.reload()
             root.numLock.reload()

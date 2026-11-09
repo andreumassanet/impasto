@@ -60,12 +60,18 @@ PanelWindow {
 
     // Hyprland moves a surface to another layer once and then ignores the
     // request (0.57), so nothing would ever rise over a full-screen window.
-    // Unmapped and mapped again, the surface goes where it is asked; the
-    // surface is empty at that moment, since the island is not yet out.
+    // Unmapped and mapped again, the surface goes where it is asked; on a
+    // covered screen it is empty at that moment, since the island is not yet
+    // out. Elsewhere (the request for root) the layer is changed in place, as
+    // before, so an open panel is not unmapped under the user.
     property int shownLayer: root.wantedLayer
     WlrLayershell.layer: root.shownLayer
 
     onWantedLayerChanged: {
+        if (!root.covered) {
+            root.shownLayer = root.wantedLayer
+            return
+        }
         root.visible = false
         root.shownLayer = root.wantedLayer
         remap.restart()
