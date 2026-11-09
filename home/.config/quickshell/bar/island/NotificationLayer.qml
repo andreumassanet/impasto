@@ -43,6 +43,10 @@ Item {
         return NotificationService.iconOf(n.appIcon || n.desktopEntry || "", n.appName ?? "")
     }
 
+    // What the notification names as its icon, for the badge on the picture.
+    readonly property string senderIcon: root.notification
+        ? (root.notification.appIcon || root.notification.desktopEntry || "") : ""
+
     readonly property string picture: root.notification ? (root.notification.image ?? "") : ""
 
     // For a sender with no icon of its own: the icon set's notifications
@@ -125,26 +129,13 @@ Item {
 
             // The app's mark on the picture's corner, when the picture is the
             // sender's.
-            Rectangle {
-                visible: photo.visible && badge.status === Image.Ready
-                x: parent.width - width + 4
+            NotificationBadge {
+                shown: photo.visible
+                x: -4
                 y: parent.height - height + 4
-                width: 18
-                height: 18
-                radius: 5
-                color: Theme.island
-
-                Image {
-                    id: badge
-
-                    anchors.centerIn: parent
-                    width: 14
-                    height: 14
-                    source: photo.visible ? root.appIcon : ""
-                    asynchronous: true
-                    sourceSize.width: 28
-                    sourceSize.height: 28
-                }
+                icon: root.senderIcon
+                appName: root.notification?.appName ?? ""
+                body: root.notification?.body ?? ""
             }
         }
 

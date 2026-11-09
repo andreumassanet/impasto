@@ -70,6 +70,7 @@ Card             1.0 components/Card.qml
 ColorSwatch      1.0 components/ColorSwatch.qml
 QuickTile        1.0 components/QuickTile.qml
 ToggleSwitch     1.0 components/ToggleSwitch.qml
+NotificationBadge 1.0 components/NotificationBadge.qml
 SegmentedControl 1.0 components/SegmentedControl.qml
 SettingRow       1.0 components/SettingRow.qml
 RingIndicator    1.0 components/RingIndicator.qml

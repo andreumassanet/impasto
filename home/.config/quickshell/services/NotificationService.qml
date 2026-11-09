@@ -223,11 +223,34 @@ Singleton {
             if (themed !== "")
                 return themed
         }
+        return root.ownPicture(named)
+    }
+
+    // A browser's notification gives its own logo, and the site it speaks for
+    // only as the first line of the body (`web.whatsapp.com`). The icon set's
+    // picture of that site, by its host, then by the host without its leading
+    // labels (`whatsapp.com`), then by its name alone (`whatsapp`); "" when the
+    // first line is not a host or the set has none.
+    function siteIcon(body: string): string {
+        const host = (body ?? "").split("\n")[0].trim().toLowerCase()
+        if (!/^([a-z0-9-]+\.)+[a-z]{2,}$/.test(host))
+            return ""
+        const labels = host.split(".")
+        const names = labels.slice(0, -1).map((label, first) => labels.slice(first).join("."))
+        names.push(labels[labels.length - 2])
+        for (const name of names) {
+            const themed = Theme.appIcon(name)
+            if (themed !== "")
+                return themed
+        }
+        return ""
+    }
+
+    // What a sender gave as a file or a URL, as a source; "" for a name.
+    function ownPicture(named: string): string {
         if (named.startsWith("/"))
             return `file://${named}`
-        if (named.includes("://"))
-            return named
-        return ""
+        return named.includes("://") ? named : ""
     }
 
     // For a sender with no icon of its own: the icon set's notifications

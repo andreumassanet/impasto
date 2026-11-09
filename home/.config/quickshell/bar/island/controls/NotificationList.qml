@@ -123,46 +123,61 @@ Card {
                     anchors.rightMargin: 6
                     spacing: 9
 
-                    ClippingRectangle {
+                    Item {
                         Layout.preferredWidth: 30
                         Layout.preferredHeight: 30
                         Layout.alignment: Qt.AlignVCenter
-                        radius: width * Theme.pictureCorner
-                        color: mark.visible ? "transparent"
-                            : (entry.critical ? Theme.red : Theme.surfaceHoverIn(QsWindow.window))
 
-                        Image {
-                            id: image
+                        ClippingRectangle {
                             anchors.fill: parent
-                            source: entry.modelData.image ?? ""
-                            visible: source != "" && status === Image.Ready
-                            fillMode: Image.PreserveAspectCrop
-                            asynchronous: true
-                            sourceSize.width: 60
-                            sourceSize.height: 60
+                            radius: width * Theme.pictureCorner
+                            color: mark.visible ? "transparent"
+                                : (entry.critical ? Theme.red : Theme.surfaceHoverIn(QsWindow.window))
+
+                            Image {
+                                id: image
+                                anchors.fill: parent
+                                source: entry.modelData.image ?? ""
+                                visible: source != "" && status === Image.Ready
+                                fillMode: Image.PreserveAspectCrop
+                                asynchronous: true
+                                sourceSize.width: 60
+                                sourceSize.height: 60
+                            }
+
+                            // The sender's icon, else the icon set's stand-in.
+                            Image {
+                                id: mark
+                                anchors.fill: parent
+                                source: image.visible ? ""
+                                    : (NotificationService.iconOf(entry.modelData.icon ?? "",
+                                            entry.modelData.appName ?? "")
+                                        || NotificationService.standIn(entry.critical))
+                                visible: !image.visible && status === Image.Ready
+                                asynchronous: true
+                                sourceSize.width: 60
+                                sourceSize.height: 60
+                            }
+
+                            Text {
+                                anchors.centerIn: parent
+                                visible: !image.visible && !mark.visible
+                                text: entry.critical ? "󰀪" : "󰂚"
+                                font.family: Theme.fontMono
+                                font.pixelSize: 13
+                                color: entry.critical ? Theme.accentText : Theme.accent
+                            }
                         }
 
-                        // The sender's icon, else the icon set's stand-in.
-                        Image {
-                            id: mark
-                            anchors.fill: parent
-                            source: image.visible ? ""
-                                : (NotificationService.iconOf(entry.modelData.icon ?? "",
-                                        entry.modelData.appName ?? "")
-                                    || NotificationService.standIn(entry.critical))
-                            visible: !image.visible && status === Image.Ready
-                            asynchronous: true
-                            sourceSize.width: 60
-                            sourceSize.height: 60
-                        }
-
-                        Text {
-                            anchors.centerIn: parent
-                            visible: !image.visible && !mark.visible
-                            text: entry.critical ? "󰀪" : "󰂚"
-                            font.family: Theme.fontMono
-                            font.pixelSize: 13
-                            color: entry.critical ? Theme.accentText : Theme.accent
+                        // The app that sent it, on the picture's corner.
+                        NotificationBadge {
+                            shown: image.visible
+                            x: -3
+                            y: parent.height - height + 3
+                            size: 14
+                            icon: entry.modelData.icon ?? ""
+                            appName: entry.modelData.appName ?? ""
+                            body: entry.modelData.body ?? ""
                         }
                     }
 
