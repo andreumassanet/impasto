@@ -126,18 +126,88 @@ Singleton {
     // notification by its id.
     function record(notification: var): var {
         const pixels = notification.image.startsWith("image://qsimage/")
+        const time = Date.now()
         return {
             id: notification.id,
             live: true,
-            time: Date.now(),
+            time: time,
             summary: notification.summary,
             body: notification.body,
             appName: notification.appName,
-            icon: notification.appIcon || notification.desktopEntry || "",
-            image: notification.image,
+            icon: root.keepPicture(notification.appIcon || notification.desktopEntry || "", `${time}-icon`),
+            image: root.keepPicture(notification.image, `${time}-image`),
             urgency: notification.urgency,
             lock: pixels ? root.retainer.createObject(root, { object: notification }) : null
         }
+    }
+
+    // ── PICTURES ────────────────────────────────────────────────────────────
+    //
+    // A sender may hand in its picture as a file it deletes soon after (a
+    // browser writes one into a temporary directory for each notification).
+    // The island draws it at once, but the history draws it again later, so
+    // the history keeps its own copy, made while the file is still there.
+    readonly property string pictureDirectory: `${SettingsService.stateDirectory}/notification-pictures`
+
+    Component.onCompleted: Quickshell.execDetached(["mkdir", "-p", root.pictureDirectory])
+
+    // The file behind a picture source, "" when it is not a file (an icon
+    // name, pixels in a hint).
+    function pictureFile(source: string): string {
+        for (const prefix of ["image://icon/", "file://", ""]) {
+            if (!source.startsWith(prefix))
+                continue
+            const rest = source.slice(prefix.length)
+            return rest.startsWith("/") ? rest : ""
+        }
+        return ""
+    }
+
+    readonly property Component pictureReader: Component {
+        FileView {
+            blockLoading: true
+            printErrors: false
+        }
+    }
+
+    readonly property Component pictureWriter: Component {
+        FileView {
+            blockWrites: true
+            preload: false
+            printErrors: false
+        }
+    }
+
+    // `source` with its file replaced by a copy in the state directory, named
+    // `stem`; `source` itself when there is no file or it cannot be read. The
+    // copy is read and written in place, not by a command, which would race
+    // the sender deleting the file.
+    function keepPicture(source: string, stem: string): string {
+        const file = root.pictureFile(source)
+        if (file === "" || file.startsWith(`${root.pictureDirectory}/`))
+            return source
+
+        const reader = root.pictureReader.createObject(root, { path: file })
+        const bytes = reader.data()
+        reader.destroy()
+        if (!bytes || bytes.byteLength === 0)
+            return source
+
+        const extension = /\.[A-Za-z0-9]+$/.test(file) ? file.slice(file.lastIndexOf(".")) : ""
+        const copy = `${root.pictureDirectory}/${stem}${extension}`
+        const writer = root.pictureWriter.createObject(root, { path: copy })
+        writer.setData(bytes)
+        writer.destroy()
+        return source.replace(file, copy)
+    }
+
+    // Removes the copies an entry owns once it leaves the history.
+    function forgetPictures(entry: var): void {
+        const copies = [entry.icon ?? "", entry.image ?? ""]
+            .map(source => root.pictureFile(source))
+            .filter(file => file.startsWith(`${root.pictureDirectory}/`))
+        if (copies.length > 0)
+            Quickshell.execDetached(["rm", "-f", ...copies])
     }
 
     // A sender's icon: the icon set's picture for it first, by the name it
@@ -259,6 +329,7 @@ Singleton {
                 continue
             if (entry.lock)
                 entry.lock.destroy()
+            root.forgetPictures(entry)
             const open = root.openOf(entry)
             if (open) {
                 if (dismissed)
