@@ -731,6 +731,7 @@ QtObject {
             "Symbols": "Símbolos",
             "Flags": "Banderas",
             "Back": "Atrás",
+            "The applications that are showing a tray icon.": "Las aplicaciones que muestran un icono en la bandeja.",
             "What the volume sliders reach.": "Hasta dónde llega el volumen.",
             "Above 100 % the sound is amplified and can distort. The sliders, the volume key and the volume command all stop at the same place.":
                 "Por encima del 100 % el sonido se amplifica y puede distorsionar. Los controles, la tecla de volumen y el comando de volumen paran en el mismo sitio.",
