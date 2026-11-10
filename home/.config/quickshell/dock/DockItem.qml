@@ -180,10 +180,17 @@ Item {
             model: dots.shown
 
             Rectangle {
+                required property int index
+
+                // Hollow for a minimized window.
+                readonly property bool away: root.modelData.windows[index]?.minimized ?? false
+
                 width: Theme.dockDot
                 height: Theme.dockDot
                 radius: Theme.radiusPill
-                color: root.active ? Theme.accent : Theme.textMuted
+                color: away ? "transparent" : root.active ? Theme.accent : Theme.textMuted
+                border.width: away ? 1 : 0
+                border.color: Theme.textMuted
 
                 Behavior on color { ColorAnimation { duration: Theme.durationFast } }
             }

@@ -14,6 +14,8 @@ import Quickshell
 import Quickshell.Io
 import Quickshell.Networking
 
+import "../theme"
+
 // Connection state read from NetworkManager through Quickshell's own module,
 // so the tile can name the network instead of only saying "on".
 //
@@ -39,15 +41,15 @@ Singleton {
     // wifi, which is the order NetworkManager routes them in anyway.
     readonly property string connectionName: {
         if (root.wiredConnected)
-            return "Wired"
+            return Tr.t("Wired")
         if (root.wifiConnected && root.wifiDevice.networks) {
             const active = root.wifiDevice.networks.values.find(network => network.connected)
             if (active)
                 return active.name
         }
         if (!root.radioOn)
-            return "Off"
-        return root.wifiDevice ? "Not connected" : "Unavailable"
+            return Tr.t("Off")
+        return root.wifiDevice ? Tr.t("Not connected") : Tr.t("Unavailable")
     }
 
     // Signal of the connected Wi-Fi network, 0–1. Zero on a cable or offline.
@@ -65,12 +67,12 @@ Singleton {
     // it. Shared by the bar detail and the desktop widget.
     readonly property string stateLine: {
         if (root.wiredConnected)
-            return root.online ? "Ethernet · online" : "Ethernet · no internet"
+            return root.online ? Tr.t("Ethernet · online") : Tr.t("Ethernet · no internet")
         if (root.wifiConnected)
-            return root.online ? "Wi-Fi · online" : "Wi-Fi · no internet"
+            return root.online ? Tr.t("Wi-Fi · online") : Tr.t("Wi-Fi · no internet")
         if (!root.wifiEnabled)
-            return "Wi-Fi radio off"
-        return root.online ? "Online" : "Nothing reaches the internet"
+            return Tr.t("Wi-Fi radio off")
+        return root.online ? Tr.t("Online") : Tr.t("Nothing reaches the internet")
     }
 
     readonly property string icon: {
