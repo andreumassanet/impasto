@@ -261,9 +261,14 @@ QtObject {
             return root.emoji(term)
         }
 
+        // A sum typed without the calculator's prefix, first. It needs a
+        // digit and an operator, so a bare number or a name is not taken for
+        // one.
+        const sum = SettingsService.launcherBareMath === true && /\d/.test(raw) && /[+\-*/%]/.test(raw)
+            ? root.calculate(raw) : []
         // Every match: the panel caps its visible height at `maxResults`
         // rows and the rest scrolls, as the doors' list does.
-        const applications = root.rank(term)
+        const applications = sum.concat(root.rank(term))
         return SettingsService.launcherFallbacks
             ? applications.concat(root.fallbacks(raw)) : applications
     }

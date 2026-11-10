@@ -731,6 +731,9 @@ QtObject {
             "Symbols": "Símbolos",
             "Flags": "Banderas",
             "Back": "Atrás",
+            "Sums without a prefix": "Cuentas sin prefijo",
+            "12 * 34 shows its answer as the first row": "12 * 34 muestra el resultado en la primera fila",
+            "Only after the calculator's prefix": "Solo tras el prefijo de la calculadora",
             "Screenshots": "Capturas de pantalla",
             "The capture surface, where a region, a window or a screen is picked.":
                 "La superficie de captura, donde se elige una zona, una ventana o una pantalla.",

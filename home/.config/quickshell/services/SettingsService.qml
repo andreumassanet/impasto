@@ -893,7 +893,7 @@ Singleton {
 
         // Work out a sum typed without the calculator's prefix, as the
         // first row of the list.
-        property bool launcherBareMath: false
+        property bool launcherBareMath: true
 
         // Also show running applications that aren't pinned.
         property bool dockRunning: true
