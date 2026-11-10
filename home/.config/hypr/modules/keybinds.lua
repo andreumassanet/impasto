@@ -329,7 +329,25 @@ bind(mainMod .. " + ALT + SHIFT + right", trade_workspace("r"), { description = 
 
 -- · volume and brightness; brightness goes through the shell, which knows
 -- · the focused screen and how to dim it
-bind("XF86AudioRaiseVolume",  hl.dsp.exec_cmd("wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 5%+"), { locked = true, repeating = true, description = "Media · Volume up" })
+-- · the most the volume key raises to is the shell's (Settings › Control
+-- · Centre › Sound), read on every press so a change needs no reload
+local function volume_limit()
+    local state = os.getenv("XDG_STATE_HOME") or (os.getenv("HOME") .. "/.local/state")
+    local file  = io.open(state .. "/quickshell/settings.json")
+    if not file then
+        return 1
+    end
+    local text = file:read("a")
+    file:close()
+    local most = tonumber(text:match('"volumeMax"%s*:%s*(%d+)') or "")
+    return most and math.max(100, math.min(150, most)) / 100 or 1
+end
+
+local function volume_up()
+    hl.dispatch(hl.dsp.exec_cmd("wpctl set-volume -l " .. volume_limit() .. " @DEFAULT_AUDIO_SINK@ 5%+"))
+end
+
+bind("XF86AudioRaiseVolume",  volume_up, { locked = true, repeating = true, description = "Media · Volume up" })
 bind("XF86AudioLowerVolume",  hl.dsp.exec_cmd("wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"),      { locked = true, repeating = true, description = "Media · Volume down" })
 bind("XF86AudioMute",         hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"),     { locked = true, description = "Media · Mute output" })
 bind("XF86AudioMicMute",      hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"),   { locked = true, description = "Media · Mute microphone" })

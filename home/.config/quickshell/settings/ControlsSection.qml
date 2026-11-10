@@ -31,7 +31,7 @@ SettingsSection {
     SettingGroup {
         title: Tr.t("Sound")
         note: Tr.t("What the volume sliders reach.")
-        hint: Tr.t("Above 100 % the sound is amplified and can distort. The volume keys are Hyprland's: raise their limit there (wpctl set-volume -l 1.5).")
+        hint: Tr.t("Above 100 % the sound is amplified and can distort. The sliders, the volume key and the volume command all stop at the same place.")
 
         SettingRow {
             label: Tr.t("Volume above 100 %")
