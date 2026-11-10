@@ -126,8 +126,7 @@ Rectangle {
 
     // The strip over Bluetooth, Wi-Fi and Sound (`ConnectivityTabs`): the
     // tab and the gap under it. Each of the three keeps its own size.
-    readonly property int connectivityTabsHeight: SettingsService.connectivityTabs
-        ? 34 + Theme.detailGap : 0
+    readonly property int connectivityTabsHeight: Theme.segmentHeight + Theme.detailGap
 
     // One panel under two names (its two strips), so switching between them
     // slides instead of rebuilding. Fits five strip tiles and the large one.

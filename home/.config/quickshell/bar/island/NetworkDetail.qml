@@ -45,7 +45,7 @@ ColumnLayout {
     ConnectivityTabs {
         id: tabs
 
-        visible: SettingsService.connectivityTabs && root.backable
+        visible: root.backable
         page: "wifi"
         onPageRequested: panel => root.pageRequested(panel)
     }

@@ -54,7 +54,7 @@ ColumnLayout {
     ConnectivityTabs {
         id: tabs
 
-        visible: SettingsService.connectivityTabs && root.backable
+        visible: root.backable
         page: "bluetooth"
         onPageRequested: panel => root.pageRequested(panel)
     }
