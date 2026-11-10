@@ -107,7 +107,11 @@ Item {
         source: LockService.shotSource(root.output)
         visible: false
         fillMode: Image.PreserveAspectCrop
-        asynchronous: false
+        // The screenshot is a small JPEG and must be there when the lock
+        // shows; a wallpaper is a large painting, decoded off the thread at
+        // the screen's size while the island's black stands in.
+        asynchronous: LockService.wallpaperSource !== ""
+        sourceSize: LockService.wallpaperSource !== "" ? Qt.size(root.width, root.height) : undefined
         cache: false
     }
 

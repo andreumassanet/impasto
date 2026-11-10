@@ -19,8 +19,8 @@ Spread {
     readonly property color tint: AudioService.muted ? face.ink.muted : face.ink.blue
 
     hue: face.tint
-    reading: AudioService.muted ? "Muted" : `${AudioService.volume}%`
-    note: AudioService.muted ? `${AudioService.volume}% · muted` : "output"
+    reading: AudioService.muted ? Tr.t("Muted") : `${AudioService.volume}%`
+    note: AudioService.muted ? `${AudioService.volume}% · ${Tr.t("muted")}` : Tr.t("output")
 
     Tone { id: tone; hue: face.tint }
 
