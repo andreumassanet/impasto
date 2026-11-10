@@ -226,8 +226,33 @@ SettingsSection {
             }
         }
 
+        SettingRow {
+            label: Tr.t("Kept")
+            reading: NotificationService.history.length > 0
+                ? `${NotificationService.history.length} ${Tr.t("in this session")}`
+                : Tr.t("Nothing kept")
+
+            PillButton {
+                text: Tr.t("Clear")
+                icon: "󰜉"
+                implicitWidth: 92
+                implicitHeight: 30
+                enabled: NotificationService.history.length > 0
+                onClicked: NotificationService.clearHistory()
+            }
+        }
+    }
+
+    // The applications that have notified this session, and any with a rule.
+    SettingGroup {
+        visible: root.tab === "notifications" && appRules.count > 0
+        title: Tr.t("Per application")
+        note: Tr.t("What each application's notifications do.")
+
         // The applications that have notified, and any with a rule.
         Repeater {
+            id: appRules
+
             model: ScriptModel {
                 values: {
                     const names = Object.keys(SettingsService.notificationRules ?? ({}))
@@ -242,9 +267,13 @@ SettingsSection {
                 id: appRow
 
                 required property string modelData
+                readonly property string rule: NotificationService.ruleFor(appRow.modelData)
 
                 label: appRow.modelData
-                reading: Tr.t("What its notifications do")
+                reading: appRow.rule === "mute" ? Tr.t("Closed unseen")
+                    : appRow.rule === "silent" ? Tr.t("Kept in the control centre, never shown")
+                    : appRow.rule === "popup" ? Tr.t("Shown, never kept")
+                    : Tr.t("Shown and kept, as any other")
 
                 SegmentedControl {
                     options: [
@@ -253,7 +282,7 @@ SettingsSection {
                         { id: "silent", label: Tr.t("Silent") },
                         { id: "popup", label: Tr.t("Popup only") }
                     ]
-                    current: NotificationService.ruleFor(appRow.modelData)
+                    current: appRow.rule
                     onSelected: id => {
                         const rules = Object.assign({}, SettingsService.notificationRules ?? ({}))
                         if (id === "")
@@ -263,22 +292,6 @@ SettingsSection {
                         SettingsService.set("notificationRules", rules)
                     }
                 }
-            }
-        }
-
-        SettingRow {
-            label: Tr.t("Kept")
-            reading: NotificationService.history.length > 0
-                ? `${NotificationService.history.length} ${Tr.t("in this session")}`
-                : Tr.t("Nothing kept")
-
-            PillButton {
-                text: Tr.t("Clear")
-                icon: "󰜉"
-                implicitWidth: 92
-                implicitHeight: 30
-                enabled: NotificationService.history.length > 0
-                onClicked: NotificationService.clearHistory()
             }
         }
     }
