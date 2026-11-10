@@ -167,12 +167,12 @@ Item {
 
                 anchors.left: picture.right
                 anchors.leftMargin: 18
-                anchors.right: send.left
-                anchors.rightMargin: 12
+                anchors.right: reveal.left
+                anchors.rightMargin: 8
                 anchors.verticalCenter: parent.verticalCenter
                 opacity: root.typing ? 1 : 0
 
-                echoMode: TextInput.Password
+                echoMode: reveal.shown ? TextInput.Normal : TextInput.Password
                 passwordCharacter: "●"
                 passwordMaskDelay: 0
                 enabled: !LockService.authenticating && !LockService.leaving
@@ -203,6 +203,8 @@ Item {
 
                 // Typing clears the error, and reaches every screen.
                 onTextChanged: {
+                    if (field.text === "")
+                        reveal.shown = false
                     if (field.text !== LockService.typed)
                         LockService.typed = field.text
                     if (LockService.failed && field.text !== "")
@@ -225,6 +227,48 @@ Item {
                         return
                     event.accepted = !LockService.awake
                     LockService.rouse()
+                }
+            }
+
+            // Shows what is typed, or hides it again; hidden again whenever
+            // the field empties.
+            Rectangle {
+                id: reveal
+
+                property bool shown: false
+
+                anchors.right: send.left
+                anchors.rightMargin: 4
+                anchors.verticalCenter: parent.verticalCenter
+                width: 36
+                height: 36
+                radius: width / 2
+                opacity: root.typing ? 1 : 0
+                visible: opacity > 0
+                color: revealMouse.containsMouse ? Theme.islandSurfaceHover : "transparent"
+
+                Behavior on opacity {
+                    NumberAnimation { duration: Theme.durationFast; easing.type: Theme.easing }
+                }
+
+                Text {
+                    anchors.centerIn: parent
+                    text: reveal.shown ? "󰈉" : "󰈈"
+                    font.family: Theme.fontMono
+                    font.pixelSize: Theme.fontSizeLarge
+                    color: Theme.textMuted
+                }
+
+                MouseArea {
+                    id: revealMouse
+
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: {
+                        reveal.shown = !reveal.shown
+                        field.forceActiveFocus()
+                    }
                 }
             }
 
@@ -300,17 +344,15 @@ Item {
     }
 
     // ── MESSAGE ─────────────────────────────────────────────────────────────
+    //
+    // Caps Lock takes priority over the PAM message, as on the login screen.
+    // With more than one layout, the one in use is said under it.
 
-    Text {
+    Column {
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.top: holder.bottom
         anchors.topMargin: 14
-        text: LockService.message
-        visible: text !== ""
-        font.family: Theme.fontFamily
-        font.pixelSize: Theme.fontSizeSmall
-        font.weight: Font.DemiBold
-        color: Theme.indicatorBad
+        spacing: 4
 
         layer.enabled: true
         layer.effect: MultiEffect {
@@ -318,6 +360,25 @@ Item {
             shadowBlur: 0.8
             shadowOpacity: 0.7
             shadowColor: Theme.island
+        }
+
+        Text {
+            anchors.horizontalCenter: parent.horizontalCenter
+            text: LockService.capsLock ? Tr.t("Caps Lock is on") : LockService.message
+            visible: text !== ""
+            font.family: Theme.fontFamily
+            font.pixelSize: Theme.fontSizeSmall
+            font.weight: Font.DemiBold
+            color: LockService.capsLock ? Theme.indicatorWarn : Theme.indicatorBad
+        }
+
+        Text {
+            anchors.horizontalCenter: parent.horizontalCenter
+            text: `󰌌  ${LockService.keymap}`
+            visible: LockService.layouts > 1 && LockService.keymap !== ""
+            font.family: Theme.fontFamily
+            font.pixelSize: Theme.fontSizeSmall
+            color: Theme.text
         }
     }
 }
