@@ -72,6 +72,18 @@ SettingsSection {
             }
         }
 
+        SettingRow {
+            label: Tr.t("Sums without a prefix")
+            reading: SettingsService.launcherBareMath
+                ? Tr.t("12 * 34 shows its answer as the first row")
+                : Tr.t("Only after the calculator's prefix")
+
+            ToggleSwitch {
+                checked: SettingsService.launcherBareMath
+                onToggled: checked => SettingsService.set("launcherBareMath", checked)
+            }
+        }
+
         // Skeleton preview of the list at the chosen length.
         SettingBlock {
             Behavior on implicitHeight {
