@@ -70,6 +70,7 @@ Singleton {
     readonly property alias dockLauncher: config.dockLauncher
     readonly property alias weatherPlace: config.weatherPlace
     readonly property alias weatherIcons: config.weatherIcons
+    readonly property alias wallpaperFavourites: config.wallpaperFavourites
     readonly property alias githubUser: config.githubUser
     readonly property alias markets: config.markets
     readonly property alias petStyle: config.petStyle
@@ -365,7 +366,7 @@ Singleton {
         "emojiTone",
         "doNotDisturb", "nightLight", "nightTemperature", "barHidden", "desktopHidden",
         "gameMode", "powerTileProfile", "brightnessBelowFloor",
-        "cameraEnabled", "cameraEffect", "cameraReactions",
+        "cameraEnabled", "cameraEffect", "cameraReactions", "wallpaperFavourites",
         "recorderAudio", "captureShape", "captureKind"
     ]
 
@@ -902,6 +903,8 @@ Singleton {
         // The weather's icons: "glyph", the theme's, coloured by the
         // palette, or "colour", Breeze's full-colour ones.
         property string weatherIcons: "glyph"
+        // The wallpapers kept on the picker's favourites page, by path.
+        property var wallpaperFavourites: []
 
         // GitHub user for the contributions widget; empty draws nothing.
         property string githubUser: ""
