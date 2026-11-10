@@ -110,12 +110,12 @@ Row {
     Chip {
         action: "reboot"
         glyph: "󰜉"
-        caption: "Restart"
+        caption: Tr.t("Restart")
     }
 
     Chip {
         action: "shutdown"
         glyph: "󰐥"
-        caption: "Shut down"
+        caption: Tr.t("Shut down")
     }
 }

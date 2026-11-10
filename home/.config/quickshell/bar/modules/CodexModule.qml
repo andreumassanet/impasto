@@ -87,7 +87,7 @@ Item {
 
                     readonly property bool running: CodexService.current(modelData)
 
-                    name: modelData.name
+                    name: Tr.t(modelData.name)
                     fraction: modelData.used
                     known: running
                     resets: modelData.resets

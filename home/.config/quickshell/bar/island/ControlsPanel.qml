@@ -58,9 +58,10 @@ ColumnLayout {
 
     // ── TOP ROW ─────────────────────────────────────────────────────────────
     //
-    // Two sides (`ControlsService.topSides`), arranged in the settings, or
-    // while arranging by choosing the row as a block is chosen. With both
-    // sides empty it is laid out only while arranging.
+    // The time and the battery on the left, when they are on, and the
+    // buttons on the right (`ControlsService.topButtons`), arranged in the
+    // settings, or while arranging by choosing the row as a block is chosen.
+    // With neither it is laid out only while arranging.
 
     Item {
         visible: ControlsService.topShown
@@ -72,6 +73,12 @@ ColumnLayout {
 
         readonly property bool chosen: ControlsService.selected === "top"
 
+        SystemClock {
+            id: openClock
+
+            precision: SettingsService.clockShowsSeconds ? SystemClock.Seconds : SystemClock.Minutes
+        }
+
         RowLayout {
             anchors.fill: parent
             spacing: 12
@@ -79,11 +86,49 @@ ColumnLayout {
             // chooses the row instead of pressing a button.
             enabled: !root.editing
 
-            TopButtons {
-                entries: ControlsService.topLeft
-                onRan: root.closed()
-                onPanelRequested: panel => root.panelRequested(panel)
-                onSettingsRequested: root.settingsRequested()
+            // The time stays in view while the island is open.
+            Row {
+                Layout.leftMargin: 4
+                Layout.alignment: Qt.AlignVCenter
+                spacing: Theme.radiusMedium
+                visible: (ControlsService.topClock || ControlsService.topBattery) && !root.editing
+
+                Text {
+                    visible: ControlsService.topClock
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: Qt.formatDateTime(openClock.date, SettingsService.clockShowsSeconds
+                        ? SettingsService.clockFormat.replace("mm", "mm:ss")
+                        : SettingsService.clockFormat)
+                    font.family: Theme.fontFamily
+                    font.pixelSize: Theme.fontSizeLarge
+                    font.weight: Font.DemiBold
+                    font.features: { "tnum": 1 }
+                    color: Theme.text
+                }
+
+                Row {
+                    visible: ControlsService.topBattery
+                    anchors.verticalCenter: parent.verticalCenter
+                    spacing: 4
+
+                    Text {
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: BatteryService.icon
+                        font.family: Theme.fontMono
+                        font.pixelSize: Theme.fontSizeLarge
+                        color: Theme.text
+                    }
+
+                    Text {
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: `${BatteryService.percent}%`
+                        font.family: Theme.fontFamily
+                        font.pixelSize: Theme.fontSizeMedium
+                        font.weight: Font.DemiBold
+                        font.features: { "tnum": 1 }
+                        color: Theme.text
+                    }
+                }
             }
 
             Item {
@@ -92,7 +137,7 @@ ColumnLayout {
             }
 
             TopButtons {
-                entries: ControlsService.topRight
+                entries: ControlsService.topButtons
                 onRan: root.closed()
                 onPanelRequested: panel => root.panelRequested(panel)
                 onSettingsRequested: root.settingsRequested()

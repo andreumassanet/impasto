@@ -20,10 +20,10 @@ Spread {
     readonly property color tint: face.none ? face.ink.green : face.ink.yellow
 
     hue: face.tint
-    reading: UpdatesService.checking ? "Checking"
-        : !UpdatesService.available ? "Cannot check"
-        : (face.none ? "Up to date" : `${UpdatesService.count} pending`)
-    note: UpdatesService.age !== "" ? `checked ${UpdatesService.age}` : "updates"
+    reading: UpdatesService.checking ? Tr.t("Checking")
+        : !UpdatesService.available ? Tr.t("Cannot check")
+        : (face.none ? Tr.t("Up to date") : Tr.t("%1 pending").arg(UpdatesService.count))
+    note: UpdatesService.age !== "" ? Tr.t("checked %1").arg(UpdatesService.age) : Tr.t("updates")
 
     Tone { id: tone; hue: face.tint }
 
@@ -51,7 +51,7 @@ Spread {
 
             Text {
                 anchors.horizontalCenter: parent.horizontalCenter
-                text: face.none ? "UP TO DATE" : "UPDATES"
+                text: face.none ? Tr.t("UP TO DATE") : Tr.t("UPDATES")
                 font.family: Theme.fontFamily
                 font.pixelSize: Math.round(plate.side * 0.075)
                 font.weight: Font.Bold
