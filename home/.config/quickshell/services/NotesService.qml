@@ -105,7 +105,7 @@ Singleton {
         if (note.title && note.title.trim() !== "")
             return note.title.trim()
         const line = root.firstLine(note.text)
-        return line !== "" ? line : "Untitled"
+        return line !== "" ? line : Tr.t("Untitled")
     }
 
     function isEmpty(note: var): bool {
@@ -213,14 +213,14 @@ Singleton {
     function ageOf(when: real): string {
         const seconds = Math.max(0, (Date.now() - when) / 1000)
         if (seconds < 60)
-            return "just now"
+            return Tr.t("just now")
         if (seconds < 3600)
             return `${Math.floor(seconds / 60)} min`
         if (seconds < 86400)
             return `${Math.floor(seconds / 3600)} h`
         if (seconds < 7 * 86400)
             return `${Math.floor(seconds / 86400)} d`
-        return Qt.formatDate(new Date(when), "d MMM")
+        return Tr.date(new Date(when), "d MMM")
     }
 
     // ── PANEL ───────────────────────────────────────────────────────────────

@@ -45,10 +45,10 @@ ColumnLayout {
                 Layout.preferredHeight: 5
                 Layout.fillHeight: true
                 icon: "󰻠"
-                title: "Processor"
+                title: Tr.t("Processor")
                 reading: `${StatsService.cpu.toFixed(0)}%`
-                detail: `load ${StatsService.load[0].toFixed(2)}  ·  ${StatsService.cores.length} threads`
-                    + `  ·  up ${StatsService.duration(StatsService.uptime)}`
+                detail: `${Tr.t("load %1").arg(StatsService.load[0].toFixed(2))}  ·  ${Tr.t("%1 threads").arg(StatsService.cores.length)}`
+                    + `  ·  ${Tr.t("up %1").arg(StatsService.duration(StatsService.uptime))}`
                 series: StatsService.cpuHistory
                 accent: Theme.accent
 
@@ -93,9 +93,9 @@ ColumnLayout {
                 Layout.preferredHeight: 4
                 Layout.fillHeight: true
                 icon: "󰍛"
-                title: "Memory"
+                title: Tr.t("Memory")
                 reading: `${(StatsService.memoryFraction * 100).toFixed(0)}%`
-                detail: `${StatsService.bytes(StatsService.memoryUsed)} of ${StatsService.bytes(StatsService.memoryTotal)}`
+                detail: Tr.t("%1 of %2").arg(StatsService.bytes(StatsService.memoryUsed)).arg(StatsService.bytes(StatsService.memoryTotal))
                 series: StatsService.memoryHistory
                 accent: Theme.blue
 
@@ -152,7 +152,7 @@ ColumnLayout {
                 Layout.fillHeight: true
                 visible: StatsService.temperature !== null
                 icon: "󰔏"
-                title: "Temperature"
+                title: Tr.t("Temperature")
                 reading: StatsService.temperature ? `${StatsService.temperature.celsius}°` : "—"
                 detail: StatsService.temperature
                     ? `${StatsService.thermalWord}  ·  ${StatsService.temperature.label}` : ""
@@ -168,7 +168,7 @@ ColumnLayout {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 icon: "󰛳"
-                title: "Network"
+                title: Tr.t("Network")
                 reading: StatsService.rate(StatsService.networkDown)
                 detail: `↑ ${StatsService.rate(StatsService.networkUp)}`
                 maximum: 0
@@ -208,7 +208,7 @@ ColumnLayout {
                         }
 
                         Text {
-                            text: "Storage"
+                            text: Tr.t("Storage")
                             font.family: Theme.fontFamily
                             font.pixelSize: Theme.fontSizeSmall
                             font.weight: Font.DemiBold
@@ -245,7 +245,7 @@ ColumnLayout {
 
                                 // Free space, not used: how much room is left.
                                 Text {
-                                    text: `${StatsService.bytes(disk.modelData.total - disk.modelData.used)} free`
+                                    text: Tr.t("%1 free").arg(StatsService.bytes(disk.modelData.total - disk.modelData.used))
                                     font.family: Theme.fontMono
                                     font.pixelSize: 9
                                     color: Theme.textMuted

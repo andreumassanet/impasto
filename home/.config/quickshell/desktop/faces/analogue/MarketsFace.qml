@@ -28,11 +28,11 @@ Item {
         ink: root.ink
         line: root.lead
             ? `${root.lead.base} ${MarketsService.short(root.lead)}  ${MarketsService.change(root.lead)}`
-            : MarketsService.pairs.length === 0 ? "Nothing on the list" : "No prices"
+            : MarketsService.pairs.length === 0 ? Tr.t("Nothing on the list") : Tr.t("No prices")
         reading: MarketsService.price(root.lead)
         note: root.lead
             ? `${root.lead.base}/${root.lead.quote} · ${MarketsService.change(root.lead)} · ${root.lead.period}`
-            : MarketsService.pairs.length === 0 ? "Nothing on the list" : "No prices"
+            : MarketsService.pairs.length === 0 ? Tr.t("Nothing on the list") : Tr.t("No prices")
 
         Recorder {
             anchors.fill: parent

@@ -41,9 +41,9 @@ Item {
         id: detail
 
         ModuleCard {
-            title: "Tasks"
+            title: Tr.t("Tasks")
             subtitle: root.pending === 0
-                ? (TasksService.count === 0 ? "Nothing on the board" : "All done")
+                ? (TasksService.count === 0 ? Tr.t("Nothing on the board") : Tr.t("All done"))
                 : TasksService.summary
             // The count to do, in red while any is late.
             figure: root.pending > 0 ? `${root.pending}` : ""
@@ -91,7 +91,7 @@ Item {
 
                 PillButton {
                     implicitHeight: Theme.cardRow
-                    text: "New"
+                    text: Tr.t("New")
                     icon: "󰐕"
                     onClicked: {
                         TasksService.create()
@@ -101,7 +101,7 @@ Item {
 
                 PillButton {
                     implicitHeight: Theme.cardRow
-                    text: "Open"
+                    text: Tr.t("Open")
                     icon: "󰄲"
                     onClicked: root.openOn("")
                 }

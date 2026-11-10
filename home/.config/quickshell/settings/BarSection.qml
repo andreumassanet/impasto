@@ -217,6 +217,18 @@ SettingsSection {
             }
         }
 
+        SettingRow {
+            label: Tr.t("Applications")
+            reading: SettingsService.workspaceApps
+                ? Tr.t("The focused workspace's icons after its mark")
+                : Tr.t("The marks alone")
+
+            ToggleSwitch {
+                checked: SettingsService.workspaceApps
+                onToggled: checked => SettingsService.set("workspaceApps", checked)
+            }
+        }
+
         SettingSlider {
             label: Tr.t("Workspaces shown")
             value: HyprlandService.slots
