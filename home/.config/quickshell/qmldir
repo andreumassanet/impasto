@@ -225,6 +225,7 @@ PetBlock         1.0 bar/island/controls/PetBlock.qml
 ClockBlock       1.0 bar/island/controls/ClockBlock.qml
 GamesBlock       1.0 bar/island/controls/GamesBlock.qml
 ControlsTray     1.0 bar/island/controls/ControlsTray.qml
+ConnectivityTabs 1.0 bar/island/ConnectivityTabs.qml
 NetworkDetail    1.0 bar/island/NetworkDetail.qml
 SoundDetail      1.0 bar/island/SoundDetail.qml
 DetailHeading    1.0 bar/island/DetailHeading.qml

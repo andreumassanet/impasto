@@ -39,6 +39,7 @@ Singleton {
     readonly property alias barLeft: config.barLeft
     readonly property alias barRight: config.barRight
     readonly property alias islandSummary: config.islandSummary
+    readonly property alias soundEffects: config.soundEffects
     readonly property alias lyrics: config.lyrics
     readonly property alias mediaCover: config.mediaCover
     readonly property alias islandActivities: config.islandActivities
@@ -608,6 +609,10 @@ Singleton {
         // Hovering the island opens the glance; a click still opens the
         // control centre.
         property bool islandSummary: true
+
+        // A row in the sound panel for EasyEffects, when it is installed:
+        // whether it is processing, and a button for its window.
+        property bool soundEffects: false
 
         // The playing track's lyrics, looked up on lrclib.net while
         // something on screen shows them.

@@ -732,6 +732,13 @@ QtObject {
             "Symbols": "Símbolos",
             "Flags": "Banderas",
             "Back": "Atrás",
+            "Sound effects row": "Fila de efectos de sonido",
+            "The sound panel shows whether EasyEffects is on, when it is installed": "El panel de sonido muestra si EasyEffects está activo, si está instalado",
+            "The sound panel stays to outputs, inputs and applications": "El panel de sonido se queda en salidas, entradas y aplicaciones",
+            "Effects": "Efectos",
+            "EasyEffects is not running": "EasyEffects no está abierto",
+            "EasyEffects is bypassed": "EasyEffects está en pausa",
+            "EasyEffects is on": "EasyEffects está activo",
             "No match": "Sin coincidencias",
             "The programs the palette is written to.": "Los programas a los que se escribe la paleta.",
             "Each program on this list gets a theme file in its own config folder when the palette changes. Turn one off to leave its files alone.":
