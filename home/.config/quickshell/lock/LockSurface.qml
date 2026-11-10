@@ -291,52 +291,6 @@ Item {
         onSubmitted: password => root.submitted(password)
     }
 
-    // Caps Lock and the keyboard layout, over the account.
-    Row {
-        anchors.horizontalCenter: parent.horizontalCenter
-        anchors.bottom: account.top
-        anchors.bottomMargin: 14
-        spacing: 10
-        opacity: root.awake * root.held
-
-        Rectangle {
-            visible: LockService.capsLock
-            width: capsLabel.implicitWidth + 24
-            height: 28
-            radius: 14
-            color: Theme.indicatorWarn
-
-            Text {
-                id: capsLabel
-
-                anchors.centerIn: parent
-                text: "󰪛  " + Tr.t("Caps Lock")
-                font.family: Theme.fontFamily
-                font.pixelSize: Theme.fontSizeSmall
-                font.weight: Font.DemiBold
-                color: "#1c1c1e"
-            }
-        }
-
-        Rectangle {
-            visible: LockService.keymap !== ""
-            width: mapLabel.implicitWidth + 24
-            height: 28
-            radius: 14
-            color: Theme.island
-
-            Text {
-                id: mapLabel
-
-                anchors.centerIn: parent
-                text: `󰌌  ${LockService.keymap}`
-                font.family: Theme.fontFamily
-                font.pixelSize: Theme.fontSizeSmall
-                color: Theme.text
-            }
-        }
-    }
-
     // ── POWER ───────────────────────────────────────────────────────────────
     //
     // Bottom left at the bar's margin, where the login screen has the same
