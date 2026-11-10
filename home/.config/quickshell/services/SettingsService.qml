@@ -628,7 +628,7 @@ Singleton {
         property string launcherOrder: "recent"
         // Rows under the applications that open the text as an address,
         // search the web for it, or run it as a command.
-        property bool launcherFallbacks: false
+        property bool launcherFallbacks: true
         // The web search row opens this followed by the text, URL-encoded.
         property string launcherSearchUrl: "https://www.google.com/search?q="
 
