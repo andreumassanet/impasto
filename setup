@@ -202,9 +202,10 @@ Options:
   --skip-extras       install, update: leave the extras above alone
   --shell-only        install, update, sync: only the shell (~/.config/quickshell)
                       and Hyprland (~/.config/hypr, never its custom/ folder),
-                      with the shell's data and the impasto command: no
-                      packages, no / and no other program's config. Remembered,
-                      so update, sync and Settings keep to it
+                      with the shell's data, the wallpapers and the impasto
+                      command, and the packages they run: no /, no plugins, no
+                      extras and no other program's config. Remembered, so
+                      update, sync and Settings keep to it
   --full              install, update, sync: everything again, and forget
                       --shell-only
   --aur-helper NAME   yay or paru. The one installed is used, and when there
@@ -310,12 +311,14 @@ files_in() {
 
 # What a shell-only install copies out of home/: the shell, Hyprland's files
 # but never custom/ (the user's own, which no install writes), the data the
-# shell reads, its font and file-manager icon, and the command that talks to
-# it with its completion. Wallpapers and the other apps' configs are not.
+# shell reads and the wallpapers its palette comes from, its font and
+# file-manager icon, and the command that talks to it with its completion.
+# The other programs' configuration is not.
 shell_part() {
     case $1 in
         .config/hypr/custom|.config/hypr/custom/*) return 1 ;;
         .config/quickshell/*|.config/hypr/*|.local/share/impasto/*|.local/bin/impasto) return 0 ;;
+        .local/share/wallpapers/*) return 0 ;;
         .local/share/fonts/GrapeNuts-*|.local/share/icons/hicolor/scalable/apps/impasto-files.svg) return 0 ;;
         .local/share/zsh/site-functions/_impasto) return 0 ;;
     esac
@@ -735,6 +738,7 @@ verb_sync() {
     section home
     SUDO=
     deploy home "$HOME" "$STATE/home.manifest" '~/'
+    save_install_mode
     reload_shell
     seed
     # What Settings → System shows: the version, the branch, the checkout
@@ -996,8 +1000,10 @@ verb_plugins() {
 verb_install() {
     SECONDS=0
     load_install_mode
+    # Packages are programs, not anyone's configuration, and the shell does
+    # not start without them; --skip-packages still leaves them out.
     if (( SHELL_ONLY )); then
-        SKIP_PACKAGES=1 SKIP_SYSTEM=1 SKIP_PLUGINS=1 SKIP_EXTRAS=1
+        SKIP_SYSTEM=1 SKIP_PLUGINS=1 SKIP_EXTRAS=1
     fi
     note_shell
     if (( ! SKIP_PACKAGES )); then verb_packages; fi
