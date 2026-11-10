@@ -9,6 +9,7 @@
 
 import QtQuick
 import QtQuick.Layouts
+import Quickshell
 
 import "../theme"
 import "../services"
@@ -489,6 +490,29 @@ SettingsSection {
                         lit: true
                         external: false
                     }
+                }
+            }
+        }
+
+        SettingGroup {
+            title: Tr.t("Screenshots")
+            note: Tr.t("The capture surface, where a region, a window or a screen is picked.")
+
+            SettingRow {
+                label: Tr.t("Capture on")
+                reading: SettingsService.captureScreens === "all"
+                    ? Tr.t("Every screen at once: pick on whichever one you want")
+                    : Tr.t("Only the screen with the keyboard")
+                locked: Quickshell.screens.length < 2
+                reason: Tr.t("Only one screen is on")
+
+                SegmentedControl {
+                    options: [
+                        { id: "all", label: Tr.t("Every screen") },
+                        { id: "focused", label: Tr.t("This screen") }
+                    ]
+                    current: SettingsService.captureScreens
+                    onSelected: id => SettingsService.set("captureScreens", id)
                 }
             }
         }

@@ -15,11 +15,11 @@ import Quickshell.Io
 
 import "../theme"
 
-// The capture surface. `capture.py grab` photographs the whole screen, the
-// overlay draws that picture with the selection on top, and `capture.py
-// finish` crops it and sends it to its destination. Nothing is frozen, and the
-// result is exactly what was on screen when the key was pressed, menus
-// included.
+// The capture surface. `capture.py grab-all` photographs the screens, an
+// overlay on each draws its picture with the selection on top, and
+// `capture.py finish` crops the one picked and sends it to its destination.
+// Nothing is frozen, and the result is exactly what was on screen when the key
+// was pressed, menus included.
 //
 // Shape and kind are remembered (`captureShape`, `captureKind`); the
 // destination resets to a file every time.
@@ -43,9 +43,10 @@ Singleton {
 
     // ── SURFACE ─────────────────────────────────────────────────────────────
 
-    // The photo and its size in physical pixels. The surface works in logical
-    // coordinates and the crop in physical ones; `ratio` converts.
-    property string photo: ""
+    // The photos by screen name: `{ path, width, height }` in physical pixels.
+    // The surface works in logical coordinates and the crop in physical ones;
+    // `ratio` converts, for the screen that was picked.
+    property var photos: ({})
     property int photoWidth: 0
     property int photoHeight: 0
 
@@ -56,9 +57,13 @@ Singleton {
     // from the photo. It is the island's close animation, 0 with motion off.
     readonly property int settle: Theme.durationIslandGone
 
-    // The screen being photographed: the one with the keyboard when the key
-    // was pressed, so a second monitor is not in the picture and the surface
-    // opens where the work is. Held for as long as the capture lasts.
+    // Every screen is photographed (`captureScreens` is "all") or only the one
+    // with the keyboard when the key was pressed. With every screen, the
+    // surface opens on all of them and the first selection made on any one
+    // wins.
+    readonly property bool everyScreen: SettingsService.captureScreens === "all"
+
+    // The screen picked, held for as long as the capture lasts.
     property string screenName: ""
 
     readonly property var screen: {
@@ -71,6 +76,26 @@ Singleton {
         if (!screen || screen.width <= 0 || root.photoWidth <= 0)
             return 1
         return root.photoWidth / screen.width
+    }
+
+    // Screens to photograph now.
+    function screensToGrab(): var {
+        if (root.everyScreen)
+            return Quickshell.screens.map(screen => screen.name)
+        const name = HyprlandService.focusedMonitor
+            || Quickshell.screens[0]?.name
+            || ""
+        return name === "" ? [] : [name]
+    }
+
+    // Drops the photos, except the one at `keep`.
+    function dropPhotos(keep: string): void {
+        for (const name in root.photos) {
+            const path = root.photos[name].path
+            if (path && path !== keep)
+                Quickshell.execDetached([root.script, "drop", path])
+        }
+        root.photos = ({})
     }
 
     // ── OPTIONS ─────────────────────────────────────────────────────────────
@@ -117,42 +142,43 @@ Singleton {
         if (kind !== "")
             root.setKind(kind)
         root.to = destination !== "" && root.offers(destination) ? destination : "file"
-        root.screenName = HyprlandService.focusedMonitor
         root.busy = true
         root.launch.interval = after
         root.launch.restart()
     }
 
-    // Escape or a click on nothing. Also deletes the photo, so a cancelled
+    // Escape or a click on nothing. Also deletes the photos, so a cancelled
     // capture leaves no file behind.
     function cancel(): void {
         if (!root.active)
             return
         root.active = false
-        if (root.photo !== "") {
-            Quickshell.execDetached([root.script, "drop", root.photo])
-            root.photo = ""
-        }
+        root.dropPhotos("")
     }
 
-    // Logical coordinates. An empty box means the whole screen: no crop.
-    function fire(x: real, y: real, width: real, height: real): void {
-        if (!root.active)
+    // Logical coordinates on the screen called `name`. An empty box means the
+    // whole screen: no crop.
+    function fire(name: string, x: real, y: real, width: real, height: real): void {
+        const shot = root.photos[name]
+        if (!root.active || !shot)
             return
         const whole = width <= 0 || height <= 0
-        const picture = root.photo
+        const picture = shot.path
         const kind = root.kind
         const destination = root.to
 
+        root.screenName = name
+        root.photoWidth = shot.width
+        root.photoHeight = shot.height
+
         // Hide the surface first, or it would end up in a recording.
         root.active = false
-        root.photo = ""
+        root.dropPhotos(kind === "video" ? "" : picture)
 
         if (kind === "video") {
-            // Recordings are of the live screen, so the photo is discarded
+            // Recordings are of the live screen, so the photos are discarded
             // and only the box is passed on. `shell.qml` connects this to the
             // recorder, which keeps the two services free of a cycle.
-            Quickshell.execDetached([root.script, "drop", picture])
             root.recordRequested(whole ? "screen" : root.shape,
                                  whole ? "" : root.box(x, y, width, height))
             return
@@ -201,15 +227,18 @@ Singleton {
 
     readonly property Timer launch: Timer {
         onTriggered: {
-            root.grabber.command = root.screenName === ""
-                ? [root.script, "grab"]
-                : [root.script, "grab", "--output", root.screenName]
+            const names = root.screensToGrab()
+            if (names.length === 0) {
+                root.busy = false
+                return
+            }
+            root.grabber.command = [root.script, "grab-all"].concat(names)
             root.grabber.running = true
         }
     }
 
     readonly property Process grabber: Process {
-        command: [root.script, "grab"]
+        command: [root.script, "grab-all"]
         stdout: StdioCollector {
             onStreamFinished: {
                 root.busy = false
@@ -219,15 +248,20 @@ Singleton {
                 } catch (error) {
                     return
                 }
-                if (report.error) {
-                    OsdService.requested(root.marks.error, report.error, -1)
+                const taken = {}
+                let failure = report.error ?? ""
+                for (const name in (report.screens ?? {})) {
+                    const photo = report.screens[name]
+                    if (photo.path)
+                        taken[name] = photo
+                    else
+                        failure = photo.error ?? failure
+                }
+                if (Object.keys(taken).length === 0) {
+                    OsdService.requested(root.marks.error, failure || "Nothing was captured", -1)
                     return
                 }
-                root.photo = report.path ?? ""
-                root.photoWidth = report.width ?? 0
-                root.photoHeight = report.height ?? 0
-                if (root.photo === "")
-                    return
+                root.photos = taken
                 root.active = true
                 root.opened()
             }
