@@ -134,6 +134,7 @@ Singleton {
             summary: notification.summary,
             body: notification.body,
             appName: notification.appName,
+            desktopEntry: notification.desktopEntry ?? "",
             icon: root.keepPicture(notification.appIcon || notification.desktopEntry || "", `${time}-icon`),
             image: root.keepPicture(notification.image, `${time}-image`),
             urgency: notification.urgency,
@@ -290,14 +291,23 @@ Singleton {
         root.dismiss()
     }
 
-    // An entry in the history, clicked: its notification's default action,
-    // while the notification is still open.
+    // An entry in the history, clicked: its notification's default action
+    // while the notification is still open (the application takes the user to
+    // what it was about), else the application itself, brought up from its
+    // window or started. False when there is nothing to do.
     function open(entry: var): bool {
         const action = root.defaultAction(root.openOf(entry))
-        if (!action)
-            return false
-        action.invoke()
-        return true
+        if (action) {
+            action.invoke()
+            return true
+        }
+        return DockService.showSender(entry.desktopEntry ?? "", entry.appName ?? "")
+    }
+
+    // Whether clicking the entry does anything.
+    function opens(entry: var): bool {
+        return root.defaultAction(root.openOf(entry)) !== null
+            || DockService.canShowSender(entry.desktopEntry ?? "", entry.appName ?? "")
     }
 
     // ── ON THE ISLAND ───────────────────────────────────────────────────────
@@ -449,6 +459,7 @@ Singleton {
             summary: entry.summary,
             body: entry.body,
             appName: entry.appName,
+            desktopEntry: entry.desktopEntry ?? "",
             icon: entry.icon ?? "",
             image: entry.image.startsWith("image://qsimage/") ? "" : entry.image,
             urgency: entry.urgency

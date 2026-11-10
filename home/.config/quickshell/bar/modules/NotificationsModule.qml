@@ -89,8 +89,7 @@ Item {
 
                     readonly property bool critical:
                         entry.modelData.urgency === NotificationUrgency.Critical
-                    readonly property bool opens: NotificationService.defaultAction(
-                        NotificationService.openOf(entry.modelData)) !== null
+                    readonly property bool opens: NotificationService.opens(entry.modelData)
 
                     width: ListView.view.width
                     height: Theme.cardRow
@@ -100,10 +99,10 @@ Item {
                         cursorShape: entry.opens ? Qt.PointingHandCursor : Qt.ArrowCursor
                     }
 
-                    // While its notification is still open, a click is its
-                    // default action, and the island gets out of the way of
-                    // the window it brings up. One from an earlier session
-                    // only has its text.
+                    // A click is the notification's default action while it
+                    // is open, else brings up the application that sent it;
+                    // the island gets out of the way of the window that
+                    // comes up.
                     TapHandler {
                         enabled: entry.opens
                         onTapped: {
