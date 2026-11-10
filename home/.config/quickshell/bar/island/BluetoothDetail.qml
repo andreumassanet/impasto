@@ -205,12 +205,61 @@ ColumnLayout {
                 }
             }
 
+            // A device paired from here connects once the pairing is done.
+            property bool wasPairing: false
+
+            Connections {
+                target: entry.modelData
+
+                function onPairedChanged(): void {
+                    if (entry.wasPairing && entry.modelData.paired) {
+                        entry.wasPairing = false
+                        entry.modelData.connected = true
+                    }
+                }
+            }
+
             MouseArea {
                 id: entryMouse
                 anchors.fill: parent
                 hoverEnabled: true
                 cursorShape: Qt.PointingHandCursor
-                onClicked: BluetoothService.connectDevice(entry.modelData)
+                acceptedButtons: Qt.LeftButton | Qt.RightButton
+                // The right button forgets a paired device, as the bin does.
+                onClicked: mouse => {
+                    if (mouse.button === Qt.RightButton) {
+                        if (entry.modelData.paired)
+                            BluetoothService.forgetDevice(entry.modelData)
+                        return
+                    }
+                    if (!entry.modelData.paired)
+                        entry.wasPairing = true
+                    BluetoothService.connectDevice(entry.modelData)
+                }
+            }
+
+            // Forget, on a paired device under the pointer. Declared after
+            // the row's area so a click here goes here.
+            Text {
+                anchors.right: parent.right
+                anchors.rightMargin: entry.modelData.connected ? 34 : 12
+                anchors.verticalCenter: parent.verticalCenter
+                visible: entry.modelData.paired && (entryMouse.containsMouse || forgetMouse.containsMouse)
+                text: "󰆴"
+                font.family: Theme.fontMono
+                font.pixelSize: 14
+                color: forgetMouse.containsMouse ? Theme.red : Theme.textMuted
+
+                Behavior on color { ColorAnimation { duration: Theme.durationFast } }
+
+                MouseArea {
+                    id: forgetMouse
+                    anchors.fill: parent
+                    anchors.margins: -6
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: BluetoothService.forgetDevice(entry.modelData)
+                }
             }
         }
     }
