@@ -101,7 +101,7 @@ ColumnLayout {
                         anchors.left: parent.left
                         anchors.verticalCenter: parent.verticalCenter
                         visible: !PetService.hatched
-                        text: "Egg"
+                        text: Tr.t("Egg")
                         font.family: Theme.fontFamily
                         font.pixelSize: Theme.fontSizeLarge
                         font.weight: Font.DemiBold
@@ -144,7 +144,7 @@ ColumnLayout {
 
                 Text {
                     visible: PetService.hatched
-                    text: `Lv ${PetService.level}`
+                    text: Tr.t("Lv %1").arg(PetService.level)
                     font.family: Theme.fontMono
                     font.pixelSize: Theme.fontSizeSmall
                     color: Theme.textMuted
@@ -186,7 +186,7 @@ ColumnLayout {
             PillButton {
                 Layout.fillWidth: true
                 implicitWidth: 88
-                text: PetService.canFeed ? "Feed" : "Fed"
+                text: Tr.t(PetService.canFeed ? "Feed" : "Fed")
                 enabled: PetService.canFeed
                 onClicked: PetService.feed()
             }
@@ -194,7 +194,7 @@ ColumnLayout {
             PillButton {
                 Layout.fillWidth: true
                 implicitWidth: 88
-                text: PetService.canPlay ? "Play" : "Played"
+                text: Tr.t(PetService.canPlay ? "Play" : "Played")
                 enabled: PetService.canPlay
                 onClicked: PetService.play()
             }

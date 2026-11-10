@@ -82,7 +82,7 @@ Card {
 
                     Text {
                         visible: PetService.hatched
-                        text: `Lv ${PetService.level}`
+                        text: Tr.t("Lv %1").arg(PetService.level)
                         font.family: Theme.fontMono
                         font.pixelSize: Theme.fontSizeLabel
                         color: Theme.textMuted
@@ -125,7 +125,7 @@ Card {
                     Layout.fillWidth: true
                     implicitWidth: 64
                     implicitHeight: 24
-                    text: PetService.canFeed ? "Feed" : "Fed"
+                    text: PetService.canFeed ? Tr.t("Feed") : Tr.t("Fed")
                     enabled: PetService.canFeed
                     onClicked: PetService.feed()
                 }
@@ -134,7 +134,7 @@ Card {
                     Layout.fillWidth: true
                     implicitWidth: 64
                     implicitHeight: 24
-                    text: PetService.canPlay ? "Play" : "Played"
+                    text: PetService.canPlay ? Tr.t("Play") : Tr.t("Played")
                     enabled: PetService.canPlay
                     onClicked: PetService.play()
                 }

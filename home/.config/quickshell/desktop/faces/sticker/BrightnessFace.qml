@@ -17,8 +17,8 @@ Spread {
     id: face
 
     hue: face.ink.yellow
-    reading: BrightnessService.available ? `${BrightnessService.percent}%` : "No backlight"
-    note: BrightnessService.available ? "backlight" : "nothing to dim"
+    reading: BrightnessService.available ? `${BrightnessService.percent}%` : Tr.t("No backlight")
+    note: BrightnessService.available ? Tr.t("backlight") : Tr.t("nothing to dim")
 
     Tone { id: tone; hue: face.ink.yellow }
 

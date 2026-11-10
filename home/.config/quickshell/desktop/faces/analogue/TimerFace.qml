@@ -24,9 +24,9 @@ Instrument {
 
     line: face.on
         ? `${TimerService.display}${TimerService.label !== "" ? " · " + TimerService.label : ""}`
-        : "Nothing running"
+        : Tr.t("Nothing running")
     reading: face.on ? TimerService.display : "—"
-    note: face.on ? (TimerService.label !== "" ? TimerService.label : "counting down") : "nothing running"
+    note: face.on ? (TimerService.label !== "" ? TimerService.label : Tr.t("counting down")) : Tr.t("nothing running")
     tint: face.on ? face.ink.text : face.ink.muted
     filled: true
 
@@ -46,7 +46,7 @@ Instrument {
 
             PillButton {
                 text: TimerService.running
-                    ? (TimerService.paused ? "Resume" : "Hold") : "5 min"
+                    ? (TimerService.paused ? Tr.t("Resume") : Tr.t("Hold")) : "5 min"
                 implicitHeight: 30
                 onClicked: {
                     if (!TimerService.running)
