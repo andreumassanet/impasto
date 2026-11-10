@@ -66,6 +66,8 @@ Singleton {
     readonly property alias dockGround: config.dockGround
     readonly property alias terminalGround: config.terminalGround
     readonly property alias launcherBareMath: config.launcherBareMath
+    readonly property alias superTapLauncher: config.superTapLauncher
+    readonly property alias workspaceNumbersOnSuper: config.workspaceNumbersOnSuper
     readonly property alias volumeMax: config.volumeMax
     readonly property alias trayHidden: config.trayHidden
     readonly property alias notificationRules: config.notificationRules
@@ -903,6 +905,11 @@ Singleton {
         // Work out a sum typed without the calculator's prefix, as the
         // first row of the list.
         property bool launcherBareMath: true
+
+        // A tap of Super alone opens the launcher.
+        property bool superTapLauncher: false
+        // The workspace strip shows plain numbers while Super is held.
+        property bool workspaceNumbersOnSuper: false
 
         // The most the volume reaches, in percent: 100, or 150 for quiet
         // sources. The volume key reads it from this file (`keybinds.lua`).

@@ -229,6 +229,18 @@ SettingsSection {
             }
         }
 
+        SettingRow {
+            label: Tr.t("Numbers while Super is held")
+            reading: SettingsService.workspaceNumbersOnSuper
+                ? Tr.t("Holding Super shows each workspace's number")
+                : Tr.t("The style stays as it is")
+
+            ToggleSwitch {
+                checked: SettingsService.workspaceNumbersOnSuper
+                onToggled: checked => SettingsService.set("workspaceNumbersOnSuper", checked)
+            }
+        }
+
         SettingSlider {
             label: Tr.t("Workspaces shown")
             value: HyprlandService.slots

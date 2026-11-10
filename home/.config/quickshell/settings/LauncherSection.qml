@@ -52,6 +52,18 @@ SettingsSection {
             }
         }
 
+        SettingRow {
+            label: Tr.t("Tap Super")
+            reading: SettingsService.superTapLauncher
+                ? Tr.t("Super pressed and let go alone opens the launcher")
+                : Tr.t("Super alone does nothing")
+
+            ToggleSwitch {
+                checked: SettingsService.superTapLauncher
+                onToggled: checked => SettingsService.set("superTapLauncher", checked)
+            }
+        }
+
         SettingSlider {
             label: Tr.t("Results shown")
             value: SettingsService.launcherResults

@@ -390,17 +390,16 @@ bind(mainMod .. " + CTRL + R",  hl.dsp.exec_cmd("pkill -x quickshell; pkill -x q
 -- · global shortcuts registered by the shell
 bind(mainMod .. " + Space",     hl.dsp.global("quickshell:launcher"),   { description = "Shell · Open the launcher" })
 
--- · Super alone. Unbound until a key is set in Settings > Keys: for example
--- · "SUPER + SUPER_L" for the tap and "SUPER_L" for the hold. The tap fires on
--- · release only when no other key was pressed since; the hold reports both
--- · press and release, ignoring modifiers, and does not swallow the key.
-bind("", hl.dsp.global("quickshell:superTap"),
-     { description = "Shell · Open the launcher when Super is tapped", release = true })
-for _, on_release in ipairs({ false, true }) do
-    bind("", hl.dsp.global("quickshell:workspaceNumber"),
-         { description = "Shell · Show the workspace numbers while Super is held",
-           ignore_mods = true, transparent = true, release = on_release })
-end
+-- · Super alone, reported to the shell, which acts on it only when Settings
+-- · says so: a tap opens the launcher, a hold shows the workspace numbers.
+-- · The tap fires on release only when no other key was pressed since; the
+-- · hold reports both press and release, ignoring modifiers, and does not
+-- · swallow the key.
+bind("SUPER_L", hl.dsp.global("quickshell:superTap"),
+     { description = "Shell · Open the launcher when Super is tapped", release = true, ignore_mods = true })
+bind("SUPER_L", hl.dsp.global("quickshell:workspaceNumber"),
+     { description = "Shell · Show the workspace numbers while Super is held",
+       ignore_mods = true, non_consuming = true })
 bind(mainMod .. " + A",         hl.dsp.global("quickshell:controls"),   { description = "Shell · Open the control centre" })
 bind(mainMod .. " + TAB",       hl.dsp.global("quickshell:overview"),   { description = "Shell · Open the workspace overview" })
 bind(mainMod .. " + comma",     hl.dsp.global("quickshell:settings"),   { description = "Shell · Open settings" })

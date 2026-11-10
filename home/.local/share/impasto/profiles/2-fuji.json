@@ -158,6 +158,8 @@
       "Utilities · Turn the screen off or back on": "SUPER + SHIFT + D",
       "Utilities · Restart the shell": "SUPER + CTRL + R",
       "Shell · Open the launcher": "SUPER + Space",
+      "Shell · Open the launcher when Super is tapped": "SUPER_L",
+      "Shell · Show the workspace numbers while Super is held": "SUPER_L",
       "Shell · Open the control centre": "SUPER + A",
       "Shell · Open the workspace overview": "SUPER + TAB",
       "Shell · Open settings": "SUPER + comma",

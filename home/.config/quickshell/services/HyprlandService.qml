@@ -67,8 +67,8 @@ QtObject {
     //
     // Whether Super is down, and when it went down (0 when nothing is bound to
     // report it). Fed by the `workspaceNumber` shortcut; the workspace strip
-    // shows every number while it is true, and a quick `superTap` after it
-    // opens the launcher.
+    // can show its numbers while it is true, and a quick `superTap` after it
+    // can open the launcher.
     property bool superHeld: false
     property real superAt: 0
 

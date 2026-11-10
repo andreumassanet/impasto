@@ -312,9 +312,11 @@ ShellRoot {
 
     // ── SUPER ALONE ─────────────────────────────────────────────────────────
     //
-    // Tap Super for the launcher, hold it for the workspace numbers. Both are
-    // off until a key is set for them (Settings > Keys). `workspaceNumber` is
-    // bound on press and on release of Super itself; `superTap` on the release
+    // Tap Super for the launcher, hold it for the workspace numbers, each
+    // only while its setting is on (`superTapLauncher`, the strip's
+    // `workspaceNumbersOnSuper`). `workspaceNumber` is
+    // bound on the press of Super itself, and Hyprland sends its release when
+    // the key comes up; `superTap` on the release
     // of Super with no other key pressed in between, which Hyprland decides.
     // A tap is short: a held Super that was let go does not open the launcher.
     readonly property int tapLimit: 600     // ms
@@ -344,8 +346,12 @@ ShellRoot {
     GlobalShortcut {
         name: "superTap"
         description: "Open the launcher when Super is tapped"
-        onPressed: {
+        // Bound on release, and Hyprland sends a release bind's global as a
+        // release alone.
+        onReleased: {
             const held = Date.now() - HyprlandService.superAt
+            if (!SettingsService.superTapLauncher)
+                return
             if (HyprlandService.superAt === 0 || (held >= root.tapMinimum && held < root.tapLimit))
                 root.island?.toggle("launcher")
         }
