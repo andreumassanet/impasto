@@ -49,6 +49,7 @@ Singleton {
     readonly property alias desktopTheme: config.desktopTheme
     readonly property alias desktopOpacity: config.desktopOpacity
     readonly property alias desktopHidden: config.desktopHidden
+    readonly property alias zenGrid: config.zenGrid
     readonly property alias centreButtons: config.centreButtons
     readonly property alias centreTop: config.centreTop
     readonly property alias centreBlocks: config.centreBlocks
@@ -829,6 +830,11 @@ Singleton {
 
         // Every widget off the picture for a while; arranging shows them.
         property bool desktopHidden: false
+
+        // With the bar hidden (zen), the widget grid grows over the bar's band,
+        // its squares resized so the margins stay even on all four sides.
+        // Off: the grid stays below the bar and hiding it moves nothing.
+        property bool zenGrid: false
 
         // ── CONTROL CENTRE ──────────────────────────────────────────────
         //
