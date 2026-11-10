@@ -38,9 +38,9 @@ Item {
         ModuleCard {
             title: GithubService.user !== "" ? GithubService.user : "GitHub"
             subtitle: {
-                const parts = ["contributions this year"]
+                const parts = [Tr.t("contributions this year")]
                 if (GithubService.streak > 0)
-                    parts.push(`${GithubService.streak}-day streak`)
+                    parts.push(Tr.t("%1-day streak").arg(GithubService.streak))
                 if (GithubService.age !== "")
                     parts.push(GithubService.age)
                 return parts.join(" · ")
