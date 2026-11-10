@@ -142,6 +142,7 @@
       "Media · Brightness up": "XF86MonBrightnessUp",
       "Media · Brightness down": "XF86MonBrightnessDown",
       "Media · Mute microphone (Acer)": "XF86Launch6",
+      "Shell · Say when Caps Lock turns on or off": "Caps_Lock",
       "Media · Play or pause": "XF86AudioPlay",
       "Media · Play or pause, from the pause key": "XF86AudioPause",
       "Media · Next track": "XF86AudioNext",

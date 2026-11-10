@@ -357,6 +357,48 @@ ShellRoot {
         }
     }
 
+    // ── CAPS LOCK ───────────────────────────────────────────────────────────
+    //
+    // The key is bound without being taken (`keybinds.lua`), so the shell
+    // hears it; the state is then read from the keyboard, a moment after the
+    // key comes up, since Hyprland updates it on the release. The lock says
+    // it its own way.
+    GlobalShortcut {
+        name: "capsLock"
+        description: "Say when Caps Lock turns on or off"
+        onReleased: {
+            if (!LockService.locked)
+                capsSettle.restart()
+        }
+    }
+
+    Timer {
+        id: capsSettle
+
+        interval: 80
+        onTriggered: capsReader.running = true
+    }
+
+    Process {
+        id: capsReader
+
+        command: ["hyprctl", "devices", "-j"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                try {
+                    const keyboards = JSON.parse(text).keyboards ?? []
+                    const main = keyboards.find(keyboard => keyboard.main) ?? keyboards[0]
+                    if (!main)
+                        return
+                    OsdService.requested(main.capsLock ? "󰪛" : "󰬶",
+                        main.capsLock ? Tr.t("Caps Lock is on") : Tr.t("Caps Lock is off"), -1)
+                } catch (error) {
+                    console.warn("Cannot read the keyboards:", error)
+                }
+            }
+        }
+    }
+
     // ── LID ─────────────────────────────────────────────────────────────────
     //
     // Handled here rather than with `switch:` binds in Lua. MonitorService's

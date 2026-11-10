@@ -357,6 +357,11 @@ bind("XF86MonBrightnessDown", hl.dsp.global("quickshell:brightnessDown"),       
 -- · Acer laptops send XF86Launch6 for the microphone key
 bind("XF86Launch6",           hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"),   { locked = true, description = "Media · Mute microphone (Acer)" })
 
+-- · Caps Lock, passed on as ever and told to the shell, which says on the
+-- · island whether it is now on or off: Hyprland sends no event for it
+bind("Caps_Lock", hl.dsp.global("quickshell:capsLock"),
+     { description = "Shell · Say when Caps Lock turns on or off", ignore_mods = true, non_consuming = true })
+
 -- · player; distinct descriptions so each key can be rebound separately
 bind("XF86AudioPlay",  hl.dsp.exec_cmd("playerctl play-pause"), { locked = true, description = "Media · Play or pause" })
 bind("XF86AudioPause", hl.dsp.exec_cmd("playerctl play-pause"), { locked = true, description = "Media · Play or pause, from the pause key" })

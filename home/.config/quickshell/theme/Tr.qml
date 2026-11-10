@@ -531,6 +531,7 @@ QtObject {
             "Password": "Contraseña",
             "Authorize": "Autorizar",
             "Caps Lock is on": "Bloq Mayús activado",
+            "Caps Lock is off": "Bloq Mayús desactivado",
             "Machines": "Máquinas",
             "None running": "Ninguna en marcha",
             "running": "en marcha",
