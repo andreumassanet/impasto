@@ -25,13 +25,13 @@ Instrument {
         ? ClaudeService.percent(ClaudeService.sessionFraction)
         : ClaudeService.compact(ClaudeService.blockTokens)
 
-    line: !ClaudeService.available ? "No usage found"
-        : (ClaudeService.sessionMeasured ? `${face.figure} of this block` : `${face.figure} this block`)
+    line: !ClaudeService.available ? Tr.t("No usage found")
+        : (ClaudeService.sessionMeasured ? Tr.t("%1 of this block").arg(face.figure) : Tr.t("%1 this block").arg(face.figure))
     reading: face.figure
-    note: !ClaudeService.available ? "no usage found"
+    note: !ClaudeService.available ? Tr.t("no usage found")
         : ClaudeService.sessionMeasured
-        ? `of this block · ${ClaudeService.resetsIn}`
-        : `this block · ${ClaudeService.resetsIn}`
+        ? `${Tr.t("of this block")} · ${ClaudeService.resetsIn}`
+        : `${Tr.t("this block")} · ${ClaudeService.resetsIn}`
     filled: true
 
     Gauge {
@@ -67,7 +67,7 @@ Instrument {
 
             Text {
                 text: ClaudeService.weeklyMeasured
-                    ? `${ClaudeService.percent(ClaudeService.weeklyFraction)} of the week` : "this week"
+                    ? Tr.t("%1 of the week").arg(ClaudeService.percent(ClaudeService.weeklyFraction)) : Tr.t("this week")
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.fontSizeLabel
                 color: face.ink.muted

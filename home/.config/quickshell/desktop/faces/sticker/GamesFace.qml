@@ -21,7 +21,7 @@ Spread {
 
     hue: face.ink.red
     reading: face.last ? face.last.name : "Arcade"
-    note: face.last ? `best ${GamesService.bestOf(face.last.id)}` : "nothing played yet"
+    note: face.last ? `${Tr.t("best")} ${GamesService.bestOf(face.last.id)}` : Tr.t("nothing played yet")
     filled: true
 
     Tone { id: tone; hue: face.ink.red }

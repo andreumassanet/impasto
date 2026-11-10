@@ -169,7 +169,7 @@ Item {
 
             Text {
                 anchors.verticalCenter: parent.verticalCenter
-                text: Qt.formatDateTime(clock.date, SettingsService.clockShowsSeconds
+                text: Tr.date(clock.date, SettingsService.clockShowsSeconds
                     ? SettingsService.clockFormat.replace("mm", "mm:ss")
                     : SettingsService.clockFormat)
                 font.family: Theme.fontFamily
@@ -181,7 +181,7 @@ Item {
             Text {
                 anchors.verticalCenter: parent.verticalCenter
                 visible: SettingsService.clockShowsDate
-                text: Qt.formatDateTime(clock.date, "ddd d MMM")
+                text: Tr.date(clock.date, "ddd d MMM")
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.fontSizeSmall
                 color: Theme.textMuted

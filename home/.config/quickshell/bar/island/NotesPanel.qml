@@ -188,7 +188,7 @@ FocusScope {
 
                             Text {
                                 anchors.horizontalCenter: parent.horizontalCenter
-                                text: "New note"
+                                text: Tr.t("New note")
                                 font.family: Theme.fontFamily
                                 font.pixelSize: Theme.fontSizeSmall
                                 font.weight: Font.DemiBold
@@ -269,10 +269,10 @@ FocusScope {
                         const n = NotesService.count
                         const a = NotesService.archived.length
                         if (n === 0 && a === 0)
-                            return "Nothing written down yet"
-                        const parts = [`${n} ${n === 1 ? "note" : "notes"}`]
+                            return Tr.t("Nothing written down yet")
+                        const parts = [Tr.t(n === 1 ? "%1 note" : "%1 notes").arg(n)]
                         if (a > 0)
-                            parts.push(`${a} archived`)
+                            parts.push(Tr.t("%1 archived").arg(a))
                         return parts.join(" · ")
                     }
                     elide: Text.ElideRight
@@ -283,7 +283,7 @@ FocusScope {
 
                 PillButton {
                     visible: NotesService.archived.length > 0
-                    text: page.showingArchived ? "Hide archived" : "Show archived"
+                    text: Tr.t(page.showingArchived ? "Hide archived" : "Show archived")
                     icon: "󰁫"
                     active: page.showingArchived
                     onClicked: page.showingArchived = !page.showingArchived
@@ -379,7 +379,7 @@ FocusScope {
                         Text {
                             anchors.verticalCenter: parent.verticalCenter
                             visible: heading.text === ""
-                            text: "Title"
+                            text: Tr.t("Title")
                             font: heading.font
                             color: Theme.paperInkMuted
                         }
@@ -461,7 +461,7 @@ FocusScope {
 
                         Text {
                             visible: writing.text === ""
-                            text: "Write…  a line that starts [ ] is a box"
+                            text: Tr.t("Write…  a line that starts [ ] is a box")
                             font: writing.font
                             color: Theme.paperInkMuted
                         }
@@ -530,7 +530,7 @@ FocusScope {
                     Item { Layout.fillWidth: true }
 
                     PillButton {
-                        text: sheet.archived ? "Restore" : "Archive"
+                        text: Tr.t(sheet.archived ? "Restore" : "Archive")
                         icon: sheet.archived ? "󰁭" : "󰁫"
                         onClicked: {
                             NotesService.archive(sheet.key, !sheet.archived)
@@ -539,7 +539,7 @@ FocusScope {
                     }
 
                     PillButton {
-                        text: "Delete"
+                        text: Tr.t("Delete")
                         icon: "󰆴"
                         onClicked: {
                             const direct = NotesService.direct

@@ -35,7 +35,7 @@ Rectangle {
     Text {
         anchors.centerIn: parent
         visible: root.families.length === 0
-        text: "Reading installed fonts…"
+        text: Tr.t("Reading installed fonts…")
         font.family: Theme.fontFamily
         font.pixelSize: Theme.fontSizeSmall
         color: Theme.textMuted

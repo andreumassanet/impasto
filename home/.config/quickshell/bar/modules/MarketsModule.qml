@@ -39,10 +39,10 @@ Item {
         id: detail
 
         ModuleCard {
-            title: root.lead ? root.lead.name : "Markets"
+            title: root.lead ? root.lead.name : Tr.t("Markets")
             subtitle: {
                 if (!root.lead)
-                    return MarketsService.pairs.length === 0 ? "Nothing on the list" : "No prices"
+                    return MarketsService.pairs.length === 0 ? Tr.t("Nothing on the list") : Tr.t("No prices")
                 const parts = [`${root.lead.base}/${root.lead.quote}`,
                                MarketsService.change(root.lead)]
                 if (MarketsService.age !== "")

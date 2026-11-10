@@ -187,7 +187,7 @@ Singleton {
             root.newBest(id, score)
             // No announcement for a first score.
             if (previous !== null)
-                OsdService.requested(item.icon, `New best · ${item.name} ${score}`, -1)
+                OsdService.requested(item.icon, Tr.t("New best · %1 %2").arg(item.name).arg(score), -1)
         }
         return better
     }

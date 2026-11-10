@@ -247,6 +247,31 @@ end
 bind(mainMod .. " + mouse_down", hl.dsp.focus({ workspace = "m+1" }), { description = "Workspaces · Next workspace" })
 bind(mainMod .. " + mouse_up",   hl.dsp.focus({ workspace = "m-1" }), { description = "Workspaces · Previous workspace" })
 
+-- · the scratchpad: a special workspace shown over the one you are on.
+-- · SUPER + Z shows or hides it; adding SHIFT sends the window into it, or
+-- · back out to the workspace under it.
+local scratchpad = "special:scratchpad"
+
+local function scratchpad_send()
+    local window = hl.get_active_window()
+    if not window then
+        return
+    end
+    if window.workspace and window.workspace.name == scratchpad then
+        local monitor = hl.get_active_monitor()
+        if monitor and monitor.active_workspace then
+            hl.dispatch(hl.dsp.window.move({ workspace = monitor.active_workspace.id }))
+        end
+        return
+    end
+    hl.dispatch(hl.dsp.window.move({ workspace = scratchpad, follow = false }))
+end
+
+bind(mainMod .. " + Z",         hl.dsp.workspace.toggle_special("scratchpad"),
+     { description = "Workspaces · Show or hide the scratchpad" })
+bind(mainMod .. " + SHIFT + Z", scratchpad_send,
+     { description = "Workspaces · Send the window to the scratchpad or back" })
+
 
 -- ── SCREENS ─────────────────────────────────────────────────────────────────
 
@@ -304,7 +329,25 @@ bind(mainMod .. " + ALT + SHIFT + right", trade_workspace("r"), { description = 
 
 -- · volume and brightness; brightness goes through the shell, which knows
 -- · the focused screen and how to dim it
-bind("XF86AudioRaiseVolume",  hl.dsp.exec_cmd("wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 5%+"), { locked = true, repeating = true, description = "Media · Volume up" })
+-- · the most the volume key raises to is the shell's (Settings › Control
+-- · Centre › Sound), read on every press so a change needs no reload
+local function volume_limit()
+    local state = os.getenv("XDG_STATE_HOME") or (os.getenv("HOME") .. "/.local/state")
+    local file  = io.open(state .. "/quickshell/settings.json")
+    if not file then
+        return 1
+    end
+    local text = file:read("a")
+    file:close()
+    local most = tonumber(text:match('"volumeMax"%s*:%s*(%d+)') or "")
+    return most and math.max(100, math.min(150, most)) / 100 or 1
+end
+
+local function volume_up()
+    hl.dispatch(hl.dsp.exec_cmd("wpctl set-volume -l " .. volume_limit() .. " @DEFAULT_AUDIO_SINK@ 5%+"))
+end
+
+bind("XF86AudioRaiseVolume",  volume_up, { locked = true, repeating = true, description = "Media · Volume up" })
 bind("XF86AudioLowerVolume",  hl.dsp.exec_cmd("wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"),      { locked = true, repeating = true, description = "Media · Volume down" })
 bind("XF86AudioMute",         hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"),     { locked = true, description = "Media · Mute output" })
 bind("XF86AudioMicMute",      hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"),   { locked = true, description = "Media · Mute microphone" })
@@ -372,6 +415,9 @@ bind(mainMod .. " + K",         hl.dsp.global("quickshell:board"),      { descri
 -- · key sheet, read from `hyprctl binds`. H, since / is SHIFT + 7 on a
 -- · Spanish layout
 bind(mainMod .. " + H",         hl.dsp.global("quickshell:keys"),       { description = "Shell · Show every key" })
+
+-- · the same sheet in a window of its own
+bind(mainMod .. " + SHIFT + H", hl.dsp.global("quickshell:cheatsheetWindow"), { description = "Shell · Open the cheatsheet in a window" })
 
 -- · zen: the bar away and its band to the windows; and the widgets away
 bind(mainMod .. " + CTRL + B",  hl.dsp.global("quickshell:zen"),        { description = "Shell · Hide or show the bar" })
