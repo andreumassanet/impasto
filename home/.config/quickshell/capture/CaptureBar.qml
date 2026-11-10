@@ -53,9 +53,9 @@ Rectangle {
             tipGap: root.tipGap
             iconSize: root.glyphSize
             options: [
-                { id: "region", label: "Region", icon: "󰩭" },
-                { id: "window", label: "Window", icon: "󰣆" },
-                { id: "screen", label: "Screen", icon: "󰍹" }
+                { id: "region", label: Tr.t("Region"), icon: "󰩭" },
+                { id: "window", label: Tr.t("Window"), icon: "󰣆" },
+                { id: "screen", label: Tr.t("Screen"), icon: "󰍹" }
             ]
             current: CaptureService.shape
             onSelected: id => CaptureService.setShape(id)
@@ -76,8 +76,8 @@ Rectangle {
             tipGap: root.tipGap
             iconSize: root.glyphSize
             options: [
-                { id: "photo", label: "Photo", icon: "󰄀" },
-                { id: "video", label: "Video", icon: "󰕧" }
+                { id: "photo", label: Tr.t("Photo"), icon: "󰄀" },
+                { id: "video", label: Tr.t("Video"), icon: "󰕧" }
             ]
             current: CaptureService.kind
             onSelected: id => CaptureService.setKind(id)
@@ -104,12 +104,12 @@ Rectangle {
             // Destinations whose tool is missing are hidden rather than
             // disabled.
             options: [
-                { id: "file", label: "Save", icon: "󰆓" },
-                { id: "clipboard", label: "Copy", icon: "󰆏" }
+                { id: "file", label: Tr.t("Save"), icon: "󰆓" },
+                { id: "clipboard", label: Tr.t("Copy"), icon: "󰆏" }
             ].concat(CaptureService.offers("editor")
-                    ? [{ id: "editor", label: "Annotate", icon: "󰏫" }] : [])
+                    ? [{ id: "editor", label: Tr.t("Annotate"), icon: "󰏫" }] : [])
              .concat(CaptureService.offers("text")
-                    ? [{ id: "text", label: "Read text", icon: "󱄽" }] : [])
+                    ? [{ id: "text", label: Tr.t("Read text"), icon: "󱄽" }] : [])
             current: CaptureService.to
             onSelected: id => CaptureService.to = id
         }
@@ -125,8 +125,8 @@ Rectangle {
             tipGap: root.tipGap
             iconSize: root.glyphSize
             options: [
-                { id: "mute", label: "No sound", icon: "󰖁" },
-                { id: "sound", label: "Sound", icon: "󰕾" }
+                { id: "mute", label: Tr.t("No sound"), icon: "󰖁" },
+                { id: "sound", label: Tr.t("Sound"), icon: "󰕾" }
             ]
             current: SettingsService.recorderAudio ? "sound" : "mute"
             onSelected: id => SettingsService.set("recorderAudio", id === "sound")

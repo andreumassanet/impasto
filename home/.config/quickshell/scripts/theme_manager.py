@@ -40,8 +40,8 @@ XDG_STATE_HOME = os.environ.get("XDG_STATE_HOME") or os.path.expanduser("~/.loca
 XDG_CACHE_HOME = os.environ.get("XDG_CACHE_HOME") or os.path.expanduser("~/.cache")
 
 WALLPAPERS_DIR = os.path.join(XDG_DATA_HOME, "wallpapers")
-# Animated wallpapers: videos, played by mpvpaper over the still awww shows.
-ANIMATED_DIR = os.path.join(WALLPAPERS_DIR, "animated")
+# Animated wallpapers are the videos anywhere in the collection, played by
+# mpvpaper over the still awww shows.
 # One frame of each video, for the palette and for everything that draws the
 # wallpaper as a picture (the lock, the overview, the arranging desk).
 POSTERS_DIR = os.path.join(XDG_CACHE_HOME, "impasto", "posters")
@@ -474,35 +474,59 @@ def get_current_wallpaper():
     return ""
 
 
+def collection_files():
+    """Every file under the wallpapers folder, folders inside it included.
+
+    A collection sorted into folders (by resolution, by theme) is listed as
+    one. Hidden folders are skipped, and links to folders are followed, each
+    folder once, so a link back up the tree cannot loop.
+    """
+    seen = set()
+    for folder, subfolders, names in os.walk(WALLPAPERS_DIR, followlinks=True):
+        real = os.path.realpath(folder)
+        if real in seen:
+            subfolders[:] = []
+            continue
+        seen.add(real)
+        subfolders[:] = sorted(name for name in subfolders if not name.startswith("."))
+        for name in sorted(names):
+            if not name.startswith("."):
+                yield folder, name
+
+
+def folder_of(folder):
+    """A file's folder inside the collection, as the picker shows it: `4k/nature`,
+    or "" at the top. A folder named `animated`, where videos used to have to
+    go, is not a folder of its own: what is in it shows where it sits."""
+    relative = os.path.relpath(folder, WALLPAPERS_DIR)
+    parts = [part for part in relative.split(os.sep) if part not in (".", "animated")]
+    return "/".join(parts)
+
+
 def list_wallpapers():
     if not os.path.isdir(WALLPAPERS_DIR):
         return []
     entries = []
-    for name in sorted(os.listdir(WALLPAPERS_DIR)):
-        if name.startswith("."):
-            continue
-        path = os.path.join(WALLPAPERS_DIR, name)
-        if os.path.isfile(path) and name.lower().endswith(IMAGE_EXTENSIONS):
-            entries.append({"name": pretty_name(name), "path": path})
+    for folder, name in collection_files():
+        path = os.path.join(folder, name)
+        if name.lower().endswith(IMAGE_EXTENSIONS) and os.path.isfile(path):
+            entries.append({"name": pretty_name(name), "path": path, "folder": folder_of(folder)})
     return entries
 
 
 def list_animated():
-    # Made here so there is a folder to drop the first video into.
-    try:
-        os.makedirs(ANIMATED_DIR, exist_ok=True)
-    except OSError:
+    """Every video in the collection, whichever folder it is in."""
+    if not os.path.isdir(WALLPAPERS_DIR):
         return []
     entries = []
-    for name in sorted(os.listdir(ANIMATED_DIR)):
-        path = os.path.join(ANIMATED_DIR, name)
-        if name.startswith(".") or not os.path.isfile(path):
-            continue
-        if not name.lower().endswith(MOTION_EXTENSIONS):
+    for folder, name in collection_files():
+        path = os.path.join(folder, name)
+        if not name.lower().endswith(MOTION_EXTENSIONS) or not os.path.isfile(path):
             continue
         poster = poster_of(path)
         if poster:
-            entries.append({"name": pretty_name(name), "path": path, "poster": poster})
+            entries.append({"name": pretty_name(name), "path": path, "poster": poster,
+                            "folder": folder_of(folder)})
     return entries
 
 

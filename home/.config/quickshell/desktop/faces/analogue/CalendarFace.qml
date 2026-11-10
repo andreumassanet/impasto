@@ -38,7 +38,7 @@ Item {
     property string ribbon: ""
     onPickedChanged: {
         if (root.picked !== "")
-            root.ribbon = Qt.formatDate(TasksService.dateOf(root.picked), "dddd d").toUpperCase()
+            root.ribbon = Tr.date(TasksService.dateOf(root.picked), "dddd d").toUpperCase()
     }
 
     // The notes' ink, for what is written on the paper.
@@ -66,11 +66,11 @@ Item {
     function agendaLine(): string {
         const left = TasksService.pendingOn(TasksService.todayKey)
         if (left > 0)
-            return `${left} to do today`
+            return Tr.t("%1 to do today").arg(left)
         const next = TasksService.next
         if (next)
             return `${next.text} · ${TasksService.dueLabel(next.due)}`
-        return Qt.formatDateTime(root.today, "dddd")
+        return Tr.date(root.today, "dddd")
     }
 
     Loader {
@@ -101,9 +101,9 @@ Item {
                 ink: root.ink
                 width: Math.min(parent.width, parent.height * 0.74)
                 height: parent.height
-                month: Qt.formatDateTime(root.today, "MMMM").toUpperCase()
+                month: Tr.date(root.today, "MMMM").toUpperCase()
                 day: `${root.today.getDate()}`
-                weekday: Qt.formatDateTime(root.today, "dddd")
+                weekday: Tr.date(root.today, "dddd")
 
                 HoverHandler {
                     enabled: TasksService.countOn(TasksService.todayKey) > 0
@@ -131,9 +131,9 @@ Item {
                 width: 100
                 height: parent.height - 44
                 ink: root.ink
-                month: Qt.formatDateTime(root.today, "MMMM").toUpperCase()
+                month: Tr.date(root.today, "MMMM").toUpperCase()
                 day: `${root.today.getDate()}`
-                weekday: Qt.formatDateTime(root.today, "dddd")
+                weekday: Tr.date(root.today, "dddd")
             }
 
             Row {
@@ -177,7 +177,7 @@ Item {
                             rings: false
                             band: 16
                             today: day.today
-                            month: Qt.formatDateTime(day.date, "ddd").charAt(0)
+                            month: Tr.initial(day.date)
                             day: `${day.date.getDate()}`
                         }
 
@@ -232,7 +232,7 @@ Item {
             ink: root.ink
             band: 34
             month: root.picked !== "" ? root.ribbon
-                : Qt.formatDateTime(root.today, "MMMM yyyy").toUpperCase()
+                : Tr.date(root.today, "MMMM yyyy").toUpperCase()
 
             readonly property var cells: {
                 const year = root.today.getFullYear()
@@ -270,7 +270,7 @@ Item {
                     readonly property real cellHeight: height / (1 + sheet.cells.length / 7)
 
                     Repeater {
-                        model: ["M", "T", "W", "T", "F", "S", "S"]
+                        model: Tr.t("M T W T F S S").split(" ")
 
                         Item {
                             required property var modelData
@@ -373,11 +373,11 @@ Item {
                     Text {
                         width: parent.width
                         text: {
-                            const name = agenda.day === TasksService.todayKey ? "Today"
-                                : Qt.formatDate(TasksService.dateOf(agenda.day), "dddd d")
+                            const name = agenda.day === TasksService.todayKey ? Tr.t("Today")
+                                : Tr.date(TasksService.dateOf(agenda.day), "dddd d")
                             const n = agenda.due.length
                             const left = agenda.due.filter(task => task.state !== "done").length
-                            return n === 0 ? `${name} · nothing due` : `${name} · ${left} of ${n} to do`
+                            return n === 0 ? `${name} · ${Tr.t("nothing due")}` : `${name} · ${Tr.t("%1 of %2 to do").arg(left).arg(n)}`
                         }
                         elide: Text.ElideRight
                         font.family: Theme.fontFamily

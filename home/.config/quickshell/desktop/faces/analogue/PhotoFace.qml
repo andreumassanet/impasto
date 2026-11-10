@@ -130,7 +130,7 @@ Item {
                         visible: root.source === "" || picture.status === Image.Error
                         horizontalAlignment: Text.AlignHCenter
                         wrapMode: Text.WordWrap
-                        text: picture.status === Image.Error ? "Picture not found" : "No picture"
+                        text: picture.status === Image.Error ? Tr.t("Picture not found") : Tr.t("No picture")
                         font.family: Theme.fontSignature
                         font.pixelSize: Math.min(26, parent.height * 0.16)
                         color: Theme.paperInkMuted
@@ -226,7 +226,7 @@ Item {
                     Text {
                         anchors.centerIn: parent
                         visible: root.source === "" || exposure.status === Image.Error
-                        text: exposure.status === Image.Error ? "Picture not found" : "No picture"
+                        text: exposure.status === Image.Error ? Tr.t("Picture not found") : Tr.t("No picture")
                         font.family: Theme.fontSignature
                         font.pixelSize: Math.min(26, parent.height * 0.24)
                         color: root.ink.muted

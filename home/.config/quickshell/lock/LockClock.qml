@@ -40,7 +40,7 @@ Item {
 
     readonly property date now: root.at !== null ? root.at : clock.date
     // The clock's own format, split on its separator for the stacked form.
-    readonly property string time: Qt.formatDateTime(root.now, SettingsService.clockFormat)
+    readonly property string time: Tr.date(root.now, SettingsService.clockFormat)
     readonly property var parts: root.time.split(":")
 
     implicitWidth: column.implicitWidth
@@ -60,7 +60,7 @@ Item {
 
         Text {
             anchors.horizontalCenter: parent.horizontalCenter
-            text: Qt.formatDateTime(root.now, "dddd, d MMMM")
+            text: Tr.date(root.now, "dddd, d MMMM")
             font.family: Theme.fontDisplay
             font.pixelSize: root.dateSize
             font.weight: Font.DemiBold

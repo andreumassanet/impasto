@@ -70,7 +70,7 @@ ColumnLayout {
         yesterday.setDate(yesterday.getDate() - 1)
         if (day === ScreenTimeService.key(yesterday))
             return Tr.t("Yesterday")
-        return Qt.formatDate(date, "dddd d MMMM")
+        return Tr.date(date, "dddd d MMMM")
     }
 
     readonly property string periodName: {
@@ -81,12 +81,12 @@ ColumnLayout {
         const from = ScreenTimeService.dateOf(root.report.from)
         const to = ScreenTimeService.dateOf(root.report.to)
         if (root.view === "month")
-            return Qt.formatDate(from, "MMMM yyyy")
+            return Tr.date(from, "MMMM yyyy")
         if (ScreenTimeService.current)
             return Tr.t("This week")
         return from.getMonth() === to.getMonth()
-            ? `${from.getDate()} – ${Qt.formatDate(to, "d MMMM")}`
-            : `${Qt.formatDate(from, "d MMM")} – ${Qt.formatDate(to, "d MMM")}`
+            ? `${from.getDate()} – ${Tr.date(to, "d MMMM")}`
+            : `${Tr.date(from, "d MMM")} – ${Tr.date(to, "d MMM")}`
     }
 
     // The day against the week before it; a week or a month against the last.
@@ -523,7 +523,7 @@ ColumnLayout {
                 return index % 6 === 0 ? String(index).padStart(2, "0") : ""
             const date = ScreenTimeService.dateOf(chart.bucketDay(index))
             if (root.view === "week")
-                return Qt.formatDate(date, "ddd")
+                return Tr.date(date, "ddd")
             const day = date.getDate()
             return day === 1 || day % 5 === 0 ? String(day) : ""
         }
@@ -534,7 +534,7 @@ ColumnLayout {
             const seconds = chart.stacks[index].reduce((a, b) => a + b, 0)
             const when = root.daily
                 ? `${String(index).padStart(2, "0")}:00`
-                : Qt.formatDate(ScreenTimeService.dateOf(chart.bucketDay(index)), "ddd d")
+                : Tr.date(ScreenTimeService.dateOf(chart.bucketDay(index)), "ddd d")
             return `${when} · ${ScreenTimeService.duration(seconds)}`
         }
 
@@ -776,7 +776,7 @@ ColumnLayout {
                 Muted {
                     Layout.preferredWidth: 14
                     // Monday first: 5 January 1970 was one.
-                    text: Qt.formatDate(new Date(1970, 0, 5 + line.index), "ddd").charAt(0)
+                    text: Tr.initial(new Date(1970, 0, 5 + line.index))
                     font.pixelSize: 8
                 }
 

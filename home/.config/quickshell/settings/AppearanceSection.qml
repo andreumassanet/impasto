@@ -65,7 +65,7 @@ SettingsSection {
 
             SettingRow {
                 label: Tr.t("Theme and wallpaper")
-                reading: Theme.activeName
+                reading: Tr.t(Theme.activeName)
 
                 PillButton {
                     text: Tr.t("Open")
@@ -207,7 +207,7 @@ SettingsSection {
                     Layout.preferredHeight: 132
                     families: FontService.sans
                     current: SettingsService.fontFamily
-                    sample: "The quick brown fox 0123"
+                    sample: Tr.t("The quick brown fox 0123")
                     onPicked: family => SettingsService.set("fontFamily", family)
                 }
             }
