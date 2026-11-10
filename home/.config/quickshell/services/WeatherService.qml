@@ -43,6 +43,11 @@ Singleton {
     property int feelsLike: 0
     property string description: ""
     property string glyph: ""
+    // The Breeze icon name (`WeatherArt`), "" when the script gave none.
+    property string icon: ""
+    // Where Breeze keeps its full-colour weather icons; the colour icons are
+    // offered only while they are there.
+    readonly property string breezeIcons: "/usr/share/icons/breeze/applets/48"
     property int humidity: 0
     property int wind: 0
     property int low: 0
@@ -190,6 +195,7 @@ Singleton {
         root.feelsLike = report.feelsLike
         root.description = report.description
         root.glyph = report.glyph
+        root.icon = report.icon ?? ""
         root.humidity = report.humidity
         root.wind = report.wind
         root.low = report.low

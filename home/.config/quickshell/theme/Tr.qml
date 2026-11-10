@@ -157,6 +157,12 @@ QtObject {
             "Keys": "Atajos",
             "Keys in a window": "Atajos en una ventana",
             "Scratchpad": "Cajón",
+            "Icons": "Iconos",
+            "Full-colour pictures of the sky, the same in every palette":
+                "Dibujos del cielo a todo color, iguales con cualquier paleta",
+            "Glyphs in the palette's colours": "Símbolos con los colores de la paleta",
+            "The theme's": "Del tema",
+            "In colour": "A color",
             "Yours": "Tuyos",
             "Captures": "Capturas",
             "The screenshots, recordings and camera photos the shell saves, named by the time they were taken.":

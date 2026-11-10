@@ -214,7 +214,13 @@ Item {
                 text: WeatherService.available ? WeatherService.glyph : "󰅤"
                 font.family: Theme.fontMono
                 font.pixelSize: 34
-                color: root.ink.text
+                color: weatherArt.shown ? "transparent" : root.ink.text
+
+                WeatherArt {
+                    id: weatherArt
+
+                    name: WeatherService.available ? WeatherService.icon : ""
+                }
             }
         }
     }

@@ -39,6 +39,35 @@ SettingsSection {
             value: SettingsService.weatherPlace
             onEdited: value => SettingsService.set("weatherPlace", value.trim())
         }
+
+        // Offered while Breeze's icons are installed.
+        SettingRow {
+            visible: breezeProbe.status === Image.Ready
+            label: Tr.t("Icons")
+            reading: SettingsService.weatherIcons === "colour"
+                ? Tr.t("Full-colour pictures of the sky, the same in every palette")
+                : Tr.t("Glyphs in the palette's colours")
+
+            SegmentedControl {
+                options: [
+                    { id: "glyph", label: Tr.t("The theme's") },
+                    { id: "colour", label: Tr.t("In colour") }
+                ]
+                current: SettingsService.weatherIcons
+                onSelected: id => SettingsService.set("weatherIcons", id)
+            }
+
+            Image {
+                id: breezeProbe
+
+                // Takes no room beside the control.
+                width: 0
+                height: 0
+                visible: false
+                source: `file://${WeatherService.breezeIcons}/weather-clear.svg`
+                sourceSize: Qt.size(16, 16)
+            }
+        }
     }
 
     SettingGroup {

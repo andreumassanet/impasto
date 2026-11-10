@@ -69,6 +69,7 @@ Singleton {
     readonly property alias dockAutohide: config.dockAutohide
     readonly property alias dockLauncher: config.dockLauncher
     readonly property alias weatherPlace: config.weatherPlace
+    readonly property alias weatherIcons: config.weatherIcons
     readonly property alias githubUser: config.githubUser
     readonly property alias markets: config.markets
     readonly property alias petStyle: config.petStyle
@@ -898,6 +899,9 @@ Singleton {
         // Anything wttr.in accepts: a city, postcode or airport code. Empty
         // lets wttr.in geolocate by IP, which can be tens of kilometres off.
         property string weatherPlace: ""
+        // The weather's icons: "glyph", the theme's, coloured by the
+        // palette, or "colour", Breeze's full-colour ones.
+        property string weatherIcons: "glyph"
 
         // GitHub user for the contributions widget; empty draws nothing.
         property string githubUser: ""
