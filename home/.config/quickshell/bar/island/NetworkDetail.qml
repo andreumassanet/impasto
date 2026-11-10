@@ -97,8 +97,8 @@ ColumnLayout {
             Text {
                 Layout.fillWidth: true
                 text: NetworkService.radioOn
-                    ? (NetworkService.scanning ? "Scanning…" : NetworkService.connectionName)
-                    : "Radio off"
+                    ? (NetworkService.scanning ? Tr.t("Scanning…") : NetworkService.connectionName)
+                    : Tr.t("Radio off")
                 elide: Text.ElideRight
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.fontSizeSmall
@@ -108,7 +108,7 @@ ColumnLayout {
 
         Text {
             visible: NetworkService.radioOn
-            text: "Rescan"
+            text: Tr.t("Rescan")
             font.family: Theme.fontFamily
             font.pixelSize: Theme.fontSizeSmall
             color: rescanMouse.containsMouse ? Theme.accent : Theme.textMuted
@@ -139,8 +139,8 @@ ColumnLayout {
         horizontalAlignment: Text.AlignHCenter
         verticalAlignment: Text.AlignVCenter
         text: NetworkService.radioOn
-            ? (NetworkService.scanning ? "Looking for networks…" : "Nothing in range")
-            : "Turn Wi-Fi on to see what is around"
+            ? Tr.t(NetworkService.scanning ? "Looking for networks…" : "Nothing in range")
+            : Tr.t("Turn Wi-Fi on to see what is around")
         font.family: Theme.fontFamily
         font.pixelSize: Theme.fontSizeSmall
         color: Theme.textMuted
@@ -213,11 +213,11 @@ ColumnLayout {
                         Text {
                             Layout.fillWidth: true
                             text: {
-                                if (entry.busy) return "Working…"
-                                if (entry.modelData.active) return "Connected"
+                                if (entry.busy) return Tr.t("Working…")
+                                if (entry.modelData.active) return Tr.t("Connected")
                                 const bits = [`${entry.modelData.signal}%`]
-                                if (entry.modelData.secure) bits.push("secured")
-                                if (entry.modelData.known) bits.push("saved")
+                                if (entry.modelData.secure) bits.push(Tr.t("secured"))
+                                if (entry.modelData.known) bits.push(Tr.t("saved"))
                                 return bits.join(" · ")
                             }
                             elide: Text.ElideRight
@@ -282,7 +282,7 @@ ColumnLayout {
                             Text {
                                 anchors.verticalCenter: parent.verticalCenter
                                 visible: password.text === ""
-                                text: "Password"
+                                text: Tr.t("Password")
                                 font: password.font
                                 color: Theme.textMuted
                             }
@@ -290,7 +290,7 @@ ColumnLayout {
                     }
 
                     PillButton {
-                        text: "Connect"
+                        text: Tr.t("Connect")
                         active: true
                         onClicked: {
                             NetworkService.connect(entry.modelData.ssid, password.text)
