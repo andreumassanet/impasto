@@ -58,7 +58,7 @@ Card {
             anchors.right: parent.right
             anchors.top: parent.top
             anchors.topMargin: 3
-            text: "Tasks"
+            text: Tr.t("Tasks")
             font.family: Theme.fontFamily
             font.pixelSize: Theme.fontSizeSmall
             font.weight: Font.DemiBold
@@ -82,7 +82,7 @@ Card {
             Text {
                 width: parent.width
                 text: root.pending === 0
-                    ? (TasksService.count === 0 ? "nothing yet" : "all done")
+                    ? (TasksService.count === 0 ? Tr.t("nothing yet") : Tr.t("all done"))
                     : TasksService.summary
                 elide: Text.ElideRight
                 font.family: Theme.fontFamily
@@ -132,7 +132,7 @@ Card {
                 spacing: 1
 
                 Text {
-                    text: "Tasks"
+                    text: Tr.t("Tasks")
                     font.family: Theme.fontFamily
                     font.pixelSize: Theme.fontSizeSmall
                     font.weight: Font.DemiBold
@@ -142,8 +142,8 @@ Card {
                 Text {
                     Layout.fillWidth: true
                     text: root.pending === 0
-                        ? (TasksService.count === 0 ? "Nothing on the board" : "All done")
-                        : `${root.pending} to do · ${TasksService.summary}`
+                        ? (TasksService.count === 0 ? Tr.t("Nothing on the board") : Tr.t("All done"))
+                        : Tr.t("%1 to do · %2").arg(root.pending).arg(TasksService.summary)
                     elide: Text.ElideRight
                     font.family: Theme.fontFamily
                     font.pixelSize: Theme.fontSizeLabel
@@ -152,7 +152,7 @@ Card {
             }
 
             PillButton {
-                text: "Open"
+                text: Tr.t("Open")
                 implicitHeight: 26
                 onClicked: root.openOn("")
             }

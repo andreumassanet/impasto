@@ -18,13 +18,13 @@ import "../../../components"
 Instrument {
     id: face
 
-    line: !CodexService.available ? "No usage found"
-        : CodexService.fullest ? `${CodexService.figure} of the ${CodexService.fullestName}`
-        : "Nothing to read until Codex runs"
+    line: !CodexService.available ? Tr.t("No usage found")
+        : CodexService.fullest ? Tr.t("%1 of the %2").arg(CodexService.figure).arg(CodexService.fullestName)
+        : Tr.t("Nothing to read until Codex runs")
     reading: CodexService.figure
-    note: !CodexService.available ? "no usage found"
+    note: !CodexService.available ? Tr.t("no usage found")
         : CodexService.fullest ? CodexService.windowLine(CodexService.fullest)
-        : "until Codex runs again"
+        : Tr.t("until Codex runs again")
     filled: true
 
     Gauge {

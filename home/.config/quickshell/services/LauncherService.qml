@@ -30,29 +30,29 @@ QtObject {
     // (`SettingsService.launcherPrefixDefaults`).
     readonly property var modes: [
         { id: "calculate", prefix: SettingsService.launcherPrefix("calculate"),
-          label: "Calculate", icon: "󰃬",
-          hint: "Work something out",  empty: "An expression — 12 * 34, (5 + 5) / 2" },
+          label: Tr.t("Calculate"), icon: "󰃬",
+          hint: Tr.t("Work something out"), empty: Tr.t("An expression — 12 * 34, (5 + 5) / 2") },
         { id: "desk",      prefix: SettingsService.launcherPrefix("desk"),
-          label: "Desk",      icon: "󰍜",
-          hint: "Open a panel or an action",
-          empty: "Nothing on the desk by that name" },
+          label: Tr.t("Desk"), icon: "󰍜",
+          hint: Tr.t("Open a panel or an action"),
+          empty: Tr.t("Nothing on the desk by that name") },
         { id: "windows",   prefix: SettingsService.launcherPrefix("windows"),
-          label: "Windows",   icon: "󰖯",
-          hint: "Find an open window", empty: "No window by that name is open" },
+          label: Tr.t("Windows"), icon: "󰖯",
+          hint: Tr.t("Find an open window"), empty: Tr.t("No window by that name is open") },
         { id: "timer",     prefix: SettingsService.launcherPrefix("timer"),
-          label: "Timer",     icon: "󰔟",
-          hint: "Start a countdown",   empty: "A duration — 25m, 90s, 1:30" },
+          label: Tr.t("Timer"), icon: "󰔟",
+          hint: Tr.t("Start a countdown"), empty: Tr.t("A duration — 25m, 90s, 1:30") },
         { id: "clipboard", prefix: SettingsService.launcherPrefix("clipboard"),
-          label: "Clipboard", icon: "󰅍",
-          hint: "Copy something again",
+          label: Tr.t("Clipboard"), icon: "󰅍",
+          hint: Tr.t("Copy something again"),
           empty: ClipboardService.entries.length === 0
-              ? "Nothing has been copied yet" : "Nothing copied says that" },
+              ? Tr.t("Nothing has been copied yet") : Tr.t("Nothing copied says that") },
         { id: "emoji",     prefix: SettingsService.launcherPrefix("emoji"),
-          label: "Emoji",     icon: "󰇲",
-          hint: "Copy an emoji",       empty: "No emoji by that name" },
-        { id: "apps",      prefix: "",  label: "Apps",      icon: "󰀻",
-          hint: "Search applications",
-          empty: `No application matches. Type ${SettingsService.launcherPrefix("desk")} for what the shell itself can do.` }
+          label: Tr.t("Emoji"), icon: "󰇲",
+          hint: Tr.t("Copy an emoji"), empty: Tr.t("No emoji by that name") },
+        { id: "apps",      prefix: "",  label: Tr.t("Apps"), icon: "󰀻",
+          hint: Tr.t("Search applications"),
+          empty: Tr.t("No application matches. Type %1 for what the shell itself can do.").arg(SettingsService.launcherPrefix("desk")) }
     ]
 
     function modeFor(query: string): var {
@@ -76,6 +76,33 @@ QtObject {
     property string query: ""
 
     readonly property var results: root.search(root.query)
+
+    // ── INDEX ───────────────────────────────────────────────────────────────
+    //
+    // A phone book's A–Z down the side of the whole list: alphabetical order,
+    // nothing typed, and more applications than fit.
+    readonly property bool indexed: root.order === "alphabetical"
+        && root.query === "" && root.results.length > root.maxResults
+
+    // The letter an application files under: its first letter without an
+    // accent, or # for anything else.
+    function letterOf(name: string): string {
+        const first = (name ?? "").normalize("NFD").charAt(0).toUpperCase()
+        return first >= "A" && first <= "Z" ? first : "#"
+    }
+
+    // Each letter present, once, with the row it starts at.
+    readonly property var letters: {
+        if (!root.indexed)
+            return []
+        const out = []
+        root.results.forEach((entry, index) => {
+            const letter = root.letterOf(entry.name)
+            if (!out.some(known => known.letter === letter))
+                out.push({ letter: letter, index: index })
+        })
+        return out
+    }
 
     // Panel metrics, shared with the layout so the height math stays in sync.
     readonly property int fieldHeight: 34
@@ -234,7 +261,53 @@ QtObject {
             return root.emoji(term)
         }
 
-        return root.rank(term).slice(0, root.maxResults)
+        // A sum typed without the calculator's prefix, first. It needs a
+        // digit and an operator, so a bare number or a name is not taken for
+        // one.
+        const sum = SettingsService.launcherBareMath === true && /\d/.test(raw) && /[+\-*/%]/.test(raw)
+            ? root.calculate(raw) : []
+        // Every match: the panel caps its visible height at `maxResults`
+        // rows and the rest scrolls, as the doors' list does.
+        const applications = sum.concat(root.rank(term))
+        return SettingsService.launcherFallbacks
+            ? applications.concat(root.fallbacks(raw)) : applications
+    }
+
+    // ── FALLBACK ROWS ───────────────────────────────────────────────────────
+    //
+    // Under the applications, when `launcherFallbacks` is on: open what looks
+    // like an address, search the web, or run the text as a command, in the
+    // background or in a terminal that stays open. Each row carries its
+    // `argv`, not a function, which a model would drop on the way to a click.
+    readonly property string defaultSearchUrl: "https://www.google.com/search?q="
+
+    // Optional scheme, a dotted host, optional port and path, no spaces.
+    readonly property var addressPattern: /^(https?:\/\/)?[\w-]+(\.[\w-]+)+(:\d+)?(\/\S*)?$/
+
+    function fallbacks(text: string): var {
+        const query = text.trim()
+        if (query === "")
+            return []
+        const searchUrl = SettingsService.launcherSearchUrl || root.defaultSearchUrl
+        const searchHost = (searchUrl.match(/^https?:\/\/([^\/?#]+)/) ?? [])[1] ?? ""
+        const rows = []
+        if (root.addressPattern.test(query))
+            rows.push({ kind: "command", id: "open", icon: "󰖟",
+                        name: Tr.t("Open %1").arg(query), subtitle: Tr.t("In the browser"),
+                        argv: ["xdg-open", /^https?:\/\//.test(query) ? query : `https://${query}`] })
+        rows.push({ kind: "command", id: "web", icon: "󰜏",
+                    name: Tr.t("Search the web for “%1”").arg(query),
+                    subtitle: searchHost || Tr.t("Web search"),
+                    argv: ["xdg-open", searchUrl + encodeURIComponent(query)] })
+        rows.push({ kind: "command", id: "run", icon: "󰆍",
+                    name: Tr.t("Run %1").arg(query), subtitle: Tr.t("As a command, in the background"),
+                    argv: ["sh", "-c", query] })
+        // The command is an argument, never part of the script; `--hold`
+        // keeps the window and its output once it ends.
+        rows.push({ kind: "command", id: "terminal", icon: "󰞷",
+                    name: Tr.t("Run %1 in a terminal").arg(query), subtitle: Tr.t("Stays open at the end"),
+                    argv: ["kitty", "--hold", "sh", "-c", query] })
+        return rows
     }
 
     // All applications matching `term`, sorted by:
@@ -271,7 +344,8 @@ QtObject {
                 if (keptA >= 0 && keptB >= 0 && keptA !== keptB)
                     return keptA - keptB
             }
-            return a.name.toLowerCase() < b.name.toLowerCase() ? -1 : 1
+            // Accents and case aside, so Á files under A as the index does.
+            return a.name.localeCompare(b.name, undefined, { sensitivity: "base" })
         })
         return found
     }
@@ -284,7 +358,7 @@ QtObject {
             return []
         return [{
             kind: "calculation", id: "", icon: "󰃬",
-            name: `${value}`, subtitle: `${expression}  ·  Enter copies it`
+            name: `${value}`, subtitle: Tr.t("%1  ·  Enter copies it").arg(expression)
         }]
     }
 
@@ -355,8 +429,8 @@ QtObject {
             return []
         return [{
             kind: "timer", id: "", icon: "󰔟",
-            name: `Start a ${root.spell(milliseconds)} timer`,
-            subtitle: "Counts down on the island",
+            name: Tr.t("Start a %1 timer").arg(root.spell(milliseconds)),
+            subtitle: Tr.t("Counts down on the island"),
             milliseconds: milliseconds
         }]
     }
@@ -403,7 +477,7 @@ QtObject {
             found.push({
                 kind: "window", id: client.address, icon: "󰖯",
                 name: client.title || client.class,
-                subtitle: `${client.class}  ·  workspace ${client.workspace.id}`
+                subtitle: Tr.t("%1  ·  workspace %2").arg(client.class).arg(client.workspace.id)
             })
         }
         return found
@@ -454,6 +528,8 @@ QtObject {
             ClipboardService.copy(entry.id)
         else if (entry.kind === "emoji")
             EmojiService.copy(entry.item)
+        else if (entry.kind === "command")
+            Quickshell.execDetached(entry.argv)
         // `panel` and `mode` entries are handled by the launcher panel: the
         // service does not know about the island, and a mode row keeps the
         // launcher open.

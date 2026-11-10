@@ -32,14 +32,14 @@ RowLayout {
             return ""
         const left = root.resets * 1000 - clock.date.getTime()
         if (left <= 0)
-            return "renewed"
+            return Tr.t("renewed")
         const minutes = Math.ceil(left / 60000)
         if (minutes < 60)
             return `${minutes} min`
         if (minutes < 24 * 60)
             return `${Math.floor(minutes / 60)} h ${String(minutes % 60).padStart(2, "0")}`
         // To the nearest minute: a window ends at 16:59:59.
-        return Qt.formatDateTime(new Date(Math.round(root.resets / 60) * 60000), "ddd HH:mm")
+        return Tr.date(new Date(Math.round(root.resets / 60) * 60000), "ddd HH:mm")
     }
 
     SystemClock {
