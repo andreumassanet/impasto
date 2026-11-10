@@ -71,6 +71,7 @@ Singleton {
     readonly property alias volumeMax: config.volumeMax
     readonly property alias trayHidden: config.trayHidden
     readonly property alias notificationRules: config.notificationRules
+    readonly property alias themeTargets: config.themeTargets
     readonly property alias dockRunning: config.dockRunning
     readonly property alias dockEverywhere: config.dockEverywhere
     readonly property alias dockAutohide: config.dockAutohide
@@ -373,7 +374,7 @@ Singleton {
         "userName", "userAvatar", "language", "keyboard", "weatherPlace", "githubUser", "markets",
         "emojiTone",
         "doNotDisturb", "nightLight", "nightTemperature", "barHidden", "desktopHidden",
-        "gameMode", "powerTileProfile", "brightnessBelowFloor",
+        "gameMode", "powerTileProfile", "brightnessBelowFloor", "themeTargets",
         "cameraEnabled", "cameraEffect", "cameraReactions", "wallpaperFavourites",
         "recorderAudio", "captureShape", "captureKind", "captureScreens"
     ]
@@ -922,6 +923,10 @@ Singleton {
         // Per application, by the name it notifies as: "mute", "silent" or
         // "popup" (see `NotificationService.ruleFor`). None is the default.
         property var notificationRules: ({})
+
+        // The applications the palette is written to, by the names in
+        // `theme_manager.py` (`PALETTE_WRITERS`). Null is all of them.
+        property var themeTargets: null
 
         // Also show running applications that aren't pinned.
         property bool dockRunning: true
