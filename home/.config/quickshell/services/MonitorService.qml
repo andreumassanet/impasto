@@ -315,6 +315,8 @@ Singleton {
         const lit = root.monitors.filter(monitor => !monitor.disabled)
         if (lit.length === 0)
             return
+        const screensChanged = root.screensChanged
+        root.screensChanged = false
 
         // Back to the primary, where the bar and the widgets are.
         const home = root.effectivePrimaryName !== ""
@@ -342,8 +344,10 @@ Singleton {
                 continue
             const carrying = here.filter(row => row.windows > 0)
                 .sort((a, b) => a.id - b.id)
+            // After a reload alone only the stranded are brought forward: any
+            // other screen stays on the workspace it is on, even an empty one.
             const wanted = monitor.name === home && stranded.length > 0
-                ? stranded[0] : carrying[0]
+                ? stranded[0] : (screensChanged ? carrying[0] : undefined)
             // Two calls: `focus` with both a monitor and a workspace reports
             // ok but ignores the workspace. `focus({ workspace })` acts on the
             // focused monitor, so focus that first.
@@ -363,6 +367,11 @@ Singleton {
 
     // Set when the screens change; cleared by the next read.
     property bool disturbed: false
+
+    // Set when a screen came or went, not for a config reload alone: only then
+    // is an empty workspace on a lit screen a result of the change, rather than
+    // one the person is on.
+    property bool screensChanged: false
 
     function rescue(): void {
         root.workspaces.running = true
@@ -406,6 +415,7 @@ Singleton {
         interval: 600
         onTriggered: {
             root.disturbed = true
+            root.screensChanged = true
             root.load()
         }
     }
@@ -419,11 +429,14 @@ Singleton {
 
         function onRawEvent(event): void {
             switch (event.name) {
-            case "configreloaded":
             case "monitoradded":
             case "monitoraddedv2":
             case "monitorremoved":
             case "monitorremovedv2":
+                root.screensChanged = true
+                root.hotplug.restart()
+                break
+            case "configreloaded":
                 root.hotplug.restart()
                 break
             }

@@ -22,9 +22,9 @@ Spread {
     readonly property color tint: face.on ? face.ink.red : face.ink.muted
 
     hue: face.tint
-    reading: face.on ? TimerService.display : "Timer"
+    reading: face.on ? TimerService.display : Tr.t("Timer")
     note: face.on ? (TimerService.label !== "" ? TimerService.label
-        : (TimerService.paused ? "held" : "counting down")) : "nothing running"
+        : (TimerService.paused ? Tr.t("held") : Tr.t("counting down"))) : Tr.t("nothing running")
     filled: true
 
     Tone { id: tone; hue: face.tint }

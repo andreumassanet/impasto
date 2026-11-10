@@ -1,7 +1,7 @@
 // ╭──────────────────────────────────────────────────────────────────────────╮
 // │                                                                          │
 // │   T O P   R O W   I N S P E C T O R                                      │
-// │   the top row's card while arranging · which buttons, which side         │
+// │   the top row's card while arranging · which buttons, in what order      │
 // │                                                                          │
 // │   github.com/andreumassanet/impasto                                      │
 // │                                                                          │
@@ -15,8 +15,7 @@ import "../../../services"
 import "../../../components"
 
 // The row chosen while arranging, as a block is: every button there is,
-// ticked when it is on the row, with the side it is on (a click moves it
-// across) and arrows along that side. The settings page arranges the same
+// ticked when it is on the row, with arrows along it. The settings page arranges the same
 // row by dragging (`TopRowEditor`).
 Rectangle {
     id: root
@@ -87,11 +86,9 @@ Rectangle {
                         required property string modelData
 
                         readonly property var entry: ControlsService.topEntry(line.modelData)
-                        readonly property string side: ControlsService.sideOf(line.modelData)
-                        readonly property bool on: line.side !== ""
-                        readonly property var list: line.side === "left" ? ControlsService.topSides.left
-                            : ControlsService.topSides.right
+                        readonly property var list: ControlsService.topIds
                         readonly property int at: line.list.indexOf(line.modelData)
+                        readonly property bool on: line.at >= 0
 
                         width: parent.width
                         height: 24
@@ -135,7 +132,7 @@ Rectangle {
 
                             Text {
                                 anchors.verticalCenter: parent.verticalCenter
-                                width: line.width - 46 - (line.on ? 92 : 0)
+                                width: line.width - 46 - (line.on ? 46 : 0)
                                 text: line.entry ? Tr.t(line.entry.label) : ""
                                 elide: Text.ElideRight
                                 font.family: Theme.fontFamily
@@ -158,31 +155,6 @@ Rectangle {
                             anchors.verticalCenter: parent.verticalCenter
                             visible: line.on
                             spacing: 2
-
-                            // Which side; a click sends it to the other.
-                            Rectangle {
-                                width: 44
-                                height: 20
-                                radius: Theme.radiusSmall
-                                color: sideHover.hovered ? Theme.surfaceIn(QsWindow.window) : "transparent"
-                                border.color: Theme.hairline
-                                border.width: 1
-
-                                Text {
-                                    anchors.centerIn: parent
-                                    text: line.side === "left" ? Tr.t("Left") : Tr.t("Right")
-                                    font.family: Theme.fontFamily
-                                    font.pixelSize: Theme.fontSizeLabel
-                                    color: Theme.text
-                                }
-
-                                HoverHandler { id: sideHover }
-
-                                TapHandler {
-                                    gesturePolicy: TapHandler.ReleaseWithinBounds
-                                    onTapped: ControlsService.flipTop(line.modelData)
-                                }
-                            }
 
                             Repeater {
                                 model: [{ glyph: "󰅃", delta: -1 }, { glyph: "󰅀", delta: 1 }]
