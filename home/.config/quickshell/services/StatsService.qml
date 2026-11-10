@@ -13,6 +13,8 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 
+import "../theme"
+
 // Machine load, with a short history per rate that is recorded all the time
 // so the graphs already have data when a panel opens.
 //
@@ -41,6 +43,12 @@ Singleton {
     property var disks: []
     property real networkDown: 0
     property real networkUp: 0
+    // Bytes since the interfaces came up, and the route out: the interface
+    // the default route leaves by and its address, "" when offline.
+    property real networkReceived: 0
+    property real networkSent: 0
+    property string networkInterface: ""
+    property string networkAddress: ""
     property var temperature: null
     property int uptime: 0
 
@@ -52,16 +60,16 @@ Singleton {
 
     readonly property real memoryFraction:
         root.memoryTotal > 0 ? root.memoryUsed / root.memoryTotal : 0
-    readonly property string window: `last ${Math.round(root.historyLength * root.pollInterval / 1000 / 60)} min`
+    readonly property string window: Tr.t("last %1 min").arg(Math.round(root.historyLength * root.pollInterval / 1000 / 60))
 
     readonly property string thermalWord: {
         if (!root.temperature)
             return ""
         const celsius = root.temperature.celsius
-        if (celsius < 45) return "Cool"
-        if (celsius < 65) return "Warm"
-        if (celsius < 85) return "Hot"
-        return "Very hot"
+        if (celsius < 45) return Tr.t("Cool")
+        if (celsius < 65) return Tr.t("Warm")
+        if (celsius < 85) return Tr.t("Hot")
+        return Tr.t("Very hot")
     }
 
     readonly property real swapFraction:
@@ -123,6 +131,10 @@ Singleton {
         root.disks = data.disks ?? []
         root.networkDown = data.network.down
         root.networkUp = data.network.up
+        root.networkReceived = data.network.received ?? 0
+        root.networkSent = data.network.sent ?? 0
+        root.networkInterface = data.network.interface ?? ""
+        root.networkAddress = data.network.address ?? ""
         root.temperature = data.temperature
         root.uptime = data.uptime
 

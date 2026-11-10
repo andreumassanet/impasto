@@ -436,6 +436,21 @@ ShellRoot {
         onPressed: root.island?.toggle("keys")
     }
 
+    // The key sheet in a window, beside the island's.
+    KeysWindow {
+        id: keysWindow
+    }
+
+    GlobalShortcut {
+        name: "cheatsheetWindow"
+        description: "Open the cheatsheet in a window"
+        onPressed: {
+            if (!keysWindow.shown)
+                root.island?.close()
+            keysWindow.toggle()
+        }
+    }
+
     GlobalShortcut {
         name: "zen"
         description: "Hide or show the bar"

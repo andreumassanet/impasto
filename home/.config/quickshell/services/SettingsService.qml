@@ -40,9 +40,11 @@ Singleton {
     readonly property alias barRight: config.barRight
     readonly property alias islandSummary: config.islandSummary
     readonly property alias lyrics: config.lyrics
+    readonly property alias mediaCover: config.mediaCover
     readonly property alias islandActivities: config.islandActivities
     readonly property alias chipShape: config.chipShape
     readonly property alias chipFigure: config.chipFigure
+    readonly property alias chipHover: config.chipHover
     readonly property alias desktopWidgets: config.desktopWidgets
     readonly property alias desktopTheme: config.desktopTheme
     readonly property alias desktopOpacity: config.desktopOpacity
@@ -67,11 +69,15 @@ Singleton {
     readonly property alias dockAutohide: config.dockAutohide
     readonly property alias dockLauncher: config.dockLauncher
     readonly property alias weatherPlace: config.weatherPlace
+    readonly property alias weatherIcons: config.weatherIcons
+    readonly property alias wallpaperFavourites: config.wallpaperFavourites
     readonly property alias githubUser: config.githubUser
     readonly property alias markets: config.markets
     readonly property alias petStyle: config.petStyle
     readonly property alias launcherResults: config.launcherResults
     readonly property alias launcherOrder: config.launcherOrder
+    readonly property alias launcherFallbacks: config.launcherFallbacks
+    readonly property alias launcherSearchUrl: config.launcherSearchUrl
     readonly property alias launcherFits: config.launcherFits
     readonly property alias emojiTone: config.emojiTone
     readonly property alias cameraEnabled: config.cameraEnabled
@@ -89,9 +95,14 @@ Singleton {
     readonly property alias userAvatar: config.userAvatar
     readonly property alias doNotDisturb: config.doNotDisturb
     readonly property alias recorderAudio: config.recorderAudio
+    readonly property alias captureNames: config.captureNames
+    // What a saved capture's name has after its time.
+    readonly property string captureSuffix: root.captureNames === "time" ? "" : "_impasto"
     readonly property alias captureShape: config.captureShape
     readonly property alias captureKind: config.captureKind
-    readonly property alias captureScreens: config.captureScreens
+    readonly property alias controlsClock: config.controlsClock
+    readonly property alias controlsBattery: config.controlsBattery
+    readonly property alias tileMenuOnLabel: config.tileMenuOnLabel
     readonly property alias notesHandwriting: config.notesHandwriting
     readonly property alias deckOnEmpty: config.deckOnEmpty
     readonly property alias spectrumOnEmpty: config.spectrumOnEmpty
@@ -99,6 +110,7 @@ Singleton {
     readonly property alias workspaceMax: config.workspaceMax
     readonly property alias workspaceMode: config.workspaceMode
     readonly property alias workspaceStyle: config.workspaceStyle
+    readonly property alias workspaceApps: config.workspaceApps
     readonly property alias motionScale: config.motionScale
     readonly property alias motionCurve: config.motionCurve
     readonly property alias animationPreset: config.animationPreset
@@ -126,6 +138,7 @@ Singleton {
     readonly property alias nightLight: config.nightLight
     readonly property alias nightTemperature: config.nightTemperature
     readonly property alias powerTileProfile: config.powerTileProfile
+    readonly property alias brightnessBelowFloor: config.brightnessBelowFloor
     readonly property alias lidPolicy: config.lidPolicy
     readonly property alias idleLock: config.idleLock
     readonly property alias idleScreen: config.idleScreen
@@ -312,6 +325,13 @@ Singleton {
         { id: "on",    label: "Always",   note: "The figure always beside it" }
     ]
 
+    // What resting the pointer on a piece does while its figure is "On hover":
+    // the piece widens, or a small card drops from the bar under it.
+    readonly property var chipHovers: [
+        { id: "widen", label: "Inline", note: "The figure opens beside the piece" },
+        { id: "card", label: "Pill", note: "A small pill drops from the bar under the piece" }
+    ]
+
     // No writes until the file has been read: `onAdapterUpdated` writes the
     // whole adapter, so an early `set` would overwrite every stored preference
     // with defaults. A second shell instance sharing the file makes the race
@@ -345,9 +365,9 @@ Singleton {
         "userName", "userAvatar", "language", "keyboard", "weatherPlace", "githubUser", "markets",
         "emojiTone",
         "doNotDisturb", "nightLight", "nightTemperature", "barHidden", "desktopHidden",
-        "gameMode", "powerTileProfile",
-        "cameraEnabled", "cameraEffect", "cameraReactions",
-        "recorderAudio", "captureShape", "captureKind", "captureScreens"
+        "gameMode", "powerTileProfile", "brightnessBelowFloor",
+        "cameraEnabled", "cameraEffect", "cameraReactions", "wallpaperFavourites",
+        "recorderAudio", "captureShape", "captureKind"
     ]
 
     // A Store never read from disk: its initialisers are the defaults.
@@ -584,6 +604,9 @@ Singleton {
         // something on screen shows them.
         property bool lyrics: true
 
+        // The cover's shape everywhere: "rectangle" or "circle".
+        property string mediaCover: "rectangle"
+
         // Null means `besideDefaults`.
         property var islandActivities: null
         // The choices there were when that list was kept, so one added since
@@ -593,12 +616,19 @@ Singleton {
         // One of `chipShapes` and one of `chipFigures`.
         property string chipShape: "icon"
         property string chipFigure: "on"
+        // One of `chipHovers`.
+        property string chipHover: "widen"
 
         property int launcherResults: 9
 
         // Order with an empty query: `recent` ranks by launch count with
         // decay; otherwise alphabetical.
         property string launcherOrder: "recent"
+        // Rows under the applications that open the text as an address,
+        // search the web for it, or run it as a command.
+        property bool launcherFallbacks: false
+        // The web search row opens this followed by the text, URL-encoded.
+        property string launcherSearchUrl: "https://www.google.com/search?q="
 
         // Fit the island to the number of results instead of a fixed-height
         // list. Off by default: a list that holds still is easier to aim at.
@@ -642,8 +672,9 @@ Singleton {
         property string lockClock: "stacked"
 
         // What is playing on the lock: "lyrics" (the player and its lyrics),
-        // "player" or "off"; and behind it, the "cover" blurred or the
-        // "desktop" as without music.
+        // "player" or "off". Behind the lock: the "cover" blurred while music
+        // plays and the desktop otherwise, the "desktop" (a screenshot,
+        // blurred), or the "wallpaper", so nothing that was open shows.
         property string lockMusic: "lyrics"
         property string lockMusicGround: "cover"
 
@@ -656,6 +687,9 @@ Singleton {
         property bool doNotDisturb: false
 
         property bool recorderAudio: false
+        // Saved screenshots, recordings and photos: "impasto" names them
+        // by their time and `_impasto`, "time" by their time alone.
+        property string captureNames: "impasto"
 
         // The capture surface reopens on its last shape and kind. The
         // destination is not stored: it resets to saving a file.
@@ -664,6 +698,15 @@ Singleton {
         // "all": the capture surface opens on every screen; "focused": on the
         // one with the keyboard.
         property string captureScreens: "focused"
+
+        // The time in the middle of the control centre's top row, so it stays
+        // in view while the island is open.
+        property bool controlsClock: false
+        // The battery beside it, on a machine that has one.
+        property bool controlsBattery: false
+        // A tile with a menu: the icon toggles it and the rest of the tile
+        // opens the menu, so reaching for the menu does not switch it off.
+        property bool tileMenuOnLabel: false
 
         // Note bodies in the handwriting font instead of the UI font.
         property bool notesHandwriting: true
@@ -685,6 +728,8 @@ Singleton {
         // How the strip draws each workspace: a shape (`dots`, `bars`, `rings`)
         // or its number written out (`numbers`, `roman`, `kanji`, `greek`).
         property string workspaceStyle: "dots"
+        // The focused workspace's applications after its mark, in any style.
+        property bool workspaceApps: false
 
         // Percentage. 100 is the designed speed; 0 disables animation.
         property int motionScale: 100
@@ -789,9 +834,9 @@ Singleton {
         // `ControlsService.doors`; read only as that row's default.
         property var centreButtons: null
 
-        // The top row: `{ left, right }`, session action and door ids in
-        // order. Null is the session's actions left and the doors above
-        // right; two empty sides are no row at all.
+        // The top row's buttons: `{ left, right }`, session action and door
+        // ids, read as one list, left first. Null is the session's actions
+        // and the doors above.
         property var centreTop: null
 
         // The grid's columns and rows; 0 is the default the default layout
@@ -858,6 +903,11 @@ Singleton {
         // Anything wttr.in accepts: a city, postcode or airport code. Empty
         // lets wttr.in geolocate by IP, which can be tens of kilometres off.
         property string weatherPlace: ""
+        // The weather's icons: "glyph", the theme's, coloured by the
+        // palette, or "colour", Breeze's full-colour ones.
+        property string weatherIcons: "glyph"
+        // The wallpapers kept on the picker's favourites page, by path.
+        property var wallpaperFavourites: []
 
         // GitHub user for the contributions widget; empty draws nothing.
         property string githubUser: ""
@@ -885,6 +935,10 @@ Singleton {
         // one picked that is not balanced. Saver first, the one a laptop
         // leaves the house in.
         property string powerTileProfile: "power-saver"
+
+        // Past the backlight's floor the picture dims further, through the
+        // gamma (`BrightnessService`, `SunsetService`).
+        property bool brightnessBelowFloor: false
 
         // Closing the lid with another screen connected: `off` disables the
         // panel and moves its workspaces, `keep` leaves it on, `system`

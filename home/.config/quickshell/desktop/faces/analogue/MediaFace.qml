@@ -23,12 +23,12 @@ Instrument {
     readonly property bool something: MediaService.available
 
     line: MediaService.title !== "" ? MediaService.title
-        : (face.something ? MediaService.identity : "Nothing playing")
+        : (face.something ? MediaService.identity : Tr.t("Nothing playing"))
     reading: MediaService.title !== "" ? MediaService.title
-        : (face.something ? MediaService.identity : "Nothing playing")
+        : (face.something ? MediaService.identity : Tr.t("Nothing playing"))
     note: face.something
-        ? `${MediaService.artist !== "" ? MediaService.artist + " · " : ""}${MediaService.playing ? "playing" : "paused"}`
-        : "no player on the bus"
+        ? `${MediaService.artist !== "" ? MediaService.artist + " · " : ""}${MediaService.playing ? Tr.t("playing") : Tr.t("paused")}`
+        : Tr.t("no player on the bus")
     filled: true
 
     Record {

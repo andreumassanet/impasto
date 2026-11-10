@@ -222,6 +222,11 @@ def photos(quietly):
     return Path.home() / "Camera"
 
 
+def suffix():
+    """What follows the time in a saved photo's name; see capture.py."""
+    return os.environ.get("IMPASTO_CAPTURE_SUFFIX", "_impasto")
+
+
 def snap():
     """Ask the running `run` for its next frame, mirrored, then keep it in the
     camera's folder and copy it, as a capture does."""
@@ -243,7 +248,7 @@ def snap():
     folder = photos(quietly)
     try:
         folder.mkdir(parents=True, exist_ok=True)
-        saved = folder / f"{stamp}_impasto.png"
+        saved = folder / f"{stamp}{suffix()}.png"
         shutil.move(str(taken), saved)
     except OSError as error:
         taken.unlink(missing_ok=True)
