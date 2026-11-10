@@ -14,6 +14,8 @@ import Quickshell
 import Quickshell.Hyprland
 import Quickshell.Io
 
+import "../theme"
+
 // Lists the bundled wallpapers and the animated ones, and applies them. Emits
 // `applied` instead of calling ThemeService, so the dependency only runs one
 // way.
@@ -30,7 +32,8 @@ QtObject {
     readonly property string script: Quickshell.shellPath("scripts/theme_manager.py")
 
     property var wallpapers: []
-    // `{ name, path, poster }`, from the `animated` folder beside the stills.
+    // `{ name, path, poster, folder }`: every video in the collection, as
+    // `wallpapers` is every picture, `folder` relative to it ("" at the top).
     property var animated: []
     property string currentWallpaper: ""
     property string currentMotion: ""
@@ -44,6 +47,78 @@ QtObject {
 
     function isMotion(path: string): bool {
         return root.motionExtensions.test(path)
+    }
+
+    // The pictures and the videos together, as they sit in the collection's
+    // folders: what the picker browses.
+    readonly property var collection: root.wallpapers.concat(root.animated)
+        .map(entry => ({ entry: entry, key: `${entry.folder ?? ""}/${entry.path.split("/").pop()}` }))
+        .sort((a, b) => a.key < b.key ? -1 : a.key > b.key ? 1 : 0)
+        .map(pair => pair.entry)
+
+    // ── FAVOURITES ──────────────────────────────────────────────────────────
+    //
+    // Paths, in the order they were kept; one no longer in the collection is
+    // left out of the list but kept, so a folder renamed back finds it again.
+
+    readonly property var favourites: (SettingsService.wallpaperFavourites ?? [])
+        .map(path => root.collection.find(entry => entry.path === path))
+        .filter(entry => entry !== undefined)
+
+    function isFavourite(path: string): bool {
+        return path !== "" && (SettingsService.wallpaperFavourites ?? []).indexOf(path) >= 0
+    }
+
+    function toggleFavourite(path: string): void {
+        const kept = Array.from(SettingsService.wallpaperFavourites ?? [])
+        const at = kept.indexOf(path)
+        if (at >= 0)
+            kept.splice(at, 1)
+        else
+            kept.push(path)
+        SettingsService.set("wallpaperFavourites", kept)
+    }
+
+    // ── FOLDERS ─────────────────────────────────────────────────────────────
+    //
+    // The picker browses the collection by folder: what one folder of a list
+    // shows is a tile back up, unless it is the top, a tile per folder
+    // inside it that holds anything of the list, and then its own entries.
+
+    function parentOf(folder: string): string {
+        const cut = folder.lastIndexOf("/")
+        return cut < 0 ? "" : folder.slice(0, cut)
+    }
+
+    function viewOf(list: var, folder: string): var {
+        const prefix = folder === "" ? "" : `${folder}/`
+        const folders = []
+        const byPath = ({})
+        const files = []
+        for (const entry of list) {
+            const own = entry.folder ?? ""
+            if (own === folder) {
+                files.push(entry)
+                continue
+            }
+            if (!own.startsWith(prefix))
+                continue
+            const path = prefix + own.slice(prefix.length).split("/")[0]
+            if (!byPath[path]) {
+                byPath[path] = { kind: "folder", name: path.slice(prefix.length), folder: path,
+                                 picture: entry.poster ?? entry.path, count: 0 }
+                folders.push(byPath[path])
+            }
+            byPath[path].count += 1
+        }
+        const up = folder === "" ? [] : [{ kind: "up", folder: root.parentOf(folder) }]
+        return up.concat(folders, files)
+    }
+
+    // The folder what is applied sits in, for opening the picker there.
+    function folderOfChosen(list: var): string {
+        const entry = list.find(candidate => candidate.path === root.chosen)
+        return entry ? (entry.folder ?? "") : ""
     }
 
     readonly property Process scanProcess: Process {
@@ -102,7 +177,7 @@ QtObject {
             } else {
                 console.warn("Could not apply wallpaper:", root.asked)
                 // the warning alone only reaches the log
-                OsdService.requested("󰀦", "Could not apply wallpaper", -1)
+                OsdService.requested("󰀦", Tr.t("Could not apply wallpaper"), -1)
                 // `apply` named it already: read back what is really up
                 root.asked = ""
                 root.currentProcess.running = true

@@ -36,13 +36,13 @@ Item {
             title: BluetoothService.summary
             subtitle: {
                 if (!BluetoothService.enabled)
-                    return "Adapter off"
+                    return Tr.t("Adapter off")
                 const count = BluetoothService.connectedDevices.length
                 if (count === 0)
-                    return "On · nothing connected"
+                    return Tr.t("On · nothing connected")
                 return count === 1
-                    ? "On · 1 device connected"
-                    : `On · ${count} devices connected`
+                    ? Tr.t("On · 1 device connected")
+                    : Tr.t("On · %1 devices connected").arg(count)
             }
 
             mark: RingIndicator {
@@ -67,7 +67,7 @@ Item {
 
                 Text {
                     Layout.fillWidth: true
-                    text: "Bluetooth"
+                    text: Tr.t("Bluetooth")
                     font.family: Theme.fontFamily
                     font.pixelSize: Theme.fontSizeSmall
                     color: Theme.textMuted
@@ -80,13 +80,14 @@ Item {
             }
 
             CardFact {
-                name: "Devices"
-                value: `${BluetoothService.connectedDevices.length} connected`
+                name: Tr.t("Devices")
+                value: BluetoothService.connectedDevices.length === 1 ? Tr.t("1 connected")
+                    : Tr.t("%1 connected").arg(BluetoothService.connectedDevices.length)
             }
 
             CardFact {
-                name: "Pairing"
-                value: "in the control centre"
+                name: Tr.t("Pairing")
+                value: Tr.t("in the control centre")
             }
         }
     }

@@ -31,7 +31,7 @@ Card {
             spacing: 8
 
             Text {
-                text: "Notifications"
+                text: Tr.t("Notifications")
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.fontSizeMedium
                 font.weight: Font.DemiBold
@@ -60,7 +60,7 @@ Card {
 
             Text {
                 visible: NotificationService.history.length > 0
-                text: "Clear"
+                text: Tr.t("Clear")
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.fontSizeSmall
                 color: clearMouse.containsMouse ? Theme.accent : Theme.textMuted
@@ -84,7 +84,7 @@ Card {
             visible: NotificationService.history.length === 0
             horizontalAlignment: Text.AlignHCenter
             verticalAlignment: Text.AlignVCenter
-            text: "Nothing new"
+            text: Tr.t("Nothing new")
             font.family: Theme.fontFamily
             font.pixelSize: Theme.fontSizeSmall
             color: Theme.textMuted

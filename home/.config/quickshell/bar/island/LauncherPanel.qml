@@ -226,7 +226,7 @@ ColumnLayout {
             // Only while the field is empty; it would draw over a typed sigil.
             Text {
                 anchors.verticalCenter: parent.verticalCenter
-                text: "Search…"
+                text: Tr.t("Search…")
                 visible: searchField.text === ""
                 color: Theme.textMuted
                 font: searchField.font
@@ -373,201 +373,260 @@ ColumnLayout {
         }
     }
 
-    ListView {
-        id: resultList
-
+    Item {
         Layout.fillWidth: true
         Layout.fillHeight: true
         visible: !root.grid
-        clip: true
-        spacing: LauncherService.rowSpacing
-        model: ScriptModel {
-            values: root.grid ? [] : root.results
 
-            // Back to the top once the rows have landed, not when the list
-            // changes: a row inserted above the selection would shift it.
-            // Something is always selected, so Enter always runs a result.
-            onValuesChanged: {
-                resultList.currentIndex = 0
-                resultList.positionViewAtBeginning()
+        ListView {
+            id: resultList
+
+            anchors.fill: parent
+            anchors.rightMargin: letterStrip.visible ? letterStrip.width + 6 : 0
+            clip: true
+            spacing: LauncherService.rowSpacing
+            model: ScriptModel {
+                values: root.grid ? [] : root.results
+
+                // Back to the top once the rows have landed, not when the list
+                // changes: a row inserted above the selection would shift it.
+                // Something is always selected, so Enter always runs a result.
+                onValuesChanged: {
+                    resultList.currentIndex = 0
+                    resultList.positionViewAtBeginning()
+                }
             }
-        }
-        boundsBehavior: Flickable.StopAtBounds
-        // The delegate paints the selection itself; no separate highlight.
-        currentIndex: 0
+            boundsBehavior: Flickable.StopAtBounds
+            // The delegate paints the selection itself; no separate highlight.
+            currentIndex: 0
 
-        delegate: Rectangle {
-            id: row
+            delegate: Rectangle {
+                id: row
 
-            required property var modelData
-            required property int index
+                required property var modelData
+                required property int index
 
-            // Pointer and keyboard share one selection, so Enter always runs
-            // what is lit.
-            readonly property bool selected: ListView.view.currentIndex === row.index
+                // Pointer and keyboard share one selection, so Enter always runs
+                // what is lit.
+                readonly property bool selected: ListView.view.currentIndex === row.index
 
-            width: ListView.view.width
-            height: LauncherService.rowHeight
-            radius: Theme.radiusSmall
-            color: row.selected ? Theme.surfaceHoverIn(QsWindow.window) : "transparent"
+                width: ListView.view.width
+                height: LauncherService.rowHeight
+                radius: Theme.radiusSmall
+                color: row.selected ? Theme.surfaceHoverIn(QsWindow.window) : "transparent"
 
-            Behavior on color { ColorAnimation { duration: Theme.durationFast } }
+                Behavior on color { ColorAnimation { duration: Theme.durationFast } }
 
-            RowLayout {
-                anchors.fill: parent
-                anchors.leftMargin: 10
-                anchors.rightMargin: 12
-                spacing: 12
+                RowLayout {
+                    anchors.fill: parent
+                    anchors.leftMargin: 10
+                    anchors.rightMargin: 12
+                    spacing: 12
 
-                // Applications get their themed icon; other kinds get a glyph
-                // in a tinted disc.
-                Item {
-                    id: badge
+                    // Applications get their themed icon; other kinds get a glyph
+                    // in a tinted disc.
+                    Item {
+                        id: badge
 
-                    // Named rather than reached through `parent`, which inside
-                    // this binding is the row.
-                    readonly property bool isApp: row.modelData.kind === "app"
-                    readonly property string iconSource: badge.isApp && row.modelData.icon
-                        ? Theme.appIcon(row.modelData.icon) : ""
+                        // Named rather than reached through `parent`, which inside
+                        // this binding is the row.
+                        readonly property bool isApp: row.modelData.kind === "app"
+                        readonly property string iconSource: badge.isApp && row.modelData.icon
+                            ? Theme.appIcon(row.modelData.icon) : ""
 
-                    // Copied images show a thumbnail: two screenshots often
-                    // share a name and a size.
-                    readonly property string picture: row.modelData.picture ?? ""
+                        // Copied images show a thumbnail: two screenshots often
+                        // share a name and a size.
+                        readonly property string picture: row.modelData.picture ?? ""
 
-                    // An emoji is its own mark, drawn in colour.
-                    readonly property string glyph: row.modelData.glyph ?? ""
+                        // An emoji is its own mark, drawn in colour.
+                        readonly property string glyph: row.modelData.glyph ?? ""
 
-                    Layout.preferredWidth: 26
-                    Layout.preferredHeight: 26
-                    Layout.alignment: Qt.AlignVCenter
-
-                    Image {
-                        id: appIcon
-                        anchors.fill: parent
-                        source: badge.iconSource
-                        visible: badge.iconSource !== "" && status === Image.Ready
-                        sourceSize.width: 52
-                        sourceSize.height: 52
-                        asynchronous: true
-                    }
-
-                    // ClippingRectangle rather than `clip`, which is
-                    // rectangular and would square off the corners.
-                    ClippingRectangle {
-                        anchors.fill: parent
-                        visible: badge.picture !== "" && thumbnail.status === Image.Ready
-                        radius: width * Theme.pictureCorner
-                        color: Theme.surfaceHoverIn(QsWindow.window)
+                        Layout.preferredWidth: 26
+                        Layout.preferredHeight: 26
+                        Layout.alignment: Qt.AlignVCenter
 
                         Image {
-                            id: thumbnail
-
+                            id: appIcon
                             anchors.fill: parent
-                            source: badge.picture
-                            fillMode: Image.PreserveAspectCrop
-                            asynchronous: true
+                            source: badge.iconSource
+                            visible: badge.iconSource !== "" && status === Image.Ready
                             sourceSize.width: 52
                             sourceSize.height: 52
+                            asynchronous: true
                         }
-                    }
 
-                    Text {
-                        anchors.centerIn: parent
-                        visible: badge.glyph !== ""
-                        text: badge.glyph
-                        font.family: Theme.fontFamily
-                        font.pixelSize: 22
-                    }
+                        // ClippingRectangle rather than `clip`, which is
+                        // rectangular and would square off the corners.
+                        ClippingRectangle {
+                            anchors.fill: parent
+                            visible: badge.picture !== "" && thumbnail.status === Image.Ready
+                            radius: width * Theme.pictureCorner
+                            color: Theme.surfaceHoverIn(QsWindow.window)
 
-                    Rectangle {
-                        anchors.fill: parent
-                        visible: !appIcon.visible && badge.picture === "" && badge.glyph === ""
-                        radius: width / 2
-                        color: Theme.surfaceHoverIn(QsWindow.window)
+                            Image {
+                                id: thumbnail
+
+                                anchors.fill: parent
+                                source: badge.picture
+                                fillMode: Image.PreserveAspectCrop
+                                asynchronous: true
+                                sourceSize.width: 52
+                                sourceSize.height: 52
+                            }
+                        }
 
                         Text {
                             anchors.centerIn: parent
-                            text: badge.isApp ? "󰀻" : row.modelData.icon
+                            visible: badge.glyph !== ""
+                            text: badge.glyph
+                            font.family: Theme.fontFamily
+                            font.pixelSize: 22
+                        }
+
+                        Rectangle {
+                            anchors.fill: parent
+                            visible: !appIcon.visible && badge.picture === "" && badge.glyph === ""
+                            radius: width / 2
+                            color: Theme.surfaceHoverIn(QsWindow.window)
+
+                            Text {
+                                anchors.centerIn: parent
+                                text: badge.isApp ? "󰀻" : row.modelData.icon
+                                font.family: Theme.fontMono
+                                font.pixelSize: 14
+                                color: root.kindColour(row.modelData.kind)
+                            }
+                        }
+                    }
+
+                    ColumnLayout {
+                        Layout.fillWidth: true
+                        spacing: 1
+
+                        Text {
+                            Layout.fillWidth: true
+                            text: row.modelData.name
+                            elide: Text.ElideRight
+                            font.family: row.modelData.kind === "calculation"
+                                ? Theme.fontMono : Theme.fontFamily
+                            font.pixelSize: Theme.fontSizeRegular
+                            font.weight: row.modelData.kind === "calculation"
+                                ? Font.DemiBold : Font.Normal
+                            color: Theme.text
+                        }
+
+                        Text {
+                            Layout.fillWidth: true
+                            text: row.modelData.subtitle
+                            visible: row.modelData.subtitle !== ""
+                            elide: Text.ElideRight
+                            font.family: Theme.fontFamily
+                            font.pixelSize: Theme.fontSizeLabel
+                            color: Theme.textMuted
+                        }
+                    }
+
+                    // Marks apps kept on the dock, which is why they rank near the
+                    // top of an empty query.
+                    Text {
+                        Layout.alignment: Qt.AlignVCenter
+                        visible: row.modelData.kind === "app"
+                            && LauncherService.favourites.indexOf(row.modelData.id) >= 0
+                        text: "󱂩"
+                        font.family: Theme.fontMono
+                        font.pixelSize: 12
+                        color: Theme.textMuted
+                    }
+
+                    // A mode row shows its sigil as a keycap, so it also teaches
+                    // the shortcut. The box gives every character the same size
+                    // and centre; bare, `'` is a thin stroke at the top of its
+                    // line.
+                    Rectangle {
+                        Layout.alignment: Qt.AlignVCenter
+                        Layout.preferredWidth: 22
+                        Layout.preferredHeight: 20
+                        visible: (row.modelData.sigil ?? "") !== ""
+                        radius: Theme.radiusSmall - 2
+                        color: Theme.island
+                        border.color: Theme.borderIn(QsWindow.window)
+                        border.width: 1
+
+                        Text {
+                            anchors.centerIn: parent
+                            text: row.modelData.sigil ?? ""
                             font.family: Theme.fontMono
-                            font.pixelSize: 14
-                            color: root.kindColour(row.modelData.kind)
+                            font.pixelSize: Theme.fontSizeSmall
+                            font.weight: Font.DemiBold
+                            color: Theme.accent
                         }
                     }
                 }
 
-                ColumnLayout {
-                    Layout.fillWidth: true
-                    spacing: 1
-
-                    Text {
-                        Layout.fillWidth: true
-                        text: row.modelData.name
-                        elide: Text.ElideRight
-                        font.family: row.modelData.kind === "calculation"
-                            ? Theme.fontMono : Theme.fontFamily
-                        font.pixelSize: Theme.fontSizeRegular
-                        font.weight: row.modelData.kind === "calculation"
-                            ? Font.DemiBold : Font.Normal
-                        color: Theme.text
-                    }
-
-                    Text {
-                        Layout.fillWidth: true
-                        text: row.modelData.subtitle
-                        visible: row.modelData.subtitle !== ""
-                        elide: Text.ElideRight
-                        font.family: Theme.fontFamily
-                        font.pixelSize: Theme.fontSizeLabel
-                        color: Theme.textMuted
-                    }
-                }
-
-                // Marks apps kept on the dock, which is why they rank near the
-                // top of an empty query.
-                Text {
-                    Layout.alignment: Qt.AlignVCenter
-                    visible: row.modelData.kind === "app"
-                        && LauncherService.favourites.indexOf(row.modelData.id) >= 0
-                    text: "󱂩"
-                    font.family: Theme.fontMono
-                    font.pixelSize: 12
-                    color: Theme.textMuted
-                }
-
-                // A mode row shows its sigil as a keycap, so it also teaches
-                // the shortcut. The box gives every character the same size
-                // and centre; bare, `'` is a thin stroke at the top of its
-                // line.
-                Rectangle {
-                    Layout.alignment: Qt.AlignVCenter
-                    Layout.preferredWidth: 22
-                    Layout.preferredHeight: 20
-                    visible: (row.modelData.sigil ?? "") !== ""
-                    radius: Theme.radiusSmall - 2
-                    color: Theme.island
-                    border.color: Theme.borderIn(QsWindow.window)
-                    border.width: 1
-
-                    Text {
-                        anchors.centerIn: parent
-                        text: row.modelData.sigil ?? ""
-                        font.family: Theme.fontMono
-                        font.pixelSize: Theme.fontSizeSmall
-                        font.weight: Font.DemiBold
-                        color: Theme.accent
-                    }
+                MouseArea {
+                    id: rowMouse
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    // On movement, not hover: a row appearing under a resting
+                    // pointer would otherwise steal the selection on open.
+                    onPositionChanged: row.ListView.view.currentIndex = row.index
+                    onClicked: mouse => root.confirm(row.modelData, mouse.modifiers)
                 }
             }
+        }
 
-            MouseArea {
-                id: rowMouse
-                anchors.fill: parent
-                hoverEnabled: true
-                cursorShape: Qt.PointingHandCursor
-                // On movement, not hover: a row appearing under a resting
-                // pointer would otherwise steal the selection on open.
-                onPositionChanged: row.ListView.view.currentIndex = row.index
-                onClicked: mouse => root.confirm(row.modelData, mouse.modifiers)
+        // The phone book's A–Z, with the letter of the lit row large in
+        // the accent. A press jumps to the first application under it.
+        Column {
+            id: letterStrip
+
+            readonly property string current: resultList.currentIndex >= 0
+                && resultList.currentIndex < root.results.length
+                ? LauncherService.letterOf(root.results[resultList.currentIndex].name) : ""
+            readonly property real cell: LauncherService.letters.length > 0
+                ? Math.min(Theme.fontSizeRegular + 4, height / LauncherService.letters.length) : 0
+
+            anchors.right: parent.right
+            anchors.top: parent.top
+            anchors.bottom: parent.bottom
+            width: Theme.fontSizeRegular + 6
+            visible: LauncherService.indexed && root.mode.id === "apps"
+
+            Repeater {
+                model: LauncherService.letters
+
+                Text {
+                    id: letter
+
+                    required property var modelData
+                    readonly property bool lit: letterStrip.current === letter.modelData.letter
+
+                    width: letterStrip.width
+                    height: letterStrip.cell
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                    text: letter.modelData.letter
+                    font.family: Theme.fontFamily
+                    font.pixelSize: letter.lit ? Theme.fontSizeRegular + 2 : Theme.fontSizeLabel
+                    font.weight: letter.lit ? Font.Bold : Font.Medium
+                    color: letter.lit ? Theme.accent
+                        : press.containsMouse ? Theme.text : Theme.textMuted
+
+                    Behavior on font.pixelSize { NumberAnimation { duration: Theme.durationFast } }
+
+                    MouseArea {
+                        id: press
+
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: {
+                            resultList.currentIndex = letter.modelData.index
+                            resultList.positionViewAtIndex(letter.modelData.index, ListView.Beginning)
+                        }
+                    }
+                }
             }
         }
     }

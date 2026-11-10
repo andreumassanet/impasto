@@ -33,8 +33,8 @@ Item {
         Instrument {
             family: root.family
             ink: root.ink
-            reading: Qt.formatDateTime(dial.now, "dddd")
-            note: Qt.formatDateTime(dial.now, "d MMMM yyyy")
+            reading: Tr.date(dial.now, "dddd")
+            note: Tr.date(dial.now, "d MMMM yyyy")
 
             Dial {
                 id: dial

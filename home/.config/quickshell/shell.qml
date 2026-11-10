@@ -436,6 +436,21 @@ ShellRoot {
         onPressed: root.island?.toggle("keys")
     }
 
+    // The key sheet in a window, beside the island's.
+    KeysWindow {
+        id: keysWindow
+    }
+
+    GlobalShortcut {
+        name: "cheatsheetWindow"
+        description: "Open the cheatsheet in a window"
+        onPressed: {
+            if (!keysWindow.shown)
+                root.island?.close()
+            keysWindow.toggle()
+        }
+    }
+
     GlobalShortcut {
         name: "zen"
         description: "Hide or show the bar"
@@ -588,8 +603,17 @@ ShellRoot {
     }
 
     // Always built rather than behind a Loader: creating a layer surface at
-    // capture time flashes a black frame over the screen being captured.
-    CaptureOverlay {}
+    // capture time flashes a black frame over the screen being captured. One
+    // per screen, so every screen can take the capture.
+    Variants {
+        model: Quickshell.screens
+
+        CaptureOverlay {
+            required property var modelData
+
+            screen: modelData
+        }
+    }
 
     // Region recording, joined here to keep the two services acyclic.
     Connections {
