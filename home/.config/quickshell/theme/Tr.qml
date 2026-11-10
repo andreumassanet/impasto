@@ -732,6 +732,10 @@ QtObject {
             "Symbols": "Símbolos",
             "Flags": "Banderas",
             "Back": "Atrás",
+            "The programs the palette is written to.": "Los programas a los que se escribe la paleta.",
+            "Each program on this list gets a theme file in its own config folder when the palette changes. Turn one off to leave its files alone.":
+                "Cada programa de esta lista recibe un archivo de tema en su propia carpeta de configuración cuando cambia la paleta. Apaga uno para dejar sus archivos en paz.",
+            "Terminal greeting": "Saludo de la terminal",
             "Numbers while Super is held": "Números al mantener Super",
             "Holding Super shows each workspace's number": "Al mantener Super se ve el número de cada escritorio",
             "The style stays as it is": "El estilo se queda como está",
