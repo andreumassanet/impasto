@@ -731,6 +731,15 @@ QtObject {
             "Symbols": "Símbolos",
             "Flags": "Banderas",
             "Back": "Atrás",
+            "Screenshots": "Capturas de pantalla",
+            "The capture surface, where a region, a window or a screen is picked.":
+                "La superficie de captura, donde se elige una zona, una ventana o una pantalla.",
+            "Capture on": "Capturar en",
+            "Every screen at once: pick on whichever one you want": "Todas las pantallas a la vez: elige en la que quieras",
+            "Only the screen with the keyboard": "Solo la pantalla con el teclado",
+            "Only one screen is on": "Solo hay una pantalla encendida",
+            "Every screen": "Todas",
+            "This screen": "Esta pantalla",
             "No favourites yet. Press A on a wallpaper to keep it here.":
                 "Aún no hay favoritos. Pulsa A sobre un fondo para guardarlo aquí.",
             "%1 inside": "%1 dentro",

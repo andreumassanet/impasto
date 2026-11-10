@@ -100,6 +100,7 @@ Singleton {
     readonly property string captureSuffix: root.captureNames === "time" ? "" : "_impasto"
     readonly property alias captureShape: config.captureShape
     readonly property alias captureKind: config.captureKind
+    readonly property alias captureScreens: config.captureScreens
     readonly property alias controlsClock: config.controlsClock
     readonly property alias controlsBattery: config.controlsBattery
     readonly property alias tileMenuOnLabel: config.tileMenuOnLabel
@@ -367,7 +368,7 @@ Singleton {
         "doNotDisturb", "nightLight", "nightTemperature", "barHidden", "desktopHidden",
         "gameMode", "powerTileProfile", "brightnessBelowFloor",
         "cameraEnabled", "cameraEffect", "cameraReactions", "wallpaperFavourites",
-        "recorderAudio", "captureShape", "captureKind"
+        "recorderAudio", "captureShape", "captureKind", "captureScreens"
     ]
 
     // A Store never read from disk: its initialisers are the defaults.

@@ -496,7 +496,7 @@ SettingsSection {
 
         SettingGroup {
             title: Tr.t("Screenshots")
-            note: Tr.t("The capture surface (Super + Shift + S by default).")
+            note: Tr.t("The capture surface, where a region, a window or a screen is picked.")
 
             SettingRow {
                 label: Tr.t("Capture on")

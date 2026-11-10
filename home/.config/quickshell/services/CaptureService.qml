@@ -83,7 +83,6 @@ Singleton {
         if (root.everyScreen)
             return Quickshell.screens.map(screen => screen.name)
         const name = HyprlandService.focusedMonitor
-            || MonitorService.primaryScreen?.name
             || Quickshell.screens[0]?.name
             || ""
         return name === "" ? [] : [name]
