@@ -350,10 +350,34 @@ save_install_mode() {
     if (( DRY )) || (( ! MODE_GIVEN )); then return 0; fi
     if (( SHELL_ONLY )); then
         mkdir -p "$STATE"
+        [[ -f $STATE/install-mode ]] || quiet_palette
         printf 'shell\n' > "$STATE/install-mode"
     else
         rm -f "$STATE/install-mode"
     fi
+}
+
+# The first time a machine goes shell-only, the palette is written to none
+# of the other programs (`themeTargets`, Settings › Appearance ›
+# Applications), since their configuration is the person's; a choice already
+# made there is kept.
+quiet_palette() {
+    local settings=${XDG_STATE_HOME:-$HOME/.local/state}/quickshell/settings.json
+    python3 - "$settings" <<'PYTHON' || say "skipped  the palette's programs — settings.json could not be read"
+import json, os, sys
+path = sys.argv[1]
+try:
+    with open(path, encoding="utf-8") as handle:
+        settings = json.load(handle)
+except FileNotFoundError:
+    settings = {}
+if "themeTargets" not in settings:
+    settings["themeTargets"] = []
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path + ".tmp", "w", encoding="utf-8") as handle:
+        json.dump(settings, handle, indent=2)
+    os.replace(path + ".tmp", path)
+PYTHON
 }
 
 declare -A BEFORE=() AFTER=() LOOKED=() GONE=()
