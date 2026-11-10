@@ -22,8 +22,9 @@ import "../../components"
 // Left and Right slide, Enter applies. The wallpapers are the collection as
 // it is on disk, pictures and videos together: a folder is a tile too, Enter
 // opens it, and its first tile, or Backspace, goes back up. A video is marked
-// and plays in the middle. A marks a wallpaper as a favourite, and the
-// favourites are the page above. Up and Down move between the three pages,
+// and plays in the middle. Ctrl+D marks a wallpaper as a favourite, and the
+// favourites are the page above. Typing searches the whole collection, or the
+// favourites, by name; Escape clears the search. Up and Down move between the three pages,
 // the second shortcut opens on the palettes, and the chevrons in the footer
 // do it with the pointer.
 //
@@ -61,8 +62,16 @@ FocusScope {
     // moves, it opens in the folder of what is applied.
     property string folder: ""
     property bool browsed: false
-    readonly property var wallView: WallpaperService.viewOf(WallpaperService.collection, root.folder)
-    readonly property var favView: WallpaperService.favourites
+    // What is typed, which narrows the strip to the names that match it,
+    // best first, from every folder at once.
+    property string query: ""
+    readonly property bool searching: root.query.trim() !== ""
+    // The search shows in the footer while something is typed.
+    readonly property bool typing: root.query !== "" && !root.onPalette
+    readonly property var wallView: root.searching ? root.matching(WallpaperService.collection)
+        : WallpaperService.viewOf(WallpaperService.collection, root.folder)
+    readonly property var favView: root.searching ? root.matching(WallpaperService.favourites)
+        : WallpaperService.favourites
 
     readonly property var centredWallpaper: root.wallView[wallpapers.current] ?? null
     readonly property var centredFavourite: root.favView[favourites.current] ?? null
@@ -116,7 +125,7 @@ FocusScope {
             WallpaperService.apply(entry.path)
     }
 
-    // A, on a picture or a video: into the favourites, or out of them.
+    // Ctrl+D, on a picture or a video: into the favourites, or out of them.
     function favour(): void {
         const entry = root.onFavourites ? root.centredFavourite
             : root.onPalette ? null : root.centredWallpaper
@@ -134,6 +143,45 @@ FocusScope {
         const own = WallpaperService.folderOfChosen(list)
         return own === entry.folder || own.startsWith(`${entry.folder}/`)
     }
+
+    // Every character typed in order, as a launcher matches: runs of
+    // adjacent ones, the start of a word and an early match score higher;
+    // -1 when it does not match.
+    function fuzzyScore(name: string, query: string): int {
+        const haystack = name.toLowerCase()
+        const needle = query.toLowerCase().replace(/\s+/g, "")
+        let score = 0
+        let from = 0
+        let previous = -2
+        for (const character of needle) {
+            const found = haystack.indexOf(character, from)
+            if (found < 0)
+                return -1
+            score += found === previous + 1 ? 8 : 1
+            if (found === 0 || /[\s\-_.]/.test(haystack[found - 1]))
+                score += 4
+            previous = found
+            from = found + 1
+        }
+        return score * 100 - haystack.indexOf(needle[0] ?? "")
+    }
+
+    function matching(entries: var): var {
+        return entries
+            .map(entry => ({ entry: entry, score: root.fuzzyScore(String(entry.name ?? ""), root.query) }))
+            .filter(scored => scored.score >= 0)
+            .sort((first, second) => second.score - first.score)
+            .map(scored => scored.entry)
+    }
+
+    // The best match first; an empty search goes back to what is applied.
+    // Once the strip has its new model, which would otherwise reset it.
+    onQueryChanged: Qt.callLater(() => {
+        if (root.searching)
+            root.strip.goTo(0)
+        else
+            root.settle()
+    })
 
     // What the footer names: the centred tile, after the folder it is in.
     function labelOf(entry: var, folder: string): string {
@@ -198,44 +246,17 @@ FocusScope {
             root.strip.step(5)
         else if (event.key === Qt.Key_Backspace)
             root.leave()
-        else if (event.key === Qt.Key_A)
+        else if (event.key === Qt.Key_D && (event.modifiers & Qt.ControlModifier))
             root.favour()
-        else
+        // A character starts a search, on the wallpapers or the favourites.
+        // Escape, Tab and the rest carry a control character, not a letter.
+        else if (!root.onPalette && /^[^\x00-\x20\x7f]$/.test(event.text)
+                && !(event.modifiers & (Qt.ControlModifier | Qt.AltModifier))) {
+            search.text += event.text
+            search.forceActiveFocus()
+        } else
             return
         event.accepted = true
-    }
-
-    // Fuzzy matching, as a launcher does. Every character of the
-    // query must appear in the name in order; runs of adjacent characters,
-    // matches at a word's start and a match early in the name score higher.
-    // -1 when it does not match.
-    function fuzzyScore(name: string, query: string): int {
-        const haystack = name.toLowerCase()
-        const needle = query.toLowerCase().replace(/\s+/g, "")
-        let score = 0
-        let from = 0
-        let previous = -2
-        for (const character of needle) {
-            const found = haystack.indexOf(character, from)
-            if (found < 0)
-                return -1
-            score += found === previous + 1 ? 8 : 1
-            if (found === 0 || /[\s\-_.]/.test(haystack[found - 1]))
-                score += 4
-            previous = found
-            from = found + 1
-        }
-        return score * 100 - haystack.indexOf(needle[0] ?? "")
-    }
-
-    function matching(entries: var): var {
-        if (root.query.trim() === "")
-            return entries
-        return entries
-            .map(entry => ({ entry: entry, score: root.fuzzyScore(String(entry.name ?? ""), root.query) }))
-            .filter(scored => scored.score >= 0)
-            .sort((first, second) => second.score - first.score)
-            .map(scored => scored.entry)
     }
 
     ColumnLayout {
@@ -279,11 +300,11 @@ FocusScope {
                 x: (pages.width - width) / 2
                 y: favourites.y + (pages.height - height) / 2
                 width: pages.width - 4 * root.gap
-                visible: root.favView.length === 0
+                visible: root.favView.length === 0 && !root.searching
                 opacity: favourites.opacity
                 horizontalAlignment: Text.AlignHCenter
                 wrapMode: Text.Wrap
-                text: Tr.t("No favourites yet. Press A on a wallpaper to keep it here.")
+                text: Tr.t("No favourites yet. Press Ctrl+D on a wallpaper to keep it here.")
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.fontSizeSmall
                 color: Theme.textMuted
@@ -391,74 +412,9 @@ FocusScope {
             Layout.fillWidth: true
             spacing: root.gap
 
-            // The search, a pill on the wallpaper pages. Its
-            // placeholder is the centred entry's name.
-            Rectangle {
-                visible: !root.onPalette
-                Layout.preferredWidth: 300
-                Layout.preferredHeight: 28
-                radius: height / 2
-                color: Theme.islandSurface
-                border.color: search.activeFocus ? Theme.accent : "transparent"
-                border.width: 1
-
-                Text {
-                    x: 12
-                    anchors.verticalCenter: parent.verticalCenter
-                    text: "󰍉"
-                    font.family: Theme.fontMono
-                    font.pixelSize: Theme.fontSizeSmall
-                    color: Theme.textMuted
-                }
-
-                TextInput {
-                    id: search
-
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                    anchors.leftMargin: 32
-                    anchors.rightMargin: 12
-                    anchors.verticalCenter: parent.verticalCenter
-                    clip: true
-                    font.family: Theme.fontFamily
-                    font.pixelSize: Theme.fontSizeSmall
-                    color: Theme.text
-                    selectionColor: Theme.accent
-                    // The best match comes first; an empty query goes back to
-                    // what is applied.
-                    onTextChanged: {
-                        root.query = search.text
-                        if (search.text.trim() === "")
-                            root.settle()
-                        else
-                            root.strip.goTo(0)
-                    }
-                    Keys.onLeftPressed: root.strip.step(-1)
-                    Keys.onRightPressed: root.strip.step(1)
-                    Keys.onReturnPressed: root.apply()
-                    Keys.onEnterPressed: root.apply()
-                    Keys.onEscapePressed: event => {
-                        if (search.text === "") {
-                            event.accepted = false
-                            return
-                        }
-                        search.text = ""
-                        root.forceActiveFocus()
-                    }
-
-                    Text {
-                        anchors.fill: parent
-                        visible: search.text === ""
-                        text: root.onAnimated ? (root.centredAnimation?.name ?? "") : (root.centredWallpaper?.name ?? "")
-                        elide: Text.ElideRight
-                        font: search.font
-                        color: Theme.textMuted
-                    }
-                }
-            }
-
             Text {
                 Layout.fillWidth: true
+                visible: !root.typing
                 text: root.onPalette ? Tr.t(root.centredPalette?.badge ?? "")
                     : root.onFavourites ? root.labelOf(root.centredFavourite, "")
                     : root.labelOf(root.centredWallpaper, root.folder)
@@ -466,6 +422,68 @@ FocusScope {
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.fontSizeSmall
                 color: Theme.textMuted
+            }
+
+            // The search, once something is typed: what is typed, then the
+            // centred match and the folder it is in.
+            RowLayout {
+                Layout.fillWidth: true
+                visible: root.typing
+                spacing: 8
+
+                Text {
+                    text: "󰍉"
+                    font.family: Theme.fontMono
+                    font.pixelSize: Theme.fontSizeSmall
+                    color: Theme.accent
+                }
+
+                TextInput {
+                    id: search
+
+                    font.family: Theme.fontFamily
+                    font.pixelSize: Theme.fontSizeSmall
+                    font.weight: Font.DemiBold
+                    color: Theme.text
+                    selectionColor: Theme.accent
+                    selectedTextColor: Theme.accentText
+                    onTextChanged: {
+                        root.query = search.text
+                        // Emptied by Backspace: the keys are the strip's again.
+                        if (search.text === "")
+                            root.forceActiveFocus()
+                    }
+                    Keys.onLeftPressed: root.strip.step(-1)
+                    Keys.onRightPressed: root.strip.step(1)
+                    Keys.onReturnPressed: root.apply()
+                    Keys.onEnterPressed: root.apply()
+                    Keys.onUpPressed: root.turn(-1)
+                    Keys.onDownPressed: root.turn(1)
+                    Keys.onPressed: event => {
+                        if (event.key === Qt.Key_D && (event.modifiers & Qt.ControlModifier)) {
+                            root.favour()
+                            event.accepted = true
+                        }
+                    }
+                    // The first Escape clears the search, the next is the
+                    // island's.
+                    Keys.onEscapePressed: {
+                        search.text = ""
+                        root.forceActiveFocus()
+                    }
+                }
+
+                Text {
+                    Layout.fillWidth: true
+                    text: {
+                        const entry = root.onFavourites ? root.centredFavourite : root.centredWallpaper
+                        return entry ? `·  ${root.labelOf(entry, entry.folder ?? "")}` : `·  ${Tr.t("No match")}`
+                    }
+                    elide: Text.ElideRight
+                    font.family: Theme.fontFamily
+                    font.pixelSize: Theme.fontSizeSmall
+                    color: Theme.textMuted
+                }
             }
 
             // Position in the strip; the tile's mark already shows what is
