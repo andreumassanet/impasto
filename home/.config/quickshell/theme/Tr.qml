@@ -732,6 +732,7 @@ QtObject {
             "Symbols": "Símbolos",
             "Flags": "Banderas",
             "Back": "Atrás",
+            "No match": "Sin coincidencias",
             "The programs the palette is written to.": "Los programas a los que se escribe la paleta.",
             "Each program on this list gets a theme file in its own config folder when the palette changes. Turn one off to leave its files alone.":
                 "Cada programa de esta lista recibe un archivo de tema en su propia carpeta de configuración cuando cambia la paleta. Apaga uno para dejar sus archivos en paz.",
@@ -774,8 +775,8 @@ QtObject {
             "Only one screen is on": "Solo hay una pantalla encendida",
             "Every screen": "Todas",
             "This screen": "Esta pantalla",
-            "No favourites yet. Press A on a wallpaper to keep it here.":
-                "Aún no hay favoritos. Pulsa A sobre un fondo para guardarlo aquí.",
+            "No favourites yet. Press Ctrl+D on a wallpaper to keep it here.":
+                "Aún no hay favoritos. Pulsa Ctrl+D sobre un fondo para guardarlo aquí.",
             "%1 inside": "%1 dentro",
             "Apps": "Aplicaciones",
             "Open %1": "Abrir %1",
