@@ -170,6 +170,40 @@ SettingsSection {
         visible: root.tab === "layout"
     }
 
+    // The tray items the applications have now, to leave out of the bar.
+    SettingGroup {
+        visible: root.tab === "layout" && TrayService.all.length > 0
+        title: Tr.t("Tray")
+        note: Tr.t("The applications that are showing a tray icon.")
+
+        Repeater {
+            model: ScriptModel {
+                objectProp: "id"
+                values: TrayService.all
+            }
+
+            SettingRow {
+                id: trayRow
+
+                required property var modelData
+                readonly property bool shown: Array.from(SettingsService.trayHidden ?? [])
+                    .indexOf(trayRow.modelData.id) < 0
+
+                label: trayRow.modelData.tooltipTitle || trayRow.modelData.title || trayRow.modelData.id
+                reading: trayRow.modelData.id
+
+                ToggleSwitch {
+                    checked: trayRow.shown
+                    onToggled: checked => {
+                        const rest = Array.from(SettingsService.trayHidden ?? [])
+                            .filter(id => id !== trayRow.modelData.id)
+                        SettingsService.set("trayHidden", checked ? rest : rest.concat([trayRow.modelData.id]))
+                    }
+                }
+            }
+        }
+    }
+
     // ── WORKSPACES ──────────────────────────────────────────────────────────
 
     SettingGroup {
