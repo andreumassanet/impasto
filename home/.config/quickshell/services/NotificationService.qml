@@ -72,6 +72,11 @@ Singleton {
         }
     }
 
+    // Whether the history holds this notification, still open.
+    function isListed(notification: var): bool {
+        return root.history.some(entry => entry.live && entry.id === notification.id)
+    }
+
     function expireLater(notification: var): void {
         const timeout = root.timeoutFor(notification)
         if (timeout <= 0)
@@ -82,8 +87,18 @@ Singleton {
                 timer.destroy()
         }
         timer.triggered.connect(() => {
-            if (notification)
-                notification.expire()
+            if (notification) {
+                if (root.isListed(notification)) {
+                    // Only the popup ends. The application keeps the
+                    // notification as open, so a click in the history can still
+                    // reach it (a browser takes the user to the tab); the
+                    // history closes it when it drops the entry.
+                    if (root.current === notification)
+                        root.dismiss()
+                } else {
+                    notification.expire()
+                }
+            }
             done()
         })
         notification.closed.connect(done)
