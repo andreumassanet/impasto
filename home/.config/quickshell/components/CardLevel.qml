@@ -137,7 +137,7 @@ RowLayout {
     Text {
         Layout.preferredWidth: 36
         horizontalAlignment: Text.AlignRight
-        text: root.dimmed ? "off" : `${root.value}%`
+        text: root.dimmed ? Tr.t("off") : `${root.value}%`
         font.family: Theme.fontMono
         font.pixelSize: Theme.fontSizeSmall
         color: root.dimmed ? Theme.textMuted : Theme.text

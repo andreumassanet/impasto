@@ -20,10 +20,13 @@ without paying Python's start-up on every tick. The sampling interval is set
 here either way, not by however often the caller happens to ask.
 """
 
+import fcntl
 import glob
 import json
 import os
 import shutil
+import socket
+import struct
 import subprocess
 import sys
 import time
@@ -73,6 +76,23 @@ def network_bytes():
             received += int(fields[0])
             transmitted += int(fields[8])
     return received, transmitted
+
+
+def route():
+    """The interface the default route leaves by, and its IPv4 address."""
+    for line in read("/proc/net/route").splitlines()[1:]:
+        fields = line.split()
+        if len(fields) > 1 and fields[1] == "00000000":
+            name = fields[0]
+            try:
+                with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as probe:
+                    # SIOCGIFADDR: the address, without parsing `ip`.
+                    packed = fcntl.ioctl(probe.fileno(), 0x8915,
+                                         struct.pack("256s", name[:15].encode()))
+                return {"interface": name, "address": socket.inet_ntoa(packed[20:24])}
+            except OSError:
+                return {"interface": name, "address": ""}
+    return {"interface": "", "address": ""}
 
 
 def memory():
@@ -150,8 +170,9 @@ def counters():
 
 
 def slow_readings():
-    """The parts worth re-reading rarely: what is mounted and how hot it is."""
-    return {"disks": disks(), "temperature": temperature()}
+    """The parts worth re-reading rarely: what is mounted, how hot it is, and
+    the route out."""
+    return {"disks": disks(), "temperature": temperature(), "route": route()}
 
 
 def report(before, after, slow=None):
@@ -187,6 +208,9 @@ def report(before, after, slow=None):
         "network": {
             "down": max(0, int((second_net[0] - first_net[0]) / span)),
             "up": max(0, int((second_net[1] - first_net[1]) / span)),
+            "received": second_net[0],
+            "sent": second_net[1],
+            **slow["route"],
         },
         "temperature": slow["temperature"],
         "uptime": int(float(uptime[0])) if uptime else 0,

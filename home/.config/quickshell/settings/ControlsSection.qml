@@ -84,11 +84,54 @@ SettingsSection {
         }
     }
 
+    SettingGroup {
+        title: Tr.t("Clicks, the clock and the battery")
+        note: Tr.t("How a tile answers a click, and what the top row shows.")
+
+        SettingRow {
+            label: Tr.t("Menu on the label")
+            reading: SettingsService.tileMenuOnLabel
+                ? Tr.t("On a tile with a menu the icon toggles and the rest opens the menu")
+                : Tr.t("A tile toggles wherever it is pressed; its arrow opens the menu")
+
+            ToggleSwitch {
+                checked: SettingsService.tileMenuOnLabel
+                onToggled: checked => SettingsService.set("tileMenuOnLabel", checked)
+            }
+        }
+
+        SettingRow {
+            label: Tr.t("Time in the top row")
+            reading: Tr.t("The time on the left of the top row")
+
+            ToggleSwitch {
+                checked: SettingsService.controlsClock
+                onToggled: checked => SettingsService.set("controlsClock", checked)
+            }
+        }
+
+        SettingRow {
+            visible: BatteryService.available
+            label: Tr.t("Battery in the top row")
+            reading: Tr.t("The charge on the left of the top row, beside the time")
+
+            ToggleSwitch {
+                checked: SettingsService.controlsBattery
+                onToggled: checked => SettingsService.set("controlsBattery", checked)
+            }
+        }
+    }
+
+    SettingGroup {
+        title: Tr.t("The song tile")
+        note: Tr.t("Song sends a short fingerprint of 12 seconds of what the speakers play, a call included, to Shazam through songrec. Without songrec the tile is not listed.")
+    }
+
     // ── THE TOP ROW ─────────────────────────────────────────────────────────
 
     SettingGroup {
         title: Tr.t("The top row")
-        note: Tr.t("Small buttons over the grid, on either side. With none, there is no row.")
+        note: Tr.t("Small buttons over the grid, on the right; the time and the battery go on the left. With none of them, there is no row.")
 
         SettingBlock {
             TopRowEditor {

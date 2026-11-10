@@ -101,12 +101,12 @@ Item {
                 width: parent.width
                 height: Math.min(parent.height, 48)
                 icon: BrightnessService.icon
-                value: BrightnessService.percent
-                from: 1
+                value: BrightnessService.slider
+                from: BrightnessService.sliderMinimum
                 available: BrightnessService.available
                 // A page only when there is more than one screen to set.
                 expandable: BrightnessService.several
-                onMoved: value => BrightnessService.setPercent(value)
+                onMoved: value => BrightnessService.setSlider(value)
                 onExpandClicked: root.panelRequested("brightness")
             }
         }
@@ -200,7 +200,7 @@ Item {
             Sticky {
                 anchors.fill: parent
                 note: parent.note
-                placeholder: "No notes yet"
+                placeholder: Tr.t("No notes yet")
                 padding: root.shape.cols === 1 ? 12 : 14
                 titleSize: root.shape.rows >= 4 ? Theme.fontSizeRegular : Theme.fontSizeSmall
                 bodySize: root.shape.rows >= 4 ? 20 : 16
