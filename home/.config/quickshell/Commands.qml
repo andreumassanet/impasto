@@ -440,8 +440,8 @@ Scope {
 
         function set(percent: string): string {
             const value = parseInt(percent)
-            if (isNaN(value) || value < 0 || value > 100)
-                return root.fail("a volume from 0 to 100")
+            if (isNaN(value) || value < 0 || value > AudioService.ceiling)
+                return root.fail(`a volume from 0 to ${AudioService.ceiling}`)
             AudioService.setVolume(value)
             return root.ok({ volume: value })
         }

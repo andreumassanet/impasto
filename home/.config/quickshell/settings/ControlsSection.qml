@@ -29,6 +29,23 @@ SettingsSection {
     signal arranging()
 
     SettingGroup {
+        title: Tr.t("Sound")
+        note: Tr.t("What the volume sliders reach.")
+        hint: Tr.t("Above 100 % the sound is amplified and can distort. The sliders, the volume key and the volume command all stop at the same place.")
+
+        SettingRow {
+            label: Tr.t("Volume above 100 %")
+            reading: SettingsService.volumeMax > 100
+                ? Tr.t("The sliders go to 150 %") : Tr.t("The sliders stop at 100 %")
+
+            ToggleSwitch {
+                checked: SettingsService.volumeMax > 100
+                onToggled: checked => SettingsService.set("volumeMax", checked ? 150 : 100)
+            }
+        }
+    }
+
+    SettingGroup {
         title: Tr.t("The panel")
         note: Tr.t("A grid of the size chosen here, arranged on the panel itself.")
         hint: Tr.t("Edit shows the grid, its columns and rows under the island, and a card of every block under them. Drag a block onto the cells, pull a corner or scroll to resize it, and drop it on the card to remove it; a click on a toggles or shortcuts block chooses what it carries. Columns come and go on both sides alike, so the blocks stay centred. Escape leaves, and the right button on the panel enters or leaves without opening settings.")
