@@ -46,6 +46,7 @@ singleton ControlsService    1.0 services/ControlsService.qml
 singleton GamesService       1.0 services/GamesService.qml
 singleton NotesService       1.0 services/NotesService.qml
 singleton TasksService       1.0 services/TasksService.qml
+singleton AgendaService      1.0 services/AgendaService.qml
 singleton DeckService        1.0 services/DeckService.qml
 singleton PickerService      1.0 services/PickerService.qml
 singleton CaptureService     1.0 services/CaptureService.qml

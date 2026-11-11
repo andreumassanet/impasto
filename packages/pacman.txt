@@ -70,6 +70,8 @@ upower                       # the battery
 hyprsunset                   # the night light
 hyprpicker                   # the colour under the pointer
 pacman-contrib               # checkupdates, which counts the updates
+python-recurring-ical-events # the calendar links, repeating events included
+khal                         # calendars synced with vdirsyncer, read when set up
 hyprshutdown                 # SUPER + SHIFT + E exits through it, if installed
 
 

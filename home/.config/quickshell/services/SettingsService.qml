@@ -73,6 +73,7 @@ Singleton {
     readonly property alias trayHidden: config.trayHidden
     readonly property alias notificationRules: config.notificationRules
     readonly property alias themeTargets: config.themeTargets
+    readonly property alias calendarLinks: config.calendarLinks
     readonly property alias dockRunning: config.dockRunning
     readonly property alias dockEverywhere: config.dockEverywhere
     readonly property alias dockAutohide: config.dockAutohide
@@ -375,7 +376,7 @@ Singleton {
         "userName", "userAvatar", "language", "keyboard", "weatherPlace", "githubUser", "markets",
         "emojiTone",
         "doNotDisturb", "nightLight", "nightTemperature", "barHidden", "desktopHidden",
-        "gameMode", "powerTileProfile", "brightnessBelowFloor", "themeTargets",
+        "gameMode", "powerTileProfile", "brightnessBelowFloor", "themeTargets", "calendarLinks",
         "cameraEnabled", "cameraEffect", "cameraReactions", "wallpaperFavourites",
         "recorderAudio", "captureShape", "captureKind", "captureScreens"
     ]
@@ -932,6 +933,10 @@ Singleton {
         // The applications the palette is written to, by the names in
         // `theme_manager.py` (`PALETTE_WRITERS`). Null is all of them.
         property var themeTargets: null
+
+        // Calendars the calendar card reads, by their iCalendar address:
+        // `{ name, url }` each (`AgendaService`).
+        property var calendarLinks: []
 
         // Also show running applications that aren't pinned.
         property bool dockRunning: true
