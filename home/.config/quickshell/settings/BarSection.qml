@@ -105,6 +105,15 @@ SettingsSection {
                     onToggled: checked => SettingsService.set("barEverywhere", checked)
                 }
             }
+
+            SettingRow {
+                label: Tr.t("Hide until pointed at")
+
+                ToggleSwitch {
+                    checked: SettingsService.barAutohide
+                    onToggled: checked => SettingsService.set("barAutohide", checked)
+                }
+            }
         }
 
         SettingGroup {

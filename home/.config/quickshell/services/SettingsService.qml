@@ -34,6 +34,7 @@ Singleton {
     readonly property alias barStyle: config.barStyle
     readonly property alias barEverywhere: config.barEverywhere
     readonly property alias barHidden: config.barHidden
+    readonly property alias barAutohide: config.barAutohide
     readonly property alias screenCorners: config.screenCorners
     readonly property alias gameMode: config.gameMode
     readonly property alias barLeft: config.barLeft
@@ -342,7 +343,7 @@ Singleton {
         "displays", "lidPolicy", "workspaceMode",
         "userName", "userAvatar", "language", "keyboard", "weatherPlace", "githubUser", "markets",
         "emojiTone",
-        "doNotDisturb", "nightLight", "nightTemperature", "barHidden", "desktopHidden",
+        "doNotDisturb", "nightLight", "nightTemperature", "barHidden", "barAutohide", "desktopHidden",
         "gameMode",
         "cameraEnabled", "cameraEffect", "cameraReactions",
         "recorderAudio", "captureShape", "captureKind"
@@ -528,6 +529,9 @@ Singleton {
         // Zen: the bar off the screen and its band given to the windows; the
         // island still comes down for what it has to show.
         property bool barHidden: false
+        // Hide until pointed at: the bar waits above the screen and the top
+        // edge brings it down.
+        property bool barAutohide: false
 
         // Every screen's four corners rounded off in black.
         property bool screenCorners: false

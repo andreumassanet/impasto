@@ -236,6 +236,33 @@ PanelWindow {
     // down only for what it has to show — a panel, a notification, a
     // transient — with the sides left up there.
     readonly property bool zen: SettingsService.barHidden
+        || (root.autohide && !root.edgePeek && !root.called)
+
+    // ── AUTOHIDE ────────────────────────────────────────────────────────────
+    //
+    // With `barAutohide` the bar is in zen until the pointer reaches the top
+    // edge: a thin strip in the input mask wakes it, and it goes back up a
+    // moment after the pointer leaves. An open panel keeps it down.
+    readonly property bool autohide: SettingsService.barAutohide
+    property bool edgePeek: false
+
+    // The strip along the top edge takes input while the bar is away.
+    readonly property bool edgeArmed: root.autohide && !SettingsService.barHidden
+        && !root.called && !root.edgePeek && root.painted && !DesktopService.editing
+
+    Item {
+        anchors.fill: parent
+        z: 1000
+        HoverHandler {
+            enabled: root.autohide
+            onHoveredChanged: {
+                if (hovered) { edgeRetract.stop(); edgeReveal.restart() }
+                else         { edgeReveal.stop();  edgeRetract.restart() }
+            }
+        }
+    }
+    Timer { id: edgeReveal;  interval: 120; onTriggered: root.edgePeek = true }
+    Timer { id: edgeRetract; interval: 350; onTriggered: root.edgePeek = false }
     readonly property bool called: island.state.layer !== island.state.layerModules
         && island.state.layer !== island.state.layerSummary
     readonly property bool away: root.zen && !root.called
@@ -251,6 +278,14 @@ PanelWindow {
             x: root.shapeLeft
             width: root.inert ? 0 : root.shapeRight - root.shapeLeft
             height: root.islandTopMargin + island.height + 12
+        }
+
+        // Autohide: a thin strip along the top edge, while the bar is away.
+        Region {
+            x: 0
+            y: 0
+            width: root.edgeArmed ? root.width : 0
+            height: root.edgeArmed ? 3 : 0
         }
     }
 

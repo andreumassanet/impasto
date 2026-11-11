@@ -30,7 +30,7 @@ PanelWindow {
     implicitHeight: 1
     color: "transparent"
     // Nothing in zen, so the windows take the band.
-    exclusiveZone: SettingsService.barHidden ? 0 : Theme.barReserve
+    exclusiveZone: (SettingsService.barHidden || SettingsService.barAutohide) ? 0 : Theme.barReserve
 
     // Under everything, and deaf.
     WlrLayershell.layer: WlrLayer.Background
