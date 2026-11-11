@@ -39,6 +39,35 @@ SettingsSection {
             value: SettingsService.weatherPlace
             onEdited: value => SettingsService.set("weatherPlace", value.trim())
         }
+
+        // Offered while Breeze's icons are installed.
+        SettingRow {
+            visible: breezeProbe.status === Image.Ready
+            label: Tr.t("Icons")
+            reading: SettingsService.weatherIcons === "colour"
+                ? Tr.t("Full-colour pictures of the sky, the same in every palette")
+                : Tr.t("Glyphs in the palette's colours")
+
+            SegmentedControl {
+                options: [
+                    { id: "glyph", label: Tr.t("The theme's") },
+                    { id: "colour", label: Tr.t("In colour") }
+                ]
+                current: SettingsService.weatherIcons
+                onSelected: id => SettingsService.set("weatherIcons", id)
+            }
+
+            Image {
+                id: breezeProbe
+
+                // Takes no room beside the control.
+                width: 0
+                height: 0
+                visible: false
+                source: `file://${WeatherService.breezeIcons}/weather-clear.svg`
+                sourceSize: Qt.size(16, 16)
+            }
+        }
     }
 
     SettingGroup {
@@ -155,6 +184,46 @@ SettingsSection {
             ToggleSwitch {
                 checked: SettingsService.lyrics
                 onToggled: checked => SettingsService.set("lyrics", checked)
+            }
+        }
+    }
+
+    SettingGroup {
+        title: Tr.t("Media cover")
+        note: Tr.t("The picture of what is playing, in the control centre, the island, the media card and the lyrics.")
+
+        SettingRow {
+            label: Tr.t("Shape")
+            reading: SettingsService.mediaCover === "circle"
+                ? Tr.t("A round cover") : Tr.t("A rounded rectangle")
+
+            SegmentedControl {
+                options: [
+                    { id: "rectangle", label: Tr.t("Rectangle") },
+                    { id: "circle", label: Tr.t("Circle") }
+                ]
+                current: SettingsService.mediaCover
+                onSelected: id => SettingsService.set("mediaCover", id)
+            }
+        }
+    }
+
+    SettingGroup {
+        title: Tr.t("Captures")
+        note: Tr.t("The screenshots, recordings and camera photos the shell saves, named by the time they were taken.")
+
+        SettingRow {
+            label: Tr.t("File names")
+            reading: SettingsService.captureNames === "time"
+                ? "2026-11-08-125800.png" : "2026-11-08-125800_impasto.png"
+
+            SegmentedControl {
+                options: [
+                    { id: "impasto", label: Tr.t("Time and impasto") },
+                    { id: "time", label: Tr.t("Time alone") }
+                ]
+                current: SettingsService.captureNames
+                onSelected: id => SettingsService.set("captureNames", id)
             }
         }
     }

@@ -84,6 +84,65 @@ ColumnLayout {
                 }
             }
         }
+
+        // Only a figure that waits for the pointer has a hover to choose: the
+        // tiles stay in view, dimmed, so the choice can be found.
+        SettingTiles {
+            label: Tr.t("On hover")
+            reading: SettingsService.chipFigure !== "hover"
+                ? Tr.t("Used when the figure is set to On hover")
+                : Tr.t((SettingsService.chipHovers.find(
+                    entry => entry.id === SettingsService.chipHover) ?? { note: "" }).note)
+            enabled: SettingsService.chipFigure === "hover"
+            opacity: enabled ? 1 : 0.45
+
+            Repeater {
+                model: SettingsService.chipHovers
+
+                PreviewTile {
+                    id: hoverTile
+
+                    required property var modelData
+
+                    caption: Tr.t(hoverTile.modelData.label)
+                    selected: SettingsService.chipHover === hoverTile.modelData.id
+                    onPicked: SettingsService.set("chipHover", hoverTile.modelData.id)
+
+                    Column {
+                        anchors.centerIn: parent
+                        spacing: 4
+
+                        Sample {
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            shape: SettingsService.chipShape
+                            ids: ["volume"]
+                            // Inline: the figure opens beside the piece.
+                            reveal: hoverTile.modelData.id === "widen" ? 1 : 0
+                        }
+
+                        // Pill: the figure waits in a small pill under it.
+                        Rectangle {
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            visible: hoverTile.modelData.id === "card"
+                            width: pillText.implicitWidth + 14
+                            height: pillText.implicitHeight + 6
+                            radius: height / 2
+                            color: Theme.islandSurfaceHover
+
+                            Text {
+                                id: pillText
+
+                                anchors.centerIn: parent
+                                text: `${Tr.t("Volume")} · 40%`
+                                font.family: Theme.fontFamily
+                                font.pixelSize: Theme.fontSizeLabel
+                                color: Theme.text
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     // ── WHAT THE BAR CARRIES ────────────────────────────────────────────────

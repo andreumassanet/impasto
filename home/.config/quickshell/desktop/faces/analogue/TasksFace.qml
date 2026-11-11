@@ -24,9 +24,9 @@ Item {
 
     readonly property string count: {
         if (TasksService.pending === 0)
-            return TasksService.count === 0 ? "Nothing yet" : "All done"
+            return TasksService.count === 0 ? Tr.t("Nothing yet") : Tr.t("All done")
         const late = TasksService.overdue.length
-        return `${TasksService.pending} to do${late > 0 ? ` · ${late} late` : ""}`
+        return `${Tr.t("%1 to do").arg(TasksService.pending)}${late > 0 ? ` · ${Tr.t("%1 late").arg(late)}` : ""}`
     }
 
     Loader {
@@ -43,7 +43,7 @@ Item {
             line: root.count
             reading: `${TasksService.pending}`
             note: TasksService.pending === 0
-                ? (TasksService.count === 0 ? "nothing yet" : "all done")
+                ? (TasksService.count === 0 ? Tr.t("nothing yet") : Tr.t("all done"))
                 : TasksService.summary
             tint: TasksService.overdue.length > 0 ? Theme.red : root.ink.text
             filled: true
@@ -59,7 +59,7 @@ Item {
                 PillButton {
                     anchors.left: parent.left
                     anchors.top: parent.top
-                    text: "Open"
+                    text: Tr.t("Open")
                     implicitHeight: 28
                     onClicked: ModuleService.requestPanel("board")
                 }
@@ -76,7 +76,7 @@ Item {
                 anchors.margins: 22
                 anchors.topMargin: 30
                 ink: root.ink
-                title: `Tasks · ${root.count.toLowerCase()}`
+                title: `${Tr.t("Tasks")} · ${root.count.toLowerCase()}`
                 tasks: TasksService.queue.slice(0, 9)
             }
         }
