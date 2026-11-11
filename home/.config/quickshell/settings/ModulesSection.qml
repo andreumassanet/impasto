@@ -9,6 +9,7 @@
 
 import QtQuick
 import QtQuick.Layouts
+import Quickshell
 
 import "../theme"
 import "../services"
@@ -70,27 +71,78 @@ SettingsSection {
         }
     }
 
+    // The calendars the calendar card reads, by their iCalendar link.
     SettingGroup {
-        title: Tr.t("Agenda")
-        note: Tr.t("The next two weeks of your calendars, from khal.")
-        hint: Tr.t("khal reads the calendars you set up with vdirsyncer or a folder of .ics files; nothing here talks to a calendar server. Its [locale] must use dateformat = %Y-%m-%d and timeformat = %H:%M. Bind the agenda shortcut to open it.")
+        title: Tr.t("Calendar")
+        note: Tr.t("Calendars whose events show on the calendar, by their link.")
+        hint: Tr.t("Google: Settings › your calendar › Secret address in iCal format. Outlook: Settings › Calendar › Shared calendars › Publish a calendar, then the ICS link. The link is private: anyone who has it can read the calendar. Events are read-only here and refreshed every fifteen minutes; calendars set up in khal show too.")
 
-        SettingRow {
-            label: Tr.t("Agenda panel")
-            reading: SettingsService.agenda ? Tr.t("Available") : Tr.t("Off")
+        Repeater {
+            model: ScriptModel {
+                values: SettingsService.calendarLinks ?? []
+                objectProp: "url"
+            }
 
-            ToggleSwitch {
-                checked: SettingsService.agenda
-                onToggled: checked => SettingsService.set("agenda", checked)
+            SettingRow {
+                id: linkRow
+
+                required property var modelData
+                readonly property var report: AgendaService.links[linkRow.modelData.url] ?? null
+
+                label: linkRow.modelData.name || Tr.t("Calendar")
+                reading: !linkRow.report ? Tr.t("Reading…")
+                    : linkRow.report.ok ? Tr.t("%1 events ahead").arg(linkRow.report.count)
+                    : `${Tr.t("Could not be read")} · ${linkRow.report.error}`
+                alarm: linkRow.report !== null && !linkRow.report.ok
+
+                IconButton {
+                    icon: "󰆴"
+                    iconSize: 14
+                    implicitWidth: 30
+                    implicitHeight: 28
+                    onClicked: AgendaService.removeLink(linkRow.modelData.url)
+                }
             }
         }
 
-        SettingField {
-            label: Tr.t("khal config")
-            reading: Tr.t("A file path; empty is khal's own")
-            placeholder: "~/.config/khal/config"
-            value: SettingsService.agendaKhalConfig
-            onEdited: value => SettingsService.set("agendaKhalConfig", value.trim())
+        SettingBlock {
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 8
+
+                LinkField {
+                    id: linkName
+
+                    Layout.preferredWidth: 140
+                    placeholder: Tr.t("Name")
+                }
+
+                LinkField {
+                    id: linkUrl
+
+                    Layout.fillWidth: true
+                    placeholder: Tr.t("https://… .ics")
+                    onAccepted: linkAdd.add()
+                }
+
+                PillButton {
+                    id: linkAdd
+
+                    function add(): void {
+                        const url = linkUrl.text.trim()
+                        if (!/^(https?|webcal):\/\//.test(url))
+                            return
+                        AgendaService.addLink(linkName.text.trim() || Tr.t("Calendar"), url)
+                        linkName.text = ""
+                        linkUrl.text = ""
+                    }
+
+                    text: Tr.t("Add")
+                    icon: "󰐕"
+                    enabled: /^(https?|webcal):\/\//.test(linkUrl.text.trim())
+                    onClicked: linkAdd.add()
+                }
+            }
         }
     }
 

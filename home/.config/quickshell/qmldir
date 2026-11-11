@@ -35,7 +35,6 @@ singleton BluetoothService   1.0 services/BluetoothService.qml
 singleton ClaudeService      1.0 services/ClaudeService.qml
 singleton CodexService       1.0 services/CodexService.qml
 singleton UpdatesService     1.0 services/UpdatesService.qml
-singleton AgendaService      1.0 services/AgendaService.qml
 singleton PetService         1.0 services/PetService.qml
 singleton ModuleService      1.0 services/ModuleService.qml
 singleton ShortcutService    1.0 services/ShortcutService.qml
@@ -47,6 +46,7 @@ singleton ControlsService    1.0 services/ControlsService.qml
 singleton GamesService       1.0 services/GamesService.qml
 singleton NotesService       1.0 services/NotesService.qml
 singleton TasksService       1.0 services/TasksService.qml
+singleton AgendaService      1.0 services/AgendaService.qml
 singleton DeckService        1.0 services/DeckService.qml
 singleton PickerService      1.0 services/PickerService.qml
 singleton CaptureService     1.0 services/CaptureService.qml
@@ -150,7 +150,6 @@ AppearancePanel  1.0 bar/island/AppearancePanel.qml
 ControlsPanel    1.0 bar/island/ControlsPanel.qml
 LauncherPanel    1.0 bar/island/LauncherPanel.qml
 StatsPanel       1.0 bar/island/StatsPanel.qml
-AgendaPanel      1.0 bar/island/AgendaPanel.qml
 OverviewPanel    1.0 bar/island/OverviewPanel.qml
 
 Module           1.0 bar/modules/Module.qml

@@ -402,6 +402,10 @@ Item {
 
             readonly property date today: calendarClock.date
 
+            // Calendar events (`AgendaService`) beside the tasks, while shown.
+            Component.onCompleted: AgendaService.subscribe()
+            Component.onDestruction: AgendaService.release()
+
             // Pressing a day with tasks turns the widget into that day's list,
             // as in the control centre's month. The month returns via the arrow
             // or when the pointer leaves, so the widget never stays on a stale
@@ -510,6 +514,8 @@ Item {
                                     month.today.getMonth(), cell.modelData)) : ""
                             readonly property int tasks: cell.key !== "" ? TasksService.countOn(cell.key) : 0
                             readonly property int pending: cell.key !== "" ? TasksService.pendingOn(cell.key) : 0
+                            readonly property int events: cell.key !== "" ? AgendaService.on(cell.key).length : 0
+                            readonly property bool marked: cell.tasks > 0 || cell.events > 0
                             readonly property bool picked: cell.key !== "" && month.picked === cell.key && !cell.today
 
                             width: grid.cellWidth
@@ -528,7 +534,7 @@ Item {
 
                             Text {
                                 anchors.centerIn: parent
-                                anchors.verticalCenterOffset: cell.tasks > 0 ? -1 : 0
+                                anchors.verticalCenterOffset: cell.marked ? -1 : 0
                                 visible: cell.modelData > 0
                                 text: `${cell.modelData}`
                                 font.family: Theme.fontFamily
@@ -537,26 +543,26 @@ Item {
                                 color: cell.today ? root.ink.accentText : root.ink.text
                             }
 
-                            // A task due that day.
+                            // A task due that day, or an event.
                             Rectangle {
                                 anchors.horizontalCenter: parent.horizontalCenter
                                 anchors.bottom: parent.bottom
                                 anchors.bottomMargin: 4
-                                visible: cell.tasks > 0
+                                visible: cell.marked
                                 width: 3
                                 height: 3
                                 radius: 1.5
                                 color: cell.today ? root.ink.accentText
-                                    : (cell.pending > 0 ? root.ink.accent : root.ink.muted)
+                                    : (cell.pending > 0 || cell.events > 0 ? root.ink.accent : root.ink.muted)
                             }
 
                             HoverHandler {
-                                enabled: cell.tasks > 0
+                                enabled: cell.marked
                                 cursorShape: Qt.PointingHandCursor
                             }
 
                             TapHandler {
-                                enabled: cell.tasks > 0
+                                enabled: cell.marked
                                 gesturePolicy: TapHandler.ReleaseWithinBounds
                                 onTapped: month.picked = cell.key
                             }
@@ -570,13 +576,16 @@ Item {
                     color: root.ink.dim
                 }
 
-                // Today's tasks under the month: the count and up to two of
-                // them.
+                // Today under the month: what is still to come of its events
+                // and then its tasks, two rows at most.
                 ColumnLayout {
                     id: agenda
 
                     readonly property string day: TasksService.todayKey
                     readonly property var due: TasksService.on(agenda.day)
+                    readonly property string now: Qt.formatTime(month.today, "HH:mm")
+                    readonly property var coming: AgendaService.on(agenda.day)
+                        .filter(event => event.allDay || (event.endTime || event.time) > agenda.now)
 
                     Layout.fillWidth: true
                     spacing: 3
@@ -588,7 +597,13 @@ Item {
                                 : Tr.date(TasksService.dateOf(agenda.day), "dddd d")
                             const n = agenda.due.length
                             const left = agenda.due.filter(task => task.state !== "done").length
-                            return n === 0 ? `${name} · ${Tr.t("nothing due")}` : `${name} · ${Tr.t("%1 of %2 to do").arg(left).arg(n)}`
+                            const parts = []
+                            if (agenda.coming.length > 0)
+                                parts.push(agenda.coming.length === 1 ? Tr.t("1 event")
+                                    : Tr.t("%1 events").arg(agenda.coming.length))
+                            if (n > 0)
+                                parts.push(Tr.t("%1 of %2 to do").arg(left).arg(n))
+                            return parts.length === 0 ? `${name} · ${Tr.t("nothing due")}` : `${name} · ${parts.join(" · ")}`
                         }
                         elide: Text.ElideRight
                         font.family: Theme.fontFamily
@@ -598,8 +613,20 @@ Item {
                     }
 
                     Repeater {
+                        model: agenda.coming.slice(0, 2)
+
+                        EventLine {
+                            required property var modelData
+
+                            Layout.fillWidth: true
+                            event: modelData
+                            ink: root.ink
+                        }
+                    }
+
+                    Repeater {
                         model: ScriptModel {
-                            values: agenda.due.slice(0, 2)
+                            values: agenda.due.slice(0, Math.max(0, 2 - agenda.coming.length))
                             objectProp: "key"
                         }
 

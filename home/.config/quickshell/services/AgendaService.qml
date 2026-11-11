@@ -1,7 +1,7 @@
 // ╭──────────────────────────────────────────────────────────────────────────╮
 // │                                                                          │
 // │   A G E N D A   S E R V I C E                                            │
-// │   the next two weeks of your calendars, read from khal                   │
+// │   the calendar's events from khal, by day                                │
 // │                                                                          │
 // │   github.com/andreumassanet/impasto                                      │
 // │                                                                          │
@@ -13,59 +13,124 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 
-// The events `scripts/agenda.py` lists, read when the agenda opens and every
-// few minutes while it stays open. Nothing runs while it is closed.
+// The events of the calendars linked in Settings (`calendarLinks`) and of
+// those khal reads (`scripts/agenda.py`), for the calendar card: a dot on each day that has any, and a day's in its list.
+// Read while a card is subscribed, around the month it shows, and every
+// five minutes while it stays open; with no khal, or no calendar set up for
+// it, there are none and nothing changes.
 Singleton {
     id: root
 
-    property int watchers: 0
-    property bool configured: false
-    property bool loaded: false
-    property string error: ""
-    // Next 14 days, sorted: `{ title, calendar, location, allDay, start, end,
-    // date, time, endTime }`.
-    property var events: []
-    property real now: Date.now() / 1000
+    readonly property string script: Quickshell.shellPath("scripts/agenda.py")
 
-    readonly property string today: Qt.formatDate(new Date(root.now * 1000), "yyyy-MM-dd")
-    readonly property var upcoming: root.events.filter(event => event.end > root.now)
+    // Whether there is any calendar to read; false hides nothing, it only
+    // means there are no events.
+    property bool configured: false
+    property string error: ""
+    // How each link read, by address: `{ ok, error, count }`.
+    property var links: ({})
+    // The events by day, `yyyy-MM-dd`, each list in the order they start.
+    property var byDay: ({})
+
+    property int subscribers: 0
 
     function subscribe(): void {
-        root.watchers += 1
+        root.subscribers += 1
         root.refresh()
     }
 
     function release(): void {
-        root.watchers = Math.max(0, root.watchers - 1)
+        root.subscribers = Math.max(0, root.subscribers - 1)
     }
 
-    function refresh(): void {
-        if (!root.reader.running)
-            root.reader.running = true
+    function on(day: string): var {
+        return root.byDay[day] ?? []
     }
 
-    readonly property Timer poller: Timer {
-        interval: 300000
-        repeat: true
-        running: root.watchers > 0
-        onTriggered: root.refresh()
+    // The month a card shows; the read covers it and the months either side.
+    property date month: new Date()
+
+    function show(month: date): void {
+        const changed = month.getFullYear() !== root.month.getFullYear()
+            || month.getMonth() !== root.month.getMonth()
+        root.month = month
+        if (changed)
+            root.refresh()
     }
+
+    // `fetch` downloads every link again rather than reading its copy, as
+    // when the links have just changed.
+    function refresh(fetch: bool): void {
+        if (root.reader.running) {
+            root.again = true
+            root.againFetch = root.againFetch || fetch === true
+            return
+        }
+        const from = new Date(root.month.getFullYear(), root.month.getMonth() - 1, 1)
+        root.reader.command = [root.script, Qt.formatDate(from, "yyyy-MM-dd"), "100"]
+            .concat(fetch === true ? ["--fetch"] : [])
+        root.reader.running = true
+    }
+
+    // Read again whenever the links change.
+    readonly property Connections linkWatch: Connections {
+        target: SettingsService
+        function onCalendarLinksChanged(): void { root.refresh(true) }
+    }
+
+    function addLink(name: string, url: string): void {
+        const kept = Array.from(SettingsService.calendarLinks ?? [])
+            .filter(link => link.url !== url)
+        kept.push({ name: name, url: url })
+        SettingsService.set("calendarLinks", kept)
+    }
+
+    function removeLink(url: string): void {
+        SettingsService.set("calendarLinks",
+            Array.from(SettingsService.calendarLinks ?? []).filter(link => link.url !== url))
+    }
+
+    // A read asked for while one runs, done when it ends.
+    property bool again: false
+    property bool againFetch: false
 
     readonly property Process reader: Process {
-        command: ["python3", "-I", Quickshell.shellPath("scripts/agenda.py"), "14", SettingsService.agendaKhalConfig]
-        stdout: StdioCollector {
-            onStreamFinished: {
-                try {
-                    const answer = JSON.parse(text)
-                    root.configured = answer.configured
-                    root.error = answer.error ?? ""
-                    root.events = answer.events ?? []
-                    root.now = Date.now() / 1000
-                    root.loaded = true
-                } catch (error) {
-                    console.warn("Agenda: cannot read the answer:", error)
-                }
+        onExited: {
+            if (root.again) {
+                const fetch = root.againFetch
+                root.again = false
+                root.againFetch = false
+                root.refresh(fetch)
             }
         }
+        stdout: StdioCollector {
+            onStreamFinished: {
+                let answer = {}
+                try {
+                    answer = JSON.parse(text)
+                } catch (error) {
+                    return
+                }
+                root.configured = answer.configured === true
+                root.error = answer.error ?? ""
+                const links = {}
+                for (const link of answer.links ?? [])
+                    links[link.url] = link
+                root.links = links
+                if (root.error !== "")
+                    console.warn("Agenda:", root.error)
+                const days = {}
+                for (const event of answer.events ?? [])
+                    (days[event.day] = days[event.day] ?? []).push(event)
+                root.byDay = days
+            }
+        }
+    }
+
+    readonly property Timer poll: Timer {
+        interval: 5 * 60 * 1000
+        repeat: true
+        running: root.subscribers > 0
+        onTriggered: root.refresh()
     }
 }

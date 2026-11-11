@@ -102,7 +102,6 @@ Rectangle {
         // A program asking for root (`PolkitService`).
         auth:       { width: 460,  height: 236 },
         machines:   { width: 860,  height: 580 },
-        agenda:     { width: 460,  height: 520 },
         // A row per server, from two to six before it scrolls.
         servers:    { width: ServersService.panelWidth, height: ServersService.panelHeight },
         screentime: { width: 940,  height: 614 },
@@ -193,7 +192,6 @@ Rectangle {
         session: sessionPanel,
         auth: authPanel,
         machines: machinesPanel,
-        agenda: agendaPanel,
         servers: serversPanel,
         screentime: screenTimePanel,
         camera: cameraPanel,
@@ -208,9 +206,6 @@ Rectangle {
     })
 
     function open(panel: string): void {
-        // The agenda is a setting; off, it is not a panel.
-        if (panel === "agenda" && !SettingsService.agenda)
-            return
         // A card in the island asking for its piece's detail.
         if (panel === "media" || panel === "weather") {
             ModuleService.activate(panel)
@@ -682,11 +677,6 @@ Rectangle {
     Component {
         id: machinesPanel
         MachinesPanel { onClosed: root.close() }
-    }
-
-    Component {
-        id: agendaPanel
-        AgendaPanel { onClosed: root.close() }
     }
 
     Component {
