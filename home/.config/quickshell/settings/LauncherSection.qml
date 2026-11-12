@@ -35,6 +35,60 @@ SettingsSection {
 
     SettingGroup {
         visible: root.tab === "results"
+        title: Tr.t("Where it opens")
+        note: Tr.t("In the island, or growing from the bottom edge of the screen.")
+        hint: Tr.t("The drawer is the same launcher, sigils included, growing from the bottom edge; the grid lists every application by category. The launcher key, the bar's button and the dock's open whichever is chosen. Resting on the bottom edge and the pinned search pill belong to the drawer and the grid.")
+
+        SettingRow {
+            label: Tr.t("Design")
+            reading: SettingsService.launcherDesign === "grid"
+                ? Tr.t("A grid of applications from the bottom edge")
+                : SettingsService.launcherDesign === "drawer"
+                    ? Tr.t("The launcher from the bottom edge")
+                    : Tr.t("In the island")
+
+            SegmentedControl {
+                options: [
+                    { id: "island", label: Tr.t("Island") },
+                    { id: "drawer", label: Tr.t("Drawer") },
+                    { id: "grid", label: Tr.t("Grid") }
+                ]
+                current: SettingsService.launcherDesign
+                onSelected: id => SettingsService.set("launcherDesign", id)
+            }
+        }
+
+        SettingRow {
+            label: Tr.t("Open when resting on the edge")
+            reading: SettingsService.launcherOnHover
+                ? Tr.t("Rest on the bottom edge to open; leave without typing to close")
+                : Tr.t("Only by key")
+            locked: SettingsService.launcherDesign === "island"
+            reason: Tr.t("Needs the drawer or the grid")
+
+            ToggleSwitch {
+                checked: SettingsService.launcherOnHover
+                onToggled: checked => SettingsService.set("launcherOnHover", checked)
+            }
+        }
+
+        SettingRow {
+            label: Tr.t("Pinned search bar")
+            reading: SettingsService.launcherPinned
+                ? Tr.t("A search pill stays on the bottom edge; the windows keep clear of it")
+                : Tr.t("Out of sight until opened")
+            locked: SettingsService.launcherDesign === "island"
+            reason: Tr.t("Needs the drawer or the grid")
+
+            ToggleSwitch {
+                checked: SettingsService.launcherPinned
+                onToggled: checked => SettingsService.set("launcherPinned", checked)
+            }
+        }
+    }
+
+    SettingGroup {
+        visible: root.tab === "results"
         title: Tr.t("The list")
         note: Tr.t("What the launcher lists with nothing typed, and how tall it gets.")
         hint: Tr.t("By use ranks applications by launches, with older launches counting for less; those kept on the dock come first until something else is used more. As tall as the answer sizes the island to the results, up to the limit above; off, the box is fixed and the list scrolls.")

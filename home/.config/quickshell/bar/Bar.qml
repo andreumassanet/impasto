@@ -20,6 +20,7 @@ import "./modules"
 import "./island"
 import "./island/controls"
 import "../components"
+import "../frame"
 
 // The island in the middle and the two sides (`SettingsService.barZone`), in
 // one of three styles:
@@ -182,7 +183,8 @@ PanelWindow {
 
     // Attached (notch mode), only the island reaches the screen edge; the
     // sides stay capsules, centred on `laneY`.
-    readonly property int islandTopMargin: SettingsService.notched ? 0 : Theme.barTopMargin
+    readonly property int islandTopMargin: SettingsService.notched
+        ? 0 : SettingsService.frameTopInset + Theme.barTopMargin
 
     // How far the glass's light from the top reaches down the notch
     // (`GlassSheen`), for the fillets that carry it on.
@@ -192,7 +194,7 @@ PanelWindow {
     // reaches the screen edge, so its centre is half a margin higher and the
     // sides move up to match.
     readonly property real laneY: SettingsService.notched
-        ? Theme.barTopMargin / 2 : Theme.barTopMargin
+        ? Theme.barTopMargin / 2 : SettingsService.frameTopInset + Theme.barTopMargin
 
     readonly property int collapsedHeight: Theme.barBand
 
@@ -258,6 +260,14 @@ PanelWindow {
             x: root.shapeLeft
             width: root.inert ? 0 : root.shapeRight - root.shapeLeft
             height: root.islandTopMargin + island.height + 12
+        }
+
+        Region {
+            item: slidersButton.visible ? slidersButton : null
+        }
+
+        Region {
+            item: dockButton.visible ? dockButton : null
         }
     }
 
@@ -365,6 +375,58 @@ PanelWindow {
         anchors.fill: parent
         enabled: root.holding
         onClicked: root.dismiss()
+    }
+
+    // ── EDGE BUTTONS ────────────────────────────────────────────────────────
+    //
+    // With `edgeOpen` "click" the drawers do not wake at their edge; a button
+    // under the bar's corner on their side opens each. Under the band rather
+    // than in it, so they never cover the bar's own sides.
+    readonly property bool edgeButtons: SettingsService.edgeOpen === "click"
+        && root.live && !root.inert
+    readonly property bool slidersOnRight: SettingsService.dockEdge !== "right"
+
+    CornerButton {
+        id: slidersButton
+
+        visible: root.edgeButtons && SettingsService.slidersPlacement === "side"
+        x: root.slidersOnRight ? root.width - root.edgeMargin - width : root.edgeMargin
+        y: root.collapsedHeight + 4
+        glyph: "󰕰"
+        lit: DrawerService.slidersOpen
+        onTriggered: DrawerService.toggleSliders(root.screen.name)
+    }
+
+    CornerButton {
+        id: dockButton
+
+        visible: root.edgeButtons && SettingsService.dockStyle === "drawer" && SettingsService.dockEnabled
+        x: root.slidersOnRight ? root.edgeMargin : root.width - root.edgeMargin - width
+        y: root.collapsedHeight + 4
+        glyph: "󱂩"
+        lit: DrawerService.dockOpen
+        onTriggered: DrawerService.toggleDock(root.screen.name)
+    }
+
+    // ── FRAME ───────────────────────────────────────────────────────────────
+    //
+    // The border round the screen (`frame/`), drawn in this surface so it
+    // shares the island's ground. Not built at all while the mode is "none".
+    // "open" shows it on the live bar while the island or a drawer is out.
+    readonly property bool frameShown: SettingsService.frameMode === "always"
+        || (SettingsService.frameMode === "open" && root.live
+            && (island.expanded || DrawerService.anyFramed))
+
+    Loader {
+        anchors.fill: parent
+        active: SettingsService.frameMode !== "none"
+
+        sourceComponent: FrameRing {
+            shown: root.frameShown
+            holeLeft: root.edgeToEdge ? 0 : root.shapeLeft
+            holeRight: root.edgeToEdge ? root.width : root.shapeRight
+            holeHeight: SettingsService.notched && !Theme.solid ? SettingsService.frameThickness : 0
+        }
     }
 
     // ── THE FACE ────────────────────────────────────────────────────────────
