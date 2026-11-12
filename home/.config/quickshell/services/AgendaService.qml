@@ -95,6 +95,8 @@ Singleton {
     property bool againFetch: false
 
     readonly property Process reader: Process {
+        // The links as the shell holds them, ahead of the file's next write.
+        environment: ({ IMPASTO_CALENDAR_LINKS: JSON.stringify(SettingsService.calendarLinks ?? []) })
         onExited: {
             if (root.again) {
                 const fetch = root.againFetch

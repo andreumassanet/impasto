@@ -64,7 +64,7 @@ Item {
     readonly property string peekLabel: {
         if (root.button)
             return ""
-        const name = ModuleService.entry(root.moduleId)?.name ?? ""
+        const name = Tr.t(ModuleService.entry(root.moduleId)?.name ?? "")
         return face.value !== "" ? `${name} · ${face.value}` : name
     }
 

@@ -25,6 +25,7 @@ that config with the formats this reads; the person's file is never written.
 """
 
 import hashlib
+import http.client
 import json
 import os
 import shutil
@@ -112,10 +113,14 @@ def events(start, days, config):
 
 
 def links():
-    """`calendarLinks` from the shell's settings: `{ name, url }` each."""
+    """`calendarLinks` from the shell's settings: `{ name, url }` each. The
+    shell hands them over in the environment, ahead of the file's write."""
     try:
-        with open(SETTINGS, encoding="utf-8") as handle:
-            found = json.load(handle).get("calendarLinks")
+        if os.environ.get("IMPASTO_CALENDAR_LINKS"):
+            found = json.loads(os.environ["IMPASTO_CALENDAR_LINKS"])
+        else:
+            with open(SETTINGS, encoding="utf-8") as handle:
+                found = json.load(handle).get("calendarLinks")
     except (OSError, ValueError):
         return []
     return [link for link in found if isinstance(link, dict) and link.get("url")] \
@@ -140,7 +145,7 @@ def fetched(url, fetch):
             with open(copy + ".part", "wb") as handle:
                 handle.write(body)
             os.replace(copy + ".part", copy)
-        except (OSError, ValueError) as error:
+        except (OSError, ValueError, http.client.HTTPException) as error:
             # The last good copy still answers while the network does not.
             if not os.path.exists(copy):
                 raise RuntimeError(str(getattr(error, "reason", error)))

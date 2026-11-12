@@ -32,7 +32,7 @@ SettingsSection {
         { id: "btop", label: "btop" }, { id: "cava", label: "cava" },
         { id: "yazi", label: "yazi" }, { id: "nvim", label: "Neovim" },
         { id: "imv", label: "imv" }, { id: "gtk", label: "GTK" },
-        { id: "qt", label: "Qt and KDE" }, { id: "vesktop", label: "Vesktop" },
+        { id: "qt", label: Tr.t("Qt and KDE") }, { id: "vesktop", label: "Vesktop" },
         { id: "spotify", label: "Spotify" }, { id: "vscodium", label: "VSCodium" },
         { id: "zen", label: "Zen" }, { id: "nautilus", label: "Nautilus" }
     ]

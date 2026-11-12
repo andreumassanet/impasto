@@ -64,6 +64,7 @@ Card {
     // Reset to the current month whenever the card is rebuilt.
     Component.onCompleted: {
         root.offsetMonths = 0
+        AgendaService.show(root.shown)
         AgendaService.subscribe()
     }
     Component.onDestruction: AgendaService.release()
@@ -224,8 +225,16 @@ Card {
             contentWidth: hours.width
             contentHeight: hours.yOf(hours.last) + hours.pad
             boundsBehavior: Flickable.StopAtBounds
-            onVisibleChanged: if (hours.visible) Qt.callLater(hours.settle)
-            onTimedChanged: Qt.callLater(hours.settle)
+            onVisibleChanged: if (hours.visible) settler.restart()
+            onTimedChanged: settler.restart()
+
+            // A turn later, once laid out; a timer, unlike `Qt.callLater`,
+            // goes with the card when the panel closes.
+            Timer {
+                id: settler
+                interval: 0
+                onTriggered: hours.settle()
+            }
 
             Repeater {
                 model: Math.floor((hours.last - hours.first) / 60) + 1

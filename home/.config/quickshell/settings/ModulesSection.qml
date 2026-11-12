@@ -24,6 +24,10 @@ SettingsSection {
     // Unused: this page has no parts, but `SettingsPanel` sets it on all pages.
     property string tab: ""
 
+    // The calendar links' rows say how each read, so the page reads them.
+    Component.onCompleted: AgendaService.subscribe()
+    Component.onDestruction: AgendaService.release()
+
     SettingGroup {
         title: Tr.t("Weather")
         note: Tr.t("A city, a postcode or an airport code.")

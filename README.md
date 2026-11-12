@@ -155,7 +155,7 @@ up the login screen, the plugins and the programs around the shell. Run
 | `--skip-system` | leave `/` alone — no login screen, no printing, and no password for it |
 | `--skip-plugins` | no shake to find, no glass |
 | `--skip-extras` | leave Nautilus, VSCodium, Vesktop, Spotify, GTK, face unlock, the camera and the boot splash alone |
-| `--shell-only` | only the shell and Hyprland: `~/.config/quickshell`, `~/.config/hypr` (never its `custom/` folder), the shell's data, the wallpapers and the `impasto` command, with the packages they run. No `/`, no plugins, no extras, no other program's config, and the palette is written to none of the other programs until you choose some in Settings › Appearance. Remembered, so `update` and `sync` keep to it |
+| `--shell-only` | only the shell and Hyprland: `~/.config/quickshell`, `~/.config/hypr` (never its `custom/` folder), the shell's data, the wallpapers and the `impasto` command. The packages are the full list, and `--skip-packages` installs none. No `/`, no plugins, no extras, no other program's config, and the palette is written to none of the other programs until you choose some in Settings › Appearance. Remembered, so `update` and `sync` keep to it |
 | `--full` | everything again, and forget `--shell-only` |
 | `--aur-helper yay\|paru` | which helper builds the AUR half — built from the AUR if you have neither |
 | `--noconfirm` | take the default at every question |

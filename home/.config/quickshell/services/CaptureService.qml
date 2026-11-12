@@ -258,7 +258,7 @@ Singleton {
                         failure = photo.error ?? failure
                 }
                 if (Object.keys(taken).length === 0) {
-                    OsdService.requested(root.marks.error, failure || "Nothing was captured", -1)
+                    OsdService.requested(root.marks.error, failure || Tr.t("Nothing was captured"), -1)
                     return
                 }
                 root.photos = taken

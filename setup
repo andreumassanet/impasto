@@ -203,9 +203,10 @@ Options:
   --shell-only        install, update, sync: only the shell (~/.config/quickshell)
                       and Hyprland (~/.config/hypr, never its custom/ folder),
                       with the shell's data, the wallpapers and the impasto
-                      command, and the packages they run: no /, no plugins, no
-                      extras and no other program's config. Remembered, so
-                      update, sync and Settings keep to it
+                      command: no /, no plugins, no extras and no other
+                      program's config. The packages are the full list; add
+                      --skip-packages to install none. Remembered, so update,
+                      sync and Settings keep to it
   --full              install, update, sync: everything again, and forget
                       --shell-only
   --aur-helper NAME   yay or paru. The one installed is used, and when there
@@ -343,6 +344,7 @@ load_install_mode() {
     if [[ -f $STATE/install-mode && $(< "$STATE/install-mode") == shell ]]; then
         SHELL_ONLY=1
         say 'shell only — as this machine was installed; ./setup install --full does the rest'
+        if (( ! DRY )) && [[ -f $STATE/palette-pending ]]; then quiet_palette; fi
     fi
 }
 
@@ -350,20 +352,22 @@ save_install_mode() {
     if (( DRY )) || (( ! MODE_GIVEN )); then return 0; fi
     if (( SHELL_ONLY )); then
         mkdir -p "$STATE"
-        [[ -f $STATE/install-mode ]] || quiet_palette
+        if [[ ! -f $STATE/install-mode || -f $STATE/palette-pending ]]; then
+            quiet_palette
+        fi
         printf 'shell\n' > "$STATE/install-mode"
     else
-        rm -f "$STATE/install-mode"
+        rm -f "$STATE/install-mode" "$STATE/palette-pending"
     fi
 }
 
 # The first time a machine goes shell-only, the palette is written to none
 # of the other programs (`themeTargets`, Settings › Appearance ›
 # Applications), since their configuration is the person's; a choice already
-# made there is kept.
+# made there is kept. One that fails is tried again by the next run.
 quiet_palette() {
     local settings=${XDG_STATE_HOME:-$HOME/.local/state}/quickshell/settings.json
-    python3 - "$settings" <<'PYTHON' || say "skipped  the palette's programs — settings.json could not be read"
+    if ! python3 - "$settings" <<'PYTHON'; then
 import json, os, sys
 path = sys.argv[1]
 try:
@@ -378,6 +382,11 @@ if "themeTargets" not in settings:
         json.dump(settings, handle, indent=2)
     os.replace(path + ".tmp", path)
 PYTHON
+        touch "$STATE/palette-pending"
+        say "skipped  the palette's programs — settings.json could not be read"
+        return 0
+    fi
+    rm -f "$STATE/palette-pending"
 }
 
 declare -A BEFORE=() AFTER=() LOOKED=() GONE=()
@@ -1152,7 +1161,7 @@ verb_uninstall() {
         say 'removed  the boot splash · other boot loaders keep the splash argument, which does nothing now'
     fi
     # So an install after this one sets the extras up again, and starts whole.
-    act rm -rf "$APPLIED" "$PLUGINS_PENDING" "$STATE/install-mode"
+    act rm -rf "$APPLIED" "$PLUGINS_PENDING" "$STATE/install-mode" "$STATE/palette-pending"
     if (( KEPT )); then say "not put back, the path is taken: $KEPT, kept in $STATE/backups"; fi
 }
 
@@ -1335,7 +1344,13 @@ verb_vscodium() {
             missed=1
         fi
     done
-    act python3 "$THEME_MANAGER" apply-vscodium || refuse 'settings.json was not merged' || return
+    local status=0
+    act python3 "$THEME_MANAGER" apply-vscodium || status=$?
+    if (( status == 3 )); then
+        say 'left alone — switched off in Settings › Appearance › Applications'
+        return 0
+    fi
+    (( status == 0 )) || refuse 'settings.json was not merged' || return
     say 'settings merged — the theme lands on the next window'
     # A missed extension leaves it for the next install to try again.
     if (( ! missed )); then stamp vscodium; fi
@@ -1349,7 +1364,13 @@ verb_vesktop() {
     if pgrep -x vesktop >/dev/null; then
         refuse 'close Vesktop first: Vencord rewrites its settings while it runs' || return
     fi
-    act python3 "$THEME_MANAGER" apply-vesktop || refuse 'the theme was not ticked' || return
+    local status=0
+    act python3 "$THEME_MANAGER" apply-vesktop || status=$?
+    if (( status == 3 )); then
+        say 'left alone — switched off in Settings › Appearance › Applications'
+        return 0
+    fi
+    (( status == 0 )) || refuse 'the theme was not ticked' || return
     stamp vesktop
     say 'theme ticked'
 }
@@ -1361,7 +1382,13 @@ verb_nautilus() {
     section nautilus
     command -v nautilus >/dev/null || refuse 'nautilus is not installed' || return
     command -v gsettings >/dev/null || refuse 'gsettings is not installed (package: glib2)' || return
-    act python3 "$THEME_MANAGER" apply-nautilus || refuse 'not every setting was applied' || return
+    local status=0
+    act python3 "$THEME_MANAGER" apply-nautilus || status=$?
+    if (( status == 3 )); then
+        say 'left alone — switched off in Settings › Appearance › Applications'
+        return 0
+    fi
+    (( status == 0 )) || refuse 'not every setting was applied' || return
     if [[ $(xdg-mime query default inode/directory 2>/dev/null) == thunar.desktop ]]; then
         act xdg-mime default org.gnome.Nautilus.desktop inode/directory || refuse 'xdg-mime failed' || return
         say 'folders open in Nautilus'
@@ -1745,7 +1772,12 @@ PARTS=(
 # whether to go ahead.
 parts() {
     local -a on=(1 1 1 1)
-    local at=0 rows=5 i k name note label box pick pacman aur helper=0
+    local at=0 rows=5 i k name note label box pick pacman aur helper=0 shell=0
+    # A shell-only machine opens on its own scope; turning on any of the last
+    # three installs everything, as --full does.
+    if (( ! MODE_GIVEN )) && [[ -f $STATE/install-mode && $(< "$STATE/install-mode") == shell ]]; then
+        shell=1 on=(1 0 0 0)
+    fi
     local -a helpers=(yay paru)
     pacman=$(names "$REPO/packages/pacman.txt" | wc -l)
     aur=$(names "$REPO/packages/aur.txt" | wc -l)
@@ -1775,6 +1807,10 @@ parts() {
             line "  $(here "$i" "$at") $box  $label$FAINT$note$OFF"
         done
         line ''
+        if (( shell )); then
+            line "  ${FAINT}installed shell only · turn on any of the last three for everything$OFF"
+            line ''
+        fi
         if (( helper == 0 )); then
             pick="$ACCENT‹ yay ›$OFF   ${FAINT}paru$OFF"
         else
@@ -1801,6 +1837,9 @@ parts() {
                 SKIP_PLUGINS=$((  1 - on[2] ))
                 SKIP_EXTRAS=$((   1 - on[3] ))
                 HELPER=${helpers[helper]}
+                if (( shell && (on[1] || on[2] || on[3]) )); then
+                    SHELL_ONLY=0 MODE_GIVEN=1
+                fi
                 return 0 ;;
             quit) return 1 ;;
         esac

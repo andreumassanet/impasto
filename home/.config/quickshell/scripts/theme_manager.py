@@ -3300,11 +3300,15 @@ def target_enabled(target):
 
     `themeTargets` in the shell's settings lists the applications to write;
     without it, or when it is not a list, every one is written as before.
-    Re-read on each call: a push is rare and the setting changes live.
+    Re-read on each call: a push is rare and the setting changes live. The
+    shell hands the list over in the environment, ahead of the file's write.
     """
     try:
-        with open(SHELL_SETTINGS_FILE, encoding="utf-8") as handle:
-            targets = json.load(handle).get("themeTargets")
+        if os.environ.get("IMPASTO_THEME_TARGETS"):
+            targets = json.loads(os.environ["IMPASTO_THEME_TARGETS"])
+        else:
+            with open(SHELL_SETTINGS_FILE, encoding="utf-8") as handle:
+                targets = json.load(handle).get("themeTargets")
     except (OSError, ValueError):
         targets = None
     return not isinstance(targets, list) or target in targets
@@ -4082,6 +4086,11 @@ def set_theme(theme_id):
     save_state(state)
 
 
+# The exit status of an `apply-*` for a program switched off in
+# `themeTargets`: nothing was done, and the installer does not stamp it.
+LEFT_ALONE = 3
+
+
 # What a palette push writes, in order, by the `themeTargets` name that
 # switches it. Spotify's refresh stays last: spicetify may ask the network.
 PALETTE_WRITERS = (
@@ -4093,7 +4102,7 @@ PALETTE_WRITERS = (
     ("nvim", push_nvim_colorscheme),
     ("imv", write_imv_config),
     ("gtk", write_gtk_theme),
-    ("gtk", write_icon_theme),
+    ("nautilus", write_icon_theme),
     ("qt", write_qt_theme),
     ("vesktop", write_vesktop_css),
     ("spotify", write_spicetify_colors),
@@ -4153,14 +4162,18 @@ def main():
             push_terminal_ground(argument)
     elif action == "apply-vscodium":
         if not target_enabled("vscodium"):
-            sys.exit(0)
+            sys.exit(LEFT_ALONE)
         colors = json.loads(argument) if argument else (
             extract_colors(get_current_wallpaper()) or {})
         sys.exit(0 if write_vscodium_settings(colors) else 1)
     elif action == "apply-nautilus":
-        sys.exit(0 if not target_enabled("nautilus") or apply_nautilus() else 1)
+        if not target_enabled("nautilus"):
+            sys.exit(LEFT_ALONE)
+        sys.exit(0 if apply_nautilus() else 1)
     elif action == "apply-vesktop":
-        sys.exit(0 if not target_enabled("vesktop") or tick_vesktop_theme() else 1)
+        if not target_enabled("vesktop"):
+            sys.exit(LEFT_ALONE)
+        sys.exit(0 if tick_vesktop_theme() else 1)
     else:
         sys.stderr.write(f"Unknown action: {action}\n")
         sys.exit(1)

@@ -585,7 +585,9 @@ Item {
                     readonly property var due: TasksService.on(agenda.day)
                     readonly property string now: Qt.formatTime(month.today, "HH:mm")
                     readonly property var coming: AgendaService.on(agenda.day)
-                        .filter(event => event.allDay || (event.endTime || event.time) > agenda.now)
+                        // An end before the start runs past midnight.
+                        .filter(event => event.allDay || (event.endTime || event.time) > agenda.now
+                            || (event.endTime !== "" && event.endTime < event.time))
 
                     Layout.fillWidth: true
                     spacing: 3
