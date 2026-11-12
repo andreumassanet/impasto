@@ -1142,8 +1142,8 @@ QtObject {
             "This window": "Esta ventana",
             "The language of this window.":
                 "El idioma de esta ventana.",
-            "Only the settings window is translated, and anything without a translation appears in English. Files the shell writes, such as generated themes, are always in English.":
-                "Solo se traduce la ventana de ajustes, y lo que no tenga traducción aparece en inglés. Los archivos que escribe el shell, como los temas generados, van siempre en inglés.",
+            "The whole shell is translated, and anything without a translation appears in English. The login screen and the files the shell writes, such as generated themes, are always in English.":
+                "Se traduce todo el shell, y lo que no tenga traducción aparece en inglés. La pantalla de inicio de sesión y los archivos que escribe el shell, como los temas generados, van siempre en inglés.",
             "Language": "Idioma",
 
             "This machine": "Esta máquina",
