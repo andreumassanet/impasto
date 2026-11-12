@@ -56,6 +56,24 @@ SettingsSection {
             }
         }
 
+        SettingRow {
+            label: Tr.t("Style")
+            reading: SettingsService.dockStyle === "drawer"
+                ? Tr.t("A drawer on the edge, with a card for each app's windows")
+                : Tr.t("A capsule on the edge")
+            locked: root.off
+            reason: root.offReason
+
+            SegmentedControl {
+                options: [
+                    { id: "classic", label: Tr.t("Capsule") },
+                    { id: "drawer", label: Tr.t("Drawer") }
+                ]
+                current: SettingsService.dockStyle
+                onSelected: id => SettingsService.set("dockStyle", id)
+            }
+        }
+
         // Each tile also draws the current alignment.
         SettingTiles {
             label: Tr.t("Edge")

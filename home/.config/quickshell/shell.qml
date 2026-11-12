@@ -23,6 +23,7 @@ import "./bar"
 import "./capture"
 import "./desktop"
 import "./dock"
+import "./frame"
 import "./lock"
 import "./services"
 import "./settings"
@@ -191,7 +192,7 @@ ShellRoot {
     // A dock on every screen, each drawn or not by `dockEverywhere` and
     // which screen is live.
     Variants {
-        model: Quickshell.screens
+        model: SettingsService.dockStyle === "classic" ? Quickshell.screens : []
 
         Dock {
             required property var modelData
@@ -209,6 +210,63 @@ ShellRoot {
         model: SettingsService.screenCorners ? Quickshell.screens : []
 
         ScreenCorners {
+            required property var modelData
+
+            screen: modelData
+            live: modelData.name === root.liveScreenName
+        }
+    }
+
+    // The room the frame takes from the windows, on every screen. Built only
+    // while the frame is always on.
+    Variants {
+        model: SettingsService.frameMode === "always" ? Quickshell.screens : []
+
+        Frame {
+            required property var modelData
+
+            screen: modelData
+        }
+    }
+
+    // The launcher from the bottom edge, in the drawer and grid designs. The
+    // one it opens on is the live screen unless it was asked for elsewhere
+    // (resting on another screen's edge).
+    Variants {
+        model: SettingsService.launcherDesign !== "island" ? Quickshell.screens : []
+
+        LauncherDrawer {
+            required property var modelData
+
+            screen: modelData
+            live: modelData.name === (DrawerService.screenName || root.liveScreenName)
+            onPanelRequested: panel => root.island?.open(panel)
+            onSettingsRequested: root.toggleSettings()
+        }
+    }
+
+    // The dock as a drawer on its edge, in place of the classic one.
+    Variants {
+        model: SettingsService.dockStyle === "drawer" ? Quickshell.screens : []
+
+        DockDrawer {
+            required property var modelData
+
+            screen: modelData
+            live: modelData.name === root.liveScreenName
+
+            // As the classic dock's launcher button: the island or the
+            // drawer, whichever the launcher key opens.
+            onLauncherRequested: root.island?.toggle("launcher")
+        }
+    }
+
+    // The sliders on a side edge, with the control centre's own hidden. Not
+    // built while they stay in the island.
+    Variants {
+        model: SettingsService.slidersPlacement === "side" ? Quickshell.screens : []
+
+        SlidersDrawer {
             required property var modelData
 
             screen: modelData
@@ -604,6 +662,20 @@ ShellRoot {
     // it, and the island is sized before the panel exists.
     function openLauncherOn(mode: string): void {
         const sigil = SettingsService.launcherPrefix(mode)
+        // The drawer designs: the same two keys on the drawer's own search.
+        // It is closed first, since a panel being destroyed clears the query.
+        if (SettingsService.launcherDesign !== "island") {
+            if (DrawerService.launcherOpen && DrawerService.launcherMode === "search"
+                    && LauncherService.query.startsWith(sigil)) {
+                DrawerService.closeLauncher()
+                return
+            }
+            root.island?.close()
+            DrawerService.closeLauncher()
+            LauncherService.query = sigil
+            DrawerService.openLauncher("search", "")
+            return
+        }
         const showing = root.island?.state.openPanel === "launcher"
         if (showing && LauncherService.query.startsWith(sigil)) {
             root.island?.close()
