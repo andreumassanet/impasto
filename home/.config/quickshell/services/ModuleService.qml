@@ -48,6 +48,7 @@ Singleton {
         { id: "brightness",    name: "Brightness",    bar: true,  width: Theme.cardWidth, height: Theme.cardHeight(1, 0) },
         { id: "network",       name: "Network",       bar: true,  width: Theme.cardWidth, height: Theme.cardHeight(2, 0) },
         { id: "netspeed",      name: "Network speed", bar: true,  desk: false, width: Theme.cardWidth, height: Theme.cardHeight(3, Theme.cardRowGap + 36) },
+        { id: "keyboard",      name: "Keyboard layout", bar: true, desk: false, width: Theme.cardWidth, height: Theme.cardHeight(1, 0) },
         { id: "bluetooth",     name: "Bluetooth",     bar: true,  width: Theme.cardWidth, height: Theme.cardHeight(3, 0) },
         { id: "notifications", name: "Notifications", bar: true,  desk: false, width: Theme.cardWidth, height: Theme.cardHeight(7, 0) },
         { id: "weather",       name: "Weather",       bar: true,  width: Theme.cardWidth, height: Theme.cardHeight(0, 50) },
@@ -201,6 +202,8 @@ Singleton {
             return NetworkService.icon
         case "netspeed":
             return "󰓅"
+        case "keyboard":
+            return "󰌌"
         case "bluetooth":
             return BluetoothService.icon
         case "volume":
@@ -273,6 +276,8 @@ Singleton {
             return PetService.hatched ? Tr.t("Lv %1").arg(PetService.level) : Tr.t("Egg")
         case "network":
             return NetworkService.connectionName
+        case "keyboard":
+            return KeyboardService.shortCode
         case "netspeed":
             return `↓ ${StatsService.rate(StatsService.networkDown)}  ↑ ${StatsService.rate(StatsService.networkUp)}`
         case "bluetooth":
@@ -494,24 +499,6 @@ Singleton {
         root.openHost = ""
     }
 
-    // How many lines the network's name takes in the speed card, which wraps it
-    // (at most three). Measured at the card's own type and inner width.
-    readonly property FontMetrics netNameMetrics: FontMetrics {
-        font.family: Theme.fontFamily
-        font.pixelSize: Theme.fontSizeRegular
-        font.weight: Font.DemiBold
-    }
-
-    // The graph block (legend, plot, time axis) and the button, in the speed
-    // card; each sits a row gap and 4 px below what is above it.
-    readonly property int netGraphHeight: 102
-    readonly property int netButtonHeight: 28
-
-    function netNameLines(): int {
-        const room = Theme.cardWidth - 2 * (Theme.cardInset + Theme.cardPadding)
-        return Math.max(1, Math.min(3, Math.ceil(root.netNameMetrics.advanceWidth(NetworkService.connectionName) / (0.9 * room))))
-    }
-
     // The catalogue size, except network and Bluetooth, which open the
     // control centre's lists, an empty notification list, which is short,
     // and the cards whose rows come and go, sized from their count.
@@ -519,13 +506,6 @@ Singleton {
         if (id === "network" || id === "bluetooth")
             return { width: 420, height: 500 }
         const item = root.entry(id)
-        // The name's lines, a line per interface, the totals and the graph.
-        if (id === "netspeed")
-            return { width: item.width,
-                     height: Theme.cardHeight(2 + Math.max(1, SystemMonitorService.addresses.length),
-                                              (Theme.cardRowGap + 4 + root.netGraphHeight)
-                                              + (Theme.cardRowGap + 4 + root.netButtonHeight)
-                                              + (root.netNameLines() - 1) * 17) }
         if (id === "keyboard")
             return { width: item.width, height: Theme.cardHeight(Math.max(1, KeyboardService.layoutList.length), 0) }
         if (id === "notifications")
@@ -639,10 +619,6 @@ Singleton {
             // Reading the layout builds the service, which asks the compositor;
             // a single layout is still a reading.
             return KeyboardService.layout !== ""
-        case "netspeed":
-            // Reading the addresses builds the service, which lists the
-            // interfaces the card is sized from.
-            return SystemMonitorService.addresses !== undefined
         case "network":
             // Disconnected is still a reading.
             return true

@@ -727,6 +727,7 @@ QtObject {
             "Symbols": "Símbolos",
             "Flags": "Banderas",
             "Back": "Atrás",
+            "Keyboard layout": "Distribución del teclado",
             "Numbers while Super is held": "Números al mantener Super",
             "Holding Super shows each workspace's number": "Al mantener Super se ve el número de cada escritorio",
             "The style stays as it is": "El estilo se queda como está",
