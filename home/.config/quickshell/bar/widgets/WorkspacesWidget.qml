@@ -35,8 +35,10 @@ Rectangle {
     property bool chromeless: false
     property bool overWallpaper: false
     readonly property color dim: root.overWallpaper ? Theme.barInkDim : Theme.indicatorDim
-    // `SettingsService.workspaceStyle` unless a picker draws another.
-    property string style: SettingsService.workspaceStyle
+    // `SettingsService.workspaceStyle` unless a picker draws another; plain
+    // numbers while Super is held, when `workspaceNumbersOnSuper` says so.
+    property string style: SettingsService.workspaceNumbersOnSuper === true && HyprlandService.superHeld
+        ? "numbers" : SettingsService.workspaceStyle
     // A still strip for the settings: five, the second focused, the first and
     // third occupied, and nothing to click.
     property bool preview: false
@@ -378,7 +380,10 @@ Rectangle {
 
                 Text {
                     anchors.verticalCenter: parent.verticalCenter
-                    text: special.short === "scratchpad" ? Tr.t("Scratchpad") : special.short
+                    // The label Settings › Scratchpads gives it, else its name.
+                    text: special.short === "scratchpad" ? Tr.t("Scratchpad")
+                        : (Array.from(SettingsService.overviewScratchpads ?? [])
+                            .find(pad => pad.name === special.short)?.label || special.short)
                     font.family: Theme.fontFamily
                     font.pixelSize: Theme.fontSizeSmall
                     font.weight: Font.DemiBold

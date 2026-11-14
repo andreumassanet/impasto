@@ -170,6 +170,40 @@ SettingsSection {
         visible: root.tab === "layout"
     }
 
+    // The tray items the applications have now, to leave out of the bar.
+    SettingGroup {
+        visible: root.tab === "layout" && TrayService.all.length > 0
+        title: Tr.t("Tray")
+        note: Tr.t("The applications that are showing a tray icon.")
+
+        Repeater {
+            model: ScriptModel {
+                objectProp: "id"
+                values: TrayService.all
+            }
+
+            SettingRow {
+                id: trayRow
+
+                required property var modelData
+                readonly property bool shown: Array.from(SettingsService.trayHidden ?? [])
+                    .indexOf(trayRow.modelData.id) < 0
+
+                label: trayRow.modelData.tooltipTitle || trayRow.modelData.title || trayRow.modelData.id
+                reading: trayRow.modelData.id
+
+                ToggleSwitch {
+                    checked: trayRow.shown
+                    onToggled: checked => {
+                        const rest = Array.from(SettingsService.trayHidden ?? [])
+                            .filter(id => id !== trayRow.modelData.id)
+                        SettingsService.set("trayHidden", checked ? rest : rest.concat([trayRow.modelData.id]))
+                    }
+                }
+            }
+        }
+    }
+
     // ── WORKSPACES ──────────────────────────────────────────────────────────
 
     SettingGroup {
@@ -195,6 +229,18 @@ SettingsSection {
             }
         }
 
+        SettingRow {
+            label: Tr.t("Numbers while Super is held")
+            reading: SettingsService.workspaceNumbersOnSuper
+                ? Tr.t("Holding Super shows each workspace's number")
+                : Tr.t("The style stays as it is")
+
+            ToggleSwitch {
+                checked: SettingsService.workspaceNumbersOnSuper
+                onToggled: checked => SettingsService.set("workspaceNumbersOnSuper", checked)
+            }
+        }
+
         SettingSlider {
             label: Tr.t("Workspaces shown")
             value: HyprlandService.slots
@@ -215,6 +261,24 @@ SettingsSection {
                 // The ceiling cannot end up below the floor.
                 if (SettingsService.workspaceCount > max)
                     SettingsService.set("workspaceCount", max)
+            }
+        }
+
+        SettingRow {
+            label: Tr.t("Workspace numbers")
+            reading: SettingsService.workspaceNumbers === "real"
+                ? Tr.t("Every workspace shows its own number: 23 reads as 23")
+                : Tr.t("A screen numbers its own ten from 1")
+            locked: !HyprlandService.perScreen
+            reason: Tr.t("Only with one set of workspaces for each screen")
+
+            SegmentedControl {
+                options: [
+                    { id: "block", label: Tr.t("From 1") },
+                    { id: "real", label: Tr.t("Real") }
+                ]
+                current: SettingsService.workspaceNumbers
+                onSelected: id => SettingsService.set("workspaceNumbers", id)
             }
         }
 

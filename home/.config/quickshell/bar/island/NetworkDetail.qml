@@ -27,10 +27,42 @@ ColumnLayout {
     property bool backable: true
 
     property string expanded: ""
+    signal pageRequested(string panel)
+
+    // The password field keeps Tab while it is open.
+    Keys.onPressed: event => event.accepted = root.expanded === "" && tabs.handle(event, index => root.activate(index))
+
+    // The Nth network: connect a known or open one, disconnect the active
+    // one, or ask for the password of a secured new one.
+    function activate(index: int): void {
+        const network = NetworkService.networks[index]
+        if (!network)
+            return
+        if (network.active)
+            NetworkService.disconnect(network.ssid)
+        else if (network.known || !network.secure)
+            NetworkService.connect(network.ssid)
+        else
+            root.expanded = network.ssid
+    }
 
     spacing: Theme.cardGap
 
-    Component.onCompleted: NetworkService.scan(false)
+    Component.onCompleted: {
+        NetworkService.scan(false)
+        // Focus on open, or Tab goes to whatever had the keyboard before.
+        if (tabs.visible)
+            root.forceActiveFocus()
+    }
+
+    // Only in the island: the module card has no panel to switch to.
+    ConnectivityTabs {
+        id: tabs
+
+        visible: root.backable
+        page: "wifi"
+        onPageRequested: panel => root.pageRequested(panel)
+    }
 
     // The heading a module's card has (`ModuleCard`), with the back arrow in
     // front of it when there is somewhere to go back to.

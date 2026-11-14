@@ -88,7 +88,7 @@ Item {
         { id: "modules", category: "shell", icon: "󰆧", label: Tr.t("Modules"),
           blurb: Tr.t("What the modules know, on the bar, the desktop and the panels."),
           tabs: [],
-          keywords: "modules weather location place city github contributions username markets crypto bitcoin price currency exchange rate pet creature plush paper pixel egg species style lyrics lrclib song music media card cover shape round circle captures screenshots recordings photos file names suffix notes note handwriting",
+          keywords: "modules weather location place city github contributions username markets crypto bitcoin price currency exchange rate pet creature plush paper pixel egg species style lyrics lrclib song music media card cover shape round circle captures screenshots recordings photos file names suffix calendar events google outlook icloud ics ical link agenda khal notes note handwriting",
           page: modulesPage },
 
         { id: "appearance", category: "desk", icon: "󰏘", label: Tr.t("Appearance"),
@@ -105,6 +105,12 @@ Item {
           tabs: [],
           keywords: "windows layout dwindle master scrolling rounding border gaps inner outer opacity inactive blur refraction glass hyprglass shadow animation preset hyprland",
           page: windowsPage },
+
+        { id: "scratchpads", category: "desk", icon: "󰖲", label: Tr.t("Scratchpads"),
+          blurb: Tr.t("Special workspaces with a name, a key, an icon and a command."),
+          tabs: [],
+          keywords: "scratchpad scratchpads special workspace named toggle key shortcut command script terminal app launch icon glyph",
+          page: scratchpadsPage },
 
         { id: "monitors", category: "desk", icon: "󰍹", label: Tr.t("Displays"),
           blurb: Tr.t("Screen layout, modes and the laptop lid."),
@@ -592,6 +598,7 @@ Item {
     Component { id: windowsPage;    WindowsSection {} }
     Component { id: inputPage;      InputSection {} }
     Component { id: monitorsPage;   MonitorsSection {} }
+    Component { id: scratchpadsPage; ScratchpadsSection {} }
     Component { id: keysPage;       KeysSection {} }
     Component { id: sessionPage;    SessionSection {} }
     Component { id: systemPage;     SystemSection {} }

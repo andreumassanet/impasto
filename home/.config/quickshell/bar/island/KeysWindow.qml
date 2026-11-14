@@ -189,7 +189,7 @@ FloatingWindow {
 
                                         Text {
                                             Layout.bottomMargin: 2
-                                            text: card.modelData.name.toUpperCase()
+                                            text: Tr.t(card.modelData.name).toUpperCase()
                                             font.family: Theme.fontFamily
                                             font.pixelSize: Theme.fontSizeSmall
                                             font.weight: Font.Bold

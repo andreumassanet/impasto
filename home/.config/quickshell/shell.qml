@@ -310,6 +310,95 @@ ShellRoot {
         onPressed: root.island?.toggle("launcher")
     }
 
+    // ── SUPER ALONE ─────────────────────────────────────────────────────────
+    //
+    // Tap Super for the launcher, hold it for the workspace numbers, each
+    // only while its setting is on (`superTapLauncher`, the strip's
+    // `workspaceNumbersOnSuper`). `workspaceNumber` is
+    // bound on the press of Super itself, and Hyprland sends its release when
+    // the key comes up; `superTap` on the release
+    // of Super with no other key pressed in between, which Hyprland decides.
+    // A tap is short: a held Super that was let go does not open the launcher.
+    readonly property int tapLimit: 600     // ms
+    readonly property int tapMinimum: 40    // programs that send Super chords press and release within a few ms
+
+    GlobalShortcut {
+        name: "workspaceNumber"
+        description: "Show the workspace numbers while Super is held"
+        onPressed: {
+            HyprlandService.superAt = Date.now()
+            HyprlandService.superHeld = true
+        }
+        onReleased: {
+            HyprlandService.superHeld = false
+            superAtClear.restart()
+        }
+    }
+
+    // The release of `superTap` can arrive before or after this one's own.
+    Timer {
+        id: superAtClear
+
+        interval: 250
+        onTriggered: HyprlandService.superAt = 0
+    }
+
+    GlobalShortcut {
+        name: "superTap"
+        description: "Open the launcher when Super is tapped"
+        // Bound on release, and Hyprland sends a release bind's global as a
+        // release alone.
+        onReleased: {
+            const held = Date.now() - HyprlandService.superAt
+            if (!SettingsService.superTapLauncher)
+                return
+            if (HyprlandService.superAt === 0 || (held >= root.tapMinimum && held < root.tapLimit))
+                root.island?.toggle("launcher")
+        }
+    }
+
+    // ── CAPS LOCK ───────────────────────────────────────────────────────────
+    //
+    // The key is bound without being taken (`keybinds.lua`), so the shell
+    // hears it; the state is then read from the keyboard, a moment after the
+    // key comes up, since Hyprland updates it on the release. The lock says
+    // it its own way.
+    GlobalShortcut {
+        name: "capsLock"
+        description: "Say when Caps Lock turns on or off"
+        onReleased: {
+            if (!LockService.locked)
+                capsSettle.restart()
+        }
+    }
+
+    Timer {
+        id: capsSettle
+
+        interval: 80
+        onTriggered: capsReader.running = true
+    }
+
+    Process {
+        id: capsReader
+
+        command: ["hyprctl", "devices", "-j"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                try {
+                    const keyboards = JSON.parse(text).keyboards ?? []
+                    const main = keyboards.find(keyboard => keyboard.main) ?? keyboards[0]
+                    if (!main)
+                        return
+                    OsdService.requested(main.capsLock ? "󰪛" : "󰬶",
+                        main.capsLock ? Tr.t("Caps Lock is on") : Tr.t("Caps Lock is off"), -1)
+                } catch (error) {
+                    console.warn("Cannot read the keyboards:", error)
+                }
+            }
+        }
+    }
+
     // ── LID ─────────────────────────────────────────────────────────────────
     //
     // Handled here rather than with `switch:` binds in Lua. MonitorService's
@@ -463,6 +552,34 @@ ShellRoot {
         onPressed: SettingsService.set("desktopHidden", !SettingsService.desktopHidden)
     }
 
+    // Unbound until a key is set in Settings › Keys: each opens what was
+    // otherwise only reached with the pointer.
+    GlobalShortcut {
+        name: "widgetsEdit"
+        description: "Arrange the desktop widgets"
+        onPressed: DesktopService.edit(!DesktopService.editing)
+    }
+
+    GlobalShortcut {
+        name: "media"
+        description: "Open the media panel"
+        onPressed: root.island?.toggle("player")
+    }
+
+    // Wi-Fi first; Bluetooth and Sound are its tabs.
+    GlobalShortcut {
+        name: "connectivity"
+        description: "Open Wi-Fi, Bluetooth and Sound"
+        onPressed: root.island?.toggle("wifi")
+    }
+
+    // Closes the notification on the island, telling its application.
+    GlobalShortcut {
+        name: "dismissNotification"
+        description: "Dismiss the notification"
+        onPressed: NotificationService.close()
+    }
+
     GlobalShortcut {
         name: "game"
         description: "Turn game mode on or off"
@@ -603,8 +720,17 @@ ShellRoot {
     }
 
     // Always built rather than behind a Loader: creating a layer surface at
-    // capture time flashes a black frame over the screen being captured.
-    CaptureOverlay {}
+    // capture time flashes a black frame over the screen being captured. One
+    // per screen, so every screen can take the capture.
+    Variants {
+        model: Quickshell.screens
+
+        CaptureOverlay {
+            required property var modelData
+
+            screen: modelData
+        }
+    }
 
     // Region recording, joined here to keep the two services acyclic.
     Connections {

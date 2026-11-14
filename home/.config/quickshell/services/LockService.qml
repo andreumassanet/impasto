@@ -289,6 +289,43 @@ Singleton {
         }
     }
 
+    // ── KEYBOARD ────────────────────────────────────────────────────────────
+    //
+    // Caps Lock and the layout, from the main keyboard, read every second
+    // while locked: a password typed on the wrong layout or with Caps Lock on
+    // is the usual reason for a refusal. Hyprland sends no event for Caps
+    // Lock, so it is asked.
+    property bool capsLock: false
+    property string keymap: ""
+    // How many layouts the keyboard switches between; the one in use is
+    // worth saying only when there is a choice.
+    property int layouts: 1
+
+    readonly property Process keyboardReader: Process {
+        command: ["hyprctl", "devices", "-j"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                try {
+                    const keyboards = JSON.parse(text).keyboards ?? []
+                    const main = keyboards.find(keyboard => keyboard.main) ?? keyboards[0]
+                    root.capsLock = main?.capsLock ?? false
+                    root.keymap = main?.active_keymap ?? ""
+                    root.layouts = String(main?.layout ?? "").split(",").filter(name => name !== "").length || 1
+                } catch (error) {
+                    console.warn("Lock: cannot read the keyboards:", error)
+                }
+            }
+        }
+    }
+
+    readonly property Timer keyboardPoll: Timer {
+        interval: 1000
+        repeat: true
+        triggeredOnStart: true
+        running: root.locked
+        onTriggered: root.keyboardReader.running = true
+    }
+
     // ── FACE ────────────────────────────────────────────────────────────────
 
     // A PAM service of its own, `impasto-face`, beside the password and never

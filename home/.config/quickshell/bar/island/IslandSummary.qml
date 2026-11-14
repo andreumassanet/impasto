@@ -194,6 +194,13 @@ Item {
             visible: root.face === "weather"
             text: WeatherService.glyph
             font.pixelSize: Math.round(slot.width * 0.86)
+            color: weatherArt.shown ? "transparent" : Theme.text
+
+            WeatherArt {
+                id: weatherArt
+
+                name: WeatherService.icon
+            }
         }
 
         Row {

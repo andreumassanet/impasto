@@ -26,6 +26,29 @@ SettingsSection {
 
     Component.onCompleted: FontService.load()
 
+    // The names `theme_manager.py` takes in `themeTargets`.
+    readonly property var themeApplications: [
+        { id: "terminal", label: "kitty" }, { id: "greeting", label: Tr.t("Terminal greeting") },
+        { id: "btop", label: "btop" }, { id: "cava", label: "cava" },
+        { id: "yazi", label: "yazi" }, { id: "nvim", label: "Neovim" },
+        { id: "imv", label: "imv" }, { id: "gtk", label: "GTK" },
+        { id: "qt", label: Tr.t("Qt and KDE") }, { id: "vesktop", label: "Vesktop" },
+        { id: "spotify", label: "Spotify" }, { id: "vscodium", label: "VSCodium" },
+        { id: "zen", label: "Zen" }, { id: "nautilus", label: "Nautilus" }
+    ]
+
+    function themeTargetOn(id: string): bool {
+        const targets = SettingsService.themeTargets
+        return SettingsService.shapeOf(targets) !== "list" || targets.indexOf(id) >= 0
+    }
+
+    // Null stays for "all", so a program added later is on by default.
+    function setThemeTarget(id: string, on: bool): void {
+        const kept = root.themeApplications.map(app => app.id)
+            .filter(name => name === id ? on : root.themeTargetOn(name))
+        SettingsService.set("themeTargets", kept.length === root.themeApplications.length ? null : kept)
+    }
+
     // ── WALLPAPER ───────────────────────────────────────────────────────────
 
     ColumnLayout {
@@ -81,6 +104,31 @@ SettingsSection {
                             anchors.centerIn: parent
                             effect: transitionTile.modelData.id
                         }
+                    }
+                }
+            }
+        }
+
+        // What `theme_manager.py` writes when the palette changes. Left on,
+        // each program gets a theme file in its own config folder.
+        SettingGroup {
+            title: Tr.t("Applications")
+            note: Tr.t("The programs the palette is written to.")
+            hint: Tr.t("Each program on this list gets a theme file in its own config folder when the palette changes. Turn one off to leave its files alone.")
+
+            Repeater {
+                model: root.themeApplications
+
+                SettingRow {
+                    id: applicationRow
+
+                    required property var modelData
+
+                    label: applicationRow.modelData.label
+
+                    ToggleSwitch {
+                        checked: root.themeTargetOn(applicationRow.modelData.id)
+                        onToggled: checked => root.setThemeTarget(applicationRow.modelData.id, checked)
                     }
                 }
             }

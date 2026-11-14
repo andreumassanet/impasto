@@ -89,6 +89,15 @@ SettingsSection {
                 }
             }
 
+            SettingRow {
+                label: Tr.t("Music on the resting island")
+                reading: SettingsService.islandSpectrum ? Tr.t("Moving with the sound") : Tr.t("A still note")
+
+                ToggleSwitch {
+                    checked: SettingsService.islandSpectrum
+                    onToggled: checked => SettingsService.set("islandSpectrum", checked)
+                }
+            }
         }
 
         // ── CLOCK ───────────────────────────────────────────────────────────
@@ -243,48 +252,54 @@ SettingsSection {
         }
     }
 
-    // ── CHANGES OF STATE ────────────────────────────────────────────────────
-
+    // The applications that have notified this session, and any with a rule.
     SettingGroup {
-        visible: root.tab === "notifications"
-        title: Tr.t("Changes of state")
-        note: Tr.t("Say what changed when the microphone, a radio, a lock key or the like is switched.")
-        hint: Tr.t("On the island is the readout that also shows the volume and brightness. As a notification, the changes without a level come as notifications and the volume and brightness stay on the island. Notifications follow Do not disturb, so switching it on is not announced that way, and one can replace the notification on screen. Off also hides the volume, brightness and charging readouts. Both show over a full-screen window.")
+        visible: root.tab === "notifications" && appRules.count > 0
+        title: Tr.t("Per application")
+        note: Tr.t("What each application's notifications do.")
 
-        SettingRow {
-            label: Tr.t("Shown")
-
-            SegmentedControl {
-                options: [
-                    { id: "island", label: Tr.t("On the island") },
-                    { id: "notification", label: Tr.t("As a notification") },
-                    { id: "off", label: Tr.t("Off") }
-                ]
-                current: SettingsService.osdStyle
-                onSelected: id => SettingsService.set("osdStyle", id)
-            }
-        }
-
+        // The applications that have notified, and any with a rule.
         Repeater {
-            model: [
-                { key: "osdAudio", label: Tr.t("Sound"), note: Tr.t("Microphone muted, output or input switched") },
-                { key: "osdRadios", label: Tr.t("Radios"), note: Tr.t("Wi-Fi, Bluetooth and airplane mode") },
-                { key: "osdLocks", label: Tr.t("Lock keys"), note: Tr.t("Caps Lock and Num Lock") },
-                { key: "osdSession", label: Tr.t("Session"), note: Tr.t("Keep awake, do not disturb, night light") }
-            ]
+            id: appRules
+
+            model: ScriptModel {
+                values: {
+                    const names = Object.keys(SettingsService.notificationRules ?? ({}))
+                    for (const entry of NotificationService.history)
+                        if (entry.appName && names.indexOf(entry.appName) < 0)
+                            names.push(entry.appName)
+                    return names.sort()
+                }
+            }
 
             SettingRow {
-                id: groupRow
+                id: appRow
 
-                required property var modelData
+                required property string modelData
+                readonly property string rule: NotificationService.ruleFor(appRow.modelData)
 
-                label: groupRow.modelData.label
-                reading: groupRow.modelData.note
-                enabled: SettingsService.osdStyle !== "off"
+                label: appRow.modelData
+                reading: appRow.rule === "mute" ? Tr.t("Closed unseen")
+                    : appRow.rule === "silent" ? Tr.t("Kept in the control centre, never shown")
+                    : appRow.rule === "popup" ? Tr.t("Shown, never kept")
+                    : Tr.t("Shown and kept, as any other")
 
-                ToggleSwitch {
-                    checked: SettingsService[groupRow.modelData.key]
-                    onToggled: checked => SettingsService.set(groupRow.modelData.key, checked)
+                SegmentedControl {
+                    options: [
+                        { id: "", label: Tr.t("Default") },
+                        { id: "mute", label: Tr.t("Mute") },
+                        { id: "silent", label: Tr.t("Silent") },
+                        { id: "popup", label: Tr.t("Popup only") }
+                    ]
+                    current: appRow.rule
+                    onSelected: id => {
+                        const rules = Object.assign({}, SettingsService.notificationRules ?? ({}))
+                        if (id === "")
+                            delete rules[appRow.modelData]
+                        else
+                            rules[appRow.modelData] = id
+                        SettingsService.set("notificationRules", rules)
+                    }
                 }
             }
         }

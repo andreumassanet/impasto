@@ -65,6 +65,17 @@ FocusScope {
     Keys.onRightPressed: root.move(1)
     Keys.onReturnPressed: root.activate(SessionService.actions[root.selected])
     Keys.onEnterPressed: root.activate(SessionService.actions[root.selected])
+    // Tab moves too, and 1 to 5 pick an action at once (a destructive one
+    // still asks).
+    Keys.onTabPressed: root.move(1)
+    Keys.onBacktabPressed: root.move(-1)
+    Keys.onPressed: event => {
+        if (event.key >= Qt.Key_1 && event.key < Qt.Key_1 + SessionService.actions.length) {
+            root.selected = event.key - Qt.Key_1
+            root.activate(SessionService.actions[root.selected])
+            event.accepted = true
+        }
+    }
 
     ColumnLayout {
         anchors.fill: parent

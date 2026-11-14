@@ -226,6 +226,7 @@
       "Media · Brightness up": "XF86MonBrightnessUp",
       "Media · Brightness down": "XF86MonBrightnessDown",
       "Media · Mute microphone (Acer)": "XF86Launch6",
+      "Shell · Say when Caps Lock turns on or off": "Caps_Lock",
       "Media · Play or pause": "XF86AudioPlay",
       "Media · Play or pause, from the pause key": "XF86AudioPause",
       "Media · Next track": "XF86AudioNext",
@@ -238,6 +239,8 @@
       "Utilities · Turn the screen off or back on": "SUPER + SHIFT + D",
       "Utilities · Restart the shell": "SUPER + CTRL + R",
       "Shell · Open the launcher": "SUPER + Space",
+      "Shell · Open the launcher when Super is tapped": "SUPER_L",
+      "Shell · Show the workspace numbers while Super is held": "SUPER_L",
       "Shell · Open the control centre": "SUPER + A",
       "Shell · Open the workspace overview": "SUPER + TAB",
       "Shell · Open settings": "SUPER + comma",
@@ -268,7 +271,11 @@
       "Shell · Capture a window": "",
       "Shell · Capture the whole screen": "",
       "Shell · Capture a region and annotate it": "",
-      "Shell · Read a region as text": ""
+      "Shell · Read a region as text": "",
+      "Shell · Arrange the desktop widgets": "",
+      "Shell · Open the media panel": "",
+      "Shell · Open Wi-Fi, Bluetooth and Sound": "",
+      "Shell · Dismiss the notification": ""
     }
   }
 }
