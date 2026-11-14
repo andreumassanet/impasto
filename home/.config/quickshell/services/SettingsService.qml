@@ -174,25 +174,6 @@ Singleton {
         config.launcherPrefixes = next
     }
 
-    // The workspace strip's own icon for a window class no desktop entry
-    // names: `{ windowClass, icon }`, the class matched as a case-insensitive
-    // fragment, the icon a name in the icon theme.
-    function addIconRule(windowClass: string, icon: string): void {
-        const fragment = windowClass.trim()
-        const name = icon.trim()
-        if (fragment === "" || name === "")
-            return
-        const kept = config.workspaceIconRules ? Array.from(config.workspaceIconRules) : []
-        kept.push({ windowClass: fragment, icon: name })
-        root.set("workspaceIconRules", kept)
-    }
-
-    function removeIconRule(index: int): void {
-        const kept = config.workspaceIconRules ? Array.from(config.workspaceIconRules) : []
-        kept.splice(index, 1)
-        root.set("workspaceIconRules", kept)
-    }
-
     readonly property var clockFormats: [
         { id: "HH:mm", label: "24-hour", sample: "17:04" },
         { id: "hh:mm AP", label: "12-hour", sample: "05:04 PM" }
@@ -335,7 +316,6 @@ Singleton {
         { id: "dots", label: "Dots" },
         { id: "bars", label: "Bars" },
         { id: "rings", label: "Rings" },
-        { id: "pills", label: "Pills" },
         { id: "numbers", label: "Numbers" },
         { id: "roman", label: "Roman" },
         { id: "kanji", label: "Kanji" },
@@ -732,9 +712,8 @@ Singleton {
         // `shared`: every screen shares the same workspaces. `screen`: each
         // has ten of its own, the main screen 1–10 and the rest after it.
         property string workspaceMode: "shared"
-        // How the strip draws each workspace: a shape (`dots`, `bars`, `rings`),
-        // pills holding the number and the apps (`pills`) or its number written
-        // out (`numbers`, `roman`, `kanji`, `greek`).
+        // How the strip draws each workspace: a shape (`dots`, `bars`, `rings`)
+        // or its number written out (`numbers`, `roman`, `kanji`, `greek`).
         property string workspaceStyle: "dots"
         // The focused workspace's applications after its mark, in any style.
         property bool workspaceApps: false

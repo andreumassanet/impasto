@@ -164,6 +164,12 @@ QtObject {
         return root.specialClients.filter(client => client.workspace?.name === name)
     }
 
+    // Whether the overview has anything to show for the special workspaces:
+    // one is open on this screen, or some window sits in one.
+    function specialShown(monitorName: string): bool {
+        return root.specialOn(monitorName) !== "" || root.specialClients.length > 0
+    }
+
     // The screen a workspace is on, or "" for one nobody has made yet.
     function monitorOf(workspaceId: int): string {
         const found = root.named.find(workspace => workspace.id === workspaceId)
@@ -283,18 +289,6 @@ QtObject {
     // window closes.
     property bool watchClients: false
 
-    // The same for the workspace strip's app icons, kept apart because the
-    // dock binds `watchClients` and a second binding would undo its own.
-    property bool watchIcons: false
-    readonly property bool clientsWanted: root.watchClients || root.watchIcons
-    onWatchIconsChanged: {
-        if (root.watchIcons)
-            root.loadClients()
-    }
-
-    // The windows on special workspaces, which `clients` leaves out.
-    property var specialClients: []
-
     // Address (`0x…`) of the window with keyboard focus, or "". Not
     // `focusHistoryID == 0`, which stays on the last window after focus moves
     // to an empty workspace. Updated from `activewindowv2`, which sends the
@@ -345,7 +339,7 @@ QtObject {
         interval: 30
         onTriggered: {
             root.refresh()
-            if (root.clientsWanted || root.clients.length > 0)
+            if (root.watchClients || root.clients.length > 0)
                 root.loadClients()
         }
     }
@@ -438,6 +432,14 @@ QtObject {
         const workspace = root.activeOn(root.focusedMonitor) || root.activeId
         Hyprland.dispatch(`hl.dsp.window.move({ workspace = ${workspace}, window = "address:${address}", follow = false })`)
         root.focusWindow(address)
+        root.refresh()
+        root.loadClients()
+    }
+
+    // Sends a window to a named workspace (`special:name` for a special one),
+    // leaving the view where it is.
+    function moveClientToNamed(address: string, workspaceName: string): void {
+        Hyprland.dispatch(`hl.dsp.window.move({ workspace = "${workspaceName}", window = "address:${address}", follow = false })`)
         root.refresh()
         root.loadClients()
     }
@@ -553,11 +555,8 @@ QtObject {
             // `WORKSPACEID,WORKSPACENAME,MONITORNAME`: a whole workspace has
             // gone to another screen, so both screens are showing something
             // else now. A screen plugged in is showing one from the start.
-            // `activespecial` (`NAME,MONITOR`, the name empty when it closes)
-            // changes what a screen shows in the same way.
             case "moveworkspace":
             case "moveworkspacev2":
-            case "activespecial":
             case "monitoradded":
             case "monitoraddedv2":
                 root.loadMonitors()
@@ -576,7 +575,7 @@ QtObject {
                 break
             case "activewindowv2":
                 root.focusedAddress = event.data === "" ? "" : `0x${event.data}`
-                if (root.clientsWanted)
+                if (root.watchClients)
                     root.clientsSoon.restart()
                 break
             }

@@ -601,10 +601,20 @@ ColumnLayout {
     readonly property string openSpecial: HyprlandService.specialOn(root.screenName)
     readonly property string specialName: (root.openSpecial
         || HyprlandService.specialClients[0]?.workspace.name
-        || "special:special").replace(/^special:/, "")
-    readonly property var specialClasses: {
-        const classes = WindowService.distinctClasses(HyprlandService.specialClients)
-        return WindowService.pick(classes, classes[0] ?? "")
+        || "special:scratchpad").replace(/^special:/, "")
+    // The apps in it, one icon per class, resolved as the dock resolves them.
+    readonly property var specialIcons: {
+        const icons = []
+        const seen = []
+        for (const client of HyprlandService.specialClients) {
+            const windowClass = client.class || client.initialClass || ""
+            if (windowClass === "" || seen.indexOf(windowClass) >= 0)
+                continue
+            seen.push(windowClass)
+            const entry = DockService.entryOf(DockService.idFor(windowClass))
+            icons.push(Theme.appIcon(entry ? entry.icon : windowClass.toLowerCase()))
+        }
+        return icons
     }
 
     Rectangle {
@@ -629,7 +639,7 @@ ColumnLayout {
 
             Text {
                 anchors.verticalCenter: parent.verticalCenter
-                text: Tr.t("Special")
+                text: root.specialName === "scratchpad" ? Tr.t("Scratchpad") : root.specialName
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.fontSizeSmall
                 font.weight: Font.DemiBold
@@ -637,14 +647,14 @@ ColumnLayout {
             }
 
             Repeater {
-                model: root.specialClasses
+                model: root.specialIcons
 
                 IconImage {
                     required property string modelData
 
                     anchors.verticalCenter: parent.verticalCenter
                     implicitSize: 24
-                    source: WindowService.iconFor(modelData)
+                    source: modelData
                 }
             }
         }
