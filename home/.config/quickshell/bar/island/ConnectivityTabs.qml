@@ -43,10 +43,16 @@ SegmentedControl {
             root.pageRequested(id)
     }
 
-    // For the page's own Keys handler: true when the key was used.
-    function handle(event: var): bool {
+    // For the page's own Keys handler: true when the key was used. With
+    // `activate`, the keys 1 to 9 call it with the row's index (0 to 8): the
+    // page's Nth network, device or output.
+    function handle(event: var, activate: var): bool {
         if (!root.visible)
             return false
+        if (activate && event.key >= Qt.Key_1 && event.key <= Qt.Key_9) {
+            activate(event.key - Qt.Key_1)
+            return true
+        }
         const step = event.key === Qt.Key_Tab ? 1 : event.key === Qt.Key_Backtab ? -1 : 0
         if (step === 0)
             return false
