@@ -187,6 +187,10 @@ Usage: ./setup <command> [options]
   splash      the boot splash: chooses the theme, adds splash to the kernel
               command line and rebuilds the initramfs (asks for a password)
 
+  report      what a shell-only install leaves out, and the command that adds
+              each: the packages missing, the other programs' config, /, the
+              plugins and the extras (also said at the end of every shell-only
+              install and update)
   files       the installed files you have edited or deleted, and each one
               put back: files [list | restore | reset | keep] [path…], paths
               as list prints them, under $HOME
@@ -1030,6 +1034,85 @@ verb_plugins() {
     act rm -f "$PLUGINS_PENDING"
 }
 
+# ── REPORT ──────────────────────────────────────────────────────────────────
+#
+# A shell-only install leaves most of impasto out on purpose, and some of the
+# shell's features lean on what it left out. This says which, at the end of
+# every shell-only install and on `./setup report`, so nothing is found by
+# clicking a button that does nothing.
+
+# The entries of a package list as `section<TAB>package<TAB>what it is for`,
+# for those not installed. A section is a `# ── NAME ──` line.
+missing_entries() {
+    local file=$1 line section= package comment
+    local -a entries=() wanted=()
+    while IFS= read -r line; do
+        if [[ $line =~ ^#\ ──\ (.+)\ ─+$ ]]; then section=${BASH_REMATCH[1]}; continue; fi
+        [[ $line =~ ^[[:space:]]*([A-Za-z0-9@._+-]+)[[:space:]]*(#[[:space:]]*(.*))?$ ]] || continue
+        package=${BASH_REMATCH[1]} comment=${BASH_REMATCH[3]:-}
+        entries+=("$section"$'\t'"$package"$'\t'"$comment")
+        wanted+=("$package")
+    done < "$file"
+    (( ${#wanted[@]} )) || return 0
+    local -A absent=()
+    while IFS= read -r package; do absent[$package]=1; done < <(pacman -T "${wanted[@]}" || true)
+    for line in "${entries[@]}"; do
+        package=${line#*$'\t'}; package=${package%%$'\t'*}
+        if [[ -n ${absent[$package]:-} ]]; then printf '%s\n' "$line"; fi
+    done
+}
+
+# `home/` files a shell-only install skipped, counted by the program's folder.
+skipped_groups() {
+    local rel group
+    local -A count=()
+    while IFS= read -r rel; do
+        if shell_part "$rel"; then continue; fi
+        case $rel in
+            .config/hypr/custom|.config/hypr/custom/*) continue ;;
+        esac
+        group=$(printf '%s' "$rel" | awk -F/ '{ n = ($1 == ".local") ? 3 : (($1 == ".config") ? 2 : 1); out = $1; for (i = 2; i <= n && i <= NF; i++) out = out "/" $i; print out }')
+        count[$group]=$(( ${count[$group]:-0} + 1 ))
+    done < <(files_in home)
+    for group in "${!count[@]}"; do printf '%s\t%s\n' "$group" "${count[$group]}"; done | sort
+}
+
+verb_report() {
+    load_install_mode
+    section 'shell only'
+    if (( ! SHELL_ONLY )); then
+        say "nothing  this machine has the whole of impasto, not a shell-only install"
+        return 0
+    fi
+    local section package comment last names
+    for list in pacman aur; do
+        names=()
+        while IFS=$'\t' read -r section package comment; do
+            names+=("$package")
+        done < <(missing_entries "$REPO/packages/$list.txt")
+        if (( ${#names[@]} )); then
+            say "missing  ${#names[@]} $list package(s): ${names[*]} — ./setup packages"
+        fi
+    done
+    names=()
+    while IFS=$'\t' read -r package comment; do names+=("~/$package"); done < <(skipped_groups)
+    if (( ${#names[@]} )); then
+        say "left     the other programs' config: ${names[*]} — ./setup install --full"
+    fi
+    say "left     the login screen, the PAM rules for face unlock, the boot splash — ./setup system"
+    if ! { command -v hyprpm >/dev/null 2>&1 && hyprpm list 2>/dev/null | grep -qi hyprglass; }; then
+        say "left     the plugins: glass on the windows, shake to find the pointer — ./setup plugins"
+    fi
+    names=()
+    for package in defaults cursors spotify vscodium nautilus vesktop face camera splash; do
+        applied "$package" || names+=("$package")
+    done
+    if (( ${#names[@]} )); then
+        say "left     the extras: ${names[*]} — ./setup <name> for each"
+    fi
+    say "kept     ~/.config/hypr/custom, which no install touches"
+}
+
 verb_install() {
     SECONDS=0
     load_install_mode
@@ -1046,6 +1129,7 @@ verb_install() {
     fi
     verb_sync
     save_install_mode
+    if (( SHELL_ONLY )); then verb_report; fi
     if (( ! SKIP_SYSTEM )); then verb_system; fi
     if (( ! SKIP_PLUGINS )); then verb_plugins; fi
     if (( ! SKIP_EXTRAS )); then extras; fi
@@ -1938,6 +2022,7 @@ main() {
         face)      verb_face ;;
         camera)    verb_camera ;;
         splash)    verb_splash ;;
+        report)    verb_report ;;
         files)     verb_files ;;
         check)     verb_check ;;
         help|-h|--help) usage ;;
