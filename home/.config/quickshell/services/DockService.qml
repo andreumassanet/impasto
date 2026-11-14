@@ -194,10 +194,14 @@ Singleton {
         return false
     }
 
+    // The workspace strip draws the focused workspace's applications when
+    // `workspaceApps` is on, so it needs the list as well.
+    readonly property bool stripApps: SettingsService.workspaceApps
+
     readonly property Binding watching: Binding {
         target: HyprlandService
         property: "watchClients"
-        value: root.enabled || root.decksExist
+        value: root.enabled || root.decksExist || root.stripApps
     }
 
     onEnabledChanged: {
@@ -205,8 +209,13 @@ Singleton {
             HyprlandService.loadClients()
     }
 
+    onStripAppsChanged: {
+        if (root.stripApps)
+            HyprlandService.loadClients()
+    }
+
     Component.onCompleted: {
-        if (root.enabled)
+        if (root.enabled || root.stripApps)
             HyprlandService.loadClients()
     }
 
@@ -215,7 +224,7 @@ Singleton {
     readonly property var groups: {
         const order = []
         const seen = ({})
-        for (const client of HyprlandService.clients) {
+        for (const client of HyprlandService.clients.concat(HyprlandService.minimizedClients)) {
             const cls = (client.class ?? "").trim()
             if (cls === "")
                 continue
@@ -232,6 +241,45 @@ Singleton {
 
     function groupFor(key: string): var {
         return root.groups.find(group => group.key === key) ?? null
+    }
+
+    // The application a notification came from, among the open windows: by
+    // its desktop entry, else its name. A window class often extends the name
+    // (`Brave` and `brave-browser`), so either may start with the other.
+    // Null when none matches.
+    function groupOfSender(desktopEntry: string, appName: string): var {
+        const known = names => names.map(name => (name ?? "").trim().toLowerCase())
+            .filter(name => name.length >= 3)
+        const told = known([desktopEntry.replace(/\.desktop$/, ""), appName])
+        return root.groups.find(group => known([group.id.replace(/\.desktop$/, ""), group.cls])
+            .some(own => told.some(name => own.startsWith(name) || name.startsWith(own)))) ?? null
+    }
+
+    // True when `showSender` has an application to bring up or start.
+    function canShowSender(desktopEntry: string, appName: string): bool {
+        return root.groupOfSender(desktopEntry, appName) !== null
+            || DesktopEntries.heuristicLookup(desktopEntry || appName) !== null
+    }
+
+    // Brings up the application a notification came from: its window (back
+    // from minimized if need be), else a new instance when it has a desktop
+    // entry. False when there is nothing to bring up.
+    function showSender(desktopEntry: string, appName: string): bool {
+        const group = root.groupOfSender(desktopEntry, appName)
+        if (group) {
+            const windows = root.describe(group.id, group.cls, group).windows
+            const shown = windows.filter(window => !window.minimized)
+            if (shown.length === 0)
+                HyprlandService.restoreWindow(windows[0].address)
+            else
+                HyprlandService.focusWindow(shown[0].address)
+            return true
+        }
+        const entry = DesktopEntries.heuristicLookup(desktopEntry || appName)
+        if (!entry)
+            return false
+        LauncherService.launchDesktop(entry.id)
+        return true
     }
 
     // A fullscreen window on the workspace a screen is showing. Hyprland
@@ -293,10 +341,14 @@ Singleton {
                 // The focused window, so a repeat click can cycle to the next
                 // one. Uses the focused address rather than `focusHistoryID`,
                 // which is stale after focusing an empty workspace.
-                front: client.address === HyprlandService.focusedAddress
+                front: client.address === HyprlandService.focusedAddress,
+                minimized: client.workspace?.name === HyprlandService.minimizedWorkspace
             })),
             running: windows.length > 0,
-            active: windows.some(client => client.address === HyprlandService.focusedAddress)
+            // A minimized window can keep the focus when it left an empty
+            // workspace behind; it is not in front for that.
+            active: windows.some(client => client.address === HyprlandService.focusedAddress
+                && client.workspace?.name !== HyprlandService.minimizedWorkspace)
         }
     }
 
@@ -404,15 +456,24 @@ Singleton {
             root.launch(item)
             return
         }
-        if (!item.active) {
-            HyprlandService.focusWindow(item.windows[0].address)
+        const shown = item.windows.filter(window => !window.minimized)
+        // One window out, in front: the click puts it away.
+        if (item.active && shown.length === 1) {
+            HyprlandService.minimizeWindow(shown[0].address)
             return
         }
-        if (item.windows.length < 2)
+        // Only minimized windows left: the first comes back here.
+        if (shown.length === 0) {
+            HyprlandService.restoreWindow(item.windows[0].address)
             return
-        const at = item.windows.findIndex(window => window.front)
-        HyprlandService.focusWindow(
-            item.windows[(at + 1) % item.windows.length].address)
+        }
+        if (!item.active) {
+            HyprlandService.focusWindow(shown[0].address)
+            return
+        }
+        // Several out, one in front: the next one.
+        const at = shown.findIndex(window => window.front)
+        HyprlandService.focusWindow(shown[(at + 1) % shown.length].address)
     }
 
     // New instance. Unmatched windows have no entry to launch from.

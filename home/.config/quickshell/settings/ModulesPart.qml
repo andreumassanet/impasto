@@ -84,6 +84,65 @@ ColumnLayout {
                 }
             }
         }
+
+        // Only a figure that waits for the pointer has a hover to choose: the
+        // tiles stay in view, dimmed, so the choice can be found.
+        SettingTiles {
+            label: Tr.t("On hover")
+            reading: SettingsService.chipFigure !== "hover"
+                ? Tr.t("Used when the figure is set to On hover")
+                : Tr.t((SettingsService.chipHovers.find(
+                    entry => entry.id === SettingsService.chipHover) ?? { note: "" }).note)
+            enabled: SettingsService.chipFigure === "hover"
+            opacity: enabled ? 1 : 0.45
+
+            Repeater {
+                model: SettingsService.chipHovers
+
+                PreviewTile {
+                    id: hoverTile
+
+                    required property var modelData
+
+                    caption: Tr.t(hoverTile.modelData.label)
+                    selected: SettingsService.chipHover === hoverTile.modelData.id
+                    onPicked: SettingsService.set("chipHover", hoverTile.modelData.id)
+
+                    Column {
+                        anchors.centerIn: parent
+                        spacing: 4
+
+                        Sample {
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            shape: SettingsService.chipShape
+                            ids: ["volume"]
+                            // Inline: the figure opens beside the piece.
+                            reveal: hoverTile.modelData.id === "widen" ? 1 : 0
+                        }
+
+                        // Pill: the figure waits in a small pill under it.
+                        Rectangle {
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            visible: hoverTile.modelData.id === "card"
+                            width: pillText.implicitWidth + 14
+                            height: pillText.implicitHeight + 6
+                            radius: height / 2
+                            color: Theme.islandSurfaceHover
+
+                            Text {
+                                id: pillText
+
+                                anchors.centerIn: parent
+                                text: `${Tr.t("Volume")} · 40%`
+                                font.family: Theme.fontFamily
+                                font.pixelSize: Theme.fontSizeLabel
+                                color: Theme.text
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     // ── WHAT THE BAR CARRIES ────────────────────────────────────────────────
@@ -92,7 +151,7 @@ ColumnLayout {
     SettingGroup {
         title: Tr.t("Layout")
         note: Tr.t("Drag a piece from the catalogue onto the bar.")
-        hint: Tr.t("Drop a piece on either half of the bar to place it on that side of the island; drag it along to move it or off the bar to remove it, and click it to give it its own shape and figure. Adjacent modules share a capsule, and a split starts a new one.")
+        hint: Tr.t("Drop a piece on either half of the bar to place it on that side of the island; drag it along to move it or off the bar to remove it, and click it to give it its own shape and figure. Adjacent modules share a capsule, and a split starts a new one. Devices puts a chip on the bar for each connected device that reports a battery, such as a mouse or earbuds.")
         bare: true
 
         LayoutEditor {

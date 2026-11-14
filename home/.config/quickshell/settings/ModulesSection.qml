@@ -9,6 +9,7 @@
 
 import QtQuick
 import QtQuick.Layouts
+import Quickshell
 
 import "../theme"
 import "../services"
@@ -22,6 +23,10 @@ SettingsSection {
 
     // Unused: this page has no parts, but `SettingsPanel` sets it on all pages.
     property string tab: ""
+
+    // The calendar links' rows say how each read, so the page reads them.
+    Component.onCompleted: AgendaService.subscribe()
+    Component.onDestruction: AgendaService.release()
 
     SettingGroup {
         title: Tr.t("Weather")
@@ -38,6 +43,94 @@ SettingsSection {
             placeholder: Tr.t("Wherever the request comes from")
             value: SettingsService.weatherPlace
             onEdited: value => SettingsService.set("weatherPlace", value.trim())
+        }
+
+        SettingRow {
+            label: Tr.t("Units")
+
+            SegmentedControl {
+                options: [
+                    { id: "m", label: "°C" },
+                    { id: "u", label: "°F" }
+                ]
+                current: SettingsService.weatherUnits
+                onSelected: id => SettingsService.set("weatherUnits", id)
+            }
+        }
+    }
+
+    // The calendars the calendar card reads, by their iCalendar link.
+    SettingGroup {
+        title: Tr.t("Calendar")
+        note: Tr.t("Calendars whose events show on the calendar, by their link.")
+        hint: Tr.t("Google: Settings › your calendar › Secret address in iCal format. Outlook: Settings › Calendar › Shared calendars › Publish a calendar, then the ICS link. The link is private: anyone who has it can read the calendar. Events are read-only here and refreshed every fifteen minutes; calendars set up in khal show too.")
+
+        Repeater {
+            model: ScriptModel {
+                values: SettingsService.calendarLinks ?? []
+                objectProp: "url"
+            }
+
+            SettingRow {
+                id: linkRow
+
+                required property var modelData
+                readonly property var report: AgendaService.links[linkRow.modelData.url] ?? null
+
+                label: linkRow.modelData.name || Tr.t("Calendar")
+                reading: !linkRow.report ? Tr.t("Reading…")
+                    : linkRow.report.ok ? Tr.t("%1 events ahead").arg(linkRow.report.count)
+                    : `${Tr.t("Could not be read")} · ${linkRow.report.error}`
+                alarm: linkRow.report !== null && !linkRow.report.ok
+
+                IconButton {
+                    icon: "󰆴"
+                    iconSize: 14
+                    implicitWidth: 30
+                    implicitHeight: 28
+                    onClicked: AgendaService.removeLink(linkRow.modelData.url)
+                }
+            }
+        }
+
+        SettingBlock {
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 8
+
+                LinkField {
+                    id: linkName
+
+                    Layout.preferredWidth: 140
+                    placeholder: Tr.t("Name")
+                }
+
+                LinkField {
+                    id: linkUrl
+
+                    Layout.fillWidth: true
+                    placeholder: Tr.t("https://… .ics")
+                    onAccepted: linkAdd.add()
+                }
+
+                PillButton {
+                    id: linkAdd
+
+                    function add(): void {
+                        const url = linkUrl.text.trim()
+                        if (!/^(https?|webcal):\/\//.test(url))
+                            return
+                        AgendaService.addLink(linkName.text.trim() || Tr.t("Calendar"), url)
+                        linkName.text = ""
+                        linkUrl.text = ""
+                    }
+
+                    text: Tr.t("Add")
+                    icon: "󰐕"
+                    enabled: /^(https?|webcal):\/\//.test(linkUrl.text.trim())
+                    onClicked: linkAdd.add()
+                }
+            }
         }
     }
 
@@ -131,6 +224,46 @@ SettingsSection {
             ToggleSwitch {
                 checked: SettingsService.lyrics
                 onToggled: checked => SettingsService.set("lyrics", checked)
+            }
+        }
+    }
+
+    SettingGroup {
+        title: Tr.t("Media cover")
+        note: Tr.t("The picture of what is playing, in the control centre, the island, the media card and the lyrics.")
+
+        SettingRow {
+            label: Tr.t("Shape")
+            reading: SettingsService.mediaCover === "circle"
+                ? Tr.t("A round cover") : Tr.t("A rounded rectangle")
+
+            SegmentedControl {
+                options: [
+                    { id: "rectangle", label: Tr.t("Rectangle") },
+                    { id: "circle", label: Tr.t("Circle") }
+                ]
+                current: SettingsService.mediaCover
+                onSelected: id => SettingsService.set("mediaCover", id)
+            }
+        }
+    }
+
+    SettingGroup {
+        title: Tr.t("Captures")
+        note: Tr.t("The screenshots, recordings and camera photos the shell saves, named by the time they were taken.")
+
+        SettingRow {
+            label: Tr.t("File names")
+            reading: SettingsService.captureNames === "time"
+                ? "2026-11-08-125800.png" : "2026-11-08-125800_impasto.png"
+
+            SegmentedControl {
+                options: [
+                    { id: "impasto", label: Tr.t("Time and impasto") },
+                    { id: "time", label: Tr.t("Time alone") }
+                ]
+                current: SettingsService.captureNames
+                onSelected: id => SettingsService.set("captureNames", id)
             }
         }
     }

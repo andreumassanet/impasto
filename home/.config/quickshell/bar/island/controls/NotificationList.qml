@@ -31,7 +31,7 @@ Card {
             spacing: 8
 
             Text {
-                text: "Notifications"
+                text: Tr.t("Notifications")
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.fontSizeMedium
                 font.weight: Font.DemiBold
@@ -60,7 +60,7 @@ Card {
 
             Text {
                 visible: NotificationService.history.length > 0
-                text: "Clear"
+                text: Tr.t("Clear")
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.fontSizeSmall
                 color: clearMouse.containsMouse ? Theme.accent : Theme.textMuted
@@ -84,7 +84,7 @@ Card {
             visible: NotificationService.history.length === 0
             horizontalAlignment: Text.AlignHCenter
             verticalAlignment: Text.AlignVCenter
-            text: "Nothing new"
+            text: Tr.t("Nothing new")
             font.family: Theme.fontFamily
             font.pixelSize: Theme.fontSizeSmall
             color: Theme.textMuted
@@ -107,8 +107,7 @@ Card {
 
                 readonly property bool critical:
                     entry.modelData.urgency === NotificationUrgency.Critical
-                readonly property bool opens: NotificationService.defaultAction(
-                    NotificationService.openOf(entry.modelData)) !== null
+                readonly property bool opens: NotificationService.opens(entry.modelData)
 
                 width: ListView.view.width
                 height: 54
@@ -123,46 +122,61 @@ Card {
                     anchors.rightMargin: 6
                     spacing: 9
 
-                    ClippingRectangle {
+                    Item {
                         Layout.preferredWidth: 30
                         Layout.preferredHeight: 30
                         Layout.alignment: Qt.AlignVCenter
-                        radius: width * Theme.pictureCorner
-                        color: mark.visible ? "transparent"
-                            : (entry.critical ? Theme.red : Theme.surfaceHoverIn(QsWindow.window))
 
-                        Image {
-                            id: image
+                        ClippingRectangle {
                             anchors.fill: parent
-                            source: entry.modelData.image ?? ""
-                            visible: source != "" && status === Image.Ready
-                            fillMode: Image.PreserveAspectCrop
-                            asynchronous: true
-                            sourceSize.width: 60
-                            sourceSize.height: 60
+                            radius: width * Theme.pictureCorner
+                            color: mark.visible ? "transparent"
+                                : (entry.critical ? Theme.red : Theme.surfaceHoverIn(QsWindow.window))
+
+                            Image {
+                                id: image
+                                anchors.fill: parent
+                                source: entry.modelData.image ?? ""
+                                visible: source != "" && status === Image.Ready
+                                fillMode: Image.PreserveAspectCrop
+                                asynchronous: true
+                                sourceSize.width: 60
+                                sourceSize.height: 60
+                            }
+
+                            // The sender's icon, else the icon set's stand-in.
+                            Image {
+                                id: mark
+                                anchors.fill: parent
+                                source: image.visible ? ""
+                                    : (NotificationService.iconOf(entry.modelData.icon ?? "",
+                                            entry.modelData.appName ?? "")
+                                        || NotificationService.standIn(entry.critical))
+                                visible: !image.visible && status === Image.Ready
+                                asynchronous: true
+                                sourceSize.width: 60
+                                sourceSize.height: 60
+                            }
+
+                            Text {
+                                anchors.centerIn: parent
+                                visible: !image.visible && !mark.visible
+                                text: entry.critical ? "󰀪" : "󰂚"
+                                font.family: Theme.fontMono
+                                font.pixelSize: 13
+                                color: entry.critical ? Theme.accentText : Theme.accent
+                            }
                         }
 
-                        // The sender's icon, else the icon set's stand-in.
-                        Image {
-                            id: mark
-                            anchors.fill: parent
-                            source: image.visible ? ""
-                                : (NotificationService.iconOf(entry.modelData.icon ?? "",
-                                        entry.modelData.appName ?? "")
-                                    || NotificationService.standIn(entry.critical))
-                            visible: !image.visible && status === Image.Ready
-                            asynchronous: true
-                            sourceSize.width: 60
-                            sourceSize.height: 60
-                        }
-
-                        Text {
-                            anchors.centerIn: parent
-                            visible: !image.visible && !mark.visible
-                            text: entry.critical ? "󰀪" : "󰂚"
-                            font.family: Theme.fontMono
-                            font.pixelSize: 13
-                            color: entry.critical ? Theme.accentText : Theme.accent
+                        // The app that sent it, on the picture's corner.
+                        NotificationBadge {
+                            shown: image.visible
+                            x: -3
+                            y: parent.height - height + 3
+                            size: 14
+                            icon: entry.modelData.icon ?? ""
+                            appName: entry.modelData.appName ?? ""
+                            body: entry.modelData.body ?? ""
                         }
                     }
 
@@ -221,9 +235,9 @@ Card {
                     cursorShape: entry.opens ? Qt.PointingHandCursor : Qt.ArrowCursor
                 }
 
-                // While its notification is still open, a click is its default
-                // action, and the island gets out of the way of the window it
-                // brings up. One from an earlier session only has its text. A
+                // A click is the notification's default action while it is
+                // open, else brings up the application that sent it; the
+                // island gets out of the way of the window that comes up. A
                 // handler, so the close button above keeps its own clicks.
                 TapHandler {
                     enabled: entry.opens

@@ -12,6 +12,8 @@ pragma Singleton
 import QtQuick
 import Quickshell
 
+import "../theme"
+
 // Every ephemeral system change arrives at the island through one signal.
 //
 // Volume, brightness and battery all render in the same layer, so adding an
@@ -21,6 +23,30 @@ Singleton {
     id: root
 
     signal requested(string icon, string label, real progress)
+
+    // Where changes are announced (`SettingsService.osdStyle`). The island
+    // draws every event under "island", only the ones with a level under
+    // "notification" (a held volume key would flood the notifications), and
+    // nothing under "off".
+    readonly property string style: SettingsService.osdStyle
+
+    function showsOnIsland(progress: real): bool {
+        return root.style === "island" || (root.style === "notification" && progress >= 0)
+    }
+
+    // A transient notification is not kept in the history. It rides over a
+    // full-screen window like any other notification on the island, and
+    // do-not-disturb silences it like the rest.
+    onRequested: (icon, label, progress) => {
+        if (root.style === "notification" && progress < 0)
+            Quickshell.execDetached(["notify-send", "--app-name=Impasto",
+                "--expire-time=2500", "--hint=boolean:transient:true", "--", label])
+    }
+
+    function announce(icon: string, label: string): void {
+        if (root.armed && root.style !== "off")
+            root.requested(icon, label, -1)
+    }
 
     // Bindings fire once as they initialise. Emitting then would pop an OSD
     // every time the shell starts, so nothing is emitted until this is armed.
@@ -38,7 +64,12 @@ Singleton {
     readonly property Timer armTimer: Timer {
         interval: 600
         running: true
-        onTriggered: root.armed = true
+        onTriggered: {
+            root.wasWifi = NetworkService.wifiEnabled
+            root.wasBluetooth = BluetoothService.enabled
+            root.micSource = AudioService.source
+            root.armed = true
+        }
     }
 
     readonly property Timer suppressionTimer: Timer {
@@ -71,7 +102,7 @@ Singleton {
             const display = root.brightnessDisplay
             if (!display || ModuleService.openId === "brightness")
                 return
-            root.requested(display.icon, `${display.percent}%`, display.percent / 100)
+            root.requested(display.icon, `${display.slider}%`, display.slider / 100)
         }
     }
 
@@ -99,8 +130,123 @@ Singleton {
         enabled: root.armed
         function onChargingChanged(): void {
             root.requested(BatteryService.icon,
-                           BatteryService.charging ? "Charging" : "On battery",
+                           BatteryService.charging ? Tr.t("Charging") : Tr.t("On battery"),
                            BatteryService.percent / 100)
+        }
+    }
+
+    // ── STATE CHANGES ───────────────────────────────────────────────────────
+    //
+    // Read off the services, so a change is announced whatever made it: a
+    // key, a tile, `wpctl`, another program (Wi-Fi excepted, see below).
+
+    // Another default input has its own mute state; that is a switch of
+    // device, announced below, and not the user muting.
+    property var micSource: null
+
+    readonly property Connections microphone: Connections {
+        target: AudioService
+        enabled: !root.audioSuppressed
+        function onSourceMutedChanged(): void {
+            if (root.micSource !== AudioService.source) {
+                root.micSource = AudioService.source
+                return
+            }
+            root.announce(AudioService.sourceIcon,
+                          AudioService.sourceMuted ? Tr.t("Microphone muted") : Tr.t("Microphone live"))
+        }
+    }
+
+    // Switching the default device moves the volume too, which the volume
+    // readout would announce first; waiting a little lets the device name
+    // replace it.
+    property string deviceIcon: ""
+    property string deviceLabel: ""
+
+    readonly property Timer deviceTimer: Timer {
+        interval: 300
+        onTriggered: root.announce(root.deviceIcon, root.deviceLabel)
+    }
+
+    readonly property Connections devices: Connections {
+        target: AudioService
+        enabled: root.armed && !root.audioSuppressed
+        function onSinkChanged(): void {
+            if (!AudioService.sink)
+                return
+            root.deviceIcon = "󰓃"
+            root.deviceLabel = AudioService.sink.description || AudioService.sink.name
+            root.deviceTimer.restart()
+        }
+        function onSourceChanged(): void {
+            if (!AudioService.source)
+                return
+            root.deviceIcon = "󰍬"
+            root.deviceLabel = AudioService.source.description || AudioService.source.name
+            root.deviceTimer.restart()
+        }
+    }
+
+    // Airplane mode flips Wi-Fi and Bluetooth together. Bluetooth answers at
+    // once and Wi-Fi after nmcli has run, so one pass waits for both and says
+    // only the largest thing that happened: airplane when both moved, else the
+    // one radio. Wi-Fi switched outside the shell is not seen until the
+    // shell next asks nmcli, so it is not announced.
+    property bool wasWifi: false
+    property bool wasBluetooth: false
+
+    readonly property Timer radiosTimer: Timer {
+        interval: 1000
+        onTriggered: {
+            const wifi = NetworkService.wifiEnabled
+            const bluetooth = BluetoothService.enabled
+            const wifiMoved = wifi !== root.wasWifi
+            const bluetoothMoved = bluetooth !== root.wasBluetooth
+            if (wifiMoved && bluetoothMoved && wifi === bluetooth)
+                root.announce(wifi ? "󰀞" : "󰀝",
+                              wifi ? Tr.t("Airplane mode off") : Tr.t("Airplane mode on"))
+            else if (wifiMoved)
+                root.announce(wifi ? "󰖩" : "󰖪",
+                              wifi ? Tr.t("Wi-Fi on") : Tr.t("Wi-Fi off"))
+            else if (bluetoothMoved)
+                root.announce(bluetooth ? "󰂯" : "󰂲",
+                              bluetooth ? Tr.t("Bluetooth on") : Tr.t("Bluetooth off"))
+            root.wasWifi = wifi
+            root.wasBluetooth = bluetooth
+        }
+    }
+
+    readonly property Connections radios: Connections {
+        target: NetworkService
+        function onWifiEnabledChanged(): void { root.radiosTimer.restart() }
+    }
+
+    readonly property Connections bluetooth: Connections {
+        target: BluetoothService
+        function onEnabledChanged(): void { root.radiosTimer.restart() }
+    }
+
+    readonly property Connections idle: Connections {
+        target: IdleService
+        function onKeepAwakeChanged(): void {
+            root.announce(IdleService.keepAwake ? "󰅶" : "󰾪",
+                          IdleService.keepAwake ? Tr.t("Keep awake on") : Tr.t("Keep awake off"))
+        }
+    }
+
+    readonly property Connections focus: Connections {
+        target: NotificationService
+        function onDoNotDisturbChanged(): void {
+            root.announce(NotificationService.doNotDisturb ? "󰂛" : "󰂚",
+                          NotificationService.doNotDisturb ? Tr.t("Do not disturb on") : Tr.t("Do not disturb off"))
+        }
+    }
+
+    readonly property Connections nightLight: Connections {
+        target: SettingsService
+        function onNightLightChanged(): void {
+            root.announce(SunsetService.icon,
+                          SettingsService.nightLight ? Tr.t("Night light on") : Tr.t("Night light off"))
         }
     }
 

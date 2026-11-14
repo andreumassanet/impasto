@@ -47,7 +47,10 @@ Singleton {
         { id: "volume",        name: "Volume",        bar: true,  width: Theme.cardWidth, height: Theme.cardHeight(2, 0) },
         { id: "brightness",    name: "Brightness",    bar: true,  width: Theme.cardWidth, height: Theme.cardHeight(1, 0) },
         { id: "network",       name: "Network",       bar: true,  width: Theme.cardWidth, height: Theme.cardHeight(2, 0) },
+        { id: "netspeed",      name: "Network speed", bar: true,  desk: false, width: Theme.cardWidth, height: Theme.cardHeight(3, Theme.cardRowGap + 36) },
+        { id: "keyboard",      name: "Keyboard layout", bar: true, desk: false, width: Theme.cardWidth, height: Theme.cardHeight(1, 0) },
         { id: "bluetooth",     name: "Bluetooth",     bar: true,  width: Theme.cardWidth, height: Theme.cardHeight(3, 0) },
+        { id: "devices",       name: "Devices",       bar: true,  width: Theme.cardWidth, height: Theme.cardHeight(2, 0) },
         { id: "notifications", name: "Notifications", bar: true,  desk: false, width: Theme.cardWidth, height: Theme.cardHeight(7, 0) },
         { id: "weather",       name: "Weather",       bar: true,  width: Theme.cardWidth, height: Theme.cardHeight(0, 50) },
         { id: "markets",       name: "Markets",       bar: true,  width: Theme.cardWidth, height: MarketsService.cardHeight },
@@ -57,7 +60,7 @@ Singleton {
         { id: "updates",       name: "Updates",       bar: true,  width: Theme.cardWidth, height: Theme.cardHeight(4, 0) },
         { id: "pet",           name: "Pet",           bar: true,  width: Theme.cardWidth, height: Theme.cardHeight(2, Theme.cardRowGap + 32) },
         { id: "games",         name: "Games",         bar: false, width: Theme.cardWidth, height: Theme.cardHeight(4, 0) },
-        { id: "calendar",      name: "Calendar",      bar: true,  width: 340, height: 330 },
+        { id: "calendar",      name: "Calendar",      bar: true,  width: 400, height: 500 },
         { id: "notes",         name: "Notes",         bar: false, width: Theme.cardWidth, height: Theme.cardHeight(4, 0) },
         { id: "tasks",         name: "Tasks",         bar: false, width: Theme.cardWidth, height: Theme.cardHeight(4, 0) },
         { id: "photo",         name: "Photo",         bar: false, width: 356, height: 150 },
@@ -179,10 +182,12 @@ Singleton {
     readonly property var ringed: ["media", "timer", "claude", "codex", "battery", "volume",
         "brightness", "stats", "pet"]
 
-    // A piece's own shape when it has one, the bar's when it does not.
+    // A piece's own shape when it has one, the bar's when it does not. A
+    // device measures too, but only a chip for a device has a ring
+    // (`ChipFace`), so it is not in `ringed`.
     function shapeOf(id: string, own: var): string {
         const chosen = own ? own : SettingsService.chipShape
-        return chosen === "ring" && root.ringed.indexOf(id) >= 0 ? "ring" : "icon"
+        return chosen === "ring" && (root.ringed.indexOf(id) >= 0 || id === "devices") ? "ring" : "icon"
     }
 
     function figureOf(own: var): string {
@@ -198,8 +203,14 @@ Singleton {
         switch (id) {
         case "network":
             return NetworkService.icon
+        case "netspeed":
+            return "󰓅"
+        case "keyboard":
+            return "󰌌"
         case "bluetooth":
             return BluetoothService.icon
+        case "devices":
+            return "󰂯"
         case "volume":
             return AudioService.icon
         case "brightness":
@@ -237,9 +248,9 @@ Singleton {
     function valueOf(id: string): string {
         switch (id) {
         case "volume":
-            return AudioService.muted ? "Muted" : `${AudioService.volume}%`
+            return AudioService.muted ? Tr.t("Muted") : `${AudioService.volume}%`
         case "brightness":
-            return `${BrightnessService.percent}%`
+            return `${BrightnessService.slider}%`
         case "battery":
             return `${BatteryService.percent}%`
         case "weather":
@@ -255,7 +266,7 @@ Singleton {
             return `${NotificationService.history.length}`
         case "media":
             return MediaService.available
-                ? (MediaService.title || MediaService.identity || "Playing") : "Nothing playing"
+                ? (MediaService.title || MediaService.identity || Tr.t("Playing")) : Tr.t("Nothing playing")
         case "timer":
             return TimerService.running ? TimerService.display : "0:00"
         case "claude":
@@ -267,13 +278,17 @@ Singleton {
         case "stats":
             return `${StatsService.cpu.toFixed(0)}%`
         case "pet":
-            return PetService.hatched ? `Lv ${PetService.level}` : "Egg"
+            return PetService.hatched ? Tr.t("Lv %1").arg(PetService.level) : Tr.t("Egg")
         case "network":
             return NetworkService.connectionName
+        case "keyboard":
+            return KeyboardService.shortCode
+        case "netspeed":
+            return `↓ ${StatsService.rate(StatsService.networkDown)}  ↑ ${StatsService.rate(StatsService.networkUp)}`
         case "bluetooth":
             return BluetoothService.summary
         case "calendar":
-            return Qt.formatDate(root.today.date, "ddd d")
+            return Tr.date(root.today.date, "ddd d")
         }
         return ""
     }
@@ -291,6 +306,7 @@ Singleton {
             return 150
         case "network":
         case "bluetooth":
+        case "devices":
             return 110
         }
         return 0
@@ -440,7 +456,7 @@ Singleton {
         ? Math.ceil(root.timeMetrics.advanceWidth("20:48")) : 0
     readonly property int glanceTime: root.timeMetrics.font.family !== ""
         ? Math.max(root.glanceTimeBase, Math.ceil(root.timeMetrics.advanceWidth(
-            Qt.formatTime(new Date(2000, 0, 1, 20, 48, 58), SettingsService.clockFormat))))
+            Tr.date(new Date(2000, 0, 1, 20, 48, 58), SettingsService.clockFormat))))
         : 0
     readonly property FontMetrics timeMetrics: FontMetrics {
         font.family: Theme.fontFamily
@@ -496,11 +512,15 @@ Singleton {
         if (id === "network" || id === "bluetooth")
             return { width: 420, height: 500 }
         const item = root.entry(id)
+        if (id === "keyboard")
+            return { width: item.width, height: Theme.cardHeight(Math.max(1, KeyboardService.layoutList.length), 0) }
         if (id === "notifications")
             return { width: item.width,
                      height: Theme.cardHeight(Math.min(6, NotificationService.history.length) + 1, 0) }
         if (id === "updates")
             return { width: item.width, height: Theme.cardHeight(Math.min(3, UpdatesService.updates.length) + 1, 0) }
+        if (id === "devices")
+            return { width: item.width, height: Theme.cardHeight(Math.max(1, DeviceService.devices.length), 0) }
         if (id === "games")
             return { width: item.width, height: Theme.cardHeight(Math.min(3, GamesService.ranked.length) + 1, 0) }
         if (id === "notes")
@@ -510,7 +530,8 @@ Singleton {
         if (id === "claude")
             return { width: item.width, height: Theme.cardHeight(ClaudeService.rows, 0) }
         if (id === "battery")
-            return { width: item.width, height: Theme.cardHeight(BatteryService.healthKnown ? 3 : 2, 0) }
+            return { width: item.width, height: Theme.cardHeight(BatteryService.healthKnown ? 3 : 2,
+                SystemService.powerAvailable ? Theme.cardRowGap + Theme.segmentHeight : 0) }
         if (id === "volume")
             return { width: item.width, height: Theme.cardHeight(AudioService.cardRows, 0) }
         if (id === "codex")
@@ -540,6 +561,25 @@ Singleton {
 
     function activate(id: string): void {
         root.activationRequested(id)
+    }
+
+    // The hover card (`SettingsService.chipHover`). A piece rested on for a
+    // moment names itself and its value in a small card under it (`Bar.qml`),
+    // so pieces never widen and shift under the pointer.
+    property Item peekSource: null
+    property string peekText: ""
+
+    // The text first: the bar reads it when the source arrives.
+    function showPeek(source: Item, text: string): void {
+        root.peekText = text
+        root.peekSource = source
+    }
+
+    function hidePeek(source: Item): void {
+        if (root.peekSource !== source)
+            return
+        root.peekSource = null
+        root.peekText = ""
     }
 
     // A module asking for a panel, e.g. the games detail opening the arcade.
@@ -583,11 +623,19 @@ Singleton {
         case "brightness":
             // A desktop has no backlight, the way it has no battery.
             return BrightnessService.available
+        case "keyboard":
+            // Reading the layout builds the service, which asks the compositor;
+            // a single layout is still a reading.
+            return KeyboardService.layout !== ""
         case "network":
             // Disconnected is still a reading.
             return true
         case "bluetooth":
             return BluetoothService.available
+        case "devices":
+            // The pieces are drawn one per device (`BarZone`); with none
+            // connected there is nothing to show or open.
+            return DeviceService.devices.length > 0
         case "weather":
             // Builds the service, which runs its first fetch.
             return WeatherService.available
@@ -600,6 +648,7 @@ Singleton {
             // shows on an unconfigured machine.
             return GithubService.available
         case "stats":
+        case "netspeed":
             // The sampler runs from boot (shell.qml touches it).
             return true
         case "screentime":

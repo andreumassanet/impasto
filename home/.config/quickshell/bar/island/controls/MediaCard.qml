@@ -19,13 +19,16 @@ import "../../../components"
 Card {
     id: root
 
+    // The cover opens the media card; the buttons stay the player's.
+    signal panelRequested(string panel)
+
     Component.onCompleted: MediaService.subscribe()
     Component.onDestruction: MediaService.release()
 
     Text {
         anchors.centerIn: parent
         visible: !MediaService.available
-        text: "Nothing playing"
+        text: Tr.t("Nothing playing")
         font.family: Theme.fontFamily
         font.pixelSize: Theme.fontSizeSmall
         color: Theme.textMuted
@@ -40,31 +43,14 @@ Card {
             Layout.fillWidth: true
             spacing: 12
 
-            ClippingRectangle {
+            CoverArt {
                 Layout.preferredWidth: 58
                 Layout.preferredHeight: 58
-                radius: width * Theme.pictureCorner
-                // None behind a picture: a player may send its logo on transparency.
-                color: art.visible ? "transparent" : Theme.surfaceHoverIn(QsWindow.window)
+                HoverHandler { cursorShape: Qt.PointingHandCursor }
 
-                Image {
-                    id: art
-                    anchors.fill: parent
-                    source: MediaService.artUrl
-                    visible: source != "" && status === Image.Ready
-                    fillMode: Image.PreserveAspectCrop
-                    asynchronous: true
-                    sourceSize.width: 116
-                    sourceSize.height: 116
-                }
-
-                Text {
-                    anchors.centerIn: parent
-                    visible: !art.visible
-                    text: "󰎇"
-                    font.family: Theme.fontMono
-                    font.pixelSize: 22
-                    color: Theme.accent
+                TapHandler {
+                    gesturePolicy: TapHandler.ReleaseWithinBounds
+                    onTapped: root.panelRequested("media")
                 }
             }
 

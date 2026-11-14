@@ -32,7 +32,7 @@ FocusScope {
     signal picked(string day)
     signal dismissed()
 
-    readonly property var weekdays: ["M", "T", "W", "T", "F", "S", "S"]
+    readonly property var weekdays: Tr.t("M T W T F S S").split(" ")
     readonly property int cell: 30
     readonly property int gap: 2
     readonly property int pad: 12
@@ -87,7 +87,7 @@ FocusScope {
             spacing: 6
 
             Text {
-                text: Qt.formatDateTime(root.shown, "MMMM")
+                text: Tr.date(root.shown, "MMMM")
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.fontSizeRegular
                 font.weight: Font.DemiBold
@@ -231,14 +231,14 @@ FocusScope {
             spacing: 6
 
             PillButton {
-                text: "Today"
+                text: Tr.t("Today")
                 implicitHeight: 22
                 horizontalPadding: 9
                 onClicked: root.picked(TasksService.todayKey)
             }
 
             PillButton {
-                text: "Tomorrow"
+                text: Tr.t("Tomorrow")
                 implicitHeight: 22
                 horizontalPadding: 9
                 onClicked: root.picked(TasksService.shifted(1))
@@ -248,7 +248,7 @@ FocusScope {
 
             PillButton {
                 visible: root.selected !== ""
-                text: "No day"
+                text: Tr.t("No day")
                 implicitHeight: 22
                 horizontalPadding: 9
                 onClicked: root.picked("")

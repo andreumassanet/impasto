@@ -41,9 +41,12 @@ Singleton {
     readonly property alias barRight: config.barRight
     readonly property alias islandSummary: config.islandSummary
     readonly property alias lyrics: config.lyrics
+    readonly property alias mediaCover: config.mediaCover
+    // "card" (the piece's card) or "panel" (the wide media panel).
     readonly property alias islandActivities: config.islandActivities
     readonly property alias chipShape: config.chipShape
     readonly property alias chipFigure: config.chipFigure
+    readonly property alias chipHover: config.chipHover
     readonly property alias desktopWidgets: config.desktopWidgets
     readonly property alias desktopTheme: config.desktopTheme
     readonly property alias desktopOpacity: config.desktopOpacity
@@ -63,16 +66,27 @@ Singleton {
     readonly property alias dockOpacity: config.dockOpacity
     readonly property alias dockGround: config.dockGround
     readonly property alias terminalGround: config.terminalGround
+    readonly property alias superTapLauncher: config.superTapLauncher
+    readonly property alias workspaceNumbersOnSuper: config.workspaceNumbersOnSuper
+    readonly property alias volumeMax: config.volumeMax
+    readonly property alias trayHidden: config.trayHidden
+    readonly property alias notificationRules: config.notificationRules
+    readonly property alias themeTargets: config.themeTargets
+    readonly property alias calendarLinks: config.calendarLinks
+    readonly property alias islandSpectrum: config.islandSpectrum
+    readonly property alias weatherUnits: config.weatherUnits
     readonly property alias dockRunning: config.dockRunning
     readonly property alias dockEverywhere: config.dockEverywhere
     readonly property alias dockAutohide: config.dockAutohide
     readonly property alias dockLauncher: config.dockLauncher
     readonly property alias weatherPlace: config.weatherPlace
+    readonly property alias wallpaperFavourites: config.wallpaperFavourites
     readonly property alias githubUser: config.githubUser
     readonly property alias markets: config.markets
     readonly property alias petStyle: config.petStyle
     readonly property alias launcherResults: config.launcherResults
     readonly property alias launcherOrder: config.launcherOrder
+    readonly property alias launcherSearchUrl: config.launcherSearchUrl
     readonly property alias launcherFits: config.launcherFits
     readonly property alias emojiTone: config.emojiTone
     readonly property alias cameraEnabled: config.cameraEnabled
@@ -89,7 +103,11 @@ Singleton {
     readonly property alias userName: config.userName
     readonly property alias userAvatar: config.userAvatar
     readonly property alias doNotDisturb: config.doNotDisturb
+    readonly property alias osdStyle: config.osdStyle
     readonly property alias recorderAudio: config.recorderAudio
+    readonly property alias captureNames: config.captureNames
+    // What a saved capture's name has after its time.
+    readonly property string captureSuffix: root.captureNames === "time" ? "" : "_impasto"
     readonly property alias captureShape: config.captureShape
     readonly property alias captureKind: config.captureKind
     readonly property alias notesHandwriting: config.notesHandwriting
@@ -98,7 +116,10 @@ Singleton {
     readonly property alias workspaceCount: config.workspaceCount
     readonly property alias workspaceMax: config.workspaceMax
     readonly property alias workspaceMode: config.workspaceMode
+    readonly property alias workspaceNumbers: config.workspaceNumbers
     readonly property alias workspaceStyle: config.workspaceStyle
+    readonly property alias workspaceApps: config.workspaceApps
+    readonly property alias overviewScratchpads: config.overviewScratchpads
     readonly property alias motionScale: config.motionScale
     readonly property alias motionCurve: config.motionCurve
     readonly property alias animationPreset: config.animationPreset
@@ -125,6 +146,8 @@ Singleton {
     readonly property alias shakeToFind: config.shakeToFind
     readonly property alias nightLight: config.nightLight
     readonly property alias nightTemperature: config.nightTemperature
+    readonly property alias powerTileProfile: config.powerTileProfile
+    readonly property alias brightnessBelowFloor: config.brightnessBelowFloor
     readonly property alias lidPolicy: config.lidPolicy
     readonly property alias idleLock: config.idleLock
     readonly property alias idleScreen: config.idleScreen
@@ -311,6 +334,13 @@ Singleton {
         { id: "on",    label: "Always",   note: "The figure always beside it" }
     ]
 
+    // What resting the pointer on a piece does while its figure is "On hover":
+    // the piece widens, or a small card drops from the bar under it.
+    readonly property var chipHovers: [
+        { id: "widen", label: "Inline", note: "The figure opens beside the piece" },
+        { id: "card", label: "Pill", note: "A small pill drops from the bar under the piece" }
+    ]
+
     // No writes until the file has been read: `onAdapterUpdated` writes the
     // whole adapter, so an early `set` would overwrite every stored preference
     // with defaults. A second shell instance sharing the file makes the race
@@ -340,12 +370,12 @@ Singleton {
     // the person: kept across switches, left out of exports and untouched by
     // Reset. The recorder and capture entries are last-used state.
     readonly property var machineKeys: [
-        "displays", "lidPolicy", "workspaceMode",
+        "displays", "lidPolicy", "workspaceMode", "workspaceNumbers",
         "userName", "userAvatar", "language", "keyboard", "weatherPlace", "githubUser", "markets",
         "emojiTone",
-        "doNotDisturb", "nightLight", "nightTemperature", "barHidden", "barAutohide", "desktopHidden",
-        "gameMode",
-        "cameraEnabled", "cameraEffect", "cameraReactions",
+        "doNotDisturb", "nightLight", "nightTemperature", "barHidden", "desktopHidden",
+        "gameMode", "powerTileProfile", "brightnessBelowFloor", "themeTargets", "calendarLinks",
+        "cameraEnabled", "cameraEffect", "cameraReactions", "wallpaperFavourites",
         "recorderAudio", "captureShape", "captureKind"
     ]
 
@@ -586,6 +616,9 @@ Singleton {
         // something on screen shows them.
         property bool lyrics: true
 
+        // The cover's shape everywhere: "rectangle" or "circle".
+        property string mediaCover: "rectangle"
+
         // Null means `besideDefaults`.
         property var islandActivities: null
         // The choices there were when that list was kept, so one added since
@@ -595,12 +628,16 @@ Singleton {
         // One of `chipShapes` and one of `chipFigures`.
         property string chipShape: "icon"
         property string chipFigure: "on"
+        // One of `chipHovers`.
+        property string chipHover: "widen"
 
         property int launcherResults: 9
 
         // Order with an empty query: `recent` ranks by launch count with
         // decay; otherwise alphabetical.
         property string launcherOrder: "recent"
+        // The web search row opens this followed by the text, URL-encoded.
+        property string launcherSearchUrl: "https://www.google.com/search?q="
 
         // Fit the island to the number of results instead of a fixed-height
         // list. Off by default: a list that holds still is easier to aim at.
@@ -644,8 +681,9 @@ Singleton {
         property string lockClock: "stacked"
 
         // What is playing on the lock: "lyrics" (the player and its lyrics),
-        // "player" or "off"; and behind it, the "cover" blurred or the
-        // "desktop" as without music.
+        // "player" or "off". Behind the lock: the "cover" blurred while music
+        // plays and the desktop otherwise, the "desktop" (a screenshot,
+        // blurred), or the "wallpaper", so nothing that was open shows.
         property string lockMusic: "lyrics"
         property string lockMusicGround: "cover"
 
@@ -657,7 +695,15 @@ Singleton {
         // Persisted so silent mode survives a restart.
         property bool doNotDisturb: false
 
+        // Where a change of state is announced: "island" (the island's
+        // readout), "notification" (a notification, with levels such as the
+        // volume staying on the island) or "off".
+        property string osdStyle: "island"
+
         property bool recorderAudio: false
+        // Saved screenshots, recordings and photos: "impasto" names them
+        // by their time and `_impasto`, "time" by their time alone.
+        property string captureNames: "impasto"
 
         // The capture surface reopens on its last shape and kind. The
         // destination is not stored: it resets to saving a file.
@@ -673,7 +719,6 @@ Singleton {
         // Show the spectrum only on empty workspaces.
         property bool spectrumOnEmpty: false
 
-
         // Dots always shown, and the total number of workspaces. Workspaces
         // past `workspaceCount` still show while occupied.
         property int workspaceCount: 5
@@ -681,9 +726,22 @@ Singleton {
         // `shared`: every screen shares the same workspaces. `screen`: each
         // has ten of its own, the main screen 1–10 and the rest after it.
         property string workspaceMode: "shared"
+        // "block": a screen numbers its own ten from 1; "real": every workspace
+        // shows its own number, so 23 reads as 23.
+        property string workspaceNumbers: "block"
         // How the strip draws each workspace: a shape (`dots`, `bars`, `rings`)
         // or its number written out (`numbers`, `roman`, `kanji`, `greek`).
         property string workspaceStyle: "dots"
+        // The focused workspace's applications after its mark, in any style.
+        property bool workspaceApps: false
+
+        // Tiles under the overview's special strip, one per scratchpad:
+        // `{ name, label, keys, glyph, command }`. `name` is the special
+        // workspace, `keys` the hint shown on the tile, `glyph` what it shows
+        // while empty, and `command` a shell command that opens it (starting
+        // its app the first time); empty, a click toggles the workspace. A
+        // window dropped on a tile is sent there. Edit in settings.json.
+        property var overviewScratchpads: []
 
         // Percentage. 100 is the designed speed; 0 disables animation.
         property int motionScale: 100
@@ -788,9 +846,9 @@ Singleton {
         // `ControlsService.doors`; read only as that row's default.
         property var centreButtons: null
 
-        // The top row: `{ left, right }`, session action and door ids in
-        // order. Null is the session's actions left and the doors above
-        // right; two empty sides are no row at all.
+        // The top row's buttons: `{ left, right }`, session action and door
+        // ids, read as one list, left first. Null is the session's actions
+        // and the doors above.
         property var centreTop: null
 
         // The grid's columns and rows; 0 is the default the default layout
@@ -843,6 +901,38 @@ Singleton {
         // kitty's ground, as `surfaceStyle`.
         property string terminalGround: "glass"
 
+        // A tap of Super alone opens the launcher.
+        property bool superTapLauncher: false
+        // The workspace strip shows plain numbers while Super is held.
+        property bool workspaceNumbersOnSuper: false
+
+        // The most the volume reaches, in percent: 100, or 150 for quiet
+        // sources. The volume key reads it from this file (`keybinds.lua`).
+        property int volumeMax: 100
+
+        // Tray items left out of the bar, by the id the application gives
+        // them (`TrayService.all`). Empty shows every one.
+        property var trayHidden: []
+
+        // Per application, by the name it notifies as: "mute", "silent" or
+        // "popup" (see `NotificationService.ruleFor`). None is the default.
+        property var notificationRules: ({})
+
+        // The applications the palette is written to, by the names in
+        // `theme_manager.py` (`PALETTE_WRITERS`). Null is all of them.
+        property var themeTargets: null
+
+        // Calendars the calendar card reads, by their iCalendar address:
+        // `{ name, url }` each (`AgendaService`).
+        property var calendarLinks: []
+
+        // The resting island shows the playing music as moving bars (the
+        // audio analyser runs for them); off, a still note.
+        property bool islandSpectrum: true
+
+        // "m" for °C or "u" for °F. A change is read at once.
+        property string weatherUnits: "m"
+
         // Also show running applications that aren't pinned.
         property bool dockRunning: true
 
@@ -857,6 +947,8 @@ Singleton {
         // Anything wttr.in accepts: a city, postcode or airport code. Empty
         // lets wttr.in geolocate by IP, which can be tens of kilometres off.
         property string weatherPlace: ""
+        // The wallpapers kept on the picker's favourites page, by path.
+        property var wallpaperFavourites: []
 
         // GitHub user for the contributions widget; empty draws nothing.
         property string githubUser: ""
@@ -879,6 +971,15 @@ Singleton {
         // warm. `SunsetService` drives hyprsunset.
         property bool nightLight: false
         property int nightTemperature: 4000
+
+        // The profile the power tile's press goes to from balanced: the last
+        // one picked that is not balanced. Saver first, the one a laptop
+        // leaves the house in.
+        property string powerTileProfile: "power-saver"
+
+        // Past the backlight's floor the picture dims further, through the
+        // gamma (`BrightnessService`, `SunsetService`).
+        property bool brightnessBelowFloor: false
 
         // Closing the lid with another screen connected: `off` disables the
         // panel and moves its workspaces, `keep` leaves it on, `system`

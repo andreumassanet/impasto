@@ -247,6 +247,31 @@ end
 bind(mainMod .. " + mouse_down", hl.dsp.focus({ workspace = "m+1" }), { description = "Workspaces · Next workspace" })
 bind(mainMod .. " + mouse_up",   hl.dsp.focus({ workspace = "m-1" }), { description = "Workspaces · Previous workspace" })
 
+-- · the scratchpad: a special workspace shown over the one you are on.
+-- · SUPER + Z shows or hides it; adding SHIFT sends the window into it, or
+-- · back out to the workspace under it.
+local scratchpad = "special:scratchpad"
+
+local function scratchpad_send()
+    local window = hl.get_active_window()
+    if not window then
+        return
+    end
+    if window.workspace and window.workspace.name == scratchpad then
+        local monitor = hl.get_active_monitor()
+        if monitor and monitor.active_workspace then
+            hl.dispatch(hl.dsp.window.move({ workspace = monitor.active_workspace.id }))
+        end
+        return
+    end
+    hl.dispatch(hl.dsp.window.move({ workspace = scratchpad, follow = false }))
+end
+
+bind(mainMod .. " + Z",         hl.dsp.workspace.toggle_special("scratchpad"),
+     { description = "Workspaces · Show or hide the scratchpad" })
+bind(mainMod .. " + SHIFT + Z", scratchpad_send,
+     { description = "Workspaces · Send the window to the scratchpad or back" })
+
 
 -- ── SCREENS ─────────────────────────────────────────────────────────────────
 
@@ -304,7 +329,25 @@ bind(mainMod .. " + ALT + SHIFT + right", trade_workspace("r"), { description = 
 
 -- · volume and brightness; brightness goes through the shell, which knows
 -- · the focused screen and how to dim it
-bind("XF86AudioRaiseVolume",  hl.dsp.exec_cmd("wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 5%+"), { locked = true, repeating = true, description = "Media · Volume up" })
+-- · the most the volume key raises to is the shell's (Settings › Control
+-- · Centre › Sound), read on every press so a change needs no reload
+local function volume_limit()
+    local state = os.getenv("XDG_STATE_HOME") or (os.getenv("HOME") .. "/.local/state")
+    local file  = io.open(state .. "/quickshell/settings.json")
+    if not file then
+        return 1
+    end
+    local text = file:read("a")
+    file:close()
+    local most = tonumber(text:match('"volumeMax"%s*:%s*(%d+)') or "")
+    return most and math.max(100, math.min(150, most)) / 100 or 1
+end
+
+local function volume_up()
+    hl.dispatch(hl.dsp.exec_cmd("wpctl set-volume -l " .. volume_limit() .. " @DEFAULT_AUDIO_SINK@ 5%+"))
+end
+
+bind("XF86AudioRaiseVolume",  volume_up, { locked = true, repeating = true, description = "Media · Volume up" })
 bind("XF86AudioLowerVolume",  hl.dsp.exec_cmd("wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"),      { locked = true, repeating = true, description = "Media · Volume down" })
 bind("XF86AudioMute",         hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"),     { locked = true, description = "Media · Mute output" })
 bind("XF86AudioMicMute",      hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"),   { locked = true, description = "Media · Mute microphone" })
@@ -313,6 +356,11 @@ bind("XF86MonBrightnessDown", hl.dsp.global("quickshell:brightnessDown"),       
 
 -- · Acer laptops send XF86Launch6 for the microphone key
 bind("XF86Launch6",           hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"),   { locked = true, description = "Media · Mute microphone (Acer)" })
+
+-- · Caps Lock, passed on as ever and told to the shell, which says on the
+-- · island whether it is now on or off: Hyprland sends no event for it
+bind("Caps_Lock", hl.dsp.global("quickshell:capsLock"),
+     { description = "Shell · Say when Caps Lock turns on or off", ignore_mods = true, non_consuming = true })
 
 -- · player; distinct descriptions so each key can be rebound separately
 bind("XF86AudioPlay",  hl.dsp.exec_cmd("playerctl play-pause"), { locked = true, description = "Media · Play or pause" })
@@ -346,6 +394,17 @@ bind(mainMod .. " + CTRL + R",  hl.dsp.exec_cmd("pkill -x quickshell; pkill -x q
 
 -- · global shortcuts registered by the shell
 bind(mainMod .. " + Space",     hl.dsp.global("quickshell:launcher"),   { description = "Shell · Open the launcher" })
+
+-- · Super alone, reported to the shell, which acts on it only when Settings
+-- · says so: a tap opens the launcher, a hold shows the workspace numbers.
+-- · The tap fires on release only when no other key was pressed since; the
+-- · hold reports both press and release, ignoring modifiers, and does not
+-- · swallow the key.
+bind("SUPER_L", hl.dsp.global("quickshell:superTap"),
+     { description = "Shell · Open the launcher when Super is tapped", release = true, ignore_mods = true })
+bind("SUPER_L", hl.dsp.global("quickshell:workspaceNumber"),
+     { description = "Shell · Show the workspace numbers while Super is held",
+       ignore_mods = true, non_consuming = true })
 bind(mainMod .. " + A",         hl.dsp.global("quickshell:controls"),   { description = "Shell · Open the control centre" })
 bind(mainMod .. " + TAB",       hl.dsp.global("quickshell:overview"),   { description = "Shell · Open the workspace overview" })
 bind(mainMod .. " + comma",     hl.dsp.global("quickshell:settings"),   { description = "Shell · Open settings" })
@@ -360,6 +419,9 @@ bind(mainMod .. " + K",         hl.dsp.global("quickshell:board"),      { descri
 -- · key sheet, read from `hyprctl binds`. H, since / is SHIFT + 7 on a
 -- · Spanish layout
 bind(mainMod .. " + H",         hl.dsp.global("quickshell:keys"),       { description = "Shell · Show every key" })
+
+-- · the same sheet in a window of its own
+bind(mainMod .. " + SHIFT + H", hl.dsp.global("quickshell:cheatsheetWindow"), { description = "Shell · Open the cheatsheet in a window" })
 
 -- · zen: the bar away and its band to the windows; and the widgets away
 bind(mainMod .. " + CTRL + B",  hl.dsp.global("quickshell:zen"),        { description = "Shell · Hide or show the bar" })
@@ -392,6 +454,52 @@ bind("", hl.dsp.global("quickshell:captureWindow"), { description = "Shell · Ca
 bind("", hl.dsp.global("quickshell:captureScreen"), { description = "Shell · Capture the whole screen" })
 bind("", hl.dsp.global("quickshell:captureEdit"),   { description = "Shell · Capture a region and annotate it" })
 bind("", hl.dsp.global("quickshell:captureText"),   { description = "Shell · Read a region as text" })
+bind("", hl.dsp.global("quickshell:widgetsEdit"), { description = "Shell · Arrange the desktop widgets" })
+bind("", hl.dsp.global("quickshell:media"), { description = "Shell · Open the media panel" })
+bind("", hl.dsp.global("quickshell:connectivity"), { description = "Shell · Open Wi-Fi, Bluetooth and Sound" })
+bind("", hl.dsp.global("quickshell:dismissNotification"), { description = "Shell · Dismiss the notification" })
+
+
+-- ── SCRATCHPADS ─────────────────────────────────────────────────────────────
+
+-- The scratchpads of Settings → Scratchpads, written by the shell to
+-- scratchpads.tsv (name, combination, label, command: tab-separated, the
+-- combination empty for none). Each is a special workspace: its key shows or
+-- hides it, and starts the command on it first when it holds no window. The
+-- key is the user's choice, so it replaces whatever else holds it.
+--
+-- Done here rather than by a script: a key press costs no process.
+do
+    -- The command as a shell word, started in its own systemd scope under
+    -- UWSM so it does not die with the compositor, and plainly without it.
+    local function start_line(command)
+        local quoted = "'" .. command:gsub("'", "'\\''") .. "'"
+        return "sh -c 'if command -v uwsm-app >/dev/null; then exec uwsm-app -- sh -c \"$1\"; "
+            .. "else exec sh -c \"$1\"; fi' _ " .. quoted
+    end
+
+    local function toggle_scratchpad(name, command)
+        local workspace = hl.get_workspace("special:" .. name)
+        if command ~= "" and (workspace == nil or workspace.windows == 0) then
+            hl.dispatch(hl.dsp.exec_cmd(start_line(command), { workspace = "special:" .. name }))
+        end
+        hl.dispatch(hl.dsp.workspace.toggle_special(name))
+    end
+
+    local state = os.getenv("XDG_STATE_HOME") or (os.getenv("HOME") .. "/.local/state")
+    local file  = io.open(state .. "/quickshell/scratchpads.tsv")
+    if file then
+        for line in file:lines() do
+            local name, combination, label, command = line:match("^([^#\t][^\t]*)\t([^\t]*)\t([^\t]*)\t?(.*)$")
+            if name and combination ~= "" then
+                hl.unbind(combination)
+                hl.bind(combination, function() toggle_scratchpad(name, command) end,
+                        { description = "Workspaces · Scratchpad " .. (label ~= "" and label or name) })
+            end
+        end
+        file:close()
+    end
+end
 
 
 -- ── LID ─────────────────────────────────────────────────────────────────────

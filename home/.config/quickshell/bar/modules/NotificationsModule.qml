@@ -41,11 +41,11 @@ Item {
             // Rows shown before the list scrolls.
             readonly property int shown: Math.min(6, card.kept)
 
-            title: "Notifications"
+            title: Tr.t("Notifications")
             subtitle: {
-                const parts = [card.kept === 0 ? "Nothing new" : `${card.kept} kept`]
+                const parts = [card.kept === 0 ? Tr.t("Nothing new") : Tr.t("%1 kept").arg(card.kept)]
                 if (NotificationService.doNotDisturb)
-                    parts.push("Do Not Disturb")
+                    parts.push(Tr.t("Do Not Disturb"))
                 return parts.join(" · ")
             }
 
@@ -89,8 +89,7 @@ Item {
 
                     readonly property bool critical:
                         entry.modelData.urgency === NotificationUrgency.Critical
-                    readonly property bool opens: NotificationService.defaultAction(
-                        NotificationService.openOf(entry.modelData)) !== null
+                    readonly property bool opens: NotificationService.opens(entry.modelData)
 
                     width: ListView.view.width
                     height: Theme.cardRow
@@ -100,10 +99,10 @@ Item {
                         cursorShape: entry.opens ? Qt.PointingHandCursor : Qt.ArrowCursor
                     }
 
-                    // While its notification is still open, a click is its
-                    // default action, and the island gets out of the way of
-                    // the window it brings up. One from an earlier session
-                    // only has its text.
+                    // A click is the notification's default action while it
+                    // is open, else brings up the application that sent it;
+                    // the island gets out of the way of the window that
+                    // comes up.
                     TapHandler {
                         enabled: entry.opens
                         onTapped: {
@@ -232,14 +231,14 @@ Item {
 
                 PillButton {
                     implicitHeight: Theme.cardRow
-                    text: "Do Not Disturb"
+                    text: Tr.t("Do Not Disturb")
                     active: NotificationService.doNotDisturb
                     onClicked: NotificationService.toggleDoNotDisturb()
                 }
 
                 PillButton {
                     implicitHeight: Theme.cardRow
-                    text: "Clear"
+                    text: Tr.t("Clear")
                     enabled: card.kept > 0
                     onClicked: NotificationService.clearHistory()
                 }

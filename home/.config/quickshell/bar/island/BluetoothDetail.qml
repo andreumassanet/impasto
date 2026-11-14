@@ -24,6 +24,15 @@ ColumnLayout {
     id: root
 
     signal back()
+    signal pageRequested(string panel)
+
+    Keys.onPressed: event => event.accepted = tabs.handle(event, index => root.activate(index))
+
+    // The Nth device in the list: pair, connect or disconnect it.
+    function activate(index: int): void {
+        if (index < root.listed.length)
+            BluetoothService.connectDevice(root.listed[index])
+    }
 
     // No back arrow when opened from the bar, where there is nothing to go
     // back to.
@@ -41,8 +50,20 @@ ColumnLayout {
     Component.onCompleted: {
         if (BluetoothService.enabled)
             BluetoothService.setDiscovering(true)
+        // Focus on open, or Tab goes to whatever had the keyboard before.
+        if (tabs.visible)
+            root.forceActiveFocus()
     }
     Component.onDestruction: BluetoothService.setDiscovering(false)
+
+    // Only in the island: the module card has no panel to switch to.
+    ConnectivityTabs {
+        id: tabs
+
+        visible: root.backable
+        page: "bluetooth"
+        onPageRequested: panel => root.pageRequested(panel)
+    }
 
     // The heading a module's card has (`ModuleCard`), with the back arrow in
     // front of it when there is somewhere to go back to.
@@ -91,8 +112,8 @@ ColumnLayout {
             Text {
                 Layout.fillWidth: true
                 text: BluetoothService.enabled
-                    ? (BluetoothService.discovering ? "Looking for devices…" : BluetoothService.summary)
-                    : "Adapter off"
+                    ? (BluetoothService.discovering ? Tr.t("Looking for devices…") : BluetoothService.summary)
+                    : Tr.t("Adapter off")
                 elide: Text.ElideRight
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.fontSizeSmall
@@ -115,7 +136,7 @@ ColumnLayout {
         visible: root.listed.length === 0
         horizontalAlignment: Text.AlignHCenter
         verticalAlignment: Text.AlignVCenter
-        text: BluetoothService.enabled ? "Nothing found yet" : "Turn Bluetooth on to see devices"
+        text: BluetoothService.enabled ? Tr.t("Nothing found yet") : Tr.t("Turn Bluetooth on to see devices")
         font.family: Theme.fontFamily
         font.pixelSize: Theme.fontSizeSmall
         color: Theme.textMuted
@@ -181,10 +202,10 @@ ColumnLayout {
                     Text {
                         Layout.fillWidth: true
                         text: {
-                            if (entry.modelData.pairing) return "Pairing…"
+                            if (entry.modelData.pairing) return Tr.t("Pairing…")
                             const bits = []
-                            bits.push(entry.modelData.connected ? "Connected"
-                                : (entry.modelData.paired ? "Paired" : "Available"))
+                            bits.push(Tr.t(entry.modelData.connected ? "Connected"
+                                : (entry.modelData.paired ? "Paired" : "Available")))
                             if (entry.modelData.batteryAvailable)
                                 bits.push(`${Math.round(entry.modelData.battery * 100)}%`)
                             return bits.join(" · ")
@@ -205,12 +226,61 @@ ColumnLayout {
                 }
             }
 
+            // A device paired from here connects once the pairing is done.
+            property bool wasPairing: false
+
+            Connections {
+                target: entry.modelData
+
+                function onPairedChanged(): void {
+                    if (entry.wasPairing && entry.modelData.paired) {
+                        entry.wasPairing = false
+                        entry.modelData.connected = true
+                    }
+                }
+            }
+
             MouseArea {
                 id: entryMouse
                 anchors.fill: parent
                 hoverEnabled: true
                 cursorShape: Qt.PointingHandCursor
-                onClicked: BluetoothService.connectDevice(entry.modelData)
+                acceptedButtons: Qt.LeftButton | Qt.RightButton
+                // The right button forgets a paired device, as the bin does.
+                onClicked: mouse => {
+                    if (mouse.button === Qt.RightButton) {
+                        if (entry.modelData.paired)
+                            BluetoothService.forgetDevice(entry.modelData)
+                        return
+                    }
+                    if (!entry.modelData.paired)
+                        entry.wasPairing = true
+                    BluetoothService.connectDevice(entry.modelData)
+                }
+            }
+
+            // Forget, on a paired device under the pointer. Declared after
+            // the row's area so a click here goes here.
+            Text {
+                anchors.right: parent.right
+                anchors.rightMargin: entry.modelData.connected ? 34 : 12
+                anchors.verticalCenter: parent.verticalCenter
+                visible: entry.modelData.paired && (entryMouse.containsMouse || forgetMouse.containsMouse)
+                text: "󰆴"
+                font.family: Theme.fontMono
+                font.pixelSize: 14
+                color: forgetMouse.containsMouse ? Theme.red : Theme.textMuted
+
+                Behavior on color { ColorAnimation { duration: Theme.durationFast } }
+
+                MouseArea {
+                    id: forgetMouse
+                    anchors.fill: parent
+                    anchors.margins: -6
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: BluetoothService.forgetDevice(entry.modelData)
+                }
             }
         }
     }
@@ -236,8 +306,8 @@ ColumnLayout {
 
             Text {
                 text: BluetoothService.unnamedCount === 1
-                    ? "1 unnamed device nearby"
-                    : `${BluetoothService.unnamedCount} unnamed devices nearby`
+                    ? Tr.t("1 unnamed device nearby")
+                    : Tr.t("%1 unnamed devices nearby").arg(BluetoothService.unnamedCount)
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.fontSizeLabel
                 color: unnamedMouse.containsMouse ? Theme.text : Theme.textMuted
