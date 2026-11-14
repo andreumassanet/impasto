@@ -454,6 +454,10 @@ bind("", hl.dsp.global("quickshell:captureWindow"), { description = "Shell · Ca
 bind("", hl.dsp.global("quickshell:captureScreen"), { description = "Shell · Capture the whole screen" })
 bind("", hl.dsp.global("quickshell:captureEdit"),   { description = "Shell · Capture a region and annotate it" })
 bind("", hl.dsp.global("quickshell:captureText"),   { description = "Shell · Read a region as text" })
+bind("", hl.dsp.global("quickshell:widgetsEdit"), { description = "Shell · Arrange the desktop widgets" })
+bind("", hl.dsp.global("quickshell:media"), { description = "Shell · Open the media panel" })
+bind("", hl.dsp.global("quickshell:connectivity"), { description = "Shell · Open Wi-Fi, Bluetooth and Sound" })
+bind("", hl.dsp.global("quickshell:dismissNotification"), { description = "Shell · Dismiss the notification" })
 
 
 -- ── SCRATCHPADS ─────────────────────────────────────────────────────────────
