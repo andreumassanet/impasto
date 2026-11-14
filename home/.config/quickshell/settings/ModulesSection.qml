@@ -265,6 +265,27 @@ SettingsSection {
     }
 
     SettingGroup {
+        title: Tr.t("Media player")
+        note: Tr.t("What opens from the media piece, from its chip, the island and the control centre.")
+
+        SettingRow {
+            label: Tr.t("Design")
+            reading: SettingsService.mediaDesign === "panel"
+                ? Tr.t("A wide panel: the cover, the controls and the lyrics side by side")
+                : Tr.t("A card under the piece, with the lyrics opening out beside it")
+
+            SegmentedControl {
+                options: [
+                    { id: "card", label: Tr.t("Card") },
+                    { id: "panel", label: Tr.t("Panel") }
+                ]
+                current: SettingsService.mediaDesign
+                onSelected: id => SettingsService.set("mediaDesign", id)
+            }
+        }
+    }
+
+    SettingGroup {
         title: Tr.t("Captures")
         note: Tr.t("The screenshots, recordings and camera photos the shell saves, named by the time they were taken.")
 
