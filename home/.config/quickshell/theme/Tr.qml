@@ -502,6 +502,9 @@ QtObject {
             "Drag a button onto the row; drag it back here to take it off.":
                 "Arrastra un botón a la fila; devuélvelo aquí para quitarlo.",
             "Every button is on the row": "Todos los botones están en la fila",
+            "Music on the resting island": "Música en la isla en reposo",
+            "Moving with the sound": "Moviéndose con el sonido",
+            "A still note": "Una nota quieta",
             "Default layout": "Disposición inicial",
             "Shortcuts": "Atajos",
 

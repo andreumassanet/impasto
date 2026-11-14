@@ -283,6 +283,14 @@ Item {
         Component {
             id: mediaFigure
 
+            Loader {
+                sourceComponent: SettingsService.islandSpectrum ? mediaBars : mediaNote
+            }
+        }
+
+        Component {
+            id: mediaBars
+
             Spectrum {
                 height: 14
                 barWidth: 2
@@ -292,6 +300,18 @@ Item {
 
                 Component.onCompleted: CavaService.subscribe()
                 Component.onDestruction: CavaService.release()
+            }
+        }
+
+        // A still glyph: no analyser runs for it.
+        Component {
+            id: mediaNote
+
+            Text {
+                text: MediaService.playing ? "󰝚" : "󰏤"
+                font.family: Theme.fontMono
+                font.pixelSize: 14
+                color: Theme.indicator
             }
         }
 

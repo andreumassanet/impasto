@@ -89,6 +89,15 @@ SettingsSection {
                 }
             }
 
+            SettingRow {
+                label: Tr.t("Music on the resting island")
+                reading: SettingsService.islandSpectrum ? Tr.t("Moving with the sound") : Tr.t("A still note")
+
+                ToggleSwitch {
+                    checked: SettingsService.islandSpectrum
+                    onToggled: checked => SettingsService.set("islandSpectrum", checked)
+                }
+            }
         }
 
         // ── CLOCK ───────────────────────────────────────────────────────────
