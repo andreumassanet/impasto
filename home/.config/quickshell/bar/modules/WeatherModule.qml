@@ -52,7 +52,7 @@ Item {
                 const parts = []
                 if (WeatherService.description !== "")
                     parts.push(WeatherService.description)
-                parts.push(`feels ${WeatherService.feelsLike}°`)
+                parts.push(Tr.t("feels %1°").arg(WeatherService.feelsLike))
                 if (WeatherService.age !== "")
                     parts.push(WeatherService.age)
                 return parts.join(" · ")
@@ -66,7 +66,13 @@ Item {
                 text: WeatherService.glyph
                 font.family: Theme.fontMono
                 font.pixelSize: 30
-                color: Theme.indicator
+                color: weatherArt1.shown ? "transparent" : Theme.indicator
+
+                WeatherArt {
+                    id: weatherArt1
+
+                    name: WeatherService.icon
+                }
             }
 
             // Columns divide the width by hand: a RowLayout sizes from its
@@ -109,7 +115,13 @@ Item {
                                 text: block.modelData.glyph
                                 font.family: Theme.fontMono
                                 font.pixelSize: 15
-                                color: Theme.indicator
+                                color: weatherArt2.shown ? "transparent" : Theme.indicator
+
+                                WeatherArt {
+                                    id: weatherArt2
+
+                                    name: block.modelData.icon ?? ""
+                                }
                             }
 
                             Text {

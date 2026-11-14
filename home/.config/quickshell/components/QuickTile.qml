@@ -12,6 +12,7 @@ import Quickshell
 import QtQuick.Layouts
 
 import "../theme"
+import "../services"
 
 // A toggle that states what it is doing ("Bluetooth · WH-1000XM4", not
 // "On"). The on state shows on the icon badge; filling the whole tile would
@@ -28,6 +29,9 @@ Rectangle {
     // Tiles with a detail view get a chevron that opens it; the rest of the
     // tile still toggles.
     property bool expandable: false
+    // An expandable tile opens its menu from anywhere on it but the icon,
+    // which is what toggles.
+    readonly property bool labelOpens: root.expandable
 
     signal toggled()
     signal expanded()
@@ -43,7 +47,10 @@ Rectangle {
     Behavior on border.color { ColorAnimation { duration: Theme.durationFast } }
     Behavior on opacity { NumberAnimation { duration: Theme.durationFast } }
 
+    // Above the tile-wide click area, so the icon's own area under it takes
+    // the icon's clicks; the texts take none, and a click on them falls through.
     RowLayout {
+        z: 1
         anchors.fill: parent
         anchors.margins: 12
         spacing: 11
@@ -56,6 +63,13 @@ Rectangle {
             color: root.active ? Theme.accent : Theme.surfaceHoverIn(QsWindow.window)
 
             Behavior on color { ColorAnimation { duration: Theme.durationFast } }
+
+            MouseArea {
+                anchors.fill: parent
+                enabled: root.available && root.labelOpens
+                cursorShape: Qt.PointingHandCursor
+                onClicked: root.toggled()
+            }
 
             Text {
                 anchors.centerIn: parent
@@ -105,7 +119,7 @@ Rectangle {
         hoverEnabled: true
         enabled: root.available
         cursorShape: Qt.PointingHandCursor
-        onClicked: root.toggled()
+        onClicked: root.labelOpens ? root.expanded() : root.toggled()
     }
 
     // Declared last so it sits above the tile's own mouse area.

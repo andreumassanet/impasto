@@ -52,6 +52,18 @@ SettingsSection {
             }
         }
 
+        SettingRow {
+            label: Tr.t("Tap Super")
+            reading: SettingsService.superTapLauncher
+                ? Tr.t("Super pressed and let go alone opens the launcher")
+                : Tr.t("Super alone does nothing")
+
+            ToggleSwitch {
+                checked: SettingsService.superTapLauncher
+                onToggled: checked => SettingsService.set("superTapLauncher", checked)
+            }
+        }
+
         SettingSlider {
             label: Tr.t("Results shown")
             value: SettingsService.launcherResults
@@ -167,6 +179,23 @@ SettingsSection {
                     }
                 }
             }
+        }
+    }
+
+    // ── FALLBACKS ───────────────────────────────────────────────────────────
+
+    SettingGroup {
+        visible: root.tab === "results"
+        title: Tr.t("Fallbacks")
+        note: Tr.t("Rows under the applications that act on the text as typed.")
+        hint: Tr.t("Open an address, search the web, run the text as a command, or run it in a terminal that stays open. Only in the plain-text mode; a command runs as soon as its row is chosen.")
+
+        SettingField {
+            label: Tr.t("Web search address")
+            reading: Tr.t("The text is added at the end, encoded")
+            placeholder: LauncherService.defaultSearchUrl
+            value: SettingsService.launcherSearchUrl
+            onEdited: value => SettingsService.set("launcherSearchUrl", value.trim())
         }
     }
 

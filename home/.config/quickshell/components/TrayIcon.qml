@@ -29,26 +29,35 @@ Item {
     readonly property string panelIcon: root.named !== ""
         ? `file:///usr/share/icons/Papirus-Dark/22x22/panel/${root.named}.svg` : ""
 
-    property bool fallback: false
-    onIconChanged: root.fallback = false
-
+    // Two pictures rather than one that switches its own source on an error,
+    // which loops when an item such as nm-applet changes its icon every few
+    // seconds. The item's own icon shows while the themed one is missing or
+    // still loading.
     Image {
-        id: picture
+        id: themed
 
         anchors.fill: parent
         sourceSize.width: root.width * 2
         sourceSize.height: root.height * 2
-        source: root.panelIcon !== "" && !root.fallback ? root.panelIcon : root.icon
+        source: root.panelIcon
         visible: false
-        onStatusChanged: {
-            if (status === Image.Error && !root.fallback)
-                root.fallback = true
-        }
     }
 
+    Image {
+        id: own
+
+        anchors.fill: parent
+        sourceSize.width: root.width * 2
+        sourceSize.height: root.height * 2
+        source: themed.status === Image.Ready ? "" : root.icon
+        visible: false
+    }
+
+    readonly property Item picture: themed.status === Image.Ready ? themed : own
+
     MultiEffect {
-        anchors.fill: picture
-        source: picture
+        anchors.fill: parent
+        source: root.picture
         saturation: -1
         brightness: 0.1
     }
