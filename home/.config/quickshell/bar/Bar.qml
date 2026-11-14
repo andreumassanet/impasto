@@ -255,6 +255,54 @@ PanelWindow {
     readonly property bool covered: !!root.screen
         && DockService.coveredScreens.includes(` ${root.screen.name} `)
     readonly property bool zen: SettingsService.barHidden || root.covered
+        || (root.autohide && !root.edgePeek && !root.panelOpen)
+
+    // ── AUTOHIDE ────────────────────────────────────────────────────────────
+    //
+    // With `barAutohide` the bar is in zen until the pointer reaches the top
+    // edge: a thin strip in the input mask wakes it, and it goes back up a
+    // moment after the pointer leaves. An open panel keeps it down.
+    readonly property bool autohide: SettingsService.barAutohide
+    property bool edgePeek: false
+
+    // A panel the person opened brings the whole bar down; a notification or
+    // an OSD brings only the island, as in zen.
+    readonly property bool panelOpen: island.state.layer === island.state.layerPanel
+
+    // The input follows each side's own extent rather than the whole band, so
+    // the gaps between the capsules stay usable. A bezel is the band, and is
+    // kept whole.
+    readonly property bool narrowBand: root.autohide && !SettingsService.barHidden
+        && !root.edgeToEdge
+    readonly property bool sidesLive: root.narrowBand && !root.inert && !root.sidesAway
+    readonly property point leftAt: {
+        void face.y; void sides.x; void leftZone.x; void leftZone.y
+        return leftZone.mapToItem(null, 0, 0)
+    }
+    readonly property point rightAt: {
+        void face.y; void sides.x; void rightZone.x; void rightZone.y
+        return rightZone.mapToItem(null, 0, 0)
+    }
+
+    // The strip along the top edge keeps taking input while the bar is down,
+    // so a pointer resting on the edge between two capsules does not make the
+    // bar come and go.
+    readonly property bool edgeArmed: root.autohide && !SettingsService.barHidden
+        && !root.panelOpen && root.painted && !DesktopService.editing
+
+    Item {
+        anchors.fill: parent
+        z: 1000
+        HoverHandler {
+            enabled: root.autohide
+            onHoveredChanged: {
+                if (hovered) { edgeRetract.stop(); edgeReveal.restart() }
+                else         { edgeReveal.stop();  edgeRetract.restart() }
+            }
+        }
+    }
+    Timer { id: edgeReveal;  interval: 60;  onTriggered: root.edgePeek = true }
+    Timer { id: edgeRetract; interval: 300; onTriggered: root.edgePeek = false }
     readonly property bool called: island.state.layer !== island.state.layerModules
         && island.state.layer !== island.state.layerSummary
     readonly property bool away: root.zen && !root.called
@@ -264,12 +312,35 @@ PanelWindow {
         // In zen the band is empty, and only the island's shape takes input.
         height: root.inert ? 0
             : root.wholeScreen ? root.height
-            : root.zen ? 0 : root.collapsedHeight
+            : (root.zen || root.narrowBand) ? 0 : root.collapsedHeight
 
         Region {
             x: root.shapeLeft
             width: root.inert ? 0 : root.shapeRight - root.shapeLeft
             height: root.islandTopMargin + island.height + 12
+        }
+
+        // Autohide: each side takes input over its own extent only.
+        Region {
+            x: root.leftAt.x
+            y: root.leftAt.y
+            width: root.sidesLive ? leftZone.width : 0
+            height: root.sidesLive ? leftZone.height : 0
+        }
+
+        Region {
+            x: root.rightAt.x
+            y: root.rightAt.y
+            width: root.sidesLive ? rightZone.width : 0
+            height: root.sidesLive ? rightZone.height : 0
+        }
+
+        // Autohide: a thin strip along the top edge.
+        Region {
+            x: 0
+            y: 0
+            width: root.edgeArmed ? root.width : 0
+            height: root.edgeArmed ? 3 : 0
         }
     }
 
@@ -409,7 +480,10 @@ PanelWindow {
         }
 
         Behavior on y {
-            NumberAnimation { duration: Theme.durationMedium; easing.type: Theme.easing }
+            NumberAnimation {
+                duration: root.autohide ? Theme.durationFast : Theme.durationMedium
+                easing.type: Theme.easing
+            }
         }
 
         // ── SHADOW ──────────────────────────────────────────────────────────────
