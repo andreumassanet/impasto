@@ -689,8 +689,8 @@ QtObject {
             "Icon size": "Tamaño de icono",
             "Magnify on hover": "Ampliar al pasar el ratón",
             "Behaviour": "Comportamiento",
-            "The launcher button opens the island's launcher, and open applications appear after a divider while they run. Windows and widgets pass under the dock, so moving or hiding it moves nothing else.":
-                "El botón del lanzador abre el lanzador de la isla, y las aplicaciones abiertas aparecen tras un separador mientras están en marcha. Las ventanas y los widgets pasan por debajo del dock, así que moverlo u ocultarlo no mueve nada más.",
+            "The launcher button opens the island's launcher, and open applications appear after a divider while they run. Only over windows keeps it out on an empty workspace and hides it once a window opens there. Windows and widgets pass under the dock, so moving or hiding it moves nothing else.":
+                "El botón del lanzador abre el lanzador de la isla, y las aplicaciones abiertas aparecen tras un separador mientras están en marcha. Solo sobre ventanas lo deja visible en un escritorio vacío y lo oculta en cuanto se abre una ventana en él. Las ventanas y los widgets pasan por debajo del dock, así que moverlo u ocultarlo no mueve nada más.",
             "Launcher button": "Botón del lanzador",
             "Open applications": "Aplicaciones abiertas",
             "On every screen": "En todas las pantallas",
@@ -700,6 +700,10 @@ QtObject {
             "One on each, and the one you are on is the live one":
                 "Una en cada una, y la de tu pantalla es la que funciona",
             "Hide until pointed at": "Ocultar hasta apuntarlo",
+            "Only over windows": "Solo sobre ventanas",
+            "Shown on an empty workspace": "Visible en un escritorio vacío",
+            "Hidden everywhere": "Oculto en todas partes",
+            "The dock never hides": "El dock nunca se oculta",
             "Kept on it": "Guardadas en él",
             "These stay whether they are running or not, and they lead the launcher's list too.":
                 "Estas se quedan estén o no en marcha, y también van delante en la lista del lanzador.",

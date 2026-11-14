@@ -39,6 +39,10 @@ Singleton {
     readonly property bool showsRunning: SettingsService.dockRunning
     readonly property bool autohide: SettingsService.dockAutohide
 
+    // Hiding only over windows: out on an empty workspace, away while one
+    // holds a window, and peeked at from the edge either way.
+    readonly property bool dodges: root.autohide && SettingsService.dockAutohideWindows
+
     // Optional launcher button at the start of the dock, outside the
     // draggable row. It opens the island's launcher.
     readonly property bool hasLauncher: SettingsService.dockLauncher
@@ -69,7 +73,7 @@ Singleton {
     // painting right now — under a fullscreen window, or on a screen the
     // pointer has left — because a grid worked out again would move every
     // widget on it. Windows pass under the dock; widgets never do.
-    readonly property int zone: root.enabled && !root.autohide
+    readonly property int zone: root.enabled && (!root.autohide || root.dodges)
         && (root.count > 0 || root.hasLauncher)
         ? Theme.dockMargin + Theme.dockThickness : 0
 
@@ -290,6 +294,16 @@ Singleton {
         return workspace > 0 && HyprlandService.clients.some(
             client => (client.fullscreen ?? 0) >= 2
                 && client.workspace && client.workspace.id === workspace)
+    }
+
+    // A window on the workspace a screen is showing, or a special workspace
+    // shown over it — what the dock gets out of the way of when it dodges.
+    function busyOn(name: string): bool {
+        if (HyprlandService.specialShown(name))
+            return true
+        const workspace = HyprlandService.activeOn(name)
+        return workspace > 0 && HyprlandService.clients.some(
+            client => client.workspace && client.workspace.id === workspace)
     }
 
     // The screens it is away from, as one padded string. A plain value rather

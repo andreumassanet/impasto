@@ -79,6 +79,7 @@ Singleton {
     readonly property alias dockRunning: config.dockRunning
     readonly property alias dockEverywhere: config.dockEverywhere
     readonly property alias dockAutohide: config.dockAutohide
+    readonly property alias dockAutohideWindows: config.dockAutohideWindows
     readonly property alias dockLauncher: config.dockLauncher
     readonly property alias weatherPlace: config.weatherPlace
     readonly property alias wallpaperFavourites: config.wallpaperFavourites
@@ -945,6 +946,9 @@ Singleton {
         property bool dockEverywhere: true
 
         property bool dockAutohide: false
+
+        // With autohide, out on a screen whose workspace holds no window.
+        property bool dockAutohideWindows: false
 
         // Launcher button at the start of the row.
         property bool dockLauncher: true

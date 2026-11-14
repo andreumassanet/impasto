@@ -210,7 +210,7 @@ SettingsSection {
     SettingGroup {
         title: Tr.t("Behaviour")
         note: Tr.t("What else the dock shows, and when it hides.")
-        hint: Tr.t("The launcher button opens the island's launcher, and open applications appear after a divider while they run. Windows and widgets pass under the dock, so moving or hiding it moves nothing else.")
+        hint: Tr.t("The launcher button opens the island's launcher, and open applications appear after a divider while they run. Only over windows keeps it out on an empty workspace and hides it once a window opens there. Windows and widgets pass under the dock, so moving or hiding it moves nothing else.")
 
         SettingRow {
             label: Tr.t("Launcher button")
@@ -242,6 +242,19 @@ SettingsSection {
             ToggleSwitch {
                 checked: SettingsService.dockAutohide
                 onToggled: checked => SettingsService.set("dockAutohide", checked)
+            }
+        }
+
+        SettingRow {
+            label: Tr.t("Only over windows")
+            reading: SettingsService.dockAutohideWindows
+                ? Tr.t("Shown on an empty workspace") : Tr.t("Hidden everywhere")
+            locked: root.off || !SettingsService.dockAutohide
+            reason: root.off ? root.offReason : Tr.t("The dock never hides")
+
+            ToggleSwitch {
+                checked: SettingsService.dockAutohideWindows
+                onToggled: checked => SettingsService.set("dockAutohideWindows", checked)
             }
         }
     }

@@ -58,6 +58,7 @@ PanelWindow {
     property bool peeked: false
 
     readonly property bool out: !DockService.autohide || root.peeked
+        || (DockService.dodges && !DockService.busyOn(root.screenName))
         || DockService.dragging !== "" || root.menuItem !== null
 
     property real slide: root.out ? 0 : 1
