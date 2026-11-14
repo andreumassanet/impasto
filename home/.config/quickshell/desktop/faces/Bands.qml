@@ -101,7 +101,7 @@ Item {
             readingSize: Theme.fontSizeDisplay
             extraShare: 0.55
 
-            WeatherIcon {
+            Text {
                 anchors.centerIn: parent
                 text: WeatherService.available ? WeatherService.glyph : "󰅤"
                 font.family: Theme.fontMono
@@ -148,7 +148,7 @@ Item {
                                     color: root.ink.muted
                                 }
 
-                                WeatherIcon {
+                                Text {
                                     anchors.horizontalCenter: parent.horizontalCenter
                                     text: block.modelData.glyph
                                     font.family: Theme.fontMono

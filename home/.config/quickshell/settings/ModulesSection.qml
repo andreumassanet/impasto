@@ -50,61 +50,11 @@ SettingsSection {
 
             SegmentedControl {
                 options: [
-                    { id: "m", label: "°C · km/h" },
-                    { id: "u", label: "°F · mph" }
+                    { id: "m", label: "°C" },
+                    { id: "u", label: "°F" }
                 ]
                 current: SettingsService.weatherUnits
                 onSelected: id => SettingsService.set("weatherUnits", id)
-            }
-        }
-
-        SettingSlider {
-            label: Tr.t("Read the weather")
-            value: SettingsService.weatherRefreshMinutes
-            from: 0
-            to: 720
-            stepSize: 15
-            unit: " min"
-            reading: Tr.t(SettingsService.periodLabel(SettingsService.weatherRefreshMinutes))
-            onMoved: value => SettingsService.set("weatherRefreshMinutes", Math.round(value / 15) * 15)
-        }
-    }
-
-    SettingGroup {
-        title: Tr.t("Package updates")
-        note: Tr.t("How often the shell looks for updates to the packages.")
-        hint: Tr.t("The count on the bar and the dashboard's lists are as old as the last look; Check now in the dashboard looks at once. Only when asked leaves it to that button. The weather is read on its period only while something shows it, and once when it is first looked at, such as when this page opens; each reading tells wttr.in your connection's address.")
-
-        SettingSlider {
-            label: Tr.t("Look for updates")
-            value: SettingsService.updatesCheckMinutes
-            from: 0
-            to: 720
-            stepSize: 15
-            unit: " min"
-            reading: Tr.t(SettingsService.periodLabel(SettingsService.updatesCheckMinutes))
-            onMoved: value => SettingsService.set("updatesCheckMinutes", Math.round(value / 15) * 15)
-        }
-    }
-
-    SettingGroup {
-        title: Tr.t("System statistics")
-        note: Tr.t("Which panel opens from the stats key and the stats button.")
-        hint: Tr.t("Classic is the processor, memory and network cards. The dashboard adds the calendar, the weather and a monitor with per-core load, GPUs, disks, network totals since boot and the batteries of connected devices. It reads the same services; nothing runs while it is closed.")
-
-        SettingRow {
-            label: Tr.t("Design")
-            reading: SettingsService.statsDesign === "dashboard"
-                ? Tr.t("Overview, monitor, system and weather tabs")
-                : Tr.t("The processor, memory and network cards")
-
-            SegmentedControl {
-                options: [
-                    { id: "classic", label: Tr.t("Classic") },
-                    { id: "dashboard", label: Tr.t("Dashboard") }
-                ]
-                current: SettingsService.statsDesign
-                onSelected: id => SettingsService.set("statsDesign", id)
             }
         }
     }

@@ -89,11 +89,6 @@ Rectangle {
     // The tab the dashboard opens on ("overview", "monitor", "system", "weather"), or "".
     property string dashboardStart: ""
 
-    // The dashboard's height follows its tab (`DashboardPanel.heightWanted`).
-    property int dashboardHeight: 560
-    // The tab the dashboard opens on ("overview", "monitor", "system", "weather"), or "".
-    property string dashboardStart: ""
-
     // ── PANEL SIZES ─────────────────────────────────────────────────────────
     //
     // Declared rather than measured: the island has to reach its final shape
@@ -103,7 +98,6 @@ Rectangle {
         appearance: root.appearanceSize,
         palette:    root.appearanceSize,
         stats:      { width: 940,  height: 614 },
-        dashboard:  { width: 1040, height: root.dashboardHeight },
         // Depends on the results when `launcherFits` is on.
         launcher:   { width: LauncherService.panelWidth,
                       height: LauncherService.panelHeight },
@@ -209,7 +203,6 @@ Rectangle {
         brightness: brightnessDetail,
         bluetooth: bluetoothDetail,
         stats: statsPanel,
-        dashboard: dashboardPanel,
         overview: overviewPanel,
         session: sessionPanel,
         auth: authPanel,
@@ -228,33 +221,13 @@ Rectangle {
         tray: trayMenu
     })
 
-    // The stats panel is one of two designs (`statsDesign`); everything that
-    // opens it, by key, button or IPC, asks for "stats".
-    function resolve(panel: string): string {
-        return panel === "stats" && SettingsService.statsDesign === "dashboard" ? "dashboard" : panel
-    }
-
     function open(panel: string): void {
-        // "dashboard:weather" opens the dashboard on that tab; so does a tap on
-        // the weather card, when the statistics are the dashboard.
-        let start = ""
-        if (panel.startsWith("dashboard:")) {
-            start = panel.slice("dashboard:".length)
-            panel = "stats"
-        } else if (panel === "weather" && SettingsService.statsDesign === "dashboard") {
-            start = "weather"
-            panel = "stats"
-        } else if (panel === "media" || panel === "weather") {
-            // A card in the island asking for its piece's detail.
+        // A card in the island asking for its piece's detail.
+        if (panel === "media" || panel === "weather") {
             ModuleService.activate(panel)
             return
         }
-        // The tab is for the dashboard alone, and a name that is not a tab is
-        // none: left set for the classic panel, it would stay for a later open.
-        const resolved = root.resolve(panel)
-        const tabs = ["overview", "monitor", "system", "weather"]
-        root.dashboardStart = resolved === "dashboard" && tabs.indexOf(start) >= 0 ? start : ""
-        islandState.open(resolved)
+        islandState.open(panel)
     }
 
     function close(): void {
@@ -263,7 +236,7 @@ Rectangle {
 
     // Shortcuts toggle: the same key opens and closes.
     function toggle(panel: string): void {
-        if (islandState.openPanel === root.resolve(panel))
+        if (islandState.openPanel === panel)
             root.close()
         else
             root.open(panel)

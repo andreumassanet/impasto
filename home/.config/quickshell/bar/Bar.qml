@@ -367,8 +367,7 @@ PanelWindow {
     Binding {
         target: ModuleService
         property: "shownPanel"
-        // The dashboard is the stats button's panel under another name.
-        value: island.state.openPanel === "dashboard" ? "stats" : island.state.openPanel
+        value: island.state.openPanel
         when: root.live
     }
 

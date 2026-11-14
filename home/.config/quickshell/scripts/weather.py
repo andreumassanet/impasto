@@ -100,6 +100,12 @@ def fetch(place):
     return json.loads(result.stdout)
 
 
+# "u" (°F, mph, inHg, miles) or "m" (°C, km/h, hPa, km), from the shell's
+# weatherUnits setting. wttr.in's JSON carries both.
+US = os.environ.get("IMPASTO_WEATHER_UNITS") == "u"
+DEG = "F" if US else "C"
+
+
 def daytime_now(current, today):
     """Whether the sun is up where the reading is: the local observation time
     against today's sunrise and sunset. wttr.in does not always send the
@@ -140,17 +146,7 @@ def report(place):
         "glyph": glyph(code, daytime),
         "icon": icon(code, daytime),
         "humidity": int(current["humidity"]),
-        # The rest of the dashboard's "Now" grid.
-        "uv": int(current.get("uvIndex", 0)),
-        "pressure": int(current.get("pressureInches" if US else "pressure", 0)),
-        "pressureUnit": "inHg" if US else "hPa",
-        "visibility": int(current.get("visibilityMiles" if US else "visibility", 0)),
-        "visibilityUnit": "mi" if US else "km",
-        "cloud": int(current.get("cloudcover", 0)),
-        "sunrise": today.get("astronomy", [{}])[0].get("sunrise", ""),
-        "sunset": today.get("astronomy", [{}])[0].get("sunset", ""),
         "wind": int(current["windspeedMiles" if US else "windspeedKmph"]),
-        "windUnit": "mph" if US else "km/h",
         "low": int(today[f"mintemp{DEG}"]),
         "high": int(today[f"maxtemp{DEG}"]),
         # Today and tomorrow, in wttr.in's three-hour steps, so the evening
@@ -167,8 +163,6 @@ def report(place):
             for day, blocks in enumerate(w["hourly"] for w in data["weather"][:2])
             for block in blocks
         ],
-        # Every day wttr.in has (three), for the dashboard.
-        "days": [entry for entry in map(day_report, data["weather"]) if entry is not None],
     }
 
 

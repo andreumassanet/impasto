@@ -121,8 +121,6 @@ TrayIcon         1.0 components/TrayIcon.qml
 SettingField     1.0 components/SettingField.qml
 GroupHeading     1.0 components/GroupHeading.qml
 TabStrip         1.0 components/TabStrip.qml
-PanelTabs        1.0 components/PanelTabs.qml
-DashCard         1.0 components/DashCard.qml
 LidPreview       1.0 components/LidPreview.qml
 MotionPreview    1.0 components/MotionPreview.qml
 IslandMotionPreview 1.0 components/IslandMotionPreview.qml
@@ -155,9 +153,6 @@ AppearancePanel  1.0 bar/island/AppearancePanel.qml
 ControlsPanel    1.0 bar/island/ControlsPanel.qml
 LauncherPanel    1.0 bar/island/LauncherPanel.qml
 StatsPanel       1.0 bar/island/StatsPanel.qml
-MonitorTab       1.0 bar/island/MonitorTab.qml
-DashboardPanel   1.0 bar/island/DashboardPanel.qml
-DashClaudeCard   1.0 bar/island/DashClaudeCard.qml
 OverviewPanel    1.0 bar/island/OverviewPanel.qml
 
 Module           1.0 bar/modules/Module.qml

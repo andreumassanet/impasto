@@ -29,10 +29,6 @@ Singleton {
     property string wm: ""
     property string shell: ""
     property var packages: null
-    // The distribution's logo as a file, and what fastfetch adds.
-    property string logo: ""
-    property string model: ""
-    property var gpus: []
 
     function refresh(): void {
         if (root.reader.running)
@@ -54,9 +50,6 @@ Singleton {
                     root.wm = report.wm ?? ""
                     root.shell = report.shell ?? ""
                     root.packages = typeof report.packages === "number" ? report.packages : null
-                    root.logo = report.logo ?? ""
-                    root.model = report.model ?? ""
-                    root.gpus = report.gpus ?? []
                     root.ready = true
                 } catch (error) {
                     console.warn("Cannot parse the machine report:", error)

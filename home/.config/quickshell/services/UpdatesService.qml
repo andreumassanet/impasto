@@ -23,10 +23,8 @@ import "../theme"
 Singleton {
     id: root
 
-    // Minutes between two looks (`SettingsService.updatesCheckMinutes`); 0 is
-    // only when asked.
-    readonly property int pollInterval: SettingsService.updatesCheckMinutes * 60000
-    readonly property string every: SettingsService.periodLabel(SettingsService.updatesCheckMinutes)
+    // 30 minutes.
+    readonly property int pollInterval: 1800000
 
     property int watchers: 0
     property bool available: false
@@ -81,9 +79,9 @@ Singleton {
     }
 
     readonly property Timer poller: Timer {
-        interval: Math.max(60000, root.pollInterval)
+        interval: root.pollInterval
         repeat: true
-        running: root.watchers > 0 && root.pollInterval > 0
+        running: root.watchers > 0
         onTriggered: root.refresh()
     }
 

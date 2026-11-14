@@ -75,7 +75,7 @@ Item {
                 ? `${WeatherService.description} · ${Tr.t("feels %1°").arg(WeatherService.feelsLike)} · ${WeatherService.high}° / ${WeatherService.low}°`
                 : `${Tr.t("feels %1°").arg(WeatherService.feelsLike)} · ${WeatherService.high}° / ${WeatherService.low}°`
 
-            WeatherIcon {
+            Text {
                 anchors.centerIn: parent
                 text: WeatherService.available ? WeatherService.glyph : "󰅤"
                 font.family: Theme.fontMono
@@ -128,7 +128,7 @@ Item {
                                         color: root.ink.muted
                                     }
 
-                                    WeatherIcon {
+                                    Text {
                                         anchors.horizontalCenter: parent.horizontalCenter
                                         text: block.modelData.glyph
                                         font.family: Theme.fontMono

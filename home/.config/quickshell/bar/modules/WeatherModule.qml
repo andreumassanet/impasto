@@ -110,7 +110,7 @@ Item {
                                 color: Theme.textMuted
                             }
 
-                            WeatherIcon {
+                            Text {
                                 anchors.horizontalCenter: parent.horizontalCenter
                                 text: block.modelData.glyph
                                 font.family: Theme.fontMono

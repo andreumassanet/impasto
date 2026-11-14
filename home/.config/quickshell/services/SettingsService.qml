@@ -73,6 +73,7 @@ Singleton {
     readonly property alias themeTargets: config.themeTargets
     readonly property alias calendarLinks: config.calendarLinks
     readonly property alias islandSpectrum: config.islandSpectrum
+    readonly property alias weatherUnits: config.weatherUnits
     readonly property alias dockRunning: config.dockRunning
     readonly property alias dockEverywhere: config.dockEverywhere
     readonly property alias dockAutohide: config.dockAutohide
@@ -107,8 +108,6 @@ Singleton {
     readonly property string captureSuffix: root.captureNames === "time" ? "" : "_impasto"
     readonly property alias captureShape: config.captureShape
     readonly property alias captureKind: config.captureKind
-    readonly property alias updatesCheckMinutes: config.updatesCheckMinutes
-    readonly property alias weatherRefreshMinutes: config.weatherRefreshMinutes
     readonly property alias notesHandwriting: config.notesHandwriting
     readonly property alias deckOnEmpty: config.deckOnEmpty
     readonly property alias spectrumOnEmpty: config.spectrumOnEmpty
@@ -266,24 +265,6 @@ Singleton {
         root.set(side === "left" ? "barLeft" : "barRight", packed)
     }
 
-    // Puts a piece on the bar or takes it off. On adds it to the end of `side`
-    // with its own `figure` ("" follows the bar's), unless it is already on
-    // either; a layout never edited is first kept whole from the defaults
-    // (`barItems`).
-    function setOnBar(id: string, on: bool, side: string, figure: string): void {
-        if (!on) {
-            for (const zone of ["left", "right"]) {
-                const items = root.barItems(zone)
-                if (items.some(item => item.id === id))
-                    root.setBarZone(zone, items.filter(item => item.id !== id))
-            }
-            return
-        }
-        if (root.onBar(id))
-            return
-        root.setBarZone(side, root.barItems(side).concat([{ id: id, shape: "", figure: figure, when: "" }]))
-    }
-
     // What may sit beside the time on the island while it runs. A module left
     // out still works on the bar; it just doesn't take a side of the island.
     // `privacy` is the microphone, camera or screen in use, which has no
@@ -344,19 +325,6 @@ Singleton {
         { id: "kanji", label: "Kanji" },
         { id: "greek", label: "Greek" }
     ]
-
-    // "Every hour", "Every 2 h", "Every 1 h 30 min", "Only when asked".
-    function periodLabel(minutes: int): string {
-        if (minutes <= 0)
-            return "Only when asked"
-        if (minutes < 60)
-            return `Every ${minutes} min`
-        const hours = Math.floor(minutes / 60)
-        const rest = minutes % 60
-        if (rest === 0)
-            return hours === 1 ? "Every hour" : `Every ${hours} h`
-        return `Every ${hours} h ${rest} min`
-    }
 
     readonly property var chipFigures: [
         { id: "off",   label: "No",       note: "No figure beside it" },
@@ -732,12 +700,6 @@ Singleton {
         property string captureShape: "region"
         property string captureKind: "photo"
 
-        // Minutes between two looks for package updates, and between two
-        // readings of the weather; 0 is only when asked, from a button. The
-        // defaults are the periods the shell kept before these were settings.
-        property int updatesCheckMinutes: 30
-        property int weatherRefreshMinutes: 15
-
         // Note bodies in the handwriting font instead of the UI font.
         property bool notesHandwriting: true
 
@@ -958,6 +920,9 @@ Singleton {
         // audio analyser runs for them); off, a still note.
         property bool islandSpectrum: true
 
+        // "m" for °C or "u" for °F. A change is read at once.
+        property string weatherUnits: "m"
+
         // Also show running applications that aren't pinned.
         property bool dockRunning: true
 
@@ -974,11 +939,6 @@ Singleton {
         property string weatherPlace: ""
         // The wallpapers kept on the picker's favourites page, by path.
         property var wallpaperFavourites: []
-
-        // Which panel the stats shortcut and the stats button open: `classic`
-        // is the processor, memory and network cards; `dashboard` adds the
-        // calendar, weather and a monitor with the machine's details.
-        property string statsDesign: "classic"
 
         // GitHub user for the contributions widget; empty draws nothing.
         property string githubUser: ""

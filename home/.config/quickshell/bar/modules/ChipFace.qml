@@ -112,15 +112,6 @@ Item {
             }
         }
 
-        // The weather in its full-colour icon, as on the island.
-        WeatherIcon {
-            anchors.centerIn: parent
-            visible: !root.ring && root.moduleId === "weather" && WeatherService.icon !== ""
-            name: WeatherService.icon
-            glyph: WeatherService.glyph
-            size: root.size + 6
-        }
-
         Text {
             id: symbol
 

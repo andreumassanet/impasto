@@ -502,6 +502,7 @@ QtObject {
             "Drag a button onto the row; drag it back here to take it off.":
                 "Arrastra un botón a la fila; devuélvelo aquí para quitarlo.",
             "Every button is on the row": "Todos los botones están en la fila",
+            "Units": "Unidades",
             "Music on the resting island": "Música en la isla en reposo",
             "Moving with the sound": "Moviéndose con el sonido",
             "A still note": "Una nota quieta",
@@ -509,19 +510,6 @@ QtObject {
             "Shortcuts": "Atajos",
 
             "System statistics": "Estadísticas del sistema",
-            "Check now": "Comprobar ahora",
-            "Update in a terminal": "Actualizar en una terminal",
-            "Sync now": "Sincronizar ahora",
-            "Syncing…": "Sincronizando…",
-            "Read": "Leído",
-            "Host": "Equipo",
-            "GPU": "GPU",
-            "Read the weather": "Leer el tiempo",
-            "Package updates": "Actualizaciones de paquetes",
-            "How often the shell looks for updates to the packages.": "Cada cuánto busca el shell actualizaciones de los paquetes.",
-            "Look for updates": "Buscar actualizaciones",
-            "The count on the bar and the dashboard's lists are as old as the last look; Check now in the dashboard looks at once. Only when asked leaves it to that button. The weather is read on its period only while something shows it, and once when it is first looked at, such as when this page opens; each reading tells wttr.in your connection's address.":
-                "La cuenta de la barra y las listas del panel son tan viejas como la última búsqueda; Comprobar ahora, en el panel, busca al instante. Solo si se pide lo deja a ese botón. El tiempo se lee con su período solo mientras algo lo muestra, y una vez cuando se mira por primera vez, por ejemplo al abrir esta página; cada lectura dice a wttr.in la dirección de tu conexión.",
             "Workspace overview": "Vista de espacios",
             "Session menu": "Menú de sesión",
             "Lock the screen": "Bloquear la pantalla",

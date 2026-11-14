@@ -380,7 +380,7 @@ Item {
                 : `${WeatherService.high}° / ${WeatherService.low}°`
             extraShare: 0.45
 
-            WeatherIcon {
+            Text {
                 anchors.centerIn: parent
                 text: WeatherService.available ? WeatherService.glyph : "󰅤"
                 font.family: Theme.fontMono
@@ -427,7 +427,7 @@ Item {
                                     color: root.ink.muted
                                 }
 
-                                WeatherIcon {
+                                Text {
                                     anchors.horizontalCenter: parent.horizontalCenter
                                     text: block.modelData.glyph
                                     font.family: Theme.fontMono
