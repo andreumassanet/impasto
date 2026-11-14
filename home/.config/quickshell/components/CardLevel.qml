@@ -25,6 +25,8 @@ RowLayout {
     property string picture: ""
     property string name: ""
     property int value: 0
+    // The top of the scale.
+    property int to: 100
     property bool dimmed: false
     property bool available: true
 
@@ -92,7 +94,7 @@ RowLayout {
         Layout.fillHeight: true
         enabled: root.available
         from: 0
-        to: 100
+        to: root.to
         stepSize: 1
         value: root.value
         onMoved: root.moved(Math.round(slider.value))
@@ -127,7 +129,7 @@ RowLayout {
         }
 
         WheelHandler {
-            onWheel: event => root.moved(Math.max(0, Math.min(100,
+            onWheel: event => root.moved(Math.max(0, Math.min(root.to,
                 root.value + (event.angleDelta.y > 0 ? 5 : -5))))
         }
     }
@@ -135,7 +137,7 @@ RowLayout {
     Text {
         Layout.preferredWidth: 36
         horizontalAlignment: Text.AlignRight
-        text: root.dimmed ? "off" : `${root.value}%`
+        text: root.dimmed ? Tr.t("off") : `${root.value}%`
         font.family: Theme.fontMono
         font.pixelSize: Theme.fontSizeSmall
         color: root.dimmed ? Theme.textMuted : Theme.text

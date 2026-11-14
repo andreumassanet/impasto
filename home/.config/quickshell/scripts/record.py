@@ -39,6 +39,14 @@ SHAPES = ("screen", "region", "window")
 
 STAMP = "%Y-%m-%d-%H%M%S"
 
+
+def suffix():
+    """What follows the time in a saved file's name: `_impasto`, so the
+    shell's own can be told apart, unless the shell passes another in
+    $IMPASTO_CAPTURE_SUFFIX, empty for the time alone."""
+    return os.environ.get("IMPASTO_CAPTURE_SUFFIX", "_impasto")
+
+
 # Where the pid and the path live while a take is running. The runtime
 # directory, so a reboot cannot leave a stale one behind.
 STATE = "impasto-recording.json"
@@ -182,7 +190,7 @@ def start(geometry, audio, shape, output=""):
     except OSError as error:
         report(error=f"Cannot write to {folder}: {error}")
         return
-    path = folder / f"{datetime.now().strftime(STAMP)}_impasto.mp4"
+    path = folder / f"{datetime.now().strftime(STAMP)}{suffix()}.mp4"
 
     process = None
     for tool in tools_found:

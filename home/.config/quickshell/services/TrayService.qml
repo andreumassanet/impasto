@@ -27,9 +27,15 @@ import "../theme"
 Singleton {
     id: root
 
-    // Passive items ask not to be shown.
-    readonly property var items: SystemTray.items.values
+    // Every item that asks to be shown, for the page that hides some of them.
+    // Passive ones ask not to be.
+    readonly property var all: SystemTray.items.values
         .filter(item => item.status !== Status.Passive)
+
+    // What the tray draws: all of them but those hidden in the settings
+    // (`trayHidden`, by item id).
+    readonly property var items: root.all
+        .filter(item => Array.from(SettingsService.trayHidden ?? []).indexOf(item.id) < 0)
 
     // ── THE OPEN MENU ───────────────────────────────────────────────────────
 

@@ -75,6 +75,10 @@ Rectangle {
     property int roomForPanel: 100000
 
     readonly property int overviewRows: Math.ceil(HyprlandService.maximum / 5)
+    // The overview's special strip (52) and the gap above it (10), only
+    // while it is drawn.
+    readonly property int overviewSpecialHeight:
+        HyprlandService.specialShown(root.QsWindow.window?.screen?.name ?? "") ? 62 : 0
 
     // ── PANEL SIZES ─────────────────────────────────────────────────────────
     //
@@ -88,14 +92,16 @@ Rectangle {
         // Depends on the results when `launcherFits` is on.
         launcher:   { width: LauncherService.panelWidth,
                       height: LauncherService.panelHeight },
-        wifi:       { width: 420,  height: 500 },
+        wifi:       { width: 420,  height: 500 + root.connectivityTabsHeight },
         // The control centre's volume, opened out.
-        sound:      { width: AudioService.panelWidth, height: AudioService.panelHeight },
+        sound:      { width: AudioService.panelWidth,
+                      height: AudioService.panelHeight + root.connectivityTabsHeight },
         microphone: { width: AudioService.panelWidth, height: AudioService.microphoneHeight },
         nightlight: { width: SunsetService.panelWidth, height: SunsetService.panelHeight },
         power:      { width: SystemService.panelWidth, height: SystemService.panelHeight },
+        record:     { width: RecorderService.panelWidth, height: RecorderService.panelHeight },
         brightness: { width: BrightnessService.panelWidth, height: BrightnessService.panelHeight },
-        bluetooth:  { width: 420,  height: 500 },
+        bluetooth:  { width: 420,  height: 500 + root.connectivityTabsHeight },
         session:    { width: 720,  height: 180 },
         // A program asking for root (`PolkitService`).
         auth:       { width: 460,  height: 236 },
@@ -104,6 +110,7 @@ Rectangle {
         servers:    { width: ServersService.panelWidth, height: ServersService.panelHeight },
         screentime: { width: 940,  height: 614 },
         camera:     { width: CameraService.panelWidth, height: CameraService.panelHeight },
+        player:     { width: 980,  height: 330 },
         // A row per creature, plus one for the next egg.
         pet:        { width: 560,  height: 205 + 62 * PetService.family.length },
         // The shelf of cards, or the game being played at its own size.
@@ -119,8 +126,12 @@ Rectangle {
         module:     root.moduleSize,
         // A tray item's menu, a row per entry.
         tray:       { width: TrayService.menuWidth, height: TrayService.menuHeight },
-        overview:   { width: 1560, height: 72 + root.overviewRows * 190 }
+        overview:   { width: 1560, height: 72 + root.overviewRows * 190 + root.overviewSpecialHeight }
     })
+
+    // The strip over Bluetooth, Wi-Fi and Sound (`ConnectivityTabs`): the
+    // tab and the gap under it. Each of the three keeps its own size.
+    readonly property int connectivityTabsHeight: Theme.segmentHeight + Theme.detailGap
 
     // One panel under two names (its two strips), so switching between them
     // slides instead of rebuilding. Fits five strip tiles and the large one.
@@ -178,6 +189,7 @@ Rectangle {
         microphone: microphoneDetail,
         nightlight: nightLightDetail,
         power: powerDetail,
+        record: recordDetail,
         brightness: brightnessDetail,
         bluetooth: bluetoothDetail,
         stats: statsPanel,
@@ -188,6 +200,7 @@ Rectangle {
         servers: serversPanel,
         screentime: screenTimePanel,
         camera: cameraPanel,
+        player: mediaPanel,
         pet: petPanel,
         games: gamesPanel,
         notes: notesPanel,
@@ -592,12 +605,18 @@ Rectangle {
     // control centre, because a panel's size is keyed on `openPanel`.
     Component {
         id: networkDetail
-        NetworkDetail { onBack: root.open("controls") }
+        NetworkDetail {
+            onBack: root.open("controls")
+            onPageRequested: panel => root.open(panel)
+        }
     }
 
     Component {
         id: soundDetail
-        SoundDetail { onBack: root.open("controls") }
+        SoundDetail {
+            onBack: root.open("controls")
+            onPageRequested: panel => root.open(panel)
+        }
     }
 
     Component {
@@ -621,8 +640,19 @@ Rectangle {
     }
 
     Component {
+        id: recordDetail
+        RecordDetail {
+            onBack: root.open("controls")
+            onDone: root.close()
+        }
+    }
+
+    Component {
         id: bluetoothDetail
-        BluetoothDetail { onBack: root.open("controls") }
+        BluetoothDetail {
+            onBack: root.open("controls")
+            onPageRequested: panel => root.open(panel)
+        }
     }
 
     Component {
@@ -633,6 +663,11 @@ Rectangle {
     Component {
         id: statsPanel
         StatsPanel { onClosed: root.close() }
+    }
+
+    Component {
+        id: mediaPanel
+        MediaPanel { onClosed: root.close() }
     }
 
     Component {

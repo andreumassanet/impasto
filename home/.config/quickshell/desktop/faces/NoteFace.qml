@@ -33,7 +33,7 @@ Item {
     Sticky {
         anchors.fill: parent
         note: root.note
-        placeholder: "No notes yet"
+        placeholder: Tr.t("No notes yet")
         padding: root.width > 300 ? 18 : 14
         titleSize: root.family === "2x2" ? Theme.fontSizeSmall : Theme.fontSizeRegular
         bodySize: {

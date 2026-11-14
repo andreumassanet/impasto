@@ -62,10 +62,10 @@ Singleton {
             return ""
         const minutes = Math.floor((root.clock.date.getTime() - root.readAt.getTime()) / 60000)
         if (minutes < 2)
-            return "just now"
+            return Tr.t("just now")
         if (minutes < 60)
-            return `${minutes} min ago`
-        return `${Math.round(minutes / 60)} h ago`
+            return Tr.t("%1 min ago").arg(minutes)
+        return Tr.t("%1 h ago").arg(Math.round(minutes / 60))
     }
 
     // ── FORMAT ──────────────────────────────────────────────────────────────

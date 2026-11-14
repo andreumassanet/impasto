@@ -11,6 +11,7 @@ import QtQuick
 import QtQuick.Effects
 import QtQuick.Layouts
 import Quickshell
+import Quickshell.Hyprland
 import Quickshell.Wayland
 import Quickshell.Widgets
 
@@ -360,26 +361,116 @@ ColumnLayout {
                                         ColorAnimation { duration: Theme.durationFast }
                                     }
 
-                                    ScreencopyView {
+                                    // A window resized while the overview is
+                                    // open (a neighbour moved away) hands the
+                                    // compositor a buffer of another size, and
+                                    // a live capture ends on that failure
+                                    // rather than following it. One that loses
+                                    // its picture is started again.
+                                    Loader {
+                                        id: capture
+
                                         anchors.fill: parent
-                                        captureSource: root.toplevelFor(thumb.modelData)
-                                        live: true
-                                        paintCursor: false
-                                        // Whole pixels, so the compositor is
-                                        // not asked to rescale the capture by
-                                        // a fraction of one every frame.
-                                        constraintSize: Qt.size(
-                                            Math.max(1, Math.round(frame.width)),
-                                            Math.max(1, Math.round(frame.height)))
+
+                                        readonly property Timer again: Timer {
+                                            interval: Theme.durationFast
+                                            onTriggered: {
+                                                capture.showing = false
+                                                capture.active = false
+                                                capture.active = true
+                                            }
+                                        }
+
+                                        // Whether the capture shows a frame now,
+                                        // and whether any capture here has, which
+                                        // the still below holds.
+                                        property bool showing: false
+                                        property bool held: false
+
+                                        // A new size is a capture about to fail:
+                                        // the still holds from the moment
+                                        // Hyprland reports it, and a fresh
+                                        // capture starts once the window has
+                                        // drawn at that size.
+                                        readonly property string shape:
+                                            thumb.modelData.size[0] + "x" + thumb.modelData.size[1]
+                                        property bool resizing: false
+                                        onShapeChanged: {
+                                            capture.resizing = true
+                                            capture.tries = 0
+                                            capture.settle.restart()
+                                        }
+                                        readonly property Timer settle: Timer {
+                                            interval: Theme.durationMorph
+                                            onTriggered: capture.again.restart()
+                                        }
+
+                                        // Restarts spent on a capture that has
+                                        // not shown a frame yet (below).
+                                        property int tries: 0
+
+                                        sourceComponent: ScreencopyView {
+                                            id: view
+
+                                            captureSource: root.toplevelFor(thumb.modelData)
+                                            live: true
+                                            paintCursor: false
+                                            // Whole pixels of the size the frame
+                                            // settles at, so the compositor is not
+                                            // asked to rescale every frame.
+                                            constraintSize: Qt.size(
+                                                Math.max(1, Math.round(thumb.modelData.size[0] * cell.factor)),
+                                                Math.max(1, Math.round(thumb.modelData.size[1] * cell.factor)))
+                                            // A window carried to another cell
+                                            // starts a capture that can fail
+                                            // before its first frame. A few more
+                                            // tries; a window with nothing to draw
+                                            // stays blank after them.
+                                            Timer {
+                                                interval: Theme.durationMorph
+                                                running: !view.hasContent && capture.tries < 8
+                                                onTriggered: {
+                                                    capture.tries += 1
+                                                    capture.again.restart()
+                                                }
+                                            }
+
+                                            // The failure ends the capture without
+                                            // `stopped`; the picture going away is
+                                            // the sign.
+                                            property bool had: false
+                                            onHasContentChanged: {
+                                                if (had && !hasContent)
+                                                    capture.again.restart()
+                                                had = hasContent
+                                                capture.showing = hasContent
+                                                if (hasContent) {
+                                                    capture.held = true
+                                                    capture.resizing = false
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                    // The last frame, held while a capture
+                                    // that lost its picture starts again, so
+                                    // the gap is never a black hole.
+                                    ShaderEffectSource {
+                                        anchors.fill: parent
+                                        sourceItem: capture
+                                        hideSource: false
+                                        live: capture.showing && !capture.resizing
+                                        visible: !live && capture.held
                                     }
 
                                     // The app icon, for a window with no
-                                    // capture.
+                                    // capture, or none yet.
                                     Image {
                                         anchors.centerIn: parent
                                         width: Math.min(26, parent.width * 0.5)
                                         height: width
                                         visible: root.toplevelFor(thumb.modelData) === null
+                                            || (!capture.held && !capture.showing)
                                         source: Theme.appIcon(thumb.modelData.class)
                                         sourceSize.width: 52
                                         sourceSize.height: 52
@@ -586,6 +677,99 @@ ColumnLayout {
                 captureSource: ghost.client ? root.toplevelFor(ghost.client) : null
                 live: true
                 paintCursor: false
+            }
+        }
+    }
+
+    // ── SPECIAL WORKSPACES ──────────────────────────────────────────────────
+    //
+    // One strip under the grid for all special workspaces, as the bar's pill
+    // treats them: the apps inside, a click to open or close it, and a drop
+    // target for sending a window there. Special workspaces are named, so the
+    // one acted on is the one open on this screen, else the first with a
+    // window in it, else the default one.
+    readonly property string openSpecial: HyprlandService.specialOn(root.screenName)
+    readonly property string specialName: (root.openSpecial
+        || HyprlandService.specialClients[0]?.workspace.name
+        || "special:scratchpad").replace(/^special:/, "")
+    // The apps in it, one icon per class, resolved as the dock resolves them.
+    readonly property var specialIcons: {
+        const icons = []
+        const seen = []
+        for (const client of HyprlandService.specialClients) {
+            const windowClass = client.class || client.initialClass || ""
+            if (windowClass === "" || seen.indexOf(windowClass) >= 0)
+                continue
+            seen.push(windowClass)
+            const entry = DockService.entryOf(DockService.idFor(windowClass))
+            icons.push(Theme.appIcon(entry ? entry.icon : windowClass.toLowerCase()))
+        }
+        return icons
+    }
+
+    Rectangle {
+        id: specialStrip
+
+        // Drawn only when there is something to show, so the overview is
+        // as it was for anyone who never uses a special workspace.
+        visible: HyprlandService.specialShown(root.screenName)
+        Layout.fillWidth: true
+        Layout.fillHeight: false
+        Layout.preferredHeight: 52
+        radius: Theme.radiusLarge
+        color: specialDrop.containsDrag ? Qt.alpha(Theme.accent, 0.25)
+            : specialMouse.containsMouse ? Theme.islandSurfaceHover : Theme.islandSurface
+        border.color: root.openSpecial !== "" || specialDrop.containsDrag
+            ? Theme.accent : "transparent"
+        border.width: 2
+
+        Row {
+            anchors.centerIn: parent
+            spacing: 8
+
+            Text {
+                anchors.verticalCenter: parent.verticalCenter
+                text: root.specialName === "scratchpad" ? Tr.t("Scratchpad") : root.specialName
+                font.family: Theme.fontFamily
+                font.pixelSize: Theme.fontSizeSmall
+                font.weight: Font.DemiBold
+                color: Theme.text
+            }
+
+            Repeater {
+                model: root.specialIcons
+
+                IconImage {
+                    required property string modelData
+
+                    anchors.verticalCenter: parent.verticalCenter
+                    implicitSize: 24
+                    source: modelData
+                }
+            }
+        }
+
+        MouseArea {
+            id: specialMouse
+
+            anchors.fill: parent
+            hoverEnabled: true
+            cursorShape: Qt.PointingHandCursor
+            onClicked: {
+                root.closed()
+                Hyprland.dispatch(`hl.dsp.workspace.toggle_special("${root.specialName}")`)
+            }
+        }
+
+        DropArea {
+            id: specialDrop
+
+            anchors.fill: parent
+            onDropped: dropped => {
+                if (ghost.client)
+                    HyprlandService.moveClientToNamed(ghost.client.address,
+                                                      `special:${root.specialName}`)
+                dropped.accept()
             }
         }
     }
