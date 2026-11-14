@@ -29,19 +29,28 @@ Item {
     property string shape: ModuleService.shapeOf(root.moduleId)
     property real reveal: 1
 
+    // A connected device (`{ name, glyph, level, charging }`, `DeviceService`)
+    // when the module is "devices": its battery is the ring, its name and
+    // level the figure.
+    property var device: null
+
     // In a shared capsule the ring is drawn at 0.85 so it doesn't touch the
     // capsule outline; alone and closed, it is the capsule.
     property bool alone: false
 
     // Only a module that measures has a ring, whatever shape is asked for.
-    readonly property bool ring: root.shape === "ring" && ModuleService.ringed.indexOf(root.moduleId) >= 0
-    readonly property string value: ModuleService.valueOf(root.moduleId)
+    readonly property bool ring: root.shape === "ring"
+        && (root.device !== null || ModuleService.ringed.indexOf(root.moduleId) >= 0)
+    readonly property string value: root.device
+        ? `${root.device.name} ${Math.round(root.device.level * 100)}%`
+        : ModuleService.valueOf(root.moduleId)
     readonly property bool figured: root.value !== ""
     readonly property int size: Math.round(Theme.capsuleHeight * 0.44)
     readonly property int pad: root.alone ? 11 : 8
     readonly property int spacing: 5
     readonly property int limit: ModuleService.figureLimit(root.moduleId)
-    readonly property color tint: ModuleService.tintOf(root.moduleId)
+    readonly property color tint: root.device && root.device.level < 0.2
+        ? Theme.indicatorBad : ModuleService.tintOf(root.moduleId)
 
     readonly property real markWidth: root.ring ? Theme.capsuleHeight : glyph.width
     readonly property real figureRoom: root.figured ? root.spacing + figure.width : 0
@@ -108,7 +117,7 @@ Item {
 
             anchors.centerIn: parent
             visible: root.moduleId !== "claude" && root.moduleId !== "codex" && root.moduleId !== "pet"
-            text: ModuleService.glyphOf(root.moduleId)
+            text: root.device ? root.device.glyph : ModuleService.glyphOf(root.moduleId)
             font.family: Theme.fontMono
             font.pixelSize: root.size
             color: weatherArt.shown ? "transparent" : root.tint
@@ -134,10 +143,30 @@ Item {
 
         Loader {
             anchors.fill: parent
-            active: root.ring && root.moduleId !== ""
+            active: root.ring && root.moduleId !== "" && root.device === null
             sourceComponent: Module {
                 moduleId: root.moduleId
                 compact: true
+            }
+        }
+
+        // The battery ring of a device, drawn like the battery's.
+        RingIndicator {
+            anchors.fill: parent
+            visible: root.ring && root.device !== null
+            progress: root.device ? root.device.level : 0
+            thickness: 2.5
+            trackColor: Theme.indicatorDim
+            fillColor: !root.device ? Theme.indicator
+                : root.device.level < 0.2 ? Theme.indicatorBad
+                : root.device.charging ? Theme.indicatorGood : Theme.indicator
+
+            Text {
+                anchors.centerIn: parent
+                text: root.device ? root.device.glyph : ""
+                font.family: Theme.fontMono
+                font.pixelSize: Math.round(Theme.capsuleHeight * 0.38)
+                color: Theme.indicator
             }
         }
     }

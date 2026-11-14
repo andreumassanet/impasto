@@ -50,6 +50,7 @@ Singleton {
         { id: "netspeed",      name: "Network speed", bar: true,  desk: false, width: Theme.cardWidth, height: Theme.cardHeight(3, Theme.cardRowGap + 36) },
         { id: "keyboard",      name: "Keyboard layout", bar: true, desk: false, width: Theme.cardWidth, height: Theme.cardHeight(1, 0) },
         { id: "bluetooth",     name: "Bluetooth",     bar: true,  width: Theme.cardWidth, height: Theme.cardHeight(3, 0) },
+        { id: "devices",       name: "Devices",       bar: true,  width: Theme.cardWidth, height: Theme.cardHeight(2, 0) },
         { id: "notifications", name: "Notifications", bar: true,  desk: false, width: Theme.cardWidth, height: Theme.cardHeight(7, 0) },
         { id: "weather",       name: "Weather",       bar: true,  width: Theme.cardWidth, height: Theme.cardHeight(0, 50) },
         { id: "markets",       name: "Markets",       bar: true,  width: Theme.cardWidth, height: MarketsService.cardHeight },
@@ -181,10 +182,12 @@ Singleton {
     readonly property var ringed: ["media", "timer", "claude", "codex", "battery", "volume",
         "brightness", "stats", "pet"]
 
-    // A piece's own shape when it has one, the bar's when it does not.
+    // A piece's own shape when it has one, the bar's when it does not. A
+    // device measures too, but only a chip for a device has a ring
+    // (`ChipFace`), so it is not in `ringed`.
     function shapeOf(id: string, own: var): string {
         const chosen = own ? own : SettingsService.chipShape
-        return chosen === "ring" && root.ringed.indexOf(id) >= 0 ? "ring" : "icon"
+        return chosen === "ring" && (root.ringed.indexOf(id) >= 0 || id === "devices") ? "ring" : "icon"
     }
 
     function figureOf(own: var): string {
@@ -206,6 +209,8 @@ Singleton {
             return "󰌌"
         case "bluetooth":
             return BluetoothService.icon
+        case "devices":
+            return "󰂯"
         case "volume":
             return AudioService.icon
         case "brightness":
@@ -301,6 +306,7 @@ Singleton {
             return 150
         case "network":
         case "bluetooth":
+        case "devices":
             return 110
         }
         return 0
@@ -513,6 +519,8 @@ Singleton {
                      height: Theme.cardHeight(Math.min(6, NotificationService.history.length) + 1, 0) }
         if (id === "updates")
             return { width: item.width, height: Theme.cardHeight(Math.min(3, UpdatesService.updates.length) + 1, 0) }
+        if (id === "devices")
+            return { width: item.width, height: Theme.cardHeight(Math.max(1, DeviceService.devices.length), 0) }
         if (id === "games")
             return { width: item.width, height: Theme.cardHeight(Math.min(3, GamesService.ranked.length) + 1, 0) }
         if (id === "notes")
@@ -624,6 +632,10 @@ Singleton {
             return true
         case "bluetooth":
             return BluetoothService.available
+        case "devices":
+            // The pieces are drawn one per device (`BarZone`); with none
+            // connected there is nothing to show or open.
+            return DeviceService.devices.length > 0
         case "weather":
             // Builds the service, which runs its first fetch.
             return WeatherService.available

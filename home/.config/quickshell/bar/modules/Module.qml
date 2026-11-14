@@ -38,6 +38,7 @@ Item {
         netspeed: netSpeedModule,
         keyboard: keyboardModule,
         bluetooth: bluetoothModule,
+        devices: devicesModule,
         weather: weatherModule,
         github: githubModule,
         markets: marketsModule,
@@ -74,6 +75,7 @@ Item {
     Component { id: netSpeedModule;   NetSpeedModule {} }
     Component { id: keyboardModule;   KeyboardModule {} }
     Component { id: bluetoothModule;  BluetoothModule {} }
+    Component { id: devicesModule;    DevicesModule {} }
     Component { id: weatherModule;    WeatherModule {} }
     Component { id: githubModule;     GithubModule {} }
     Component { id: marketsModule;    MarketsModule {} }

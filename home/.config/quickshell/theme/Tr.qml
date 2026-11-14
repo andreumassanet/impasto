@@ -313,8 +313,8 @@ QtObject {
             "Layout": "Disposición",
             "Drag a piece from the catalogue onto the bar.":
                 "Arrastra una pieza del catálogo a la barra.",
-            "Drop a piece on either half of the bar to place it on that side of the island; drag it along to move it or off the bar to remove it, and click it to give it its own shape and figure. Adjacent modules share a capsule, and a split starts a new one.":
-                "Suelta una pieza en una mitad de la barra para ponerla en ese lado de la isla; arrástrala para moverla o fuera de la barra para quitarla, y haz clic en ella para darle forma y cifra propias. Los módulos contiguos comparten cápsula, y una separación empieza otra.",
+            "Drop a piece on either half of the bar to place it on that side of the island; drag it along to move it or off the bar to remove it, and click it to give it its own shape and figure. Adjacent modules share a capsule, and a split starts a new one. Devices puts a chip on the bar for each connected device that reports a battery, such as a mouse or earbuds.":
+                "Suelta una pieza en una mitad de la barra para ponerla en ese lado de la isla; arrástrala para moverla o fuera de la barra para quitarla, y haz clic en ella para darle forma y cifra propias. Los módulos contiguos comparten cápsula, y una separación empieza otra. «Dispositivos» pone en la barra una pastilla por cada dispositivo conectado que informa de su batería, como un ratón o unos auriculares.",
             "Empty": "Vacío",
             "Search": "Buscar",
             "Overview": "Vista general",
