@@ -27,10 +27,42 @@ ColumnLayout {
     property bool backable: true
 
     property string expanded: ""
+    signal pageRequested(string panel)
+
+    // The password field keeps Tab while it is open.
+    Keys.onPressed: event => event.accepted = root.expanded === "" && tabs.handle(event, index => root.activate(index))
+
+    // The Nth network: connect a known or open one, disconnect the active
+    // one, or ask for the password of a secured new one.
+    function activate(index: int): void {
+        const network = NetworkService.networks[index]
+        if (!network)
+            return
+        if (network.active)
+            NetworkService.disconnect(network.ssid)
+        else if (network.known || !network.secure)
+            NetworkService.connect(network.ssid)
+        else
+            root.expanded = network.ssid
+    }
 
     spacing: Theme.cardGap
 
-    Component.onCompleted: NetworkService.scan(false)
+    Component.onCompleted: {
+        NetworkService.scan(false)
+        // Focus on open, or Tab goes to whatever had the keyboard before.
+        if (tabs.visible)
+            root.forceActiveFocus()
+    }
+
+    // Only in the island: the module card has no panel to switch to.
+    ConnectivityTabs {
+        id: tabs
+
+        visible: root.backable
+        page: "wifi"
+        onPageRequested: panel => root.pageRequested(panel)
+    }
 
     // The heading a module's card has (`ModuleCard`), with the back arrow in
     // front of it when there is somewhere to go back to.
@@ -79,8 +111,8 @@ ColumnLayout {
             Text {
                 Layout.fillWidth: true
                 text: NetworkService.radioOn
-                    ? (NetworkService.scanning ? "Scanning…" : NetworkService.connectionName)
-                    : "Radio off"
+                    ? (NetworkService.scanning ? Tr.t("Scanning…") : NetworkService.connectionName)
+                    : Tr.t("Radio off")
                 elide: Text.ElideRight
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.fontSizeSmall
@@ -90,7 +122,7 @@ ColumnLayout {
 
         Text {
             visible: NetworkService.radioOn
-            text: "Rescan"
+            text: Tr.t("Rescan")
             font.family: Theme.fontFamily
             font.pixelSize: Theme.fontSizeSmall
             color: rescanMouse.containsMouse ? Theme.accent : Theme.textMuted
@@ -121,8 +153,8 @@ ColumnLayout {
         horizontalAlignment: Text.AlignHCenter
         verticalAlignment: Text.AlignVCenter
         text: NetworkService.radioOn
-            ? (NetworkService.scanning ? "Looking for networks…" : "Nothing in range")
-            : "Turn Wi-Fi on to see what is around"
+            ? Tr.t(NetworkService.scanning ? "Looking for networks…" : "Nothing in range")
+            : Tr.t("Turn Wi-Fi on to see what is around")
         font.family: Theme.fontFamily
         font.pixelSize: Theme.fontSizeSmall
         color: Theme.textMuted
@@ -195,11 +227,11 @@ ColumnLayout {
                         Text {
                             Layout.fillWidth: true
                             text: {
-                                if (entry.busy) return "Working…"
-                                if (entry.modelData.active) return "Connected"
+                                if (entry.busy) return Tr.t("Working…")
+                                if (entry.modelData.active) return Tr.t("Connected")
                                 const bits = [`${entry.modelData.signal}%`]
-                                if (entry.modelData.secure) bits.push("secured")
-                                if (entry.modelData.known) bits.push("saved")
+                                if (entry.modelData.secure) bits.push(Tr.t("secured"))
+                                if (entry.modelData.known) bits.push(Tr.t("saved"))
                                 return bits.join(" · ")
                             }
                             elide: Text.ElideRight
@@ -264,7 +296,7 @@ ColumnLayout {
                             Text {
                                 anchors.verticalCenter: parent.verticalCenter
                                 visible: password.text === ""
-                                text: "Password"
+                                text: Tr.t("Password")
                                 font: password.font
                                 color: Theme.textMuted
                             }
@@ -272,7 +304,7 @@ ColumnLayout {
                     }
 
                     PillButton {
-                        text: "Connect"
+                        text: Tr.t("Connect")
                         active: true
                         onClicked: {
                             NetworkService.connect(entry.modelData.ssid, password.text)

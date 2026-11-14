@@ -105,9 +105,9 @@ Item {
         WidgetFace {
 
             ink: root.ink
-            label: "Battery"
+            label: Tr.t("Battery")
             reading: BatteryService.available ? `${BatteryService.percent}%` : "—"
-            note: BatteryService.available ? BatteryService.estimate : "no battery"
+            note: BatteryService.available ? BatteryService.estimate : Tr.t("no battery")
             extraShare: 0.42
 
             BatteryWidget { size: 40; glyphColor: root.ink.text; track: root.ink.dim }
@@ -149,9 +149,9 @@ Item {
         WidgetFace {
 
             ink: root.ink
-            label: "Volume"
-            reading: AudioService.muted ? "Muted" : `${AudioService.volume}%`
-            note: AudioService.muted ? "output silenced" : "output"
+            label: Tr.t("Volume")
+            reading: AudioService.muted ? Tr.t("Muted") : `${AudioService.volume}%`
+            note: AudioService.muted ? Tr.t("output silenced") : Tr.t("output")
             tint: AudioService.muted ? root.ink.muted : root.ink.text
             extraShare: 0.42
 
@@ -189,9 +189,9 @@ Item {
         WidgetFace {
 
             ink: root.ink
-            label: "Brightness"
+            label: Tr.t("Brightness")
             reading: BrightnessService.available ? `${BrightnessService.percent}%` : "—"
-            note: BrightnessService.available ? "backlight" : "no backlight"
+            note: BrightnessService.available ? Tr.t("backlight") : Tr.t("no backlight")
             extraShare: 0.42
 
             RingIndicator {
@@ -233,10 +233,10 @@ Item {
                 : ClaudeService.sessionMeasured
                 ? ClaudeService.percent(ClaudeService.sessionFraction)
                 : ClaudeService.compact(ClaudeService.blockTokens)
-            note: !ClaudeService.available ? "no usage found"
+            note: !ClaudeService.available ? Tr.t("no usage found")
                 : ClaudeService.sessionMeasured
-                ? `of this block · ${ClaudeService.compact(ClaudeService.blockTokens)}`
-                : `this block · ${ClaudeService.messages(ClaudeService.blockMessages)}`
+                ? `${Tr.t("of this block")} · ${ClaudeService.compact(ClaudeService.blockTokens)}`
+                : `${Tr.t("this block")} · ${ClaudeService.messages(ClaudeService.blockMessages)}`
             extraShare: 0.42
 
             ClaudeMark {
@@ -283,9 +283,9 @@ Item {
             ink: root.ink
             label: "Codex"
             reading: CodexService.figure
-            note: !CodexService.available ? "no usage found"
-                : CodexService.fullest ? `of the ${CodexService.fullestName}`
-                : "until Codex runs again"
+            note: !CodexService.available ? Tr.t("no usage found")
+                : CodexService.fullest ? Tr.t("of the %1").arg(CodexService.fullestName)
+                : Tr.t("until Codex runs again")
             extraShare: 0.42
 
             CodexMark {
@@ -332,9 +332,9 @@ Item {
         WidgetFace {
 
             ink: root.ink
-            label: "System"
+            label: Tr.t("System")
             reading: `${StatsService.cpu.toFixed(0)}%`
-            note: `RAM ${Math.round(StatsService.memoryFraction * 100)}% · load ${StatsService.load[0].toFixed(2)}`
+            note: `RAM ${Math.round(StatsService.memoryFraction * 100)}% · ${Tr.t("load")} ${StatsService.load[0].toFixed(2)}`
             extraShare: 0.45
 
             Text {
@@ -372,9 +372,9 @@ Item {
                     .slice(0, 3)
             }
 
-            label: WeatherService.place || "Weather"
+            label: WeatherService.place || Tr.t("Weather")
             reading: WeatherService.available ? `${WeatherService.temperature}°` : "--°"
-            note: !WeatherService.available ? "no forecast"
+            note: !WeatherService.available ? Tr.t("no forecast")
                 : WeatherService.description !== ""
                 ? `${WeatherService.description} · ${WeatherService.high}° / ${WeatherService.low}°`
                 : `${WeatherService.high}° / ${WeatherService.low}°`
@@ -382,9 +382,16 @@ Item {
 
             WeatherIcon {
                 anchors.centerIn: parent
-                name: WeatherService.available ? WeatherService.icon : ""
-                glyph: WeatherService.available ? WeatherService.glyph : ""
-                size: 40
+                text: WeatherService.available ? WeatherService.glyph : "󰅤"
+                font.family: Theme.fontMono
+                font.pixelSize: 34
+                color: weatherArt1.shown ? "transparent" : root.ink.text
+
+                WeatherArt {
+                    id: weatherArt1
+
+                    name: WeatherService.available ? WeatherService.icon : ""
+                }
             }
 
             extra: [
@@ -422,9 +429,16 @@ Item {
 
                                 WeatherIcon {
                                     anchors.horizontalCenter: parent.horizontalCenter
-                                    name: block.modelData.icon ?? ""
-                                    glyph: block.modelData.glyph
-                                    size: 24
+                                    text: block.modelData.glyph
+                                    font.family: Theme.fontMono
+                                    font.pixelSize: 20
+                                    color: weatherArt2.shown ? "transparent" : root.ink.text
+
+                                    WeatherArt {
+                                        id: weatherArt2
+
+                                        name: block.modelData.icon ?? ""
+                                    }
                                 }
 
                                 Text {
@@ -448,13 +462,13 @@ Item {
         WidgetFace {
 
             ink: root.ink
-            label: "Updates"
+            label: Tr.t("Updates")
             reading: UpdatesService.available || UpdatesService.checking
                 ? `${UpdatesService.count}` : "—"
             note: UpdatesService.checking
-                ? "checking"
-                : (!UpdatesService.available ? "cannot check"
-                    : (UpdatesService.count === 0 ? "up to date" : "pending"))
+                ? Tr.t("checking")
+                : (!UpdatesService.available ? Tr.t("cannot check")
+                    : (UpdatesService.count === 0 ? Tr.t("up to date") : Tr.t("pending")))
             tint: UpdatesService.count === 0 ? root.ink.muted : root.ink.text
             extraShare: 0.45
 
@@ -502,8 +516,8 @@ Item {
             ink: root.ink
             label: "Bluetooth"
             reading: BluetoothService.summary
-            note: !BluetoothService.available ? "no adapter"
-                : (BluetoothService.enabled ? "adapter on" : "adapter off")
+            note: !BluetoothService.available ? Tr.t("no adapter")
+                : (BluetoothService.enabled ? Tr.t("adapter on") : Tr.t("adapter off"))
             extraShare: 0.42
 
             Text {
@@ -551,7 +565,7 @@ Item {
         WidgetFace {
 
             ink: root.ink
-            label: "Network"
+            label: Tr.t("Network")
             reading: NetworkService.connectionName
             note: NetworkService.stateLine
 
@@ -576,11 +590,11 @@ Item {
         WidgetFace {
 
             ink: root.ink
-            label: "Timer"
+            label: Tr.t("Timer")
             reading: TimerService.running ? TimerService.display : "—"
             note: TimerService.running
-                ? (TimerService.label !== "" ? TimerService.label : "counting down")
-                : "nothing running"
+                ? (TimerService.label !== "" ? TimerService.label : Tr.t("counting down"))
+                : Tr.t("nothing running")
             tint: TimerService.running ? root.ink.text : root.ink.muted
             extraShare: 0.4
 
@@ -600,7 +614,7 @@ Item {
 
                     PillButton {
                         text: TimerService.running
-                            ? (TimerService.paused ? "Resume" : "Hold") : "5 min"
+                            ? (TimerService.paused ? Tr.t("Resume") : Tr.t("Hold")) : "5 min"
                         implicitHeight: 30
                         // Milliseconds: the service counts in Timer units.
                         onClicked: {
@@ -631,11 +645,11 @@ Item {
         WidgetFace {
 
             ink: root.ink
-            label: MediaService.artist !== "" ? MediaService.artist : "Media"
+            label: MediaService.artist !== "" ? MediaService.artist : Tr.t("Media")
             reading: MediaService.title !== "" ? MediaService.title
-                : (MediaService.available ? MediaService.identity : "Nothing playing")
-            note: !MediaService.available ? "no player"
-                : (MediaService.playing ? "playing" : "paused")
+                : (MediaService.available ? MediaService.identity : Tr.t("Nothing playing"))
+            note: !MediaService.available ? Tr.t("no player")
+                : (MediaService.playing ? Tr.t("playing") : Tr.t("paused"))
             extraShare: 0.4
 
             ClippingRectangle {
@@ -708,8 +722,8 @@ Item {
         WidgetFace {
 
             ink: root.ink
-            label: PetService.name !== "" ? PetService.name : "Pet"
-            reading: PetService.hatched ? `Lv ${PetService.level}` : "Egg"
+            label: PetService.name !== "" ? PetService.name : Tr.t("Pet")
+            reading: PetService.hatched ? Tr.t("Lv %1").arg(PetService.level) : Tr.t("Egg")
             note: PetService.moodLine
             extraShare: 0.4
 
@@ -745,9 +759,9 @@ Item {
                 ? SettingsService.clockFormat.replace("mm", "mm:ss")
                 : SettingsService.clockFormat
 
-            label: Qt.formatDateTime(clock.date, "dddd")
-            reading: Qt.formatDateTime(clock.date, clockFace.format)
-            note: Qt.formatDateTime(clock.date, "d MMMM yyyy")
+            label: Tr.date(clock.date, "dddd")
+            reading: Tr.date(clock.date, clockFace.format)
+            note: Tr.date(clock.date, "d MMMM yyyy")
 
             SystemClock {
                 id: clock
@@ -798,18 +812,18 @@ Item {
 
                 // The same label and reading as the square, so the wide face
                 // adds the week without rearranging anything.
-                label: Qt.formatDateTime(calendarClock.date, "MMMM")
+                label: Tr.date(calendarClock.date, "MMMM")
                 reading: `${calendarFace.today.getDate()}`
                 // Today's count if any; else the next task due; else the
                 // weekday.
                 note: {
                     const left = TasksService.pendingOn(TasksService.todayKey)
                     if (left > 0)
-                        return `${left} to do today`
+                        return Tr.t("%1 to do today").arg(left)
                     const next = TasksService.next
                     if (next)
                         return `${next.text} · ${TasksService.dueLabel(next.due)}`
-                    return Qt.formatDateTime(calendarClock.date, "dddd")
+                    return Tr.date(calendarClock.date, "dddd")
                 }
                 extraShare: 0.5
 
@@ -863,7 +877,7 @@ Item {
 
                                     Text {
                                         anchors.horizontalCenter: parent.horizontalCenter
-                                        text: Qt.formatDateTime(day.date, "ddd").charAt(0)
+                                        text: Tr.initial(day.date)
                                         font.family: Theme.fontFamily
                                         font.pixelSize: Theme.fontSizeLabel
                                         color: root.ink.muted
@@ -942,10 +956,10 @@ Item {
         WidgetFace {
 
             ink: root.ink
-            label: "Tasks"
+            label: Tr.t("Tasks")
             reading: `${TasksService.pending}`
             note: TasksService.pending === 0
-                ? (TasksService.count === 0 ? "nothing yet" : "all done")
+                ? (TasksService.count === 0 ? Tr.t("nothing yet") : Tr.t("all done"))
                 : TasksService.summary
             tint: TasksService.overdue.length > 0 ? Theme.red : root.ink.text
             extraShare: 0.55
@@ -1027,9 +1041,10 @@ Item {
         WidgetFace {
 
             ink: root.ink
-            label: MarketsService.lead ? `${MarketsService.lead.base}/${MarketsService.lead.quote}` : "Markets"
+            label: MarketsService.lead ? `${MarketsService.lead.base}/${MarketsService.lead.quote}` : Tr.t("Markets")
             note: !MarketsService.lead
-                ? (MarketsService.pairs.length === 0 ? "nothing on the list" : "no prices")
+                ? (MarketsService.pairs.length === 0 ? Tr.t("nothing on the list") : Tr.t("no prices")
+)
                 : `${MarketsService.change(MarketsService.lead)} · ${MarketsService.lead.period}`
             noteTint: MarketsService.lead ? MarketsService.tint(MarketsService.lead) : root.ink.muted
 
@@ -1111,7 +1126,7 @@ Item {
                                 width: weekBars.slot
                                 rightPadding: weekBars.gap
                                 horizontalAlignment: Text.AlignHCenter
-                                text: Qt.formatDate(ScreenTimeService.dateOf(modelData.date), "ddd").charAt(0)
+                                text: Tr.initial(ScreenTimeService.dateOf(modelData.date))
                                 font.family: Theme.fontFamily
                                 font.pixelSize: Theme.fontSizeLabel - 1
                                 color: root.ink.muted

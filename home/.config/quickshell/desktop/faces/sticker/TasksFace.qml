@@ -57,8 +57,8 @@ Item {
 
             Text {
                 anchors.horizontalCenter: parent.horizontalCenter
-                text: TasksService.pending > 0 ? (root.late ? `${TasksService.overdue.length} LATE` : "TO DO")
-                    : (TasksService.count === 0 ? "NOTHING YET" : "ALL DONE")
+                text: TasksService.pending > 0 ? (root.late ? Tr.t("%1 LATE").arg(TasksService.overdue.length) : Tr.t("TO DO"))
+                    : (TasksService.count === 0 ? Tr.t("NOTHING YET") : Tr.t("ALL DONE"))
                 font.family: Theme.fontFamily
                 font.pixelSize: Math.max(Theme.fontSizeLabel - 2, Math.round(seal.side * 0.075))
                 font.weight: Font.Bold
@@ -138,7 +138,7 @@ Item {
             id: open
 
             anchors.centerIn: parent
-            text: "Open the board"
+            text: Tr.t("Open the board")
             font.family: Theme.fontFamily
             font.pixelSize: Math.round(parent.height * 0.38)
             font.weight: Font.DemiBold

@@ -52,10 +52,17 @@ Card {
         visible: root.oneLine
         spacing: 10
 
-        WeatherIcon {
-            name: WeatherService.available ? WeatherService.icon : ""
-            glyph: WeatherService.available ? WeatherService.glyph : ""
-            size: 26
+        Text {
+            text: WeatherService.available ? WeatherService.glyph : "󰅤"
+            font.family: Theme.fontMono
+            font.pixelSize: 22
+            color: weatherArt1.shown ? "transparent" : Theme.accent
+
+            WeatherArt {
+                id: weatherArt1
+
+                name: WeatherService.available ? WeatherService.icon : ""
+            }
         }
 
         Text {
@@ -69,8 +76,8 @@ Card {
         Text {
             Layout.fillWidth: true
             text: WeatherService.available
-                ? `${WeatherService.description}  ·  feels ${WeatherService.feelsLike}°`
-                : "No reading"
+                ? Tr.t("%1  ·  feels %2°").arg(WeatherService.description).arg(WeatherService.feelsLike)
+                : Tr.t("No reading")
             elide: Text.ElideRight
             font.family: Theme.fontFamily
             font.pixelSize: Theme.fontSizeSmall
@@ -105,10 +112,17 @@ Card {
             Layout.alignment: Qt.AlignTop
             spacing: 12
 
-            WeatherIcon {
-                name: WeatherService.available ? WeatherService.icon : ""
-                glyph: WeatherService.available ? WeatherService.glyph : ""
-                size: 46
+            Text {
+                text: WeatherService.available ? WeatherService.glyph : "󰅤"
+                font.family: Theme.fontMono
+                font.pixelSize: 40
+                color: weatherArt2.shown ? "transparent" : Theme.accent
+
+                WeatherArt {
+                    id: weatherArt2
+
+                    name: WeatherService.available ? WeatherService.icon : ""
+                }
             }
 
             ColumnLayout {
@@ -146,8 +160,8 @@ Card {
                 Text {
                     Layout.fillWidth: true
                     text: WeatherService.available
-                        ? `${WeatherService.description}  ·  feels ${WeatherService.feelsLike}°`
-                        : "No reading"
+                        ? Tr.t("%1  ·  feels %2°").arg(WeatherService.description).arg(WeatherService.feelsLike)
+                        : Tr.t("No reading")
                     elide: Text.ElideRight
                     font.family: Theme.fontFamily
                     font.pixelSize: Theme.fontSizeSmall
@@ -223,9 +237,16 @@ Card {
 
                         WeatherIcon {
                             anchors.horizontalCenter: parent.horizontalCenter
-                            name: block.modelData.icon ?? ""
-                            glyph: block.modelData.glyph
-                            size: 22
+                            text: block.modelData.glyph
+                            font.family: Theme.fontMono
+                            font.pixelSize: 16
+                            color: weatherArt3.shown ? "transparent" : Theme.text
+
+                            WeatherArt {
+                                id: weatherArt3
+
+                                name: block.modelData.icon ?? ""
+                            }
                         }
 
                         Text {

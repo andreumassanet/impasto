@@ -100,39 +100,23 @@ def fetch(place):
     return json.loads(result.stdout)
 
 
-# "u" (°F, mph, inHg, miles) or "m" (°C, km/h, hPa, km), from the shell's
-# weatherUnits setting. wttr.in's JSON carries both.
-US = os.environ.get("IMPASTO_WEATHER_UNITS") == "u"
-DEG = "F" if US else "C"
-
-
 def daytime_now(current, today):
     """Whether the sun is up where the reading is: the local observation time
-    against today's sunrise and sunset. True when wttr.in sends none of them."""
+    against today's sunrise and sunset. wttr.in does not always send the
+    local time, and then this machine's clock stands in, right for the place
+    it geolocates. True when the sun's times are missing too."""
     try:
         astronomy = today["astronomy"][0]
-        observed = datetime.strptime(current["localObsDateTime"].split(" ", 1)[1], "%I:%M %p")
         sunrise = datetime.strptime(astronomy["sunrise"], "%I:%M %p")
         sunset = datetime.strptime(astronomy["sunset"], "%I:%M %p")
     except (KeyError, IndexError, ValueError):
         return True
+    try:
+        observed = datetime.strptime(current["localObsDateTime"].split(" ", 1)[1], "%I:%M %p")
+    except (KeyError, IndexError, ValueError):
+        now = datetime.now()
+        observed = sunrise.replace(hour=now.hour, minute=now.minute)
     return sunrise <= observed < sunset
-
-
-def day_report(day):
-    """One day of the forecast, or None when wttr.in sent it without its hours."""
-    blocks = day.get("hourly") or []
-    if not blocks:
-        return None
-    middle = int(blocks[len(blocks) // 2].get("weatherCode", 0))
-    return {
-        "date": day.get("date", ""),
-        "low": int(day.get(f"mintemp{DEG}", 0)),
-        "high": int(day.get(f"maxtemp{DEG}", 0)),
-        "glyph": glyph(middle, True),
-        "icon": icon(middle, True),
-        "rain": max(int(block.get("chanceofrain", 0)) for block in blocks),
-    }
 
 
 def report(place):
@@ -142,8 +126,8 @@ def report(place):
     today = data["weather"][0]
 
     code = int(current["weatherCode"])
-    # The icon at night is the night one: by the observation's local time and
-    # today's sun, since wttr.in gives `isdaytime` only per hour block.
+    # By the observation's local time and today's sun, since wttr.in gives
+    # `isdaytime` only per hour block.
     daytime = daytime_now(current, today)
 
     return {

@@ -56,9 +56,9 @@ Item {
                 ? SettingsService.clockFormat.replace("mm", "mm:ss")
                 : SettingsService.clockFormat
 
-            label: Qt.formatDateTime(clock.date, "dddd")
-            reading: Qt.formatDateTime(clock.date, clockFace.format)
-            note: Qt.formatDateTime(clock.date, "d MMMM yyyy")
+            label: Tr.date(clock.date, "dddd")
+            reading: Tr.date(clock.date, clockFace.format)
+            note: Tr.date(clock.date, "d MMMM yyyy")
             readingSize: Theme.fontSizeDisplay
 
             SystemClock {
@@ -92,20 +92,27 @@ Item {
                     .slice(0, 6)
             }
 
-            label: WeatherService.place || "Weather"
+            label: WeatherService.place || Tr.t("Weather")
             reading: WeatherService.available ? `${WeatherService.temperature}°` : "--°"
-            note: !WeatherService.available ? "no forecast"
+            note: !WeatherService.available ? Tr.t("no forecast")
                 : WeatherService.description !== ""
-                ? `${WeatherService.description} · feels ${WeatherService.feelsLike}° · ${WeatherService.high}° / ${WeatherService.low}°`
-                : `feels ${WeatherService.feelsLike}° · ${WeatherService.high}° / ${WeatherService.low}°`
+                ? `${WeatherService.description} · ${Tr.t("feels %1°").arg(WeatherService.feelsLike)} · ${WeatherService.high}° / ${WeatherService.low}°`
+                : `${Tr.t("feels %1°").arg(WeatherService.feelsLike)} · ${WeatherService.high}° / ${WeatherService.low}°`
             readingSize: Theme.fontSizeDisplay
             extraShare: 0.55
 
             WeatherIcon {
                 anchors.centerIn: parent
-                name: WeatherService.available ? WeatherService.icon : ""
-                glyph: WeatherService.available ? WeatherService.glyph : ""
-                size: 40
+                text: WeatherService.available ? WeatherService.glyph : "󰅤"
+                font.family: Theme.fontMono
+                font.pixelSize: 34
+                color: weatherArt1.shown ? "transparent" : root.ink.text
+
+                WeatherArt {
+                    id: weatherArt1
+
+                    name: WeatherService.available ? WeatherService.icon : ""
+                }
             }
 
             extra: [
@@ -143,9 +150,16 @@ Item {
 
                                 WeatherIcon {
                                     anchors.horizontalCenter: parent.horizontalCenter
-                                    name: block.modelData.icon ?? ""
-                                    glyph: block.modelData.glyph
-                                    size: 28
+                                    text: block.modelData.glyph
+                                    font.family: Theme.fontMono
+                                    font.pixelSize: 24
+                                    color: weatherArt2.shown ? "transparent" : root.ink.text
+
+                                    WeatherArt {
+                                        id: weatherArt2
+
+                                        name: block.modelData.icon ?? ""
+                                    }
                                 }
 
                                 Text {
@@ -200,9 +214,10 @@ Item {
             id: marketsFace
 
             ink: root.ink
-            label: MarketsService.lead ? `${MarketsService.lead.base}/${MarketsService.lead.quote}` : "Markets"
+            label: MarketsService.lead ? `${MarketsService.lead.base}/${MarketsService.lead.quote}` : Tr.t("Markets")
             note: !MarketsService.lead
-                ? (MarketsService.pairs.length === 0 ? "nothing on the list" : "no prices")
+                ? (MarketsService.pairs.length === 0 ? Tr.t("nothing on the list") : Tr.t("no prices")
+)
                 : `${MarketsService.change(MarketsService.lead)} · ${MarketsService.lead.period}`
             noteTint: MarketsService.lead ? MarketsService.tint(MarketsService.lead) : root.ink.muted
 

@@ -45,9 +45,9 @@ ColumnLayout {
 
                 glyph: screen.modelData.icon
                 name: screen.modelData.title
-                value: screen.modelData.percent
-                from: 1
-                onMoved: value => screen.modelData.setPercent(value)
+                value: screen.modelData.slider
+                from: BrightnessService.sliderMinimum
+                onMoved: value => screen.modelData.setSlider(value)
             }
         }
     }

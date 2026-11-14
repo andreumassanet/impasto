@@ -52,18 +52,27 @@ Item {
                 const parts = []
                 if (WeatherService.description !== "")
                     parts.push(WeatherService.description)
-                parts.push(`feels ${WeatherService.feelsLike}°`)
+                parts.push(Tr.t("feels %1°").arg(WeatherService.feelsLike))
                 if (WeatherService.age !== "")
                     parts.push(WeatherService.age)
                 return parts.join(" · ")
             }
             figure: `${WeatherService.temperature}°`
 
-            mark: WeatherIcon {
-                anchors.centerIn: parent
-                name: WeatherService.icon
-                glyph: WeatherService.glyph
-                size: 34
+            mark: Text {
+                anchors.fill: parent
+                horizontalAlignment: Text.AlignHCenter
+                verticalAlignment: Text.AlignVCenter
+                text: WeatherService.glyph
+                font.family: Theme.fontMono
+                font.pixelSize: 30
+                color: weatherArt1.shown ? "transparent" : Theme.indicator
+
+                WeatherArt {
+                    id: weatherArt1
+
+                    name: WeatherService.icon
+                }
             }
 
             // Columns divide the width by hand: a RowLayout sizes from its
@@ -103,9 +112,16 @@ Item {
 
                             WeatherIcon {
                                 anchors.horizontalCenter: parent.horizontalCenter
-                                name: block.modelData.icon ?? ""
-                                glyph: block.modelData.glyph
-                                size: 20
+                                text: block.modelData.glyph
+                                font.family: Theme.fontMono
+                                font.pixelSize: 15
+                                color: weatherArt2.shown ? "transparent" : Theme.indicator
+
+                                WeatherArt {
+                                    id: weatherArt2
+
+                                    name: block.modelData.icon ?? ""
+                                }
                             }
 
                             Text {

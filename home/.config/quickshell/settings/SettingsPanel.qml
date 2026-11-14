@@ -49,7 +49,7 @@ Item {
           tabs: [{ id: "style", label: Tr.t("Style") },
                  { id: "layout", label: Tr.t("Layout") },
                  { id: "workspaces", label: Tr.t("Workspaces") }],
-          keywords: "bar style grouped spread one capsule bezel frame rounded corners screen sides capsules wallpaper every screen monitors height margin scale ground glass classic liquid shadow layout left right split drag catalogue chip icon ring figure hover shape modules media claude battery timer volume brightness network wifi bluetooth weather stats cpu updates pet capture record screenshot buttons workspaces strip shown available shared per screen",
+          keywords: "bar style grouped spread one capsule bezel frame rounded corners screen sides capsules wallpaper every screen monitors height margin scale ground glass classic liquid shadow layout left right split drag catalogue chip icon ring figure hover shape modules media claude battery timer volume brightness network wifi speed download upload traffic bluetooth weather stats cpu updates pet capture record screenshot buttons workspaces strip dots bars rings numbers roman kanji greek apps icons shown available shared per screen",
           page: barPage },
 
         { id: "island", category: "shell", icon: "󰌢", label: Tr.t("Island"),
@@ -62,7 +62,7 @@ Item {
         { id: "controls", category: "shell", icon: "󰕰", label: Tr.t("Control Centre"),
           blurb: Tr.t("What the island opens onto when you click it."),
           tabs: [],
-          keywords: "controls control centre center panel doors buttons row pet games notes board tasks kanban stats blocks grid toggles tiles arrange edit tray wifi bluetooth airplane microphone focus",
+          keywords: "controls control centre center panel doors buttons row pet games notes board tasks kanban stats blocks grid toggles tiles arrange edit tray wifi bluetooth airplane microphone focus song music recognise shazam keep awake caffeine clock time",
           page: controlsPage },
 
         { id: "launcher", category: "shell", icon: "󰍉", label: Tr.t("Launcher"),
@@ -70,7 +70,7 @@ Item {
           tabs: [{ id: "results", label: Tr.t("Results") },
                  { id: "sigils", label: Tr.t("Sigils") },
                  { id: "clipboard", label: Tr.t("Clipboard") }],
-          keywords: "launcher search apps results calculate run window timer note task board prefix sigil order recent frequency clipboard history copy paste images wipe lock",
+          keywords: "launcher search apps results fallback fallbacks web address url browser terminal command calculate run window timer note task board prefix sigil order recent frequency clipboard history copy paste images wipe lock",
           page: launcherPage },
 
         { id: "dock", category: "shell", icon: "󱂩", label: Tr.t("Dock"),
@@ -88,7 +88,7 @@ Item {
         { id: "modules", category: "shell", icon: "󰆧", label: Tr.t("Modules"),
           blurb: Tr.t("What the modules know, on the bar, the desktop and the panels."),
           tabs: [],
-          keywords: "modules weather location place city stats statistics dashboard design cpu memory monitor github contributions username markets crypto bitcoin price currency exchange rate pet creature plush paper pixel egg species style lyrics lrclib song music notes note handwriting",
+          keywords: "modules weather location place city github contributions username markets crypto bitcoin price currency exchange rate pet creature plush paper pixel egg species style lyrics lrclib song music media card cover shape round circle captures screenshots recordings photos file names suffix calendar events google outlook icloud ics ical link agenda khal notes note handwriting",
           page: modulesPage },
 
         { id: "appearance", category: "desk", icon: "󰏘", label: Tr.t("Appearance"),
@@ -106,12 +106,18 @@ Item {
           keywords: "windows layout dwindle master scrolling rounding border gaps inner outer opacity inactive blur refraction glass hyprglass shadow animation preset hyprland",
           page: windowsPage },
 
+        { id: "scratchpads", category: "desk", icon: "󰖲", label: Tr.t("Scratchpads"),
+          blurb: Tr.t("Special workspaces with a name, a key, an icon and a command."),
+          tabs: [],
+          keywords: "scratchpad scratchpads special workspace named toggle key shortcut command script terminal app launch icon glyph",
+          page: scratchpadsPage },
+
         { id: "monitors", category: "desk", icon: "󰍹", label: Tr.t("Displays"),
           blurb: Tr.t("Screen layout, modes and the laptop lid."),
           tabs: [{ id: "arrangement", label: Tr.t("Arrangement") },
                  { id: "screen", label: Tr.t("The screen") },
                  { id: "lid", label: Tr.t("The lid") }],
-          keywords: "displays monitor screen resolution refresh scale rotate transform vrr mirror extend primary lid clamshell laptop close",
+          keywords: "displays monitor screen resolution refresh scale rotate transform vrr mirror extend primary lid clamshell laptop close brightness dim darker below backlight floor",
           page: monitorsPage },
 
         { id: "input", category: "desk", icon: "󰍽", label: Tr.t("Input"),
@@ -592,6 +598,7 @@ Item {
     Component { id: windowsPage;    WindowsSection {} }
     Component { id: inputPage;      InputSection {} }
     Component { id: monitorsPage;   MonitorsSection {} }
+    Component { id: scratchpadsPage; ScratchpadsSection {} }
     Component { id: keysPage;       KeysSection {} }
     Component { id: sessionPage;    SessionSection {} }
     Component { id: systemPage;     SystemSection {} }

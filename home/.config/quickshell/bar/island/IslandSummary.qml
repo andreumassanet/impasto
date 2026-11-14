@@ -137,24 +137,13 @@ Item {
 
         // Drawn once loaded: a parent hidden on its own `visible` would never
         // show the picture that decides it.
-        readonly property bool cover: MediaService.artUrl !== "" && art.status === Image.Ready
+        readonly property bool cover: mediaCover.ready
 
-        ClippingRectangle {
+        CoverArt {
+            id: mediaCover
+
             anchors.fill: parent
             visible: root.face === "media" && slot.cover
-            radius: width * Theme.pictureCorner
-            color: "transparent"
-
-            Image {
-                id: art
-
-                anchors.fill: parent
-                source: MediaService.artUrl
-                fillMode: Image.PreserveAspectCrop
-                asynchronous: true
-                sourceSize.width: 288
-                sourceSize.height: 288
-            }
         }
 
         Glyph {
@@ -204,9 +193,15 @@ Item {
         WeatherIcon {
             anchors.centerIn: parent
             visible: root.face === "weather"
-            name: WeatherService.icon
-            glyph: WeatherService.glyph
-            size: Math.round(slot.width * 0.9)
+            text: WeatherService.glyph
+            font.pixelSize: Math.round(slot.width * 0.86)
+            color: weatherArt.shown ? "transparent" : Theme.text
+
+            WeatherArt {
+                id: weatherArt
+
+                name: WeatherService.icon
+            }
         }
 
         Row {
@@ -589,7 +584,7 @@ Item {
         Text {
             id: hour
             anchors.right: parent.right
-            text: Qt.formatDateTime(clock.date, SettingsService.clockFormat)
+            text: Tr.date(clock.date, SettingsService.clockFormat)
             font.family: Theme.fontFamily
             font.pixelSize: 62
             font.weight: Font.Black

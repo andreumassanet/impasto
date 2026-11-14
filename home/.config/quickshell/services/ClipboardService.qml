@@ -13,6 +13,8 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 
+import "../theme"
+
 // Clipboard history. `clipboard.py` watches, stores and restores; this reads
 // the file it writes.
 //
@@ -215,25 +217,25 @@ Singleton {
     function since(copied: real): string {
         const seconds = Math.max(0, Math.round((Date.now() - copied) / 1000))
         if (seconds < 60)
-            return "just now"
+            return Tr.t("just now")
         const minutes = Math.floor(seconds / 60)
         if (minutes < 60)
-            return `${minutes} min ago`
+            return Tr.t("%1 min ago").arg(minutes)
         const hours = Math.floor(minutes / 60)
         if (hours < 24)
-            return `${hours} h ago`
-        return `${Math.floor(hours / 24)} d ago`
+            return Tr.t("%1 h ago").arg(hours)
+        return Tr.t("%1 d ago").arg(Math.floor(hours / 24))
     }
 
     function describe(entry: var): string {
-        const kind = entry.kind === "image" ? "Image" : "Text"
+        const kind = entry.kind === "image" ? Tr.t("Image") : Tr.t("Text")
         return `${kind}  ·  ${root.weigh(entry.bytes)}  ·  ${root.since(entry.copied)}`
     }
 
     // Images have no text preview; the row's thumbnail identifies them.
     function title(entry: var): string {
         if (entry.kind === "image")
-            return "Image"
-        return entry.preview !== "" ? entry.preview : "Not text"
+            return Tr.t("Image")
+        return entry.preview !== "" ? entry.preview : Tr.t("Not text")
     }
 }
