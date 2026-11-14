@@ -38,6 +38,7 @@ Singleton {
     readonly property var catalogue: [
         { name: "launcher",       label: "Launcher",             description: "Shell · Open the launcher" },
         { name: "superTap",       label: "Tap Super",            description: "Shell · Open the launcher when Super is tapped" },
+        { name: "workspaceNumber", label: "Hold Super",          description: "Shell · Show the workspace numbers while Super is held" },
         { name: "controls",       label: "Control centre",       description: "Shell · Open the control centre" },
         { name: "overview",       label: "Workspace overview",   description: "Shell · Open the workspace overview" },
         { name: "settings",       label: "Settings",             description: "Shell · Open settings" },

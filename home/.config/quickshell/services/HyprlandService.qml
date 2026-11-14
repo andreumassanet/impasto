@@ -63,6 +63,15 @@ QtObject {
                    ...root.namedIds)
         : root.maximum
 
+    // ── SUPER ───────────────────────────────────────────────────────────────
+    //
+    // Whether Super is down, and when it went down (0 when nothing is bound to
+    // report it). Fed by the `workspaceNumber` shortcut; the workspace strip
+    // can show its numbers while it is true, and a quick `superTap` after it
+    // can open the launcher.
+    property bool superHeld: false
+    property real superAt: 0
+
     property int activeId: 1
     property var occupiedIds: []
 
