@@ -263,6 +263,8 @@ copied from any of them; what carried over from the shells are ideas — one fil
 per island state, one transient signal for every ephemeral event, and input
 debounced to one frame.
 
+- [pocket-dots](https://github.com/diegoMalagrida/pocket-dots) — a notch on
+  the top edge that every panel unfolds out of, coloured by the wallpaper
 - [saneAspect](https://www.youtube.com/@saneAspect) — the Hyprland setups on
   YouTube that started all this
 - [Tide-island](https://github.com/enhaoswen/Tide-island) — the closest thing to
@@ -271,8 +273,6 @@ debounced to one frame.
   pill bar built to stay light without a dedicated GPU
 - [k4](https://github.com/k4ditano/k4) — a dynamic island bar with a documented
   plugin API
-- [diegoMalagrida/dotfiles](https://github.com/diegoMalagrida/dotfiles) — an
-  Arch Linux desk ready to install on a fresh system
 
 Built on [Quickshell](https://quickshell.org) and [Hyprland](https://hypr.land).
 The pointer is [Bibata](https://github.com/ful1e5/Bibata_Cursor), repainted;
