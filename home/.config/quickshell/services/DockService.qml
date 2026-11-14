@@ -243,6 +243,45 @@ Singleton {
         return root.groups.find(group => group.key === key) ?? null
     }
 
+    // The application a notification came from, among the open windows: by
+    // its desktop entry, else its name. A window class often extends the name
+    // (`Brave` and `brave-browser`), so either may start with the other.
+    // Null when none matches.
+    function groupOfSender(desktopEntry: string, appName: string): var {
+        const known = names => names.map(name => (name ?? "").trim().toLowerCase())
+            .filter(name => name.length >= 3)
+        const told = known([desktopEntry.replace(/\.desktop$/, ""), appName])
+        return root.groups.find(group => known([group.id.replace(/\.desktop$/, ""), group.cls])
+            .some(own => told.some(name => own.startsWith(name) || name.startsWith(own)))) ?? null
+    }
+
+    // True when `showSender` has an application to bring up or start.
+    function canShowSender(desktopEntry: string, appName: string): bool {
+        return root.groupOfSender(desktopEntry, appName) !== null
+            || DesktopEntries.heuristicLookup(desktopEntry || appName) !== null
+    }
+
+    // Brings up the application a notification came from: its window (back
+    // from minimized if need be), else a new instance when it has a desktop
+    // entry. False when there is nothing to bring up.
+    function showSender(desktopEntry: string, appName: string): bool {
+        const group = root.groupOfSender(desktopEntry, appName)
+        if (group) {
+            const windows = root.describe(group.id, group.cls, group).windows
+            const shown = windows.filter(window => !window.minimized)
+            if (shown.length === 0)
+                HyprlandService.restoreWindow(windows[0].address)
+            else
+                HyprlandService.focusWindow(shown[0].address)
+            return true
+        }
+        const entry = DesktopEntries.heuristicLookup(desktopEntry || appName)
+        if (!entry)
+            return false
+        LauncherService.launchDesktop(entry.id)
+        return true
+    }
+
     // A fullscreen window on the workspace a screen is showing. Hyprland
     // reports maximised as 1 and fullscreen as 2; only the latter hides the
     // dock — and only on its own screen.
