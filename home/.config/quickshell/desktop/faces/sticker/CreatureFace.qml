@@ -18,9 +18,9 @@ import "../../../components"
 Spread {
     id: face
 
-    readonly property string name: PetService.name !== "" ? PetService.name : "Pet"
+    readonly property string name: PetService.name !== "" ? PetService.name : Tr.t("Pet")
 
-    line: PetService.hatched ? `${face.name} · Lv ${PetService.level}` : "An egg"
+    line: PetService.hatched ? `${face.name} · ${Tr.t("Lv %1").arg(PetService.level)}` : Tr.t("An egg")
     hue: face.ink.green
     reading: face.name
     note: PetService.moodLine

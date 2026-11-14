@@ -270,8 +270,9 @@ PanelWindow {
             id: field
 
             x: -DesktopService.insets.left
+            y: -DesktopService.zenBand
             width: surface.width + DesktopService.insets.left + DesktopService.insets.right
-            height: surface.height + DesktopService.insets.bottom
+            height: surface.height + DesktopService.insets.bottom + DesktopService.zenBand
             visible: !DesktopService.hidden
 
             Repeater {

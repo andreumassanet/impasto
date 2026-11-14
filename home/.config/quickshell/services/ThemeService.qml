@@ -75,7 +75,17 @@ QtObject {
 
     readonly property Process persistProcess: Process {}
 
-    readonly property Process terminalProcess: Process {}
+    // The applications to write, as the shell holds them, ahead of the
+    // settings file's next write.
+    readonly property Process terminalProcess: Process {
+        environment: ({ IMPASTO_THEME_TARGETS: root.themeTargets })
+        onExited: {
+            const colors = root.pendingColors
+            root.pendingColors = null
+            if (colors)
+                root.pushTerminal(colors)
+        }
+    }
 
     // ── FONT ────────────────────────────────────────────────────────────────
     //
@@ -146,6 +156,7 @@ QtObject {
     readonly property Connections settingsArrival: Connections {
         target: SettingsService
         function onArrivedChanged(): void {
+            root.pushedTargets = root.themeTargets
             root.pushTerminalSettings()
         }
     }
@@ -207,9 +218,35 @@ QtObject {
     function pushTerminal(colors: var): void {
         if (!colors)
             return
+        if (root.terminalProcess.running) {
+            root.pendingColors = colors
+            return
+        }
         root.terminalProcess.command = [root.script, "push-terminal-palette",
                                         JSON.stringify(colors)]
         root.terminalProcess.running = true
+    }
+
+    // A push asked for while one runs, sent when it ends.
+    property var pendingColors: null
+
+    // The colours on screen, for a push that is not a change of palette.
+    function currentColors(): var {
+        if (root.activeId === "adaptive")
+            return root.dynamicColors
+        return Palettes.byId(root.activeId)?.colors ?? null
+    }
+
+    // A program switched back on in Settings is painted at once rather than
+    // on the next change of palette. Compared as text, since a reload of the
+    // settings file announces the list again unchanged.
+    property string pushedTargets: ""
+    readonly property string themeTargets: JSON.stringify(SettingsService.themeTargets ?? null)
+    onThemeTargetsChanged: {
+        const before = root.pushedTargets
+        root.pushedTargets = root.themeTargets
+        if (SettingsService.arrived && before !== root.themeTargets)
+            root.pushTerminal(root.currentColors())
     }
 
     function parseJson(text: string, what: string): var {

@@ -100,7 +100,7 @@ Item {
     Binding {
         target: root
         property: "y"
-        value: root.box.y
+        value: root.box.y + DesktopService.zenBand
         when: !drag.active
         restoreMode: Binding.RestoreBindingOrValue
     }
@@ -360,7 +360,7 @@ Item {
             }
             DesktopService.place(root.key, root.screenName,
                 DesktopService.cellX(root.screenName, root.x - DesktopService.insets.left),
-                DesktopService.cellY(root.screenName, root.y))
+                DesktopService.cellY(root.screenName, root.y - DesktopService.zenBand))
         }
     }
 
@@ -398,7 +398,7 @@ Item {
         DeckService.receiving = ""
         const spot = DesktopService.nearestFree(root.screenName,
             DesktopService.cellX(root.screenName, root.x - DesktopService.insets.left),
-            DesktopService.cellY(root.screenName, root.y), root.family, root.key)
+            DesktopService.cellY(root.screenName, root.y - DesktopService.zenBand), root.family, root.key)
         DesktopService.landing = spot
             ? { screen: root.screenName, col: spot.col, row: spot.row, family: root.family } : null
     }

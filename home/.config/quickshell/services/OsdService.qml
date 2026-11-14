@@ -12,6 +12,8 @@ pragma Singleton
 import QtQuick
 import Quickshell
 
+import "../theme"
+
 // Every ephemeral system change arrives at the island through one signal.
 //
 // Volume, brightness and battery all render in the same layer, so adding an
@@ -71,7 +73,7 @@ Singleton {
             const display = root.brightnessDisplay
             if (!display || ModuleService.openId === "brightness")
                 return
-            root.requested(display.icon, `${display.percent}%`, display.percent / 100)
+            root.requested(display.icon, `${display.slider}%`, display.slider / 100)
         }
     }
 
@@ -99,7 +101,7 @@ Singleton {
         enabled: root.armed
         function onChargingChanged(): void {
             root.requested(BatteryService.icon,
-                           BatteryService.charging ? "Charging" : "On battery",
+                           BatteryService.charging ? Tr.t("Charging") : Tr.t("On battery"),
                            BatteryService.percent / 100)
         }
     }

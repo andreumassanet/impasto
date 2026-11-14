@@ -277,8 +277,6 @@ Item {
             CoverArt {
                 width: 20
                 height: 20
-                // The equalizer beside it already moves.
-                equalizer: false
             }
         }
 

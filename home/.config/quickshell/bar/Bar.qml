@@ -49,9 +49,25 @@ PanelWindow {
     // through a ground that is not solid.
     WlrLayershell.namespace: "impasto-bar"
     // A request for root rises over a full-screen window, which covers the
-    // top layer; the bar goes back down once it is answered.
+    // top layer; the bar goes back down once it is answered. So does a
+    // volume or brightness readout on a covered screen, held up until the
+    // island has slid away again.
     WlrLayershell.layer: island.state.openPanel === "auth" && island.expanded
+        || root.covered && (root.readout || root.readoutLeaving)
         ? WlrLayer.Overlay : WlrLayer.Top
+
+    // A readout, and the island sliding away after one; a notification or a
+    // panel on a covered screen stays under the window.
+    readonly property bool readout: island.state.layer === island.state.layerOsd
+    property bool readoutLeaving: false
+    onReadoutChanged: if (root.readout) root.readoutLeaving = true
+    readonly property Connections readoutWatch: Connections {
+        target: face
+        function onYChanged(): void {
+            if (!root.readout && face.y <= -2 * root.collapsedHeight)
+                root.readoutLeaving = false
+        }
+    }
     // What is drawn here takes the island's glass (`Theme.surfaceIn`).
     readonly property bool glassy: true
     readonly property string groundStyle: Theme.surfaceStyle
@@ -234,8 +250,11 @@ PanelWindow {
 
     // Zen (`barHidden`): the bar waits above the screen and the island comes
     // down only for what it has to show — a panel, a notification, a
-    // transient — with the sides left up there.
-    readonly property bool zen: SettingsService.barHidden
+    // transient — with the sides left up there. A screen under a full-screen
+    // window is zen on its own, and only the readout rises over the window.
+    readonly property bool covered: !!root.screen
+        && DockService.coveredScreens.includes(` ${root.screen.name} `)
+    readonly property bool zen: SettingsService.barHidden || root.covered
     readonly property bool called: island.state.layer !== island.state.layerModules
         && island.state.layer !== island.state.layerSummary
     readonly property bool away: root.zen && !root.called
@@ -1050,5 +1069,130 @@ PanelWindow {
                 }
             }
         }
+    }
+
+    // ── HOVER CARD ──────────────────────────────────────────────────────────
+    //
+    // A piece's name and value in a card under it (`ModuleService.peek…`,
+    // `SettingsService.chipHover`). In the island and bezel styles the bar is
+    // one band, so the card is a tab that grows down out of the band's lower
+    // edge, in the band's colour and joined to it by two fillets. In the
+    // grouped and spread styles, with their capsules or without, a piece has
+    // no wide edge to join, so the card hangs free a little below it, as a
+    // pill in the capsules' ground and rim. Either way it stays inside the
+    // bar's width. On this screen's bar only, and not while the island is
+    // open; no input of its own.
+    Item {
+        id: peek
+
+        readonly property Item source: ModuleService.peekSource
+        readonly property bool mine: peek.source !== null && peek.source.QsWindow.window === root
+            && !island.expanded
+        readonly property bool joined: root.unified
+        property real anchorX: 0
+        property real edgeY: 0
+        property string label: ""
+        readonly property int fillet: 10
+        readonly property real fullHeight: 30
+        readonly property real margin: 6
+        readonly property real gap: 6
+        readonly property color ground: peek.joined ? island.surfaceColor : Theme.islandGround
+
+        // The band's extent, for the joined tab.
+        property real shapeStart: 0
+        property real shapeEnd: 0
+        property real shapeRadius: 0
+
+        onMineChanged: {
+            if (!peek.mine)
+                return
+            const centre = peek.source.mapToItem(null, peek.source.width / 2, 0)
+            peek.anchorX = centre.x
+            if (peek.joined) {
+                peek.edgeY = band.mapToItem(null, 0, band.height).y
+                peek.shapeStart = root.bandX
+                peek.shapeEnd = root.bandX + root.bandWidth
+                peek.shapeRadius = band.radius
+            } else {
+                peek.edgeY = peek.source.mapToItem(null, 0, peek.source.height).y + peek.gap
+            }
+            peek.label = ModuleService.peekText
+        }
+
+        // The value moves while the card is up: a scroll on the volume.
+        readonly property string liveText: ModuleService.peekText
+        onLiveTextChanged: if (peek.mine && peek.liveText !== "") peek.label = peek.liveText
+
+        // Centred under the piece. Joined: kept on the straight part of the
+        // band's lower edge, clear of its rounded ends, so the fillets meet a
+        // flat line. Always: inside the bar's width.
+        readonly property real centred: peek.anchorX - peek.width / 2
+        readonly property real minX: peek.joined ? peek.shapeStart + peek.shapeRadius + peek.fillet : peek.margin
+        readonly property real maxX: peek.joined
+            ? peek.shapeEnd - peek.shapeRadius - peek.fillet - peek.width
+            : root.width - peek.margin - peek.width
+
+        z: 100
+        x: Math.max(peek.margin, Math.min(root.width - peek.margin - peek.width,
+            peek.maxX < peek.minX ? peek.centred : Math.max(peek.minX, Math.min(peek.maxX, peek.centred))))
+        y: peek.edgeY
+        width: peekText.implicitWidth + 28
+        // The joined tab grows out of the band; the free pill fades in where
+        // it hangs.
+        height: peek.mine || !peek.joined ? peek.fullHeight : 0
+        opacity: peek.mine || peek.joined ? 1 : 0
+        visible: peek.height > 0.5 && peek.opacity > 0.01
+        clip: true
+
+        Behavior on height { NumberAnimation { duration: Theme.durationFast; easing.type: Theme.easing } }
+        Behavior on opacity { NumberAnimation { duration: Theme.durationFast; easing.type: Theme.easing } }
+
+        Rectangle {
+            width: parent.width
+            height: peek.fullHeight
+            color: peek.ground
+            topLeftRadius: peek.joined ? 0 : 12
+            topRightRadius: peek.joined ? 0 : 12
+            bottomLeftRadius: 12
+            bottomRightRadius: 12
+            border.width: peek.joined ? 0 : 1
+            border.color: Theme.islandRim
+        }
+
+        Text {
+            id: peekText
+
+            anchors.horizontalCenter: parent.horizontalCenter
+            y: (peek.fullHeight - height) / 2 - 1
+            opacity: Math.min(1, peek.height / peek.fullHeight)
+            text: peek.label
+            font.family: Theme.fontFamily
+            font.pixelSize: Theme.fontSizeSmall
+            font.weight: Font.DemiBold
+            font.features: { "tnum": 1 }
+            color: Theme.text
+        }
+    }
+
+    // Where the joined tab meets the band: a concave fillet either side.
+    NotchFillet {
+        x: peek.x - width
+        y: peek.edgeY
+        width: peek.fillet
+        height: Math.min(peek.fillet, peek.height)
+        visible: peek.visible && peek.joined
+        mirrored: true
+        color: peek.ground
+        z: 100
+    }
+
+    NotchFillet {
+        x: peek.x + peek.width
+        y: peek.edgeY
+        width: peek.fillet
+        height: Math.min(peek.fillet, peek.height)
+        visible: peek.visible && peek.joined
+        color: peek.ground
+        z: 100
     }
 }

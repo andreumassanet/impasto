@@ -310,7 +310,7 @@ FocusScope {
 
                                             Text {
                                                 anchors.verticalCenter: parent.verticalCenter
-                                                text: "New task"
+                                                text: Tr.t("New task")
                                                 font.family: Theme.fontFamily
                                                 font.pixelSize: Theme.fontSizeSmall
                                                 font.weight: Font.DemiBold
@@ -552,12 +552,12 @@ FocusScope {
                     const over = TasksService.overdue.length
                     const today = TasksService.pendingOn(TasksService.todayKey)
                     if (TasksService.count === 0)
-                        return "Nothing on the board yet"
-                    const parts = [`${pending} ${pending === 1 ? "task" : "tasks"} open`]
+                        return Tr.t("Nothing on the board yet")
+                    const parts = [Tr.t(pending === 1 ? "%1 task open" : "%1 tasks open").arg(pending)]
                     if (today > 0)
-                        parts.push(`${today} due today`)
+                        parts.push(Tr.t("%1 due today").arg(today))
                     if (over > 0)
-                        parts.push(`${over} overdue`)
+                        parts.push(Tr.t("%1 overdue").arg(over))
                     return parts.join(" · ")
                 }
                 elide: Text.ElideRight
@@ -633,7 +633,7 @@ FocusScope {
                         Text {
                             anchors.verticalCenter: parent.verticalCenter
                             visible: line.text === ""
-                            text: "What has to be done"
+                            text: Tr.t("What has to be done")
                             font: line.font
                             color: Theme.textMuted
                         }
@@ -698,7 +698,7 @@ FocusScope {
 
                         Text {
                             visible: more.text === ""
-                            text: "Anything else about it"
+                            text: Tr.t("Anything else about it")
                             font: more.font
                             color: Theme.textMuted
                         }
@@ -726,7 +726,7 @@ FocusScope {
 
                         Layout.leftMargin: 6
                         icon: "󰃭"
-                        text: sheet.due !== "" ? TasksService.dueLabel(sheet.due) : "Pick a day"
+                        text: sheet.due !== "" ? TasksService.dueLabel(sheet.due) : Tr.t("Pick a day")
                         active: sheet.picking
                         onClicked: {
                             sheet.picking = !sheet.picking
@@ -744,7 +744,7 @@ FocusScope {
                     Item { Layout.fillWidth: true }
 
                     PillButton {
-                        text: "Delete"
+                        text: Tr.t("Delete")
                         icon: "󰆴"
                         onClicked: {
                             const direct = TasksService.direct

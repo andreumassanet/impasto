@@ -11,6 +11,7 @@ pragma Singleton
 
 import QtQuick
 import Quickshell
+import Quickshell.Io
 import Quickshell.Services.Pipewire
 
 import "../theme"
@@ -133,9 +134,12 @@ Singleton {
         return named !== "" ? Theme.appIcon(named.toLowerCase()) : ""
     }
 
+    // The most a volume reaches (`SettingsService.volumeMax`), 100 to 150.
+    readonly property int ceiling: Math.max(100, Math.min(150, SettingsService.volumeMax))
+
     function setStreamVolume(node: var, percent: int): void {
         if (node && node.audio)
-            node.audio.volume = Math.max(0, Math.min(100, percent)) / 100
+            node.audio.volume = Math.max(0, Math.min(root.ceiling, percent)) / 100
     }
 
     function toggleStreamMute(node: var): void {
@@ -145,7 +149,7 @@ Singleton {
 
     function setSourceVolume(percent: int): void {
         if (root.sourceReady)
-            root.source.audio.volume = Math.max(0, Math.min(100, percent)) / 100
+            root.source.audio.volume = Math.max(0, Math.min(root.ceiling, percent)) / 100
     }
 
     // The rows of the bar's sound card (`VolumeModule`): the two levels, the
@@ -167,15 +171,56 @@ Singleton {
         + (root.streams.length > 0 ? Theme.detailSection(root.streams.length) : 0)
         + Theme.detailSection(root.outputs.length)
         + (root.inputs.length > 0 ? Theme.detailSection(root.inputs.length) : 0)
+        + (root.easyEffectsAvailable ? Theme.detailSection(1) : 0)
     readonly property int microphoneHeight: 2 * Theme.panelPadding + Theme.detailHeader
         + Theme.detailSection(1)
         + (root.captures.length > 0 ? Theme.detailSection(root.captures.length) : 0)
         + Theme.detailSection(Math.max(1, root.inputs.length))
 
+    // ── EASYEFFECTS ─────────────────────────────────────────────────────────
+    //
+    // An optional row in the sound panel: whether EasyEffects is processing or
+    // bypassed, and a button for its window. Installed is probed once; the
+    // state is read when the panel opens, and only from a running instance,
+    // because asking one that is not running would start it.
+    property bool easyEffectsInstalled: false
+    readonly property bool easyEffectsAvailable: SettingsService.soundEffects && root.easyEffectsInstalled
+    property bool easyEffectsRunning: false
+    property bool easyEffectsBypassed: false
+
+    readonly property Process easyEffectsProbe: Process {
+        command: ["sh", "-c", "command -v easyeffects"]
+        running: true
+        stdout: StdioCollector {
+            onStreamFinished: root.easyEffectsInstalled = text.trim() !== ""
+        }
+    }
+
+    // `--bypass 3` asks the running instance; it answers 1 when bypassed.
+    readonly property Process easyEffectsStatus: Process {
+        command: ["sh", "-c", "pgrep -x easyeffects >/dev/null && easyeffects --bypass 3 2>/dev/null"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                const answer = text.trim()
+                root.easyEffectsRunning = answer !== ""
+                root.easyEffectsBypassed = answer.endsWith("1")
+            }
+        }
+    }
+
+    function refreshEasyEffects(): void {
+        if (root.easyEffectsAvailable)
+            root.easyEffectsStatus.running = true
+    }
+
+    function openEasyEffects(): void {
+        Quickshell.execDetached(["easyeffects"])
+    }
+
     function setVolume(percent: int): void {
         if (!root.ready)
             return
-        root.sink.audio.volume = Math.max(0, Math.min(100, percent)) / 100
+        root.sink.audio.volume = Math.max(0, Math.min(root.ceiling, percent)) / 100
     }
 
     function toggleMute(): void {

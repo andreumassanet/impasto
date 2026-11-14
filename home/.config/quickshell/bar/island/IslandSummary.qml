@@ -144,7 +144,6 @@ Item {
 
             anchors.fill: parent
             visible: root.face === "media" && slot.cover
-            equalizer: false
         }
 
         Glyph {
@@ -195,6 +194,13 @@ Item {
             visible: root.face === "weather"
             text: WeatherService.glyph
             font.pixelSize: Math.round(slot.width * 0.86)
+            color: weatherArt.shown ? "transparent" : Theme.text
+
+            WeatherArt {
+                id: weatherArt
+
+                name: WeatherService.icon
+            }
         }
 
         Row {
@@ -577,7 +583,7 @@ Item {
         Text {
             id: hour
             anchors.right: parent.right
-            text: Qt.formatDateTime(clock.date, SettingsService.clockFormat)
+            text: Tr.date(clock.date, SettingsService.clockFormat)
             font.family: Theme.fontFamily
             font.pixelSize: 62
             font.weight: Font.Black
