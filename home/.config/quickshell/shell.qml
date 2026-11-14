@@ -552,6 +552,34 @@ ShellRoot {
         onPressed: SettingsService.set("desktopHidden", !SettingsService.desktopHidden)
     }
 
+    // Unbound until a key is set in Settings › Keys: each opens what was
+    // otherwise only reached with the pointer.
+    GlobalShortcut {
+        name: "widgetsEdit"
+        description: "Arrange the desktop widgets"
+        onPressed: DesktopService.edit(!DesktopService.editing)
+    }
+
+    GlobalShortcut {
+        name: "media"
+        description: "Open the media panel"
+        onPressed: root.island?.toggle("player")
+    }
+
+    // Wi-Fi first; Bluetooth and Sound are its tabs.
+    GlobalShortcut {
+        name: "connectivity"
+        description: "Open Wi-Fi, Bluetooth and Sound"
+        onPressed: root.island?.toggle("wifi")
+    }
+
+    // Closes the notification on the island, telling its application.
+    GlobalShortcut {
+        name: "dismissNotification"
+        description: "Dismiss the notification"
+        onPressed: NotificationService.close()
+    }
+
     GlobalShortcut {
         name: "game"
         description: "Turn game mode on or off"

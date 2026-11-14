@@ -187,7 +187,11 @@
       "Shell · Capture a window": "",
       "Shell · Capture the whole screen": "",
       "Shell · Capture a region and annotate it": "",
-      "Shell · Read a region as text": ""
+      "Shell · Read a region as text": "",
+      "Shell · Arrange the desktop widgets": "",
+      "Shell · Open the media panel": "",
+      "Shell · Open Wi-Fi, Bluetooth and Sound": "",
+      "Shell · Dismiss the notification": ""
     }
   }
 }

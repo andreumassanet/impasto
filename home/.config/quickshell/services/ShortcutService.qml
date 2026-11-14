@@ -71,6 +71,10 @@ Singleton {
         { name: "captureScreen",  label: "Capture the screen",   description: "Shell · Capture the whole screen" },
         { name: "captureEdit",    label: "Capture and annotate", description: "Shell · Capture a region and annotate it" },
         { name: "captureText",    label: "Read a region",        description: "Shell · Read a region as text" },
+        { name: "widgetsEdit", label: "Arrange the widgets", description: "Shell · Arrange the desktop widgets" },
+        { name: "media", label: "Media panel", description: "Shell · Open the media panel" },
+        { name: "connectivity", label: "Wi-Fi, Bluetooth and Sound", description: "Shell · Open Wi-Fi, Bluetooth and Sound" },
+        { name: "dismissNotification", label: "Dismiss a notification", description: "Shell · Dismiss the notification" },
         { name: "record",         label: "Record the screen",    description: "Shell · Start or stop recording the screen" }
     ]
 
