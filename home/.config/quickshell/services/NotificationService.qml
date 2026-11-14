@@ -390,11 +390,24 @@ Singleton {
         root.save()
     }
 
+    // The rule for an application (`SettingsService.notificationRules`):
+    // "mute" closes it unseen, "silent" keeps it without showing it, "popup"
+    // shows it without keeping it; "" is the default.
+    function ruleFor(app: string): string {
+        const rules = SettingsService.notificationRules ?? ({})
+        return rules[app] ?? ""
+    }
+
     function present(notification: var): void {
+        const rule = root.ruleFor(notification.appName ?? "")
+        if (rule === "mute") {
+            notification.dismiss()
+            return
+        }
         root.received(notification.appName ?? "")
 
         // A transient notification asks not to be kept.
-        if (!notification.transient) {
+        if (!notification.transient && rule !== "popup") {
             root.keep([root.record(notification)]
                 .concat(root.history)
                 .slice(0, root.historyLimit), false)
@@ -403,7 +416,7 @@ Singleton {
 
         // Critical notifications ignore do-not-disturb.
         const isCritical = notification.urgency === NotificationUrgency.Critical
-        if (root.doNotDisturb && !isCritical)
+        if (rule === "silent" || (root.doNotDisturb && !isCritical))
             return
 
         // Newest wins, except over a critical one. The newcomer is still

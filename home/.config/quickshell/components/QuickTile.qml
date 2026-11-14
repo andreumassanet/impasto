@@ -29,9 +29,9 @@ Rectangle {
     // Tiles with a detail view get a chevron that opens it; the rest of the
     // tile still toggles.
     property bool expandable: false
-    // With `SettingsService.tileMenuOnLabel`, an expandable tile opens its
-    // menu from anywhere on it but the icon, which is what toggles.
-    readonly property bool labelOpens: root.expandable && SettingsService.tileMenuOnLabel === true
+    // An expandable tile opens its menu from anywhere on it but the icon,
+    // which is what toggles.
+    readonly property bool labelOpens: root.expandable
 
     signal toggled()
     signal expanded()

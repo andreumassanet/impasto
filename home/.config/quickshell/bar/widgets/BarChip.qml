@@ -35,6 +35,8 @@ Item {
     property string ownShape: ""
     property string ownFigure: ""
     property string ownWhen: ""
+    // A connected device (`DeviceService`) under the "devices" piece.
+    property var device: null
     readonly property string figure: ModuleService.figureOf(root.ownFigure)
     // The figure waits for the pointer in a card under the piece, not beside it.
     readonly property bool cardHover: root.figure === "hover" && SettingsService.chipHover === "card"
@@ -64,7 +66,7 @@ Item {
     readonly property string peekLabel: {
         if (root.button)
             return ""
-        const name = ModuleService.entry(root.moduleId)?.name ?? ""
+        const name = Tr.t(ModuleService.entry(root.moduleId)?.name ?? "")
         return face.value !== "" ? `${name} · ${face.value}` : name
     }
 
@@ -121,6 +123,7 @@ Item {
 
         visible: !root.button
         moduleId: root.button || !ModuleService.shows(root.moduleId, root.ownWhen) ? "" : root.moduleId
+        device: root.device
         shape: ModuleService.shapeOf(root.moduleId, root.ownShape)
         alone: root.alone
         reveal: root.reveal

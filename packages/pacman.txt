@@ -38,6 +38,7 @@ qt6ct                        # the platform theme env.lua names
 qt6-multimedia               # the camera panel's preview
 qt6-multimedia-ffmpeg        # its backend, which reads the virtual camera
 papirus-icon-theme           # what the impasto icon theme inherits
+breeze-icons                 # the weather in full colour, when chosen
 inter-font                   # the shell's type, and the greeter's
 ttf-jetbrains-mono-nerd      # the terminal's type, and every glyph on the bar
 adwaita-fonts                # the GTK windows' type
@@ -69,6 +70,8 @@ upower                       # the battery
 hyprsunset                   # the night light
 hyprpicker                   # the colour under the pointer
 pacman-contrib               # checkupdates, which counts the updates
+python-recurring-ical-events # the calendar links, repeating events included
+khal                         # calendars synced with vdirsyncer, read when set up
 hyprshutdown                 # SUPER + SHIFT + E exits through it, if installed
 
 

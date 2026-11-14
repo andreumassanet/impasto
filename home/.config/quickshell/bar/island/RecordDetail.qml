@@ -57,8 +57,10 @@ ColumnLayout {
                 required property int index
 
                 glyph: "󰕧"
-                text: Tr.date(RecorderService.takes.get(index, "fileModified"), "d MMM · HH:mm")
-                aside: StatsService.bytes(RecorderService.takes.get(index, "fileSize"))
+                // `get` notifies nothing; the count does, when a take lands.
+                readonly property int landed: RecorderService.takes.count
+                text: (landed, Tr.date(RecorderService.takes.get(index, "fileModified"), "d MMM · HH:mm"))
+                aside: (landed, StatsService.bytes(RecorderService.takes.get(index, "fileSize")))
                 onPicked: {
                     RecorderService.openTake(index)
                     root.done()

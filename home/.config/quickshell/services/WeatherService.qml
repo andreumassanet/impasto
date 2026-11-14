@@ -43,6 +43,11 @@ Singleton {
     property int feelsLike: 0
     property string description: ""
     property string glyph: ""
+    // The Breeze icon name (`WeatherArt`), "" when the script gave none.
+    property string icon: ""
+    // Where Breeze keeps its full-colour weather icons; the colour icons are
+    // offered only while they are there.
+    readonly property string breezeIcons: "/usr/share/icons/breeze/applets/48"
     property int humidity: 0
     property int wind: 0
     property int low: 0
@@ -140,7 +145,19 @@ Singleton {
 
     property bool placeUnknown: false
 
+    // A new unit is read at once, not at the next period.
+    readonly property Connections unitsChanged: Connections {
+        target: SettingsService
+
+        function onWeatherUnitsChanged(): void {
+            if (root.watchers > 0)
+                root.refresh()
+        }
+    }
+
     readonly property Process query: Process {
+        // Read by the script: "m" for °C and km/h, "u" for °F and mph.
+        environment: ({ IMPASTO_WEATHER_UNITS: SettingsService.weatherUnits })
         command: {
             const line = [Quickshell.shellPath("scripts/weather.py")]
             return root.wanted === "" ? line : line.concat([root.wanted])
@@ -190,6 +207,7 @@ Singleton {
         root.feelsLike = report.feelsLike
         root.description = report.description
         root.glyph = report.glyph
+        root.icon = report.icon ?? ""
         root.humidity = report.humidity
         root.wind = report.wind
         root.low = report.low

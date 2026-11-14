@@ -100,10 +100,23 @@ Singleton {
         }
     }
 
-    // `connected` is writable on the device.
+    // A device not paired yet is paired, and trusted so it reconnects by
+    // itself; a paired one is connected, a connected one disconnected.
     function connectDevice(device: var): void {
-        if (device)
+        if (!device)
+            return
+        if (!device.paired) {
+            device.trusted = true
+            device.pair()
+        } else {
             device.connected = !device.connected
+        }
+    }
+
+    // Unpairs the device: it is forgotten until paired again.
+    function forgetDevice(device: var): void {
+        if (device)
+            device.forget()
     }
 
     function setDiscovering(on: bool): void {
