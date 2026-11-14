@@ -36,6 +36,7 @@ Item {
         brightness: brightnessModule,
         network: networkModule,
         netspeed: netSpeedModule,
+        keyboard: keyboardModule,
         bluetooth: bluetoothModule,
         weather: weatherModule,
         github: githubModule,
@@ -71,6 +72,7 @@ Item {
     Component { id: brightnessModule; BrightnessModule { compact: root.compact } }
     Component { id: networkModule;    NetworkModule {} }
     Component { id: netSpeedModule;   NetSpeedModule {} }
+    Component { id: keyboardModule;   KeyboardModule {} }
     Component { id: bluetoothModule;  BluetoothModule {} }
     Component { id: weatherModule;    WeatherModule {} }
     Component { id: githubModule;     GithubModule {} }
