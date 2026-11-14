@@ -63,6 +63,91 @@ QtObject {
                    ...root.namedIds)
         : root.maximum
 
+    // ── OVERVIEW ────────────────────────────────────────────────────────────
+    //
+    // The workspaces the overview draws: every screen's ten, one screen after
+    // another, so a screen's overview shows the whole desk and a window can be
+    // dropped on a workspace of another screen. Shared, the one set.
+    readonly property bool manyScreens: root.perScreen && root.screenOrder.length > 1
+
+    // The overview's rows, each a ten: every screen's own, then a further ten
+    // for each other block of ten the screen holds a workspace in, occupied or
+    // active (a screen on 23, or with windows on 31). Shared, one block of
+    // everything.
+    //   { screen, base, label }
+    readonly property var overviewBlocks: {
+        if (!root.perScreen)
+            return [{ screen: "", base: 0, label: "" }]
+        const screens = root.screenOrder.length > 0 ? root.screenOrder : [""]
+        const owned = screens.map((name, at) => at * 10)
+        const blocks = []
+        for (let at = 0; at < screens.length; at++) {
+            const name = screens[at]
+            blocks.push({ screen: name, base: owned[at], label: name })
+            const extra = []
+            const note = id => {
+                if (!(id > 0))
+                    return
+                const base = Math.floor((id - 1) / 10) * 10
+                if (owned.indexOf(base) < 0 && extra.indexOf(base) < 0)
+                    extra.push(base)
+            }
+            for (const id of root.occupiedIds) {
+                if (root.monitorOf(id) === name)
+                    note(id)
+            }
+            note(root.activeOn(name))
+            extra.sort((left, right) => left - right)
+            for (const base of extra)
+                blocks.push({ screen: name, base: base, label: `${name} · ${base + 1}–${base + 10}` })
+        }
+        return blocks
+    }
+
+    readonly property var overviewIds: {
+        const ids = []
+        if (!root.perScreen) {
+            for (let own = 1; own <= root.maximum; own++)
+                ids.push(own)
+            return ids
+        }
+        for (const block of root.overviewBlocks) {
+            for (let own = 1; own <= 10; own++)
+                ids.push(block.base + own)
+        }
+        return ids
+    }
+
+    // A row to each block, ten wide, once there is more than one block: five
+    // wide and two tall for each would not fit a screen.
+    readonly property bool manyBlocks: root.perScreen && root.overviewBlocks.length > 1
+    readonly property int overviewColumns: root.manyBlocks ? 10 : Math.min(5, root.maximum)
+    readonly property int overviewRows: Math.ceil(root.overviewIds.length / Math.max(1, root.overviewColumns))
+    readonly property int overviewRowHeight: root.manyBlocks ? 94 : 190
+    // Past this many rows the overview scrolls.
+    readonly property int overviewRowsShown: root.manyBlocks ? 5 : root.overviewRows
+    // The scratchpad tiles: those of Settings → Scratchpads, then any other
+    // special workspace that has a window in it.
+    // The built-in one on SUPER + Z (`keybinds.lua`) comes first, and is
+    // always there to drop a window on.
+    readonly property var builtInPad: ({ name: "scratchpad", label: "Scratchpad", glyph: "",
+                                         keys: "Super+Z", command: "" })
+    readonly property var overviewPads: {
+        const configured = [root.builtInPad].concat(Array.from(SettingsService.overviewScratchpads ?? [])
+            .filter(pad => pad.name !== root.builtInPad.name))
+        const known = configured.map(pad => pad.name)
+        const extra = []
+        for (const client of root.specialClients) {
+            const name = String(client.workspace?.name ?? "").replace(/^special:/, "")
+            if (name !== "" && known.indexOf(name) < 0 && extra.indexOf(name) < 0)
+                extra.push(name)
+        }
+        return configured.concat(extra.map(name => ({ name: name, label: name, glyph: "", keys: "", command: "" })))
+    }
+    // Scratchpad tiles to a row under the workspaces; more go on a new row.
+    readonly property int overviewPadsPerRow: 5
+    readonly property int overviewPadHeight: 84
+
     // ── SUPER ───────────────────────────────────────────────────────────────
     //
     // Whether Super is down, and when it went down (0 when nothing is bound to
@@ -370,6 +455,14 @@ QtObject {
     // Shows or hides a special workspace by its name without `special:`.
     function toggleSpecial(name: string): void {
         Hyprland.dispatch(`hl.dsp.workspace.toggle_special("${name}")`)
+    }
+
+    // A scratchpad as its key opens it (`keybinds.lua`): its command started
+    // on it first when it holds no window, then shown or hidden.
+    function toggleScratchpad(name: string, command: string): void {
+        if ((command ?? "") !== "" && root.specialClientsOf(`special:${name}`).length === 0)
+            Hyprland.dispatch(`hl.dsp.exec_cmd(${JSON.stringify(command)}, { workspace = "special:${name}" })`)
+        root.toggleSpecial(name)
     }
 
     function focusWindow(address: string): void {

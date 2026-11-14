@@ -114,6 +114,7 @@ Singleton {
     readonly property alias workspaceMode: config.workspaceMode
     readonly property alias workspaceStyle: config.workspaceStyle
     readonly property alias workspaceApps: config.workspaceApps
+    readonly property alias overviewScratchpads: config.overviewScratchpads
     readonly property alias motionScale: config.motionScale
     readonly property alias motionCurve: config.motionCurve
     readonly property alias animationPreset: config.animationPreset
@@ -717,6 +718,14 @@ Singleton {
         property string workspaceStyle: "dots"
         // The focused workspace's applications after its mark, in any style.
         property bool workspaceApps: false
+
+        // Tiles under the overview's special strip, one per scratchpad:
+        // `{ name, label, keys, glyph, command }`. `name` is the special
+        // workspace, `keys` the hint shown on the tile, `glyph` what it shows
+        // while empty, and `command` a shell command that opens it (starting
+        // its app the first time); empty, a click toggles the workspace. A
+        // window dropped on a tile is sent there. Edit in settings.json.
+        property var overviewScratchpads: []
 
         // Percentage. 100 is the designed speed; 0 disables animation.
         property int motionScale: 100

@@ -217,7 +217,84 @@ Singleton {
 
         function onArrivedChanged(): void {
             root.writeKeys()
+            root.writeScratchpads()
         }
+    }
+
+    // ── SCRATCHPADS ─────────────────────────────────────────────────────────
+    //
+    // The scratchpads of Settings → Scratchpads (`overviewScratchpads`), one
+    // line each for `hypr/modules/keybinds.lua`: name, combination, label and
+    // command, tab-separated. A change writes the file and reloads Hyprland,
+    // like the keys.
+    readonly property string scratchpadsHeader:
+        "# The scratchpads: name, combination, label, command. Written by the shell\n"
+        + "# from Settings → Scratchpads and read by hypr/modules/keybinds.lua, so an\n"
+        + "# edit here is overwritten.\n"
+
+    // `Super+Ctrl+M` as `SUPER + CTRL + M`; "" for anything with no key in it.
+    function spell(keys: string): string {
+        const aliases = ({ super: "SUPER", win: "SUPER", windows: "SUPER", meta: "SUPER",
+                           ctrl: "CTRL", control: "CTRL", alt: "ALT", shift: "SHIFT" })
+        const parts = String(keys ?? "").split("+").map(part => part.trim()).filter(part => part !== "")
+        if (parts.length === 0)
+            return ""
+        const key = parts.pop()
+        if (aliases[key.toLowerCase()] !== undefined)
+            return ""
+        return parts.map(part => aliases[part.toLowerCase()] ?? part.toUpperCase())
+            .concat([key]).join(" + ")
+    }
+
+    readonly property string scratchpadsText: {
+        const lines = []
+        for (const pad of Array.from(SettingsService.overviewScratchpads ?? [])) {
+            const name = root.flat(pad.name ?? "").replace(/[^A-Za-z0-9_-]/g, "")
+            if (name === "")
+                continue
+            lines.push([name, root.spell(pad.keys), root.flat(pad.label ?? ""),
+                        root.flat(pad.command ?? "")].join("\t"))
+        }
+        return lines.length === 0 ? "" : root.scratchpadsHeader + lines.join("\n") + "\n"
+    }
+
+    // Typing in a field changes the text with every letter, and each write
+    // reloads Hyprland: wait for a pause.
+    onScratchpadsTextChanged: root.scratchpadsSettle.restart()
+
+    readonly property Timer scratchpadsSettle: Timer {
+        interval: 900
+        onTriggered: root.writeScratchpads()
+    }
+
+    function writeScratchpads(): void {
+        if (!SettingsService.arrived || !root.scratchpadsFile.known)
+            return
+        if (root.scratchpadsFile.says === root.scratchpadsText)
+            return
+        root.scratchpadsFile.says = root.scratchpadsText
+        root.scratchpadsFile.setText(root.scratchpadsText)
+    }
+
+    readonly property FileView scratchpadsFile: FileView {
+        property bool known: false
+        property string says: ""
+
+        path: `${SettingsService.stateDirectory}/scratchpads.tsv`
+        printErrors: false
+
+        onLoaded: {
+            says = text()
+            known = true
+            Qt.callLater(root.writeScratchpads)
+        }
+        onLoadFailed: {
+            says = ""
+            known = true
+            Qt.callLater(root.writeScratchpads)
+        }
+        onSaved: root.reloader.running = true
+        onSaveFailed: error => console.warn("The scratchpads could not be written:", error)
     }
 
     // ── KEY NAMES ───────────────────────────────────────────────────────────

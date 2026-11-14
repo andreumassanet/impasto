@@ -106,6 +106,12 @@ Item {
           keywords: "windows layout dwindle master scrolling rounding border gaps inner outer opacity inactive blur refraction glass hyprglass shadow animation preset hyprland",
           page: windowsPage },
 
+        { id: "scratchpads", category: "desk", icon: "󰖲", label: Tr.t("Scratchpads"),
+          blurb: Tr.t("Special workspaces with a name, a key, an icon and a command."),
+          tabs: [],
+          keywords: "scratchpad scratchpads special workspace named toggle key shortcut command script terminal app launch icon glyph",
+          page: scratchpadsPage },
+
         { id: "monitors", category: "desk", icon: "󰍹", label: Tr.t("Displays"),
           blurb: Tr.t("Screen layout, modes and the laptop lid."),
           tabs: [{ id: "arrangement", label: Tr.t("Arrangement") },
@@ -592,6 +598,7 @@ Item {
     Component { id: windowsPage;    WindowsSection {} }
     Component { id: inputPage;      InputSection {} }
     Component { id: monitorsPage;   MonitorsSection {} }
+    Component { id: scratchpadsPage; ScratchpadsSection {} }
     Component { id: keysPage;       KeysSection {} }
     Component { id: sessionPage;    SessionSection {} }
     Component { id: systemPage;     SystemSection {} }
