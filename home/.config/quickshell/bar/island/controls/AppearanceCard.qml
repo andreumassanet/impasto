@@ -84,7 +84,7 @@ ClippingRectangle {
 
             Text {
                 Layout.fillWidth: true
-                text: "Appearance"
+                text: Tr.t("Appearance")
                 elide: Text.ElideRight
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.fontSizeSmall
@@ -94,7 +94,7 @@ ClippingRectangle {
 
             Text {
                 Layout.fillWidth: true
-                text: Theme.activeName
+                text: Tr.t(Theme.activeName)
                 elide: Text.ElideRight
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.fontSizeLabel

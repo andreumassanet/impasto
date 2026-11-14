@@ -74,7 +74,20 @@ Rectangle {
     // default, so an island without a bar gets the size it asks for.
     property int roomForPanel: 100000
 
-    readonly property int overviewRows: Math.ceil(HyprlandService.maximum / 5)
+    readonly property int overviewRows: Math.max(1, Math.min(HyprlandService.overviewRows, HyprlandService.overviewRowsShown))
+    // The scratchpad tiles under the strip: a row of them and the gap before it
+    // for every five.
+    readonly property int overviewPadHeight: {
+        const count = HyprlandService.overviewPads.length
+        if (count === 0)
+            return 0
+        const rows = Math.ceil(count / HyprlandService.overviewColumns)
+        return rows * HyprlandService.overviewRowHeight + 10
+    }
+    // The dashboard's height follows its tab (`DashboardPanel.heightWanted`).
+    property int dashboardHeight: 560
+    // The tab the dashboard opens on ("overview", "monitor", "system", "weather"), or "".
+    property string dashboardStart: ""
 
     // ── PANEL SIZES ─────────────────────────────────────────────────────────
     //
@@ -95,6 +108,7 @@ Rectangle {
         microphone: { width: AudioService.panelWidth, height: AudioService.microphoneHeight },
         nightlight: { width: SunsetService.panelWidth, height: SunsetService.panelHeight },
         power:      { width: SystemService.panelWidth, height: SystemService.panelHeight },
+        record:     { width: RecorderService.panelWidth, height: RecorderService.panelHeight },
         brightness: { width: BrightnessService.panelWidth, height: BrightnessService.panelHeight },
         bluetooth:  { width: 420,  height: 500 + root.connectivityTabsHeight },
         session:    { width: 720,  height: 180 },
@@ -105,6 +119,7 @@ Rectangle {
         servers:    { width: ServersService.panelWidth, height: ServersService.panelHeight },
         screentime: { width: 940,  height: 614 },
         camera:     { width: CameraService.panelWidth, height: CameraService.panelHeight },
+        player:     { width: 980,  height: 330 },
         // A row per creature, plus one for the next egg.
         pet:        { width: 560,  height: 205 + 62 * PetService.family.length },
         // The shelf of cards, or the game being played at its own size.
@@ -120,13 +135,13 @@ Rectangle {
         module:     root.moduleSize,
         // A tray item's menu, a row per entry.
         tray:       { width: TrayService.menuWidth, height: TrayService.menuHeight },
-        overview:   { width: 1560, height: 72 + root.overviewRows * 190 }
+        overview:   { width: 1560, height: 72 + root.overviewRows * HyprlandService.overviewRowHeight
+                                      + root.overviewPadHeight }
     })
 
     // The strip over Bluetooth, Wi-Fi and Sound (`ConnectivityTabs`): the
     // tab and the gap under it. Each of the three keeps its own size.
-    readonly property int connectivityTabsHeight: SettingsService.connectivityTabs
-        ? 34 + Theme.detailGap : 0
+    readonly property int connectivityTabsHeight: Theme.segmentHeight + Theme.detailGap
 
     // One panel under two names (its two strips), so switching between them
     // slides instead of rebuilding. Fits five strip tiles and the large one.
@@ -184,6 +199,7 @@ Rectangle {
         microphone: microphoneDetail,
         nightlight: nightLightDetail,
         power: powerDetail,
+        record: recordDetail,
         brightness: brightnessDetail,
         bluetooth: bluetoothDetail,
         stats: statsPanel,
@@ -194,6 +210,7 @@ Rectangle {
         servers: serversPanel,
         screentime: screenTimePanel,
         camera: cameraPanel,
+        player: mediaPanel,
         pet: petPanel,
         games: gamesPanel,
         notes: notesPanel,
@@ -633,6 +650,14 @@ Rectangle {
     }
 
     Component {
+        id: recordDetail
+        RecordDetail {
+            onBack: root.open("controls")
+            onDone: root.close()
+        }
+    }
+
+    Component {
         id: bluetoothDetail
         BluetoothDetail {
             onBack: root.open("controls")
@@ -648,6 +673,11 @@ Rectangle {
     Component {
         id: statsPanel
         StatsPanel { onClosed: root.close() }
+    }
+
+    Component {
+        id: mediaPanel
+        MediaPanel { onClosed: root.close() }
     }
 
     Component {

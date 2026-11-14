@@ -40,8 +40,8 @@ XDG_STATE_HOME = os.environ.get("XDG_STATE_HOME") or os.path.expanduser("~/.loca
 XDG_CACHE_HOME = os.environ.get("XDG_CACHE_HOME") or os.path.expanduser("~/.cache")
 
 WALLPAPERS_DIR = os.path.join(XDG_DATA_HOME, "wallpapers")
-# Animated wallpapers: videos, played by mpvpaper over the still awww shows.
-ANIMATED_DIR = os.path.join(WALLPAPERS_DIR, "animated")
+# Animated wallpapers are the videos anywhere in the collection, played by
+# mpvpaper over the still awww shows.
 # One frame of each video, for the palette and for everything that draws the
 # wallpaper as a picture (the lock, the overview, the arranging desk).
 POSTERS_DIR = os.path.join(XDG_CACHE_HOME, "impasto", "posters")
@@ -474,35 +474,59 @@ def get_current_wallpaper():
     return ""
 
 
+def collection_files():
+    """Every file under the wallpapers folder, folders inside it included.
+
+    A collection sorted into folders (by resolution, by theme) is listed as
+    one. Hidden folders are skipped, and links to folders are followed, each
+    folder once, so a link back up the tree cannot loop.
+    """
+    seen = set()
+    for folder, subfolders, names in os.walk(WALLPAPERS_DIR, followlinks=True):
+        real = os.path.realpath(folder)
+        if real in seen:
+            subfolders[:] = []
+            continue
+        seen.add(real)
+        subfolders[:] = sorted(name for name in subfolders if not name.startswith("."))
+        for name in sorted(names):
+            if not name.startswith("."):
+                yield folder, name
+
+
+def folder_of(folder):
+    """A file's folder inside the collection, as the picker shows it: `4k/nature`,
+    or "" at the top. A folder named `animated`, where videos used to have to
+    go, is not a folder of its own: what is in it shows where it sits."""
+    relative = os.path.relpath(folder, WALLPAPERS_DIR)
+    parts = [part for part in relative.split(os.sep) if part not in (".", "animated")]
+    return "/".join(parts)
+
+
 def list_wallpapers():
     if not os.path.isdir(WALLPAPERS_DIR):
         return []
     entries = []
-    for name in sorted(os.listdir(WALLPAPERS_DIR)):
-        if name.startswith("."):
-            continue
-        path = os.path.join(WALLPAPERS_DIR, name)
-        if os.path.isfile(path) and name.lower().endswith(IMAGE_EXTENSIONS):
-            entries.append({"name": pretty_name(name), "path": path})
+    for folder, name in collection_files():
+        path = os.path.join(folder, name)
+        if name.lower().endswith(IMAGE_EXTENSIONS) and os.path.isfile(path):
+            entries.append({"name": pretty_name(name), "path": path, "folder": folder_of(folder)})
     return entries
 
 
 def list_animated():
-    # Made here so there is a folder to drop the first video into.
-    try:
-        os.makedirs(ANIMATED_DIR, exist_ok=True)
-    except OSError:
+    """Every video in the collection, whichever folder it is in."""
+    if not os.path.isdir(WALLPAPERS_DIR):
         return []
     entries = []
-    for name in sorted(os.listdir(ANIMATED_DIR)):
-        path = os.path.join(ANIMATED_DIR, name)
-        if name.startswith(".") or not os.path.isfile(path):
-            continue
-        if not name.lower().endswith(MOTION_EXTENSIONS):
+    for folder, name in collection_files():
+        path = os.path.join(folder, name)
+        if not name.lower().endswith(MOTION_EXTENSIONS) or not os.path.isfile(path):
             continue
         poster = poster_of(path)
         if poster:
-            entries.append({"name": pretty_name(name), "path": path, "poster": poster})
+            entries.append({"name": pretty_name(name), "path": path, "poster": poster,
+                            "folder": folder_of(folder)})
     return entries
 
 
@@ -3271,6 +3295,25 @@ def shell_font():
     return font or DEFAULT_MONO
 
 
+def target_enabled(target):
+    """Whether the palette is written to this application.
+
+    `themeTargets` in the shell's settings lists the applications to write;
+    without it, or when it is not a list, every one is written as before.
+    Re-read on each call: a push is rare and the setting changes live. The
+    shell hands the list over in the environment, ahead of the file's write.
+    """
+    try:
+        if os.environ.get("IMPASTO_THEME_TARGETS"):
+            targets = json.loads(os.environ["IMPASTO_THEME_TARGETS"])
+        else:
+            with open(SHELL_SETTINGS_FILE, encoding="utf-8") as handle:
+                targets = json.load(handle).get("themeTargets")
+    except (OSError, ValueError):
+        targets = None
+    return not isinstance(targets, list) or target in targets
+
+
 def jsonc_skip(text, index):
     """The index past any whitespace and comments at `index`."""
     while index < len(text):
@@ -4043,6 +4086,39 @@ def set_theme(theme_id):
     save_state(state)
 
 
+# The exit status of an `apply-*` for a program switched off in
+# `themeTargets`: nothing was done, and the installer does not stamp it.
+LEFT_ALONE = 3
+
+
+# What a palette push writes, in order, by the `themeTargets` name that
+# switches it. Spotify's refresh stays last: spicetify may ask the network.
+PALETTE_WRITERS = (
+    ("terminal", push_terminal_palette),
+    ("greeting", write_greetings),
+    ("btop", write_btop_theme),
+    ("cava", write_cava_theme),
+    ("yazi", write_yazi_flavor),
+    ("nvim", push_nvim_colorscheme),
+    ("imv", write_imv_config),
+    ("gtk", write_gtk_theme),
+    ("nautilus", write_icon_theme),
+    ("qt", write_qt_theme),
+    ("vesktop", write_vesktop_css),
+    ("spotify", write_spicetify_colors),
+    ("vscodium", write_vscodium_theme),
+    ("vscodium", lambda colors: update_vscodium_settings(vscodium_palette_settings(colors))),
+    ("zen", write_zen_css),
+    ("spotify", lambda colors: refresh_spotify()),
+)
+
+
+def push_palette(colors):
+    for target, write in PALETTE_WRITERS:
+        if target_enabled(target):
+            write(colors)
+
+
 def main():
     actions = ("list-wallpapers | list-animated | get-current | get-state | "
                "set-wallpaper <path> [transition] | "
@@ -4077,34 +4153,26 @@ def main():
     elif action == "set-theme" and argument:
         set_theme(argument)
     elif action == "push-terminal-palette" and argument:
-        colors = json.loads(argument)
-        push_terminal_palette(colors)
-        write_greetings(colors)
-        write_btop_theme(colors)
-        write_cava_theme(colors)
-        write_yazi_flavor(colors)
-        push_nvim_colorscheme(colors)
-        write_imv_config(colors)
-        write_gtk_theme(colors)
-        write_icon_theme(colors)
-        write_qt_theme(colors)
-        write_vesktop_css(colors)
-        write_spicetify_colors(colors)
-        write_vscodium_theme(colors)
-        update_vscodium_settings(vscodium_palette_settings(colors))
-        write_zen_css(colors)
-        refresh_spotify()
+        push_palette(json.loads(argument))
     elif action == "push-terminal-font" and argument:
-        push_terminal_font(argument)
+        if target_enabled("terminal"):
+            push_terminal_font(argument)
     elif action == "push-terminal-ground" and argument:
-        push_terminal_ground(argument)
+        if target_enabled("terminal"):
+            push_terminal_ground(argument)
     elif action == "apply-vscodium":
+        if not target_enabled("vscodium"):
+            sys.exit(LEFT_ALONE)
         colors = json.loads(argument) if argument else (
             extract_colors(get_current_wallpaper()) or {})
         sys.exit(0 if write_vscodium_settings(colors) else 1)
     elif action == "apply-nautilus":
+        if not target_enabled("nautilus"):
+            sys.exit(LEFT_ALONE)
         sys.exit(0 if apply_nautilus() else 1)
     elif action == "apply-vesktop":
+        if not target_enabled("vesktop"):
+            sys.exit(LEFT_ALONE)
         sys.exit(0 if tick_vesktop_theme() else 1)
     else:
         sys.stderr.write(f"Unknown action: {action}\n")

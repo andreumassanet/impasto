@@ -36,11 +36,11 @@ Item {
         id: detail
 
         ModuleCard {
-            title: "Games"
+            title: Tr.t("Games")
             subtitle: GamesService.totalPlays === 0
-                ? "Nothing played yet"
-                : `${GamesService.totalPlays} ${GamesService.totalPlays === 1 ? "round" : "rounds"}`
-                    + ` · ${GamesService.catalogue.length} ${GamesService.catalogue.length === 1 ? "game" : "games"}`
+                ? Tr.t("Nothing played yet")
+                : Tr.t(GamesService.totalPlays === 1 ? "%1 round" : "%1 rounds").arg(GamesService.totalPlays)
+                    + " · " + Tr.t(GamesService.catalogue.length === 1 ? "%1 game" : "%1 games").arg(GamesService.catalogue.length)
 
             mark: RingIndicator {
                 anchors.fill: parent
@@ -91,7 +91,7 @@ Item {
                     }
 
                     Text {
-                        text: `${GamesService.bestOf(row.modelData.id)} ${row.modelData.unit}`
+                        text: `${GamesService.bestOf(row.modelData.id)} ${Tr.t(row.modelData.unit)}`
                         font.family: Theme.fontMono
                         font.pixelSize: Theme.fontSizeSmall
                         color: Theme.textMuted
@@ -107,7 +107,7 @@ Item {
 
                 PillButton {
                     implicitHeight: Theme.cardRow
-                    text: "Play"
+                    text: Tr.t("Play")
                     icon: "󰐊"
                     onClicked: ModuleService.requestPanel("games")
                 }

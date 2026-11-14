@@ -134,9 +134,12 @@ Singleton {
         return named !== "" ? Theme.appIcon(named.toLowerCase()) : ""
     }
 
+    // The most a volume reaches (`SettingsService.volumeMax`), 100 to 150.
+    readonly property int ceiling: Math.max(100, Math.min(150, SettingsService.volumeMax))
+
     function setStreamVolume(node: var, percent: int): void {
         if (node && node.audio)
-            node.audio.volume = Math.max(0, Math.min(100, percent)) / 100
+            node.audio.volume = Math.max(0, Math.min(root.ceiling, percent)) / 100
     }
 
     function toggleStreamMute(node: var): void {
@@ -146,7 +149,7 @@ Singleton {
 
     function setSourceVolume(percent: int): void {
         if (root.sourceReady)
-            root.source.audio.volume = Math.max(0, Math.min(100, percent)) / 100
+            root.source.audio.volume = Math.max(0, Math.min(root.ceiling, percent)) / 100
     }
 
     // The rows of the bar's sound card (`VolumeModule`): the two levels, the
@@ -181,7 +184,7 @@ Singleton {
     // state is read when the panel opens, and only from a running instance,
     // because asking one that is not running would start it.
     property bool easyEffectsInstalled: false
-    readonly property bool easyEffectsAvailable: SettingsService.soundEffects && root.easyEffectsInstalled
+    readonly property bool easyEffectsAvailable: root.easyEffectsInstalled
     property bool easyEffectsRunning: false
     property bool easyEffectsBypassed: false
 
@@ -217,7 +220,7 @@ Singleton {
     function setVolume(percent: int): void {
         if (!root.ready)
             return
-        root.sink.audio.volume = Math.max(0, Math.min(100, percent)) / 100
+        root.sink.audio.volume = Math.max(0, Math.min(root.ceiling, percent)) / 100
     }
 
     function toggleMute(): void {

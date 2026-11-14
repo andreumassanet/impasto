@@ -32,14 +32,7 @@ ColumnLayout {
         if (tabs.visible)
             root.forceActiveFocus()
     }
-    Keys.onPressed: event => event.accepted = tabs.handle(event, index => root.activate(index))
-
-    // The Nth output becomes the default one.
-    function activate(index: int): void {
-        const output = AudioService.outputs[index]
-        if (output)
-            AudioService.choose(output)
-    }
+    Keys.onPressed: event => event.accepted = tabs.handle(event)
 
     spacing: Theme.detailGap
 
@@ -63,6 +56,7 @@ ColumnLayout {
             glyph: AudioService.icon
             name: AudioService.ready ? AudioService.outputName(AudioService.sink) : ""
             value: AudioService.volume
+            to: AudioService.ceiling
             available: AudioService.ready
             dimmed: AudioService.muted
             onMoved: value => AudioService.setVolume(value)

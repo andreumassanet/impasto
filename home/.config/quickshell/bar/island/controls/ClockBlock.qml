@@ -47,7 +47,7 @@ Card {
         // than a square.
         Text {
             width: parent.width
-            text: Qt.formatDateTime(clock.date, root.format)
+            text: Tr.date(clock.date, root.format)
             horizontalAlignment: Text.AlignHCenter
             fontSizeMode: Text.HorizontalFit
             minimumPixelSize: Theme.fontSizeLarge
@@ -59,7 +59,7 @@ Card {
 
         Text {
             width: parent.width
-            text: Qt.formatDateTime(clock.date, root.wide || root.tall ? "dddd d MMMM" : "ddd d MMM")
+            text: Tr.date(clock.date, root.wide || root.tall ? "dddd d MMMM" : "ddd d MMM")
             horizontalAlignment: Text.AlignHCenter
             elide: Text.ElideRight
             font.family: Theme.fontFamily

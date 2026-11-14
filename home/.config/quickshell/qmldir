@@ -28,10 +28,12 @@ singleton SessionService     1.0 services/SessionService.qml
 singleton NetworkService     1.0 services/NetworkService.qml
 singleton FontService        1.0 services/FontService.qml
 singleton StatsService       1.0 services/StatsService.qml
+singleton KeyboardService    1.0 services/KeyboardService.qml
 singleton TimerService       1.0 services/TimerService.qml
 singleton CavaService        1.0 services/CavaService.qml
 singleton CompositorService  1.0 services/CompositorService.qml
 singleton BluetoothService   1.0 services/BluetoothService.qml
+singleton DeviceService      1.0 services/DeviceService.qml
 singleton ClaudeService      1.0 services/ClaudeService.qml
 singleton CodexService       1.0 services/CodexService.qml
 singleton UpdatesService     1.0 services/UpdatesService.qml
@@ -46,6 +48,7 @@ singleton ControlsService    1.0 services/ControlsService.qml
 singleton GamesService       1.0 services/GamesService.qml
 singleton NotesService       1.0 services/NotesService.qml
 singleton TasksService       1.0 services/TasksService.qml
+singleton AgendaService      1.0 services/AgendaService.qml
 singleton DeckService        1.0 services/DeckService.qml
 singleton PickerService      1.0 services/PickerService.qml
 singleton CaptureService     1.0 services/CaptureService.qml
@@ -73,6 +76,7 @@ ToggleSwitch     1.0 components/ToggleSwitch.qml
 SegmentedControl 1.0 components/SegmentedControl.qml
 SettingRow       1.0 components/SettingRow.qml
 RingIndicator    1.0 components/RingIndicator.qml
+WeatherArt       1.0 components/WeatherArt.qml
 ContributionGrid 1.0 components/ContributionGrid.qml
 Sparkline        1.0 components/Sparkline.qml
 UsageBars        1.0 components/UsageBars.qml
@@ -80,6 +84,7 @@ UsageRing        1.0 components/UsageRing.qml
 DayDial          1.0 components/DayDial.qml
 SessionRibbon    1.0 components/SessionRibbon.qml
 Spectrum         1.0 components/Spectrum.qml
+CoverArt         1.0 components/CoverArt.qml
 NotchFillet      1.0 components/NotchFillet.qml
 NotchOutline     1.0 components/NotchOutline.qml
 ClaudeMark       1.0 components/ClaudeMark.qml
@@ -103,6 +108,7 @@ Stepper          1.0 components/Stepper.qml
 StatCard         1.0 components/StatCard.qml
 SliderRow        1.0 components/SliderRow.qml
 IconButton       1.0 components/IconButton.qml
+PadIcon          1.0 components/PadIcon.qml
 PillButton       1.0 components/PillButton.qml
 SettingSlider    1.0 components/SettingSlider.qml
 SettingTiles     1.0 components/SettingTiles.qml
@@ -160,7 +166,10 @@ BatteryModule    1.0 bar/modules/BatteryModule.qml
 VolumeModule     1.0 bar/modules/VolumeModule.qml
 BrightnessModule 1.0 bar/modules/BrightnessModule.qml
 NetworkModule    1.0 bar/modules/NetworkModule.qml
+NetSpeedModule   1.0 bar/modules/NetSpeedModule.qml
+KeyboardModule   1.0 bar/modules/KeyboardModule.qml
 BluetoothModule  1.0 bar/modules/BluetoothModule.qml
+DevicesModule    1.0 bar/modules/DevicesModule.qml
 WeatherModule    1.0 bar/modules/WeatherModule.qml
 MarketsModule    1.0 bar/modules/MarketsModule.qml
 ScreenTimeModule 1.0 bar/modules/ScreenTimeModule.qml
@@ -205,6 +214,8 @@ GamesPanel       1.0 bar/island/GamesPanel.qml
 NotesPanel       1.0 bar/island/NotesPanel.qml
 BoardPanel       1.0 bar/island/BoardPanel.qml
 KeysPanel        1.0 bar/island/KeysPanel.qml
+KeysWindow       1.0 bar/island/KeysWindow.qml
+MediaPanel       1.0 bar/island/MediaPanel.qml
 PackagesPanel    1.0 bar/island/PackagesPanel.qml
 GameBoard        1.0 bar/island/games/GameBoard.qml
 NotificationList 1.0 bar/island/controls/NotificationList.qml
@@ -232,6 +243,7 @@ DetailChoice     1.0 bar/island/DetailChoice.qml
 MicrophoneDetail 1.0 bar/island/MicrophoneDetail.qml
 NightLightDetail 1.0 bar/island/NightLightDetail.qml
 PowerDetail 1.0 bar/island/PowerDetail.qml
+RecordDetail 1.0 bar/island/RecordDetail.qml
 BrightnessDetail 1.0 bar/island/BrightnessDetail.qml
 TrayMenuPanel    1.0 bar/island/TrayMenuPanel.qml
 BluetoothDetail  1.0 bar/island/BluetoothDetail.qml

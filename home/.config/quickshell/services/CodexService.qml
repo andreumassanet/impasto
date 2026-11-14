@@ -66,10 +66,10 @@ Singleton {
             return ""
         const left = limit.resets * 1000 - root.clock.date.getTime()
         const minutes = Math.ceil(left / 60000)
-        const when = minutes <= 0 ? "renewed"
-            : minutes < 60 ? `resets in ${minutes} min`
-            : minutes < 24 * 60 ? `resets in ${Math.floor(minutes / 60)} h`
-            : `resets ${Qt.formatDateTime(new Date(Math.round(limit.resets / 60) * 60000), "ddd HH:mm")}`
+        const when = minutes <= 0 ? Tr.t("renewed")
+            : minutes < 60 ? Tr.t("resets in %1 min").arg(minutes)
+            : minutes < 24 * 60 ? Tr.t("resets in %1 h").arg(Math.floor(minutes / 60))
+            : Tr.t("resets %1").arg(Tr.date(new Date(Math.round(limit.resets / 60) * 60000), "ddd HH:mm"))
         return `${limit.name.toLowerCase()} · ${when}`
     }
 
@@ -89,12 +89,12 @@ Singleton {
             return ""
         const minutes = Math.floor((root.clock.date.getTime() - root.observed * 1000) / 60000)
         if (minutes < 1)
-            return "read just now"
+            return Tr.t("read just now")
         if (minutes < 60)
-            return `read ${minutes} min ago`
+            return Tr.t("read %1 min ago").arg(minutes)
         if (minutes < 24 * 60)
-            return `read ${Math.floor(minutes / 60)} h ago`
-        return `read ${Qt.formatDateTime(new Date(root.observed * 1000), "ddd d MMM")}`
+            return Tr.t("read %1 h ago").arg(Math.floor(minutes / 60))
+        return Tr.t("read %1").arg(Tr.date(new Date(root.observed * 1000), "ddd d MMM"))
     }
 
     function subscribe(): void {
