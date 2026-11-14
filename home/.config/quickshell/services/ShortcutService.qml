@@ -75,6 +75,7 @@ Singleton {
         { name: "media", label: "Media panel", description: "Shell · Open the media panel" },
         { name: "connectivity", label: "Wi-Fi, Bluetooth and Sound", description: "Shell · Open Wi-Fi, Bluetooth and Sound" },
         { name: "dismissNotification", label: "Dismiss a notification", description: "Shell · Dismiss the notification" },
+        { name: "osk",            label: "On-screen keyboard",   description: "Shell · Show or hide the on-screen keyboard" },
         { name: "record",         label: "Record the screen",    description: "Shell · Start or stop recording the screen" }
     ]
 
