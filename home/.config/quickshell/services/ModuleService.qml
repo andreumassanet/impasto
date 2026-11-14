@@ -505,24 +505,6 @@ Singleton {
         root.openHost = ""
     }
 
-    // How many lines the network's name takes in the speed card, which wraps it
-    // (at most three). Measured at the card's own type and inner width.
-    readonly property FontMetrics netNameMetrics: FontMetrics {
-        font.family: Theme.fontFamily
-        font.pixelSize: Theme.fontSizeRegular
-        font.weight: Font.DemiBold
-    }
-
-    // The graph block (legend, plot, time axis) and the button, in the speed
-    // card; each sits a row gap and 4 px below what is above it.
-    readonly property int netGraphHeight: 102
-    readonly property int netButtonHeight: 28
-
-    function netNameLines(): int {
-        const room = Theme.cardWidth - 2 * (Theme.cardInset + Theme.cardPadding)
-        return Math.max(1, Math.min(3, Math.ceil(root.netNameMetrics.advanceWidth(NetworkService.connectionName) / (0.9 * room))))
-    }
-
     // The catalogue size, except network and Bluetooth, which open the
     // control centre's lists, an empty notification list, which is short,
     // and the cards whose rows come and go, sized from their count.
