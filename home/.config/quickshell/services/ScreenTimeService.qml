@@ -270,7 +270,7 @@ Singleton {
         for (const app of apps)
             totals[app.category] = (totals[app.category] ?? 0) + app.seconds
         const categories = Object.keys(totals)
-            .map(id => ({ id: id, name: root.categoryNames[id], seconds: totals[id] }))
+            .map(id => ({ id: id, name: Tr.t(root.categoryNames[id]), seconds: totals[id] }))
             .sort((a, b) => (a.id === "other") - (b.id === "other") || b.seconds - a.seconds)
         const ranked = categories
             .filter(category => category.id !== "other")
@@ -406,6 +406,6 @@ Singleton {
     function clock(epoch: real): string {
         const format = SettingsService.clockFormat.indexOf("AP") >= 0
             || SettingsService.clockFormat.indexOf("ap") >= 0 ? "h:mm AP" : "HH:mm"
-        return Qt.formatDateTime(new Date(epoch * 1000), format)
+        return Tr.date(new Date(epoch * 1000), format)
     }
 }

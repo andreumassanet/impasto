@@ -56,7 +56,13 @@ Card {
             text: WeatherService.available ? WeatherService.glyph : "󰅤"
             font.family: Theme.fontMono
             font.pixelSize: 22
-            color: Theme.accent
+            color: weatherArt1.shown ? "transparent" : Theme.accent
+
+            WeatherArt {
+                id: weatherArt1
+
+                name: WeatherService.available ? WeatherService.icon : ""
+            }
         }
 
         Text {
@@ -70,8 +76,8 @@ Card {
         Text {
             Layout.fillWidth: true
             text: WeatherService.available
-                ? `${WeatherService.description}  ·  feels ${WeatherService.feelsLike}°`
-                : "No reading"
+                ? Tr.t("%1  ·  feels %2°").arg(WeatherService.description).arg(WeatherService.feelsLike)
+                : Tr.t("No reading")
             elide: Text.ElideRight
             font.family: Theme.fontFamily
             font.pixelSize: Theme.fontSizeSmall
@@ -110,7 +116,13 @@ Card {
                 text: WeatherService.available ? WeatherService.glyph : "󰅤"
                 font.family: Theme.fontMono
                 font.pixelSize: 40
-                color: Theme.accent
+                color: weatherArt2.shown ? "transparent" : Theme.accent
+
+                WeatherArt {
+                    id: weatherArt2
+
+                    name: WeatherService.available ? WeatherService.icon : ""
+                }
             }
 
             ColumnLayout {
@@ -148,8 +160,8 @@ Card {
                 Text {
                     Layout.fillWidth: true
                     text: WeatherService.available
-                        ? `${WeatherService.description}  ·  feels ${WeatherService.feelsLike}°`
-                        : "No reading"
+                        ? Tr.t("%1  ·  feels %2°").arg(WeatherService.description).arg(WeatherService.feelsLike)
+                        : Tr.t("No reading")
                     elide: Text.ElideRight
                     font.family: Theme.fontFamily
                     font.pixelSize: Theme.fontSizeSmall
@@ -228,7 +240,13 @@ Card {
                             text: block.modelData.glyph
                             font.family: Theme.fontMono
                             font.pixelSize: 16
-                            color: Theme.text
+                            color: weatherArt3.shown ? "transparent" : Theme.text
+
+                            WeatherArt {
+                                id: weatherArt3
+
+                                name: block.modelData.icon ?? ""
+                            }
                         }
 
                         Text {

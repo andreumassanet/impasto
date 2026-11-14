@@ -133,34 +133,7 @@ Item {
             title: MediaService.title !== "" ? MediaService.title : MediaService.identity
             subtitle: MediaService.artist !== "" ? MediaService.artist : MediaService.identity
 
-            // ClippingRectangle, because `clip` is rectangular and would
-            // square the artwork's corners.
-            mark: ClippingRectangle {
-                anchors.fill: parent
-                radius: width * Theme.pictureCorner
-                // None behind a picture: a player may send its logo on transparency.
-                color: art.visible ? "transparent" : Theme.surfaceHoverIn(QsWindow.window)
-
-                Image {
-                    id: art
-                    anchors.fill: parent
-                    source: MediaService.artUrl
-                    visible: source != "" && status === Image.Ready
-                    fillMode: Image.PreserveAspectCrop
-                    asynchronous: true
-                    sourceSize.width: 2 * Theme.cardMark
-                    sourceSize.height: 2 * Theme.cardMark
-                }
-
-                Text {
-                    anchors.centerIn: parent
-                    visible: !art.visible
-                    text: "󰎇"
-                    font.family: Theme.fontMono
-                    font.pixelSize: 20
-                    color: Theme.indicator
-                }
-            }
+            mark: CoverArt { anchors.fill: parent }
 
             // ── PROGRESS ────────────────────────────────────────────────────
 

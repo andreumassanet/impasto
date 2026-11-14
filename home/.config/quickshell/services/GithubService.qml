@@ -13,6 +13,8 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 
+import "../theme"
+
 // A year of contributions from a public GitHub profile, via
 // `scripts/github.py`.
 //
@@ -55,11 +57,11 @@ Singleton {
             return ""
         const minutes = Math.floor((root.clock.date.getTime() - root.readAt.getTime()) / 60000)
         if (minutes < 2)
-            return "just now"
+            return Tr.t("just now")
         if (minutes < 60)
-            return `${minutes} min ago`
+            return Tr.t("%1 min ago").arg(minutes)
         const hours = Math.round(minutes / 60)
-        return `${hours} h ago`
+        return Tr.t("%1 h ago").arg(hours)
     }
 
     // "3689" -> "3,689", as GitHub writes it. Shared by every face.

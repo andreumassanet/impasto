@@ -278,7 +278,10 @@ def version():
 
 def capture_script():
     config = os.environ.get("XDG_CONFIG_HOME") or os.path.expanduser("~/.config")
-    return os.path.join(config, "quickshell", "scripts", "capture.py")
+    # QS_CONFIG_NAME is what `qs -c` reads, so `qs ipc call` already reaches a
+    # shell kept in ~/.config/quickshell/NAME; its scripts are found there too.
+    name = os.environ.get("QS_CONFIG_NAME", "")
+    return os.path.join(config, "quickshell", name, "scripts", "capture.py")
 
 
 def focused_screen():
