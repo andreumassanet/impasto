@@ -253,7 +253,7 @@ Scope {
 
         readonly property var names: ["launcher", "controls", "overview", "appearance", "palette",
             "stats", "session", "pet", "games", "notes", "board", "keys", "packages",
-            "machines", "servers", "screentime", "camera", "wifi", "bluetooth", "sound", "microphone", "brightness", "nightlight", "power"]
+            "machines", "servers", "screentime", "camera", "player", "wifi", "bluetooth", "sound", "microphone", "brightness", "nightlight", "power", "record"]
 
         function open(name: string): string {
             if (names.indexOf(name) < 0)
@@ -440,8 +440,8 @@ Scope {
 
         function set(percent: string): string {
             const value = parseInt(percent)
-            if (isNaN(value) || value < 0 || value > 100)
-                return root.fail("a volume from 0 to 100")
+            if (isNaN(value) || value < 0 || value > AudioService.ceiling)
+                return root.fail(`a volume from 0 to ${AudioService.ceiling}`)
             AudioService.setVolume(value)
             return root.ok({ volume: value })
         }
@@ -467,12 +467,18 @@ Scope {
             const value = parseInt(percent)
             if (isNaN(value) || value < 0 || value > 100)
                 return root.fail("a brightness from 0 to 100")
-            BrightnessService.setPercent(value)
+            // With the dim layer, the slider is what is set and read, so that
+            // the layer follows the number.
+            if (BrightnessService.belowFloor)
+                BrightnessService.setSlider(value)
+            else
+                BrightnessService.setPercent(value)
             return root.ok({ brightness: value })
         }
 
         function get(): string {
-            return root.ok({ brightness: BrightnessService.percent })
+            return root.ok({ brightness: BrightnessService.belowFloor
+                ? BrightnessService.slider : BrightnessService.percent })
         }
     }
 

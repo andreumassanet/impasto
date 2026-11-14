@@ -38,24 +38,49 @@ Item {
     // A connected device (`DeviceService`) under the "devices" piece.
     property var device: null
     readonly property string figure: ModuleService.figureOf(root.ownFigure)
+    // The figure waits for the pointer in a card under the piece, not beside it.
+    readonly property bool cardHover: root.figure === "hover" && SettingsService.chipHover === "card"
 
     readonly property bool button: ModuleService.isButton(root.moduleId)
     readonly property var door: ModuleService.buttons[root.moduleId] ?? null
 
     Component.onCompleted: ModuleService.watch(root.moduleId, true)
-    Component.onDestruction: ModuleService.watch(root.moduleId, false)
+    Component.onDestruction: {
+        ModuleService.watch(root.moduleId, false)
+        ModuleService.hidePeek(root)
+    }
 
     readonly property bool open: root.button
         ? ModuleService.shownPanel === root.door.panel
         : ModuleService.openId === root.moduleId
 
-    // Out always, never, or while the pointer is on it.
+    // Out always, never, or while the pointer is on it (not with the hover card).
     property real reveal: {
         if (root.figure === "on")
             return 1
-        if (root.figure === "hover" && mouse.containsMouse)
+        if (root.figure === "hover" && mouse.containsMouse && !root.cardHover)
             return 1
         return 0
+    }
+
+    readonly property string peekLabel: {
+        if (root.button)
+            return ""
+        const name = Tr.t(ModuleService.entry(root.moduleId)?.name ?? "")
+        return face.value !== "" ? `${name} · ${face.value}` : name
+    }
+
+    onPeekLabelChanged: {
+        if (ModuleService.peekSource === root)
+            ModuleService.peekText = root.peekLabel
+    }
+
+    // A moment's rest before the card, so passing over pieces shows nothing.
+    Timer {
+        id: peekIntent
+
+        interval: 280
+        onTriggered: ModuleService.showPeek(root, root.peekLabel)
     }
 
     // Fast, on a curve that starts quickly, so it answers the pointer at once.
@@ -110,7 +135,17 @@ Item {
         anchors.fill: parent
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
+        onContainsMouseChanged: {
+            if (mouse.containsMouse && root.cardHover && root.peekLabel !== "") {
+                peekIntent.restart()
+            } else {
+                peekIntent.stop()
+                ModuleService.hidePeek(root)
+            }
+        }
         onClicked: {
+            peekIntent.stop()
+            ModuleService.hidePeek(root)
             if (root.button && root.door.panel)
                 ModuleService.togglePanel(root.door.panel)
             else if (root.button)

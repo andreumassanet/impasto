@@ -194,10 +194,14 @@ Singleton {
         return false
     }
 
+    // The workspace strip draws the focused workspace's applications when
+    // `workspaceApps` is on, so it needs the list as well.
+    readonly property bool stripApps: SettingsService.workspaceApps
+
     readonly property Binding watching: Binding {
         target: HyprlandService
         property: "watchClients"
-        value: root.enabled || root.decksExist
+        value: root.enabled || root.decksExist || root.stripApps
     }
 
     onEnabledChanged: {
@@ -205,8 +209,13 @@ Singleton {
             HyprlandService.loadClients()
     }
 
+    onStripAppsChanged: {
+        if (root.stripApps)
+            HyprlandService.loadClients()
+    }
+
     Component.onCompleted: {
-        if (root.enabled)
+        if (root.enabled || root.stripApps)
             HyprlandService.loadClients()
     }
 
@@ -215,7 +224,7 @@ Singleton {
     readonly property var groups: {
         const order = []
         const seen = ({})
-        for (const client of HyprlandService.clients) {
+        for (const client of HyprlandService.clients.concat(HyprlandService.minimizedClients)) {
             const cls = (client.class ?? "").trim()
             if (cls === "")
                 continue
@@ -293,10 +302,14 @@ Singleton {
                 // The focused window, so a repeat click can cycle to the next
                 // one. Uses the focused address rather than `focusHistoryID`,
                 // which is stale after focusing an empty workspace.
-                front: client.address === HyprlandService.focusedAddress
+                front: client.address === HyprlandService.focusedAddress,
+                minimized: client.workspace?.name === HyprlandService.minimizedWorkspace
             })),
             running: windows.length > 0,
-            active: windows.some(client => client.address === HyprlandService.focusedAddress)
+            // A minimized window can keep the focus when it left an empty
+            // workspace behind; it is not in front for that.
+            active: windows.some(client => client.address === HyprlandService.focusedAddress
+                && client.workspace?.name !== HyprlandService.minimizedWorkspace)
         }
     }
 
@@ -404,15 +417,24 @@ Singleton {
             root.launch(item)
             return
         }
-        if (!item.active) {
-            HyprlandService.focusWindow(item.windows[0].address)
+        const shown = item.windows.filter(window => !window.minimized)
+        // One window out, in front: the click puts it away.
+        if (item.active && shown.length === 1) {
+            HyprlandService.minimizeWindow(shown[0].address)
             return
         }
-        if (item.windows.length < 2)
+        // Only minimized windows left: the first comes back here.
+        if (shown.length === 0) {
+            HyprlandService.restoreWindow(item.windows[0].address)
             return
-        const at = item.windows.findIndex(window => window.front)
-        HyprlandService.focusWindow(
-            item.windows[(at + 1) % item.windows.length].address)
+        }
+        if (!item.active) {
+            HyprlandService.focusWindow(shown[0].address)
+            return
+        }
+        // Several out, one in front: the next one.
+        const at = shown.findIndex(window => window.front)
+        HyprlandService.focusWindow(shown[(at + 1) % shown.length].address)
     }
 
     // New instance. Unmatched windows have no entry to launch from.

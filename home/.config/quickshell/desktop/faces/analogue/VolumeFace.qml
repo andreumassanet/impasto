@@ -17,9 +17,9 @@ import "../../../components"
 Instrument {
     id: face
 
-    line: AudioService.muted ? "Muted" : `${AudioService.volume}%`
-    reading: AudioService.muted ? "Muted" : `${AudioService.volume}%`
-    note: AudioService.muted ? `${AudioService.volume}% · muted` : "output"
+    line: AudioService.muted ? Tr.t("Muted") : `${AudioService.volume}%`
+    reading: AudioService.muted ? Tr.t("Muted") : `${AudioService.volume}%`
+    note: AudioService.muted ? `${AudioService.volume}% · ${Tr.t("muted")}` : Tr.t("output")
     tint: AudioService.muted ? face.ink.muted : face.ink.text
     filled: true
 

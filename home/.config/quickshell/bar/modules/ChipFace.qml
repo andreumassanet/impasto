@@ -120,9 +120,15 @@ Item {
             text: root.device ? root.device.glyph : ModuleService.glyphOf(root.moduleId)
             font.family: Theme.fontMono
             font.pixelSize: root.size
-            color: root.tint
+            color: weatherArt.shown ? "transparent" : root.tint
 
             Behavior on color { ColorAnimation { duration: Theme.durationFast } }
+
+            WeatherArt {
+                id: weatherArt
+
+                name: root.moduleId === "weather" && !root.ring ? WeatherService.icon : ""
+            }
         }
     }
 

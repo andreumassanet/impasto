@@ -45,7 +45,7 @@ Item {
             anchors.verticalCenter: parent.verticalCenter
             visible: root.hasLevel
             width: 130
-            height: 4
+            height: 6
             radius: height / 2
             color: Theme.surfaceHoverIn(QsWindow.window)
 

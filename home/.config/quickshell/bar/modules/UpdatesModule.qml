@@ -38,18 +38,18 @@ Item {
         ModuleCard {
             title: {
                 if (UpdatesService.count === 0)
-                    return "Up to date"
+                    return Tr.t("Up to date")
                 return UpdatesService.count === 1
-                    ? "1 update" : `${UpdatesService.count} updates`
+                    ? Tr.t("1 update") : Tr.t("%1 updates").arg(UpdatesService.count)
             }
             // Flag results from the fallback, which reads the last synced
             // database; checkupdates is current and needs no label.
             subtitle: {
                 const parts = []
                 if (UpdatesService.tool === "pacman")
-                    parts.push("as of the last sync")
+                    parts.push(Tr.t("as of the last sync"))
                 if (UpdatesService.age !== "")
-                    parts.push(`checked ${UpdatesService.age}`)
+                    parts.push(Tr.t("checked %1").arg(UpdatesService.age))
                 return parts.join(" · ")
             }
 
@@ -87,7 +87,7 @@ Item {
 
                 Text {
                     Layout.fillWidth: true
-                    text: UpdatesService.count > 3 ? `and ${UpdatesService.count - 3} more` : ""
+                    text: UpdatesService.count > 3 ? Tr.t("and %1 more").arg(UpdatesService.count - 3) : ""
                     elide: Text.ElideRight
                     font.family: Theme.fontFamily
                     font.pixelSize: Theme.fontSizeSmall
@@ -96,7 +96,7 @@ Item {
 
                 PillButton {
                     implicitHeight: Theme.cardRow
-                    text: UpdatesService.checking ? "Checking…" : "Check"
+                    text: UpdatesService.checking ? Tr.t("Checking…") : Tr.t("Check")
                     enabled: !UpdatesService.checking
                     onClicked: UpdatesService.refresh()
                 }
@@ -105,7 +105,7 @@ Item {
                 // opened on the updates list.
                 PillButton {
                     implicitHeight: Theme.cardRow
-                    text: "Open"
+                    text: Tr.t("Open")
                     active: UpdatesService.count > 0
                     onClicked: {
                         PackagesService.view = "updates"
