@@ -933,8 +933,8 @@ ColumnLayout {
                     cursorShape: Qt.PointingHandCursor
                     onClicked: {
                         root.closed()
-                        Quickshell.execDetached([Quickshell.shellPath("scripts/scratchpad.sh"),
-                                                 pad.modelData.name, pad.modelData.command ?? ""])
+                        HyprlandService.toggleScratchpad(pad.modelData.name,
+                                                         pad.modelData.command ?? "")
                     }
                 }
 
