@@ -78,7 +78,7 @@ SettingsSection {
             return Tr.t("The remote did not answer")
         if (VersionService.behind === 0)
             return `${Tr.t("Up to date")} · ${Tr.t("checked at")} `
-                + Qt.formatTime(new Date(VersionService.checkedAt),
+                + Tr.date(new Date(VersionService.checkedAt),
                                 SettingsService.clockFormat)
         // What it would become is the Update row's, below it.
         return `${VersionService.behind} `
@@ -179,7 +179,7 @@ SettingsSection {
         SettingGroup {
             title: Tr.t("This window")
             note: Tr.t("The language of this window.")
-            hint: Tr.t("Only the settings window is translated, and anything without a translation appears in English. Files the shell writes, such as generated themes, are always in English.")
+            hint: Tr.t("The whole shell is translated, and anything without a translation appears in English. The login screen and the files the shell writes, such as generated themes, are always in English.")
 
             SettingRow {
                 label: Tr.t("Language")

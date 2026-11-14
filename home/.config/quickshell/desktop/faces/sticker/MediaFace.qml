@@ -26,10 +26,10 @@ Item {
     readonly property bool something: MediaService.available
     readonly property real side: Math.min(root.width, root.height)
     readonly property string title: MediaService.title !== "" ? MediaService.title
-        : (root.something ? MediaService.identity : "Nothing playing")
+        : (root.something ? MediaService.identity : Tr.t("Nothing playing"))
     readonly property string artist: root.something
-        ? (MediaService.artist !== "" ? MediaService.artist : (MediaService.playing ? "playing" : "paused"))
-        : "no player on the bus"
+        ? (MediaService.artist !== "" ? MediaService.artist : (MediaService.playing ? Tr.t("playing") : Tr.t("paused")))
+        : Tr.t("no player on the bus")
 
     Tone { id: tone; hue: root.ink.accent }
 

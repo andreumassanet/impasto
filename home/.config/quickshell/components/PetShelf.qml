@@ -79,13 +79,13 @@ RowLayout {
         horizontalAlignment: Text.AlignRight
         text: {
             if (PetService.complete)
-                return "All five found"
+                return Tr.t("All five found")
             const left = PetService.levelsToNextEgg
             if (root.brief)
-                return `${left} to the next egg`
+                return Tr.t("%1 to the next egg").arg(left)
             return left === 1
-                ? "1 level to the next egg"
-                : `${left} levels to the next egg`
+                ? Tr.t("1 level to the next egg")
+                : Tr.t("%1 levels to the next egg").arg(left)
         }
         elide: Text.ElideRight
         font.family: Theme.fontFamily

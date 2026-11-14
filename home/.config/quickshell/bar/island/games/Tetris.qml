@@ -479,8 +479,8 @@ FocusScope {
                 }
             }
 
-            Reading { caption: "level"; value: String(root.level) }
-            Reading { caption: "lines"; value: String(root.lines) }
+            Reading { caption: Tr.t("level"); value: String(root.level) }
+            Reading { caption: Tr.t("lines"); value: String(root.lines) }
         }
     }
 }

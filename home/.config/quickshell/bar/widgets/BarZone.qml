@@ -45,6 +45,11 @@ Row {
             } else if (item.id === "workspaces" || item.id === "tray") {
                 flush()
                 out.push({ kind: item.id, items: [] })
+            } else if (item.id === "devices") {
+                // One chip per connected device, in the capsule of its
+                // neighbours; with none, the piece draws nothing.
+                for (const device of DeviceService.devices)
+                    chips.push(Object.assign({}, item, { device: device }))
             } else {
                 chips.push(item)
             }
@@ -229,6 +234,7 @@ Row {
                         ownShape: modelData.shape
                         ownFigure: modelData.figure
                         ownWhen: modelData.when ?? ""
+                        device: modelData.device ?? null
                         alone: group.alone
                     }
                 }

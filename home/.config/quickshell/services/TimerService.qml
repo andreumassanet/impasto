@@ -165,8 +165,8 @@ Singleton {
         // Through the shell's own notification daemon, so it lands on the
         // island like any other notification.
         root.notifier.command = ["notify-send", "-u", "critical",
-                                 finishedLabel === "" ? "Timer finished" : finishedLabel,
-                                 "The countdown has run out."]
+                                 finishedLabel === "" ? Tr.t("Timer finished") : finishedLabel,
+                                 Tr.t("The countdown has run out.")]
         root.notifier.running = true
         root.finished(finishedLabel)
         root.label = ""
