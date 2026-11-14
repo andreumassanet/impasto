@@ -55,7 +55,7 @@ SettingsSection {
 
     SettingGroup {
         title: Tr.t("Scratchpads")
-        note: Tr.t("Special workspaces you toggle with a key. Each has a name, an icon, a key and what to run. The bar's special pill takes the label from here.")
+        note: Tr.t("Special workspaces you toggle with a key. Each has a name, an icon, a key and what to run. Super+Z is the one that is always there.")
         hint: Tr.t("The key opens the scratchpad, or hides it when it is open; when it holds no window, the command starts first. A command is an app, or the path of a script, and runs through the shell, so arguments work. Write the key as Super+Ctrl+M or Super+grave. A key you set here replaces any other bind on it. Leave the command empty for a plain scratchpad you send windows to.")
     }
 
@@ -139,8 +139,8 @@ SettingsSection {
                     icon: "󰖲"
                     implicitWidth: 100
                     implicitHeight: 30
-                    onClicked: Quickshell.execDetached([Quickshell.shellPath("scripts/scratchpad.sh"),
-                                                        card.modelData.name, card.modelData.command ?? ""])
+                    onClicked: HyprlandService.toggleScratchpad(card.modelData.name,
+                                                                card.modelData.command ?? "")
                 }
             }
 

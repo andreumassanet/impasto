@@ -920,7 +920,7 @@ Item {
         width: workspaces.implicitWidth
         height: Theme.capsuleHeight
 
-        WorkspaceStrip {
+        WorkspacesWidget {
             id: workspaces
 
             anchors.fill: parent

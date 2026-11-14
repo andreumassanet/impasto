@@ -748,95 +748,206 @@ ColumnLayout {
         }
     }
 
-    // ── SPECIAL WORKSPACES ──────────────────────────────────────────────────
+    // Every scratchpad: those of Settings → Scratchpads, and any other special
+    // workspace with a window in it. As many to a row as `padsPerRow` allows,
+    // the rest on rows below. One element for all of them: the open one is
+    // lit and shows its window, rather than a second strip appearing.
+    readonly property var pads: HyprlandService.overviewPads
+    // As many to a row as the workspaces above, each the size of one of their
+    // cells: the proportions of the screen, in the same columns. Worked out from
+    // the island's declared width (`overview` in DynamicIsland: 1560, less 20 a
+    // side), not from the layout, which the tiles are part of.
+    readonly property int padColumns: Math.max(1, Math.min(root.pads.length, root.columns))
+    readonly property real tileWidth: (1520 - (root.columns - 1) * root.gap) / root.columns
+    readonly property real tileHeight: (root.tileWidth - 6) * root.aspect + 6
+    readonly property int padRows: Math.ceil(root.pads.length / root.padColumns)
+
+    // ── SCRATCHPAD TILES ────────────────────────────────────────────────────
     //
-    // One strip under the grid for all special workspaces, as the bar's pill
-    // treats them: the apps inside, a click to open or close it, and a drop
-    // target for sending a window there. Special workspaces are named, so the
-    // one acted on is the one open on this screen, else the first with a
-    // window in it, else the default one.
-    readonly property string openSpecial: HyprlandService.specialOn(root.screenName)
-    readonly property string specialName: (root.openSpecial
-        || HyprlandService.specialClients[0]?.workspace.name
-        || "special:scratchpad").replace(/^special:/, "")
-    // The apps in it, one icon per class, resolved as the dock resolves them.
-    readonly property var specialIcons: {
-        const icons = []
-        const seen = []
-        for (const client of HyprlandService.specialClients) {
-            const windowClass = client.class || client.initialClass || ""
-            if (windowClass === "" || seen.indexOf(windowClass) >= 0)
-                continue
-            seen.push(windowClass)
-            const entry = DockService.entryOf(DockService.idFor(windowClass))
-            icons.push(Theme.appIcon(entry ? entry.icon : windowClass.toLowerCase()))
-        }
-        return icons
-    }
-
-    Rectangle {
-        id: specialStrip
-
-        // Drawn only when there is something to show, so the overview is
-        // as it was for anyone who never uses a special workspace.
-        visible: HyprlandService.specialShown(root.screenName)
-        Layout.fillWidth: true
+    // `overviewScratchpads`: one tile per scratchpad under the strip, each
+    // with its apps and the key that opens it. A click runs its command or
+    // toggles its workspace; a window dropped on one is sent there.
+    GridLayout {
+        visible: root.pads.length > 0
+        Layout.fillWidth: false
         Layout.fillHeight: false
-        Layout.preferredHeight: 52
-        radius: Theme.radiusLarge
-        color: specialDrop.containsDrag ? Qt.alpha(Theme.accent, 0.25)
-            : specialMouse.containsMouse ? Theme.islandSurfaceHover : Theme.islandSurface
-        border.color: root.openSpecial !== "" || specialDrop.containsDrag
-            ? Theme.accent : "transparent"
-        border.width: 2
+        Layout.alignment: Qt.AlignLeft
+        Layout.preferredHeight: root.padRows * root.tileHeight + (root.padRows - 1) * root.gap
+        // As wide as fits, then a new row: tiles stay one size and line up
+        // with the strip above and each other.
+        columns: root.padColumns
+        rowSpacing: root.gap
+        columnSpacing: root.gap
 
-        Row {
-            anchors.centerIn: parent
-            spacing: 8
+        Repeater {
+            model: root.pads
 
-            Text {
-                anchors.verticalCenter: parent.verticalCenter
-                text: root.specialName === "scratchpad" ? Tr.t("Scratchpad") : root.specialName
-                font.family: Theme.fontFamily
-                font.pixelSize: Theme.fontSizeSmall
-                font.weight: Font.DemiBold
-                color: Theme.text
-            }
+            ClippingRectangle {
+                id: pad
 
-            Repeater {
-                model: root.specialIcons
-
-                IconImage {
-                    required property string modelData
-
-                    anchors.verticalCenter: parent.verticalCenter
-                    implicitSize: 24
-                    source: modelData
+                required property var modelData
+                readonly property string workspace: `special:${pad.modelData.name}`
+                // Its apps, one icon per class and three at most, resolved as
+                // the dock resolves them.
+                readonly property var classes: {
+                    const icons = []
+                    const seen = []
+                    for (const client of HyprlandService.specialClientsOf(pad.workspace)) {
+                        const windowClass = client.class || client.initialClass || ""
+                        if (windowClass === "" || seen.indexOf(windowClass) >= 0)
+                            continue
+                        seen.push(windowClass)
+                        const entry = DockService.entryOf(DockService.idFor(windowClass))
+                        icons.push(Theme.appIcon(entry ? entry.icon : windowClass.toLowerCase()))
+                    }
+                    return icons.slice(0, 3)
                 }
-            }
-        }
+                readonly property bool open: HyprlandService.specialOn(root.screenName) === pad.workspace
+                readonly property var windows: HyprlandService.specialClients
+                    .filter(client => client.workspace.name === pad.workspace)
+                // The window shown while the scratchpad is open.
+                readonly property var shown: pad.open && pad.windows.length > 0 ? pad.windows[0] : null
+                readonly property var capture: pad.shown ? root.toplevelFor(pad.shown) : null
 
-        MouseArea {
-            id: specialMouse
+                Layout.preferredWidth: root.tileWidth
+                Layout.preferredHeight: root.tileHeight
+                radius: Theme.radiusLarge
+                contentUnderBorder: true
+                color: Theme.island
+                border.color: pad.open || padDrop.containsDrag || padMouse.containsMouse
+                    ? Theme.accent : Theme.borderIn(QsWindow.window)
+                border.width: pad.open || padDrop.containsDrag ? 2 : 1
+                // The open scratchpad is lifted: a little larger and above its
+                // neighbours.
+                scale: pad.open ? 1.04 : 1
+                z: pad.open ? 2 : 0
 
-            anchors.fill: parent
-            hoverEnabled: true
-            cursorShape: Qt.PointingHandCursor
-            onClicked: {
-                root.closed()
-                Hyprland.dispatch(`hl.dsp.workspace.toggle_special("${root.specialName}")`)
-            }
-        }
+                Behavior on scale {
+                    NumberAnimation { duration: Theme.durationFast; easing.type: Theme.easing }
+                }
 
-        DropArea {
-            id: specialDrop
+                Image {
+                    anchors.fill: parent
+                    // The wallpaper under the card, as under a workspace's cell, so the
+                    // cells and the tiles read as one set.
+                    source: WallpaperService.currentWallpaper !== ""
+                        ? `file://${WallpaperService.currentWallpaper}` : ""
+                    fillMode: Image.PreserveAspectCrop
+                    asynchronous: true
+                    sourceSize.width: 480
+                    // Clearer while open: the wallpaper comes up.
+                    opacity: pad.open ? 0.6 : 0.3
 
-            anchors.fill: parent
-            onDropped: dropped => {
-                if (ghost.client)
-                    HyprlandService.moveClientToNamed(ghost.client.address,
-                                                      `special:${root.specialName}`)
-                dropped.accept()
+                    Behavior on opacity {
+                        NumberAnimation { duration: Theme.durationFast }
+                    }
+                }
+
+                // The open scratchpad's window, live, as large as the tile
+                // lets it be at the window's own proportions.
+                ScreencopyView {
+                    visible: pad.capture !== null
+                    anchors.centerIn: parent
+                    height: parent.height
+                    width: pad.shown ? Math.min(parent.width, parent.height * pad.shown.size[0] / Math.max(1, pad.shown.size[1])) : 0
+                    captureSource: pad.capture
+                    live: true
+                    paintCursor: false
+                }
+
+                // The accent washes a tile a window is dragged over.
+                Rectangle {
+                    anchors.fill: parent
+                    color: Qt.alpha(Theme.accent, 0.25)
+                    opacity: padDrop.containsDrag ? 1 : 0
+                }
+
+                // Behind the name once it is in the corner, over the window.
+                Rectangle {
+                    visible: pad.capture !== null
+                    x: labelColumn.x - 6
+                    y: labelColumn.y - 3
+                    width: labelColumn.width + 12
+                    height: labelColumn.height + 6
+                    radius: height / 2
+                    color: Qt.alpha(Theme.island, 0.82)
+                }
+
+                ColumnLayout {
+                    id: labelColumn
+
+                    // With the window showing, the name steps aside to the corner.
+                    anchors.centerIn: pad.capture === null ? parent : undefined
+                    x: 14
+                    y: 9
+                    spacing: 2
+
+                    RowLayout {
+                        Layout.alignment: Qt.AlignHCenter
+                        spacing: 6
+
+                        PadIcon {
+                            visible: pad.classes.length === 0 && value !== ""
+                            value: pad.modelData.glyph ?? ""
+                            size: 24
+                        }
+
+                        Repeater {
+                            model: pad.classes
+
+                            IconImage {
+                                required property string modelData
+
+                                implicitSize: 20
+                                source: modelData
+                            }
+                        }
+
+                        Text {
+                            Layout.maximumWidth: Math.max(40, root.tileWidth - 70)
+                            elide: Text.ElideRight
+                            text: pad.modelData.name === "scratchpad" ? Tr.t("Scratchpad")
+                                : (pad.modelData.label || pad.modelData.name)
+                            font.family: Theme.fontFamily
+                            font.pixelSize: Theme.fontSizeSmall
+                            font.weight: Font.DemiBold
+                            color: Theme.text
+                        }
+                    }
+
+                    Text {
+                        Layout.alignment: Qt.AlignHCenter
+                        visible: text !== "" && pad.capture === null
+                        text: pad.modelData.keys ?? ""
+                        font.family: Theme.fontMono
+                        font.pixelSize: Theme.fontSizeLabel
+                        color: Theme.textMuted
+                    }
+                }
+
+                MouseArea {
+                    id: padMouse
+
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: {
+                        root.closed()
+                        Quickshell.execDetached([Quickshell.shellPath("scripts/scratchpad.sh"),
+                                                 pad.modelData.name, pad.modelData.command ?? ""])
+                    }
+                }
+
+                DropArea {
+                    id: padDrop
+
+                    anchors.fill: parent
+                    onDropped: dropped => {
+                        if (ghost.client)
+                            HyprlandService.moveClientToNamed(ghost.client.address, pad.workspace)
+                        dropped.accept()
+                    }
+                }
             }
         }
     }
