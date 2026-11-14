@@ -99,9 +99,17 @@ Singleton {
 
     // Empty when that screen's capture failed, and the surface stays black.
     function shotSource(output: string): string {
+        if (root.wallpaperSource !== "")
+            return root.wallpaperSource
         return root.shotReady && output
             ? `file://${root.shotPath(output)}?v=${root.shotSerial}` : ""
     }
+
+    // With `lockMusicGround: wallpaper`, the wallpaper stands behind the lock
+    // in place of the screenshot, latched when it locks. No screenshot is
+    // taken, and a wallpaper that does not load leaves the island's black:
+    // nothing that was open ever shows.
+    property string wallpaperSource: ""
 
     signal unlocked()
 
@@ -125,10 +133,25 @@ Singleton {
         root.faceCheck.running = true
         FaceService.refresh()
         root.shotReady = false
+        root.wallpaperSource = ""
+        if (SettingsService.lockMusicGround === "wallpaper") {
+            const wallpaper = WallpaperService.currentWallpaper
+            root.wallpaperSource = wallpaper !== "" ? DesktopService.urlOf(wallpaper) : ""
+            root.engage()
+            return
+        }
         // Capture first, surface second — and only once the island has
         // closed, or the screenshot shows the panel the lock came from.
         root.pendingCapture = true
         root.attemptCapture()
+    }
+
+    // The screen is covered and the password is asked for.
+    function engage(): void {
+        root.locked = true
+        root.faceMisses = 0
+        root.faceQuietUntil = 0
+        root.begin()
     }
 
     function attemptCapture(): void {
@@ -189,16 +212,14 @@ Singleton {
         onExited: (code, status) => {
             root.shotSerial += 1
             root.shotReady = code === 0
-            root.locked = true
-            root.faceMisses = 0
-            root.faceQuietUntil = 0
-            root.begin()
+            root.engage()
         }
     }
 
     function forget(): void {
         root.typed = ""
         root.shotReady = false
+        root.wallpaperSource = ""
         root.eraser.running = true
     }
 
@@ -232,7 +253,7 @@ Singleton {
         // retry rather than keep the password around until it does.
         if (!pam.responseRequired) {
             root.begin()
-            root.message = "Not ready — press Enter again"
+            root.message = Tr.t("Not ready — press Enter again")
             return
         }
 
@@ -255,17 +276,54 @@ Singleton {
                 return
             root.failed = true
             root.message = result === PamResult.MaxTries
-                ? "Too many attempts"
-                : "Wrong password"
+                ? Tr.t("Too many attempts")
+                : Tr.t("Wrong password")
             root.begin()
         }
 
         onError: error => {
             root.authenticating = false
             root.failed = true
-            root.message = "Authentication is unavailable"
+            root.message = Tr.t("Authentication is unavailable")
             console.warn("PAM error while unlocking:", error)
         }
+    }
+
+    // ── KEYBOARD ────────────────────────────────────────────────────────────
+    //
+    // Caps Lock and the layout, from the main keyboard, read every second
+    // while locked: a password typed on the wrong layout or with Caps Lock on
+    // is the usual reason for a refusal. Hyprland sends no event for Caps
+    // Lock, so it is asked.
+    property bool capsLock: false
+    property string keymap: ""
+    // How many layouts the keyboard switches between; the one in use is
+    // worth saying only when there is a choice.
+    property int layouts: 1
+
+    readonly property Process keyboardReader: Process {
+        command: ["hyprctl", "devices", "-j"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                try {
+                    const keyboards = JSON.parse(text).keyboards ?? []
+                    const main = keyboards.find(keyboard => keyboard.main) ?? keyboards[0]
+                    root.capsLock = main?.capsLock ?? false
+                    root.keymap = main?.active_keymap ?? ""
+                    root.layouts = String(main?.layout ?? "").split(",").filter(name => name !== "").length || 1
+                } catch (error) {
+                    console.warn("Lock: cannot read the keyboards:", error)
+                }
+            }
+        }
+    }
+
+    readonly property Timer keyboardPoll: Timer {
+        interval: 1000
+        repeat: true
+        triggeredOnStart: true
+        running: root.locked
+        onTriggered: root.keyboardReader.running = true
     }
 
     // ── FACE ────────────────────────────────────────────────────────────────

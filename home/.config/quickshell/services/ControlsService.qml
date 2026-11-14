@@ -12,6 +12,7 @@ pragma Singleton
 import QtQml
 import QtQuick
 import Quickshell
+import Quickshell.Io
 
 import "../theme"
 
@@ -41,36 +42,36 @@ Singleton {
     //   detail  subtitle in the launcher's `>` mode; also searched
     //   panel   island panel it opens, or "" for the settings window
     readonly property var doors: [
-        { id: "stats",      icon: "󰕬", label: "System statistics",
-          detail: "Processor, memory, disks, the network", panel: "stats" },
-        { id: "settings",   icon: "󰒓", label: "Settings",
-          detail: "The whole desk, in a window",           panel: "" },
-        { id: "pet",        icon: "󰏩", label: "Pet",
-          detail: "The creature living on the bar",        panel: "pet" },
-        { id: "games",      icon: "󰊗", label: "Games",
-          detail: "The arcade",                            panel: "games" },
-        { id: "notes",      icon: "󰎞", label: "Notes",
-          detail: "The deck of sticky notes",              panel: "notes" },
-        { id: "board",      icon: "󰄲", label: "Task board",
-          detail: "To do, doing, done",                    panel: "board" },
-        { id: "overview",   icon: "󰕰", label: "Workspace overview",
-          detail: "Every workspace side by side",          panel: "overview" },
-        { id: "launcher",   icon: "󰍉", label: "Launcher",
-          detail: "Where you already are",                 panel: "launcher" },
-        { id: "appearance", icon: "󰏘", label: "Appearance",
-          detail: "The wallpaper and the palette",         panel: "appearance" },
-        { id: "session",    icon: "󰐥", label: "Session menu",
-          detail: "Lock, log out, suspend, restart, off",  panel: "session" },
-        { id: "keys",       icon: "󰌌", label: "Keys",
-          detail: "Every shortcut, on one sheet",          panel: "keys" },
-        { id: "packages",   icon: "󰏗", label: "Packages",
-          detail: "Updates, what is installed, the AUR",   panel: "packages" },
-        { id: "servers",    icon: "󰒋", label: "Servers",
-          detail: "The ports your projects listen on",     panel: "servers" },
-        { id: "screentime", icon: "󰔛", label: "Screen time",
-          detail: "Where the day went, app by app",        panel: "screentime" },
-        { id: "camera",     icon: "󰄀", label: "Camera",
-          detail: "Effects and reactions for your calls",  panel: "camera" }
+        { id: "stats",      icon: "󰕬", label: Tr.t("System statistics"),
+          detail: Tr.t("Processor, memory, disks, the network"), panel: "stats" },
+        { id: "settings",   icon: "󰒓", label: Tr.t("Settings"),
+          detail: Tr.t("The whole desk, in a window"),           panel: "" },
+        { id: "pet",        icon: "󰏩", label: Tr.t("Pet"),
+          detail: Tr.t("The creature living on the bar"),        panel: "pet" },
+        { id: "games",      icon: "󰊗", label: Tr.t("Games"),
+          detail: Tr.t("The arcade"),                            panel: "games" },
+        { id: "notes",      icon: "󰎞", label: Tr.t("Notes"),
+          detail: Tr.t("The deck of sticky notes"),              panel: "notes" },
+        { id: "board",      icon: "󰄲", label: Tr.t("Task board"),
+          detail: Tr.t("To do, doing, done"),                    panel: "board" },
+        { id: "overview",   icon: "󰕰", label: Tr.t("Workspace overview"),
+          detail: Tr.t("Every workspace side by side"),          panel: "overview" },
+        { id: "launcher",   icon: "󰍉", label: Tr.t("Launcher"),
+          detail: Tr.t("Where you already are"),                 panel: "launcher" },
+        { id: "appearance", icon: "󰏘", label: Tr.t("Appearance"),
+          detail: Tr.t("The wallpaper and the palette"),         panel: "appearance" },
+        { id: "session",    icon: "󰐥", label: Tr.t("Session menu"),
+          detail: Tr.t("Lock, log out, suspend, restart, off"),  panel: "session" },
+        { id: "keys",       icon: "󰌌", label: Tr.t("Keys"),
+          detail: Tr.t("Every shortcut, on one sheet"),          panel: "keys" },
+        { id: "packages",   icon: "󰏗", label: Tr.t("Packages"),
+          detail: Tr.t("Updates, what is installed, the AUR"),   panel: "packages" },
+        { id: "servers",    icon: "󰒋", label: Tr.t("Servers"),
+          detail: Tr.t("The ports your projects listen on"),     panel: "servers" },
+        { id: "screentime", icon: "󰔛", label: Tr.t("Screen time"),
+          detail: Tr.t("Where the day went, app by app"),        panel: "screentime" },
+        { id: "camera",     icon: "󰄀", label: Tr.t("Camera"),
+          detail: Tr.t("Effects and reactions for your calls"),  panel: "camera" }
     ]
 
     readonly property var defaultButtons: ["stats", "settings", "pet", "games", "notes", "board"]
@@ -99,11 +100,13 @@ Singleton {
 
     // ── TOP ROW ─────────────────────────────────────────────────────────────
     //
-    // Small buttons over the grid, on a left and a right side, each arranged
-    // by dragging (`TopRowEditor`, in the settings and while arranging):
-    // `centreTop` is `{ left, right }`, lists of session action and door ids.
-    // Null is the session's actions on the left and the doors the row had
-    // (`buttons`) on the right; both empty takes the row away, space and all.
+    // Small buttons over the grid, on the right, arranged by dragging
+    // (`TopRowEditor`, in the settings and while arranging); the left is the
+    // time and the battery's, when they are on. `centreTop` is
+    // `{ left, right }`, lists of session action and door ids, read as one
+    // list: a row stored with two sides keeps its order, left first. Null is
+    // the session's actions and the doors the row had (`buttons`); no
+    // buttons and nothing on the left takes the row away, space and all.
     readonly property var topCatalogue: SessionService.actions
         .map(action => Object.assign({ session: true }, action))
         .concat(root.doors.map(door => Object.assign({ session: false }, door)))
@@ -112,73 +115,49 @@ Singleton {
         return root.topCatalogue.find(entry => entry.id === id) ?? null
     }
 
-    readonly property var topSides: {
+    readonly property var topIds: {
         const kept = SettingsService.centreTop
         const clean = list => (root.stored(list) ? Array.from(list) : [])
             .filter(id => root.topEntry(id) !== null)
         if (kept && root.stored(kept.left) && root.stored(kept.right))
-            return { left: clean(kept.left), right: clean(kept.right) }
-        return {
-            left: SessionService.actions.map(action => action.id),
-            right: clean(root.buttons)
-        }
+            return clean(kept.left).concat(clean(kept.right))
+        return SessionService.actions.map(action => action.id).concat(clean(root.buttons))
     }
 
-    readonly property var topLeft: root.topSides.left.map(id => root.topEntry(id))
-    readonly property var topRight: root.topSides.right.map(id => root.topEntry(id))
-    readonly property bool hasTop: root.topLeft.length + root.topRight.length > 0
+    readonly property var topButtons: root.topIds.map(id => root.topEntry(id))
+    readonly property bool hasTop: root.topButtons.length > 0
+    // The time and the battery on the row's left.
+    readonly property bool topClock: true
+    readonly property bool topBattery: BatteryService.available
     // While arranging the row is there even empty, as something to click and
     // fill (`TopRowInspector`); `selected` is "top" while it is chosen.
-    readonly property bool topShown: root.hasTop || root.editing
+    readonly property bool topShown: root.hasTop || root.topClock || root.topBattery
+        || root.editing
 
-    // Those on neither side, for the editor's tray.
-    readonly property var topSpare: root.topCatalogue.filter(entry =>
-        root.topSides.left.indexOf(entry.id) < 0 && root.topSides.right.indexOf(entry.id) < 0)
+    // Those off the row, for the editor's tray.
+    readonly property var topSpare: root.topCatalogue.filter(entry => root.topIds.indexOf(entry.id) < 0)
 
-    function sideOf(id: string): string {
-        return root.topSides.left.indexOf(id) >= 0 ? "left"
-            : root.topSides.right.indexOf(id) >= 0 ? "right" : ""
+    function onTop(id: string): bool {
+        return root.topIds.indexOf(id) >= 0
     }
 
-    // On or off the row: a session action lands at the left's end, a door at
-    // the right's, as the row has always had them.
+    // On or off the row; on lands at its end.
     function toggleTop(id: string): void {
-        if (root.sideOf(id) !== "") {
-            root.placeTop(id, "", -1)
-            return
-        }
-        const entry = root.topEntry(id)
-        const side = entry && entry.session ? "left" : "right"
-        root.placeTop(id, side, (side === "left" ? root.topSides.left : root.topSides.right).length)
+        root.placeTop(id, root.onTop(id) ? -1 : root.topIds.length)
     }
 
-    // Along its own side.
+    // Along the row.
     function nudgeTop(id: string, delta: int): void {
-        const side = root.sideOf(id)
-        if (side === "")
-            return
-        const list = side === "left" ? root.topSides.left : root.topSides.right
-        root.placeTop(id, side, list.indexOf(id) + delta)
+        if (root.onTop(id))
+            root.placeTop(id, root.topIds.indexOf(id) + delta)
     }
 
-    // To the other side, at its end.
-    function flipTop(id: string): void {
-        const side = root.sideOf(id)
-        if (side === "")
-            return
-        const other = side === "left" ? "right" : "left"
-        root.placeTop(id, other, (other === "left" ? root.topSides.left : root.topSides.right).length)
-    }
-
-    // Takes `id` off wherever it is and puts it on `side` ("left", "right",
-    // or "" for off the row) at `index`.
-    function placeTop(id: string, side: string, index: int): void {
-        const left = root.topSides.left.filter(other => other !== id)
-        const right = root.topSides.right.filter(other => other !== id)
-        const target = side === "left" ? left : side === "right" ? right : null
-        if (target)
-            target.splice(Math.max(0, Math.min(index, target.length)), 0, id)
-        SettingsService.set("centreTop", { left: left, right: right })
+    // Takes `id` off the row and puts it back at `index`; -1 leaves it off.
+    function placeTop(id: string, index: int): void {
+        const ids = root.topIds.filter(other => other !== id)
+        if (index >= 0)
+            ids.splice(Math.min(index, ids.length), 0, id)
+        SettingsService.set("centreTop", { left: [], right: ids })
     }
 
     // Doors for one shortcuts block, from its own `doors` field (set in the
@@ -218,6 +197,9 @@ Singleton {
         property string detail: ""
         property bool active: false
         property bool available: true
+        // False takes the tile out of every list, for a tile whose tools are
+        // missing, instead of leaving it dimmed.
+        property bool listed: true
         property bool expandable: false
         property string panel: ""
         property bool closes: false
@@ -236,16 +218,38 @@ Singleton {
     // service owns it, so it is derived here.
     readonly property bool airborne: !NetworkService.radioOn && !BluetoothService.enabled
 
+    // Whether the song tile's tools are installed; probed once.
+    property var songTools: ({})
+
+    readonly property string songScript: Quickshell.shellPath("scripts/song.py")
+
+    readonly property bool musicReady: root.songTools.songrec === true
+        && root.songTools.parec === true
+
+    readonly property Process songProbe: Process {
+        command: [root.songScript, "tools"]
+        running: true
+        stdout: StdioCollector {
+            onStreamFinished: {
+                try {
+                    root.songTools = JSON.parse(text)
+                } catch (error) {
+                    console.warn("Cannot read which tools the song tile needs:", error)
+                }
+            }
+        }
+    }
+
     readonly property list<QtObject> toggleCatalogue: [
         Toggle {
-            key: "wifi"; icon: NetworkService.icon; label: "Wi-Fi"
+            key: "wifi"; icon: NetworkService.icon; label: Tr.t("Wi-Fi")
             detail: NetworkService.connectionName
             active: NetworkService.wifiEnabled
             expandable: true; panel: "wifi"
             action: () => NetworkService.toggleWifi()
         },
         Toggle {
-            key: "bluetooth"; icon: BluetoothService.icon; label: "Bluetooth"
+            key: "bluetooth"; icon: BluetoothService.icon; label: Tr.t("Bluetooth")
             detail: BluetoothService.summary
             active: BluetoothService.enabled
             available: BluetoothService.available
@@ -254,30 +258,36 @@ Singleton {
             action: () => { OsdService.suppressAudio(); BluetoothService.toggle() }
         },
         Toggle {
-            key: "power"; icon: SystemService.powerIcon; label: "Power"
-            detail: SystemService.powerLabel || "Unknown"
+            key: "power"; icon: SystemService.powerIcon; label: Tr.t("Power")
+            detail: Tr.t(SystemService.powerLabel || "Unknown")
             active: SystemService.powerShifted
             available: SystemService.powerAvailable
             expandable: SystemService.powerAvailable; panel: "power"
             action: () => SystemService.togglePower()
         },
         Toggle {
-            key: "focus"; icon: NotificationService.doNotDisturb ? "󰂛" : "󰂚"; label: "Focus"
-            detail: NotificationService.doNotDisturb ? "Silenced" : "Notifying"
+            key: "focus"; icon: NotificationService.doNotDisturb ? "󰂛" : "󰂚"; label: Tr.t("Focus")
+            detail: NotificationService.doNotDisturb ? Tr.t("Silenced") : Tr.t("Notifying")
             active: NotificationService.doNotDisturb
             action: () => NotificationService.toggleDoNotDisturb()
         },
         Toggle {
-            key: "microphone"; icon: AudioService.sourceIcon; label: "Microphone"
-            detail: AudioService.sourceMuted ? "Muted" : "Live"
+            key: "microphone"; icon: AudioService.sourceIcon; label: Tr.t("Microphone")
+            detail: AudioService.sourceMuted ? Tr.t("Muted") : Tr.t("Live")
             active: !AudioService.sourceMuted
             available: AudioService.sourceReady
             expandable: AudioService.sourceReady; panel: "microphone"
             action: () => AudioService.toggleSourceMute()
         },
         Toggle {
-            key: "airplane"; icon: root.airborne ? "󰀝" : "󰀞"; label: "Airplane"
-            detail: root.airborne ? "Radios off" : "Radios on"
+            key: "keepawake"; icon: IdleService.keepAwake ? "󰅶" : "󰾪"; label: Tr.t("Keep awake")
+            detail: IdleService.keepAwake ? Tr.t("No idle lock") : Tr.t("Idle as set")
+            active: IdleService.keepAwake
+            action: () => IdleService.keepAwake = !IdleService.keepAwake
+        },
+        Toggle {
+            key: "airplane"; icon: root.airborne ? "󰀝" : "󰀞"; label: Tr.t("Airplane")
+            detail: root.airborne ? Tr.t("Radios off") : Tr.t("Radios on")
             active: root.airborne
             action: () => {
                 const turnOn = root.airborne
@@ -288,7 +298,7 @@ Singleton {
             }
         },
         Toggle {
-            key: "nightlight"; icon: SunsetService.icon; label: "Night light"
+            key: "nightlight"; icon: SunsetService.icon; label: Tr.t("Night light")
             detail: SunsetService.detail
             active: SunsetService.on
             available: SunsetService.available
@@ -296,21 +306,21 @@ Singleton {
             action: () => SunsetService.toggle()
         },
         Toggle {
-            key: "output"; icon: AudioService.icon; label: "Output"
-            detail: AudioService.muted ? "Muted" : `${AudioService.volume}%`
+            key: "output"; icon: AudioService.icon; label: Tr.t("Output")
+            detail: AudioService.muted ? Tr.t("Muted") : `${AudioService.volume}%`
             active: !AudioService.muted
             available: AudioService.ready
             action: () => AudioService.toggleMute()
         },
         Toggle {
-            key: "dock"; icon: "󱂠"; label: "Dock"
-            detail: SettingsService.dockEnabled ? "Shown" : "Hidden"
+            key: "dock"; icon: "󱂠"; label: Tr.t("Dock")
+            detail: SettingsService.dockEnabled ? Tr.t("Shown") : Tr.t("Hidden")
             active: SettingsService.dockEnabled
             action: () => SettingsService.set("dockEnabled", !SettingsService.dockEnabled)
         },
         Toggle {
-            key: "notch"; icon: "󰌢"; label: "Notch"
-            detail: SettingsService.islandAttached ? "Attached" : "Floating"
+            key: "notch"; icon: "󰌢"; label: Tr.t("Notch")
+            detail: SettingsService.islandAttached ? Tr.t("Attached") : Tr.t("Floating")
             active: SettingsService.islandAttached
             action: () => SettingsService.set("islandAttached", !SettingsService.islandAttached)
         },
@@ -319,8 +329,9 @@ Singleton {
             readonly property var shadows: ["windowShadow", "barShadow", "dockShadow", "widgetShadow"]
             readonly property int count: shadows.filter(key => SettingsService[key]).length
 
-            key: "shadow"; icon: "󰘷"; label: "Shadows"
-            detail: count === shadows.length ? "On" : count === 0 ? "Off" : `${count} of ${shadows.length}`
+            key: "shadow"; icon: "󰘷"; label: Tr.t("Shadows")
+            detail: count === shadows.length ? Tr.t("On") : count === 0 ? Tr.t("Off")
+                : Tr.t("%1 of %2").arg(count).arg(shadows.length)
             active: count > 0
             action: () => {
                 const on = count === 0
@@ -329,14 +340,14 @@ Singleton {
             }
         },
         Toggle {
-            key: "game"; icon: "󰺵"; label: "Game mode"
-            detail: SettingsService.gameMode ? "No effects" : "Off"
+            key: "game"; icon: "󰺵"; label: Tr.t("Game mode")
+            detail: SettingsService.gameMode ? Tr.t("No effects") : Tr.t("Off")
             active: SettingsService.gameMode
             action: () => SettingsService.set("gameMode", !SettingsService.gameMode)
         },
         Toggle {
-            key: "screenshot"; icon: "󰹑"; label: "Capture"
-            detail: "Photo or video"
+            key: "screenshot"; icon: "󰹑"; label: Tr.t("Capture")
+            detail: Tr.t("Photo or video")
             available: CaptureService.can("grim")
             closes: true
             // Waits for the panel to close so it is not in the screenshot.
@@ -344,24 +355,24 @@ Singleton {
             action: () => CaptureService.open("", "", "", CaptureService.settle)
         },
         Toggle {
-            key: "annotate"; icon: "󰏫"; label: "Annotate"
-            detail: "A region, in satty"
+            key: "annotate"; icon: "󰏫"; label: Tr.t("Annotate")
+            detail: Tr.t("A region, in satty")
             available: CaptureService.can("editor")
             closes: true
             action: () => CaptureService.open("region", "photo", "editor",
                                               CaptureService.settle)
         },
         Toggle {
-            key: "text"; icon: "󱄽"; label: "Read text"
-            detail: "A region, to the clipboard"
+            key: "text"; icon: "󱄽"; label: Tr.t("Read text")
+            detail: Tr.t("A region, to the clipboard")
             available: CaptureService.can("text")
             closes: true
             action: () => CaptureService.open("region", "photo", "text",
                                               CaptureService.settle)
         },
         Toggle {
-            key: "picker"; icon: PickerService.icon; label: "Colour"
-            detail: "A pixel"
+            key: "picker"; icon: PickerService.icon; label: Tr.t("Colour")
+            detail: Tr.t("A pixel")
             active: PickerService.picking
             available: PickerService.available
             closes: true
@@ -372,23 +383,31 @@ Singleton {
         },
         Toggle {
             key: "record"; icon: RecorderService.recording ? "󰑊" : "󰕧"
-            label: "Record"
+            label: Tr.t("Record")
             detail: RecorderService.recording
-                ? RecorderService.display : RecorderService.subject
+                ? RecorderService.display : Tr.t(RecorderService.subject)
             active: RecorderService.recording
             available: RecorderService.available
+            expandable: RecorderService.available; panel: "record"
             closes: true
             action: () => RecorderService.toggle()
         },
         Toggle {
-            key: "clearClipboard"; icon: "󰅍"; label: "Clear clipboard"
+            key: "clearClipboard"; icon: "󰅍"; label: Tr.t("Clear clipboard")
             detail: ClipboardService.count === 1
-                ? "1 entry kept" : `${ClipboardService.count} entries kept`
+                ? Tr.t("1 entry kept") : Tr.t("%1 entries kept").arg(ClipboardService.count)
             available: SettingsService.clipboardHistory
                 && ClipboardService.count > 0
             // A one-shot action, which also lists it in the launcher's `>`.
             closes: true
             action: () => ClipboardService.wipe()
+        },
+        Toggle {
+            key: "music"; icon: "󰎈"; label: Tr.t("Song")
+            detail: Tr.t("Listen")
+            available: root.musicReady; listed: root.musicReady
+            closes: true
+            action: () => Quickshell.execDetached([root.songScript, "listen"])
         }
     ]
 
@@ -398,7 +417,7 @@ Singleton {
     function tileOf(key: string): var {
         for (let index = 0; index < root.toggleCatalogue.length; index++) {
             const tile = root.toggleCatalogue[index]
-            if (tile.key === key)
+            if (tile.key === key && tile.listed)
                 return tile
         }
         return null
@@ -429,7 +448,7 @@ Singleton {
     function tileRowsOf(key: string): var {
         const keys = root.toggleKeysOf(key)
         return keys.map(tile => root.tileOf(tile)).concat(
-            root.toggleCatalogue.filter(tile => keys.indexOf(tile.key) < 0))
+            root.toggleCatalogue.filter(tile => tile.listed && keys.indexOf(tile.key) < 0))
     }
 
     // ── A BLOCK'S LIST ──────────────────────────────────────────────────────

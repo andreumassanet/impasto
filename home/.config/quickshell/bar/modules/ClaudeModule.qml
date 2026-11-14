@@ -68,8 +68,8 @@ Item {
         ModuleCard {
             title: "Claude Code"
             subtitle: !ClaudeService.available && !ClaudeService.limitsKnown
-                ? "No sessions on disk"
-                : [ClaudeService.plan, `session ${ClaudeService.resetsIn}`]
+                ? Tr.t("No sessions on disk")
+                : [ClaudeService.plan, Tr.t("session %1").arg(ClaudeService.resetsIn)]
                     .filter(part => part !== "").join(" · ")
 
             mark: RingIndicator {
@@ -91,7 +91,7 @@ Item {
 
             CardLimit {
                 visible: ClaudeService.limitsKnown
-                name: "Session"
+                name: Tr.t("Session")
                 fraction: ClaudeService.sessionFraction
                 resets: ClaudeService.sessionResets
                 tint: ClaudeService.sessionFraction >= 0.85 ? Theme.indicatorBad
@@ -100,7 +100,7 @@ Item {
 
             CardLimit {
                 visible: ClaudeService.limitsKnown
-                name: "Week"
+                name: Tr.t("Week")
                 fraction: ClaudeService.weeklyFraction
                 resets: ClaudeService.weekResets
                 tint: ClaudeService.weeklyFraction >= 0.85 ? Theme.indicatorBad
@@ -114,7 +114,7 @@ Item {
                 CardLimit {
                     required property var modelData
 
-                    name: `${modelData.name} · week`
+                    name: Tr.t("%1 · week").arg(modelData.name)
                     fraction: modelData.used
                     resets: modelData.resets
                     tint: modelData.used >= 0.85 ? Theme.indicatorBad
@@ -123,15 +123,17 @@ Item {
             }
 
             CardFact {
-                name: "This session"
-                value: `${ClaudeService.compact(ClaudeService.blockTokens)} tokens · ${ClaudeService.messages(ClaudeService.blockMessages)}`
+                name: Tr.t("This session")
+                value: Tr.t("%1 tokens · %2").arg(ClaudeService.compact(ClaudeService.blockTokens))
+                    .arg(ClaudeService.messages(ClaudeService.blockMessages))
             }
 
             // Without the account's figures the week is counted too.
             CardFact {
                 visible: !ClaudeService.limitsKnown
-                name: "This week"
-                value: `${ClaudeService.compact(ClaudeService.weekTokens)} tokens · ${ClaudeService.messages(ClaudeService.weekMessages)}`
+                name: Tr.t("This week")
+                value: Tr.t("%1 tokens · %2").arg(ClaudeService.compact(ClaudeService.weekTokens))
+                    .arg(ClaudeService.messages(ClaudeService.weekMessages))
             }
         }
     }

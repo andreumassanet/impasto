@@ -41,11 +41,11 @@ Item {
             // Rows shown before the list scrolls.
             readonly property int shown: Math.min(6, card.kept)
 
-            title: "Notifications"
+            title: Tr.t("Notifications")
             subtitle: {
-                const parts = [card.kept === 0 ? "Nothing new" : `${card.kept} kept`]
+                const parts = [card.kept === 0 ? Tr.t("Nothing new") : Tr.t("%1 kept").arg(card.kept)]
                 if (NotificationService.doNotDisturb)
-                    parts.push("Do Not Disturb")
+                    parts.push(Tr.t("Do Not Disturb"))
                 return parts.join(" · ")
             }
 
@@ -232,14 +232,14 @@ Item {
 
                 PillButton {
                     implicitHeight: Theme.cardRow
-                    text: "Do Not Disturb"
+                    text: Tr.t("Do Not Disturb")
                     active: NotificationService.doNotDisturb
                     onClicked: NotificationService.toggleDoNotDisturb()
                 }
 
                 PillButton {
                     implicitHeight: Theme.cardRow
-                    text: "Clear"
+                    text: Tr.t("Clear")
                     enabled: card.kept > 0
                     onClicked: NotificationService.clearHistory()
                 }

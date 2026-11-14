@@ -13,6 +13,8 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 
+import "../theme"
+
 // Current conditions from wttr.in via `scripts/weather.py`. With no place
 // set, wttr.in geolocates the request's address (no key, no account); the
 // place it resolved is shown on the card.
@@ -41,6 +43,11 @@ Singleton {
     property int feelsLike: 0
     property string description: ""
     property string glyph: ""
+    // The Breeze icon name (`WeatherArt`), "" when the script gave none.
+    property string icon: ""
+    // Where Breeze keeps its full-colour weather icons; the colour icons are
+    // offered only while they are there.
+    readonly property string breezeIcons: "/usr/share/icons/breeze/applets/48"
     property int humidity: 0
     property int wind: 0
     property int low: 0
@@ -66,11 +73,11 @@ Singleton {
             return ""
         const minutes = Math.floor((root.clock.date.getTime() - root.readAt.getTime()) / 60000)
         if (minutes < 2)
-            return "just now"
+            return Tr.t("just now")
         if (minutes < 60)
-            return `${minutes} min ago`
+            return Tr.t("%1 min ago").arg(minutes)
         const hours = Math.round(minutes / 60)
-        return `${hours} h ago`
+        return Tr.t("%1 h ago").arg(hours)
     }
 
     // The next four three-hour blocks, running into tomorrow when today has
@@ -188,6 +195,7 @@ Singleton {
         root.feelsLike = report.feelsLike
         root.description = report.description
         root.glyph = report.glyph
+        root.icon = report.icon ?? ""
         root.humidity = report.humidity
         root.wind = report.wind
         root.low = report.low

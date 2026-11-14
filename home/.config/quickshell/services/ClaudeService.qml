@@ -93,11 +93,11 @@ Singleton {
             return ""
         const minutes = Math.ceil(root.remaining / 60000)
         if (minutes <= 0)
-            return "resets now"
+            return Tr.t("resets now")
         const hours = Math.floor(minutes / 60)
         return hours > 0
-            ? `resets in ${hours} h ${minutes % 60} min`
-            : `resets in ${minutes} min`
+            ? Tr.t("resets in %1 h %2 min").arg(hours).arg(minutes % 60)
+            : Tr.t("resets in %1 min").arg(minutes)
     }
 
     // Coloured only past the warning thresholds, and only against a real
@@ -131,7 +131,7 @@ Singleton {
 
     // "84 messages", "1.2k messages".
     function messages(count: int): string {
-        return `${root.compact(count)} message${count === 1 ? "" : "s"}`
+        return Tr.t(count === 1 ? "%1 message" : "%1 messages").arg(root.compact(count))
     }
 
     // 1.2k, 34k, 8.7M.

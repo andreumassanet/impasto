@@ -170,6 +170,40 @@ SettingsSection {
         visible: root.tab === "layout"
     }
 
+    // The tray items the applications have now, to leave out of the bar.
+    SettingGroup {
+        visible: root.tab === "layout" && TrayService.all.length > 0
+        title: Tr.t("Tray")
+        note: Tr.t("The applications that are showing a tray icon.")
+
+        Repeater {
+            model: ScriptModel {
+                objectProp: "id"
+                values: TrayService.all
+            }
+
+            SettingRow {
+                id: trayRow
+
+                required property var modelData
+                readonly property bool shown: Array.from(SettingsService.trayHidden ?? [])
+                    .indexOf(trayRow.modelData.id) < 0
+
+                label: trayRow.modelData.tooltipTitle || trayRow.modelData.title || trayRow.modelData.id
+                reading: trayRow.modelData.id
+
+                ToggleSwitch {
+                    checked: trayRow.shown
+                    onToggled: checked => {
+                        const rest = Array.from(SettingsService.trayHidden ?? [])
+                            .filter(id => id !== trayRow.modelData.id)
+                        SettingsService.set("trayHidden", checked ? rest : rest.concat([trayRow.modelData.id]))
+                    }
+                }
+            }
+        }
+    }
+
     // ── WORKSPACES ──────────────────────────────────────────────────────────
 
     SettingGroup {
@@ -184,37 +218,28 @@ SettingsSection {
         }
 
         SettingRow {
-            label: Tr.t("Icons")
-            reading: SettingsService.workspaceIcons === "single" ? Tr.t("One per workspace, its last window")
-                : SettingsService.workspaceIcons === "none" ? Tr.t("Numbers only")
-                : Tr.t("The apps of the workspace you are on")
+            label: Tr.t("Applications")
+            reading: SettingsService.workspaceApps
+                ? Tr.t("The focused workspace's icons after its mark")
+                : Tr.t("The marks alone")
 
-            SegmentedControl {
-                options: [
-                    { id: "group", label: Tr.t("All apps") },
-                    { id: "single", label: Tr.t("One") },
-                    { id: "none", label: Tr.t("None") }
-                ]
-                current: SettingsService.workspaceIcons
-                onSelected: id => SettingsService.set("workspaceIcons", id)
+            ToggleSwitch {
+                checked: SettingsService.workspaceApps
+                onToggled: checked => SettingsService.set("workspaceApps", checked)
             }
         }
 
         SettingRow {
-            label: Tr.t("Apps beside the strip")
-            reading: SettingsService.workspaceExtras
-                ? Tr.t("The focused workspace's apps and the special workspace, after the strip")
-                : Tr.t("Only the strip")
-            locked: SettingsService.workspaceStyle === "pills"
-            reason: Tr.t("The pills style always shows them")
+            label: Tr.t("Numbers while Super is held")
+            reading: SettingsService.workspaceNumbersOnSuper
+                ? Tr.t("Holding Super shows each workspace's number")
+                : Tr.t("The style stays as it is")
 
             ToggleSwitch {
-                checked: SettingsService.workspaceExtras
-                onToggled: checked => SettingsService.set("workspaceExtras", checked)
+                checked: SettingsService.workspaceNumbersOnSuper
+                onToggled: checked => SettingsService.set("workspaceNumbersOnSuper", checked)
             }
         }
-
-        IconRules {}
 
         SettingSlider {
             label: Tr.t("Workspaces shown")
