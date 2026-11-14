@@ -42,6 +42,8 @@ Singleton {
     readonly property alias soundEffects: config.soundEffects
     readonly property alias lyrics: config.lyrics
     readonly property alias mediaCover: config.mediaCover
+    // "card" (the piece's card) or "panel" (the wide media panel).
+    readonly property alias mediaDesign: config.mediaDesign
     readonly property alias islandActivities: config.islandActivities
     readonly property alias chipShape: config.chipShape
     readonly property alias chipFigure: config.chipFigure
@@ -621,6 +623,8 @@ Singleton {
 
         // The cover's shape everywhere: "rectangle" or "circle".
         property string mediaCover: "rectangle"
+        // What the media piece opens: its "card" or the wide "panel".
+        property string mediaDesign: "card"
 
         // Null means `besideDefaults`.
         property var islandActivities: null

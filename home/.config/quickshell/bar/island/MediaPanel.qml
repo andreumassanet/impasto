@@ -62,7 +62,7 @@ FocusScope {
         visible: MediaService.available
         spacing: 24
 
-        // The cover. A circle leaves room for its ring of bars.
+        // The cover, in the shape the shell uses.
         Item {
             id: disc
 
@@ -71,7 +71,7 @@ FocusScope {
 
             CoverArt {
                 anchors.centerIn: parent
-                width: Math.min(disc.width, disc.height) - (SettingsService.mediaCover === "circle" ? 84 : 24)
+                width: Math.min(disc.width, disc.height) - 24
                 height: width
                 spin: true
                 cornerScale: 0.6
