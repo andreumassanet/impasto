@@ -72,6 +72,7 @@ Singleton {
     readonly property alias notificationRules: config.notificationRules
     readonly property alias themeTargets: config.themeTargets
     readonly property alias calendarLinks: config.calendarLinks
+    readonly property alias islandSpectrum: config.islandSpectrum
     readonly property alias dockRunning: config.dockRunning
     readonly property alias dockEverywhere: config.dockEverywhere
     readonly property alias dockAutohide: config.dockAutohide
@@ -913,6 +914,10 @@ Singleton {
         // Calendars the calendar card reads, by their iCalendar address:
         // `{ name, url }` each (`AgendaService`).
         property var calendarLinks: []
+
+        // The resting island shows the playing music as moving bars (the
+        // audio analyser runs for them); off, a still note.
+        property bool islandSpectrum: true
 
         // Also show running applications that aren't pinned.
         property bool dockRunning: true
