@@ -36,6 +36,18 @@ hl.config({
 })
 
 
+-- ── RENDER ──────────────────────────────────────────────────────────────────
+
+hl.config({
+    render = {
+        -- No switch to HDR when an application goes full-screen: a panel that
+        -- reports HDR goes black for seconds on each switch, into full screen
+        -- and out of it, for a video that is not HDR at all.
+        cm_auto_hdr = 0,
+    },
+})
+
+
 -- ── DECORATION ──────────────────────────────────────────────────────────────
 
 hl.config({

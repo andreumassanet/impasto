@@ -165,8 +165,8 @@ FocusScope {
                         Layout.fillWidth: true
                         text: !page.chosen ? ""
                             : GamesService.played(page.chosen.id)
-                                ? `Best ${GamesService.bestOf(page.chosen.id)}`
-                                : "Not played yet"
+                                ? Tr.t("Best %1").arg(GamesService.bestOf(page.chosen.id))
+                                : Tr.t("Not played yet")
                         elide: Text.ElideRight
                         font.family: Theme.fontMono
                         font.pixelSize: Theme.fontSizeSmall
@@ -244,7 +244,7 @@ FocusScope {
                 Text {
                     id: tally
 
-                    text: `${round.byMoves ? "Moves" : "Score"} ${round.score}`
+                    text: Tr.t(round.byMoves ? "Moves %1" : "Score %1").arg(round.score)
                     font.family: Theme.fontMono
                     font.pixelSize: Theme.fontSizeSmall
                     font.weight: Font.DemiBold
@@ -273,7 +273,7 @@ FocusScope {
 
                 Text {
                     visible: GamesService.played(root.playing)
-                    text: `Best ${GamesService.bestOf(root.playing)}`
+                    text: Tr.t("Best %1").arg(GamesService.bestOf(root.playing))
                     font.family: Theme.fontMono
                     font.pixelSize: Theme.fontSizeSmall
                     color: Theme.textMuted
@@ -353,7 +353,7 @@ FocusScope {
 
                             Text {
                                 anchors.horizontalCenter: parent.horizontalCenter
-                                text: round.byMoves ? "Solved" : "Game over"
+                                text: Tr.t(round.byMoves ? "Solved" : "Game over")
                                 font.family: Theme.fontFamily
                                 font.pixelSize: Theme.fontSizeLarge
                                 font.weight: Font.DemiBold
@@ -363,8 +363,8 @@ FocusScope {
                             Text {
                                 anchors.horizontalCenter: parent.horizontalCenter
                                 text: round.beaten
-                                    ? `★ New best · ${round.score}`
-                                    : `${round.byMoves ? "Moves" : "Score"} ${round.score}`
+                                    ? `★ ${Tr.t("New best")} · ${round.score}`
+                                    : Tr.t(round.byMoves ? "Moves %1" : "Score %1").arg(round.score)
                                 font.family: Theme.fontMono
                                 font.pixelSize: Theme.fontSizeMedium
                                 color: round.beaten ? Theme.indicatorWarn : Theme.textMuted
@@ -372,7 +372,7 @@ FocusScope {
 
                             PillButton {
                                 anchors.horizontalCenter: parent.horizontalCenter
-                                text: "Play again"
+                                text: Tr.t("Play again")
                                 active: true
                                 onClicked: round.again()
                             }

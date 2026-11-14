@@ -17,9 +17,9 @@ import "../../../components"
 Instrument {
     id: face
 
-    line: BrightnessService.available ? `${BrightnessService.percent}%` : "No backlight"
+    line: BrightnessService.available ? `${BrightnessService.percent}%` : Tr.t("No backlight")
     reading: BrightnessService.available ? `${BrightnessService.percent}%` : "—"
-    note: BrightnessService.available ? "backlight" : "no backlight"
+    note: BrightnessService.available ? Tr.t("backlight") : Tr.t("no backlight")
     filled: true
 
     Fader {

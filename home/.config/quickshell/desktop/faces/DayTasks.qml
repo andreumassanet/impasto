@@ -46,8 +46,10 @@ Item {
     }
 
     readonly property var due: root.shown !== "" ? TasksService.on(root.shown) : []
+    // The day's calendar events (`AgendaService`), listed before its tasks.
+    readonly property var events: root.shown !== "" ? AgendaService.on(root.shown) : []
     readonly property int pending: root.due.filter(task => task.state !== "done").length
-    readonly property string count: `${root.pending} of ${root.due.length} to do`
+    readonly property string count: Tr.t("%1 of %2 to do").arg(root.pending).arg(root.due.length)
 
     // Too narrow for the day and the count on one line.
     readonly property bool narrow: root.titled && root.width < 240
@@ -78,7 +80,7 @@ Item {
                 Layout.fillWidth: true
                 visible: root.titled
                 text: root.shown === "" ? ""
-                    : Qt.formatDate(TasksService.dateOf(root.shown), "dddd d")
+                    : Tr.date(TasksService.dateOf(root.shown), "dddd d")
                 elide: Text.ElideRight
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.fontSizeLarge
@@ -121,20 +123,38 @@ Item {
             spacing: 4
             boundsBehavior: Flickable.StopAtBounds
             model: ScriptModel {
-                values: root.due
+                values: root.events.map((event, index) => Object.assign({ kind: "event", key: `event-${index}` }, event))
+                    .concat(root.due)
                 objectProp: "key"
             }
 
-            delegate: TaskRow {
+            delegate: Loader {
                 required property var modelData
 
                 width: ListView.view.width
-                task: modelData
-                dated: false
-                ink: root.ink
-                onOpened: {
-                    TasksService.open(modelData.key)
-                    ModuleService.requestPanel("board")
+                sourceComponent: modelData.kind === "event" ? eventRow : taskRow
+
+                Component {
+                    id: eventRow
+
+                    EventLine {
+                        event: modelData
+                        ink: root.ink
+                    }
+                }
+
+                Component {
+                    id: taskRow
+
+                    TaskRow {
+                        task: modelData
+                        dated: false
+                        ink: root.ink
+                        onOpened: {
+                            TasksService.open(modelData.key)
+                            ModuleService.requestPanel("board")
+                        }
+                    }
                 }
             }
         }
