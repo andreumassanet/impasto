@@ -44,6 +44,19 @@ SettingsSection {
             value: SettingsService.weatherPlace
             onEdited: value => SettingsService.set("weatherPlace", value.trim())
         }
+
+        SettingRow {
+            label: Tr.t("Units")
+
+            SegmentedControl {
+                options: [
+                    { id: "m", label: "°C" },
+                    { id: "u", label: "°F" }
+                ]
+                current: SettingsService.weatherUnits
+                onSelected: id => SettingsService.set("weatherUnits", id)
+            }
+        }
     }
 
     // The calendars the calendar card reads, by their iCalendar link.

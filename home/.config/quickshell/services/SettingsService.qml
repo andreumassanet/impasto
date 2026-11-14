@@ -73,6 +73,7 @@ Singleton {
     readonly property alias themeTargets: config.themeTargets
     readonly property alias calendarLinks: config.calendarLinks
     readonly property alias islandSpectrum: config.islandSpectrum
+    readonly property alias weatherUnits: config.weatherUnits
     readonly property alias dockRunning: config.dockRunning
     readonly property alias dockEverywhere: config.dockEverywhere
     readonly property alias dockAutohide: config.dockAutohide
@@ -918,6 +919,9 @@ Singleton {
         // The resting island shows the playing music as moving bars (the
         // audio analyser runs for them); off, a still note.
         property bool islandSpectrum: true
+
+        // "m" for °C or "u" for °F. A change is read at once.
+        property string weatherUnits: "m"
 
         // Also show running applications that aren't pinned.
         property bool dockRunning: true
