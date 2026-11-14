@@ -237,11 +237,24 @@ knowing first:
   the launcher, <kbd>SUPER</kbd> <kbd>Q</kbd> closes the window
 - <kbd>SUPER</kbd> <kbd>1</kbd>…<kbd>0</kbd> a workspace, on the screen you are
   on, <kbd>SUPER</kbd> <kbd>TAB</kbd> all of them at once
-- <kbd>SUPER</kbd> <kbd>ALT</kbd> <kbd>←</kbd> <kbd>→</kbd> the other screen,
-  adding <kbd>SHIFT</kbd> takes the workspace with you
+- <kbd>SUPER</kbd> <kbd>CTRL</kbd> <kbd>←</kbd> <kbd>→</kbd> the other screen
 - <kbd>SUPER</kbd> <kbd>X</kbd> the session menu, <kbd>SUPER</kbd> <kbd>L</kbd>
   locks
 - <kbd>SUPER</kbd> <kbd>H</kbd> every other key, on the island
+
+Each modifier adds one meaning, so a key you have not learnt can be guessed
+from one you have:
+
+| Modifier | Means | For example |
+|---|---|---|
+| <kbd>SUPER</kbd> | open, go to, or act on the focused window | <kbd>T</kbd> appearance, <kbd>F</kbd> full screen, <kbd>1</kbd> workspace 1 |
+| <kbd>SHIFT</kbd> | the stronger or second form of the same key | <kbd>Q</kbd> closes, <kbd>SHIFT</kbd> <kbd>Q</kbd> kills; <kbd>SHIFT</kbd> <kbd>F</kbd> maximises; <kbd>SHIFT</kbd> <kbd>Space</kbd> floats |
+| <kbd>ALT</kbd> | the window goes there instead of you | <kbd>ALT</kbd> <kbd>1</kbd> sends it to workspace 1, <kbd>ALT</kbd> <kbd>←</kbd> <kbd>→</kbd> to the next screen |
+| <kbd>CTRL</kbd> | the shell and the screens rather than a window | <kbd>CTRL</kbd> <kbd>B</kbd> the bar, <kbd>CTRL</kbd> <kbd>R</kbd> restarts the shell, <kbd>CTRL</kbd> <kbd>←</kbd> <kbd>→</kbd> focuses a screen |
+
+They combine: <kbd>SUPER</kbd> <kbd>ALT</kbd> <kbd>SHIFT</kbd> <kbd>←</kbd>
+<kbd>→</kbd> takes the whole workspace to the next screen. <kbd>ALT</kbd>
+<kbd>Tab</kbd> and the media keys keep the meaning they have everywhere else.
 
 ## Credits
 

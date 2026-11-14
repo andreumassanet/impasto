@@ -118,8 +118,8 @@ end
 bind(mainMod .. " + Q",           hl.dsp.window.close(), { description = "Windows · Close the focused window" })
 bind(mainMod .. " + SHIFT + Q",   hl.dsp.window.kill(),  { description = "Windows · Kill the focused window" })
 bind(mainMod .. " + F",           hl.dsp.window.fullscreen({ mode = "fullscreen", action = "toggle" }), { description = "Windows · Full screen" })
-bind(mainMod .. " + ALT + F",     hl.dsp.window.fullscreen({ mode = "maximized", action = "toggle" }),  { description = "Windows · Maximise, keeping the bar" })
-bind(mainMod .. " + ALT + Space", float_centred,          { description = "Windows · Float or tile the window" })
+bind(mainMod .. " + SHIFT + F",   hl.dsp.window.fullscreen({ mode = "maximized", action = "toggle" }),  { description = "Windows · Maximise, keeping the bar" })
+bind(mainMod .. " + SHIFT + Space", float_centred,        { description = "Windows · Float or tile the window" })
 bind(mainMod .. " + P",           hl.dsp.window.pseudo(), { description = "Windows · Toggle pseudo-tiling" })
 bind(mainMod .. " + J",           flip_split,             { description = "Windows · Flip the split direction" })
 bind(mainMod .. " + SHIFT + L",   hl.dsp.global("quickshell:layout"), { description = "Windows · Cycle the layout" })
@@ -230,7 +230,7 @@ local function move_to_workspace(index)
     end
 end
 
--- · SUPER + [1-9,0] switches; adding SHIFT moves the window there
+-- · SUPER + [1-9,0] switches; adding ALT sends the window there
 --
 -- Shared, a number brings its workspace to the screen you are on rather than
 -- taking you to the screen it is on: `on_current_monitor` swaps the two
@@ -239,7 +239,7 @@ for i = 1, 10 do
     local key = i % 10  -- 10 maps to the 0 key
     bind(mainMod .. " + " .. key,         to_workspace(i),
          { description = "Workspaces · Go to workspace " .. i })
-    bind(mainMod .. " + SHIFT + " .. key, move_to_workspace(i),
+    bind(mainMod .. " + ALT + " .. key,   move_to_workspace(i),
          { description = "Workspaces · Move the window to workspace " .. i })
 end
 
@@ -319,8 +319,10 @@ local function trade_workspace(direction)
     end
 end
 
-bind(mainMod .. " + ALT + left",          hl.dsp.focus({ monitor = "l" }), { description = "Screens · Focus the screen left" })
-bind(mainMod .. " + ALT + right",         hl.dsp.focus({ monitor = "r" }), { description = "Screens · Focus the screen right" })
+bind(mainMod .. " + CTRL + left",         hl.dsp.focus({ monitor = "l" }), { description = "Screens · Focus the screen left" })
+bind(mainMod .. " + CTRL + right",        hl.dsp.focus({ monitor = "r" }), { description = "Screens · Focus the screen right" })
+bind(mainMod .. " + ALT + left",          hl.dsp.window.move({ monitor = "l" }), { description = "Screens · Send the window to the screen left" })
+bind(mainMod .. " + ALT + right",         hl.dsp.window.move({ monitor = "r" }), { description = "Screens · Send the window to the screen right" })
 bind(mainMod .. " + ALT + SHIFT + left",  trade_workspace("l"), { description = "Screens · Take the workspace to the screen left" })
 bind(mainMod .. " + ALT + SHIFT + right", trade_workspace("r"), { description = "Screens · Take the workspace to the screen right" })
 
