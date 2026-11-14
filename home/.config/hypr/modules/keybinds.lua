@@ -38,11 +38,28 @@ end
 
 local keys = profile_keys()
 
--- `hl.bind`, on the profile's combination for this description.
+-- A combination written the way any spelling of it compares.
+local function normal(combination)
+    return (combination:upper():gsub("%s", ""))
+end
+
+-- Combinations the profile has given to a bind of its own.
+local taken = {}
+for _, combination in pairs(keys) do
+    if combination ~= "" then
+        taken[normal(combination)] = true
+    end
+end
+
+-- `hl.bind`, on the profile's combination for this description. A bind the
+-- profile does not name keeps its fallback only while no named bind holds it.
 local function bind(combination, action, options)
     local chosen = keys[options.description]
     if chosen == nil then
         chosen = combination
+        if taken[normal(chosen)] then
+            chosen = ""
+        end
     end
     if chosen ~= "" then
         hl.bind(chosen, action, options)
