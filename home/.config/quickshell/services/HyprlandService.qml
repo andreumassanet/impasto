@@ -164,6 +164,12 @@ QtObject {
         return root.specialClients.filter(client => client.workspace?.name === name)
     }
 
+    // Whether the overview has anything to show for the special workspaces:
+    // one is open on this screen, or some window sits in one.
+    function specialShown(monitorName: string): bool {
+        return root.specialOn(monitorName) !== "" || root.specialClients.length > 0
+    }
+
     // The screen a workspace is on, or "" for one nobody has made yet.
     function monitorOf(workspaceId: int): string {
         const found = root.named.find(workspace => workspace.id === workspaceId)
@@ -426,6 +432,14 @@ QtObject {
         const workspace = root.activeOn(root.focusedMonitor) || root.activeId
         Hyprland.dispatch(`hl.dsp.window.move({ workspace = ${workspace}, window = "address:${address}", follow = false })`)
         root.focusWindow(address)
+        root.refresh()
+        root.loadClients()
+    }
+
+    // Sends a window to a named workspace (`special:name` for a special one),
+    // leaving the view where it is.
+    function moveClientToNamed(address: string, workspaceName: string): void {
+        Hyprland.dispatch(`hl.dsp.window.move({ workspace = "${workspaceName}", window = "address:${address}", follow = false })`)
         root.refresh()
         root.loadClients()
     }

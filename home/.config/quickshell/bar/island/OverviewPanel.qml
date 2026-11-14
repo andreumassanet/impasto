@@ -11,6 +11,7 @@ import QtQuick
 import QtQuick.Effects
 import QtQuick.Layouts
 import Quickshell
+import Quickshell.Hyprland
 import Quickshell.Wayland
 import Quickshell.Widgets
 
@@ -586,6 +587,99 @@ ColumnLayout {
                 captureSource: ghost.client ? root.toplevelFor(ghost.client) : null
                 live: true
                 paintCursor: false
+            }
+        }
+    }
+
+    // ── SPECIAL WORKSPACES ──────────────────────────────────────────────────
+    //
+    // One strip under the grid for all special workspaces, as the bar's pill
+    // treats them: the apps inside, a click to open or close it, and a drop
+    // target for sending a window there. Special workspaces are named, so the
+    // one acted on is the one open on this screen, else the first with a
+    // window in it, else the default one.
+    readonly property string openSpecial: HyprlandService.specialOn(root.screenName)
+    readonly property string specialName: (root.openSpecial
+        || HyprlandService.specialClients[0]?.workspace.name
+        || "special:scratchpad").replace(/^special:/, "")
+    // The apps in it, one icon per class, resolved as the dock resolves them.
+    readonly property var specialIcons: {
+        const icons = []
+        const seen = []
+        for (const client of HyprlandService.specialClients) {
+            const windowClass = client.class || client.initialClass || ""
+            if (windowClass === "" || seen.indexOf(windowClass) >= 0)
+                continue
+            seen.push(windowClass)
+            const entry = DockService.entryOf(DockService.idFor(windowClass))
+            icons.push(Theme.appIcon(entry ? entry.icon : windowClass.toLowerCase()))
+        }
+        return icons
+    }
+
+    Rectangle {
+        id: specialStrip
+
+        // Drawn only when there is something to show, so the overview is
+        // as it was for anyone who never uses a special workspace.
+        visible: HyprlandService.specialShown(root.screenName)
+        Layout.fillWidth: true
+        Layout.fillHeight: false
+        Layout.preferredHeight: 52
+        radius: Theme.radiusLarge
+        color: specialDrop.containsDrag ? Qt.alpha(Theme.accent, 0.25)
+            : specialMouse.containsMouse ? Theme.islandSurfaceHover : Theme.islandSurface
+        border.color: root.openSpecial !== "" || specialDrop.containsDrag
+            ? Theme.accent : "transparent"
+        border.width: 2
+
+        Row {
+            anchors.centerIn: parent
+            spacing: 8
+
+            Text {
+                anchors.verticalCenter: parent.verticalCenter
+                text: root.specialName === "scratchpad" ? Tr.t("Scratchpad") : root.specialName
+                font.family: Theme.fontFamily
+                font.pixelSize: Theme.fontSizeSmall
+                font.weight: Font.DemiBold
+                color: Theme.text
+            }
+
+            Repeater {
+                model: root.specialIcons
+
+                IconImage {
+                    required property string modelData
+
+                    anchors.verticalCenter: parent.verticalCenter
+                    implicitSize: 24
+                    source: modelData
+                }
+            }
+        }
+
+        MouseArea {
+            id: specialMouse
+
+            anchors.fill: parent
+            hoverEnabled: true
+            cursorShape: Qt.PointingHandCursor
+            onClicked: {
+                root.closed()
+                Hyprland.dispatch(`hl.dsp.workspace.toggle_special("${root.specialName}")`)
+            }
+        }
+
+        DropArea {
+            id: specialDrop
+
+            anchors.fill: parent
+            onDropped: dropped => {
+                if (ghost.client)
+                    HyprlandService.moveClientToNamed(ghost.client.address,
+                                                      `special:${root.specialName}`)
+                dropped.accept()
             }
         }
     }
