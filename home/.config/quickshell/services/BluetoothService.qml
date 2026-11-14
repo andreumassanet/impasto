@@ -13,6 +13,8 @@ import QtQuick
 import Quickshell
 import Quickshell.Bluetooth
 
+import "../theme"
+
 // The default adapter, flattened for the control centre.
 //
 // `enabled` on the adapter is writable, so nothing shells out here: the toggle
@@ -36,15 +38,15 @@ Singleton {
     // A single device is named; several are counted.
     readonly property string summary: {
         if (!root.available)
-            return "Unavailable"
+            return Tr.t("Unavailable")
         if (!root.enabled)
-            return "Off"
+            return Tr.t("Off")
         const connected = root.connectedDevices
         if (connected.length === 0)
-            return "No devices"
+            return Tr.t("No devices")
         if (connected.length === 1)
             return connected[0].name
-        return `${connected.length} devices`
+        return Tr.t("%1 devices").arg(connected.length)
     }
 
     readonly property string icon: {
@@ -98,10 +100,23 @@ Singleton {
         }
     }
 
-    // `connected` is writable on the device.
+    // A device not paired yet is paired, and trusted so it reconnects by
+    // itself; a paired one is connected, a connected one disconnected.
     function connectDevice(device: var): void {
-        if (device)
+        if (!device)
+            return
+        if (!device.paired) {
+            device.trusted = true
+            device.pair()
+        } else {
             device.connected = !device.connected
+        }
+    }
+
+    // Unpairs the device: it is forgotten until paired again.
+    function forgetDevice(device: var): void {
+        if (device)
+            device.forget()
     }
 
     function setDiscovering(on: bool): void {

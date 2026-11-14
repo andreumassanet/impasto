@@ -38,10 +38,12 @@ PanelWindow {
     readonly property bool showing: root.whole
         || (root.selection.width > 1 && root.selection.height > 1)
 
-    visible: CaptureService.active
-    // The screen the photograph was taken of, so the picture is this screen
-    // at its own size and the pointer lands where it looks.
-    screen: CaptureService.screen
+    // This screen's photograph, set by whoever builds the overlay (one per
+    // screen), so the picture is this screen at its own size and the pointer
+    // lands where it looks.
+    readonly property var photo: CaptureService.photos[root.screen?.name ?? ""] ?? null
+
+    visible: CaptureService.active && root.photo !== null
     color: "transparent"
 
     exclusionMode: ExclusionMode.Ignore
@@ -107,8 +109,8 @@ PanelWindow {
             id: shot
 
             anchors.fill: parent
-            source: CaptureService.photo === ""
-                ? "" : `file://${CaptureService.photo}`
+            source: root.photo === null
+                ? "" : `file://${root.photo.path}`
             // Stretch, not fit: the image is this screen at the output's
             // physical resolution.
             fillMode: Image.Stretch
@@ -298,7 +300,8 @@ PanelWindow {
     // compositor's; the corner is added to ask and taken off to answer.
     // hyprctl lists windows bottom to top, so the last match is the visible one.
     function windowUnder(x: real, y: real): rect {
-        const clients = HyprlandService.clientsOn(HyprlandService.activeId)
+        const clients = HyprlandService.clientsOn(
+            HyprlandService.activeOn(root.screen?.name ?? "") || HyprlandService.activeId)
         const left = root.screen?.x ?? 0
         const top = root.screen?.y ?? 0
         let found = Qt.rect(0, 0, 0, 0)
@@ -316,7 +319,7 @@ PanelWindow {
     // cropped.
     function take(): void {
         if (root.whole) {
-            CaptureService.fire(0, 0, 0, 0)
+            CaptureService.fire(root.screen?.name ?? "", 0, 0, 0, 0)
             return
         }
         if (CaptureService.shape === "window" && root.selection.width < 4) {
@@ -327,7 +330,7 @@ PanelWindow {
         }
         if (root.selection.width < 4 || root.selection.height < 4)
             return
-        CaptureService.fire(root.selection.x, root.selection.y,
+        CaptureService.fire(root.screen?.name ?? "", root.selection.x, root.selection.y,
                             root.selection.width, root.selection.height)
     }
 }

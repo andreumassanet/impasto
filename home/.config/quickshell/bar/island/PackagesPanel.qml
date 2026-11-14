@@ -106,8 +106,8 @@ ColumnLayout {
             Text {
                 anchors.verticalCenter: parent.verticalCenter
                 visible: field.text === ""
-                text: root.view === "find" ? "Find a package…"
-                    : (root.view === "updates" ? "Filter the updates…" : "Filter what is installed…")
+                text: Tr.t(root.view === "find" ? "Find a package…"
+                    : (root.view === "updates" ? "Filter the updates…" : "Filter what is installed…"))
                 color: Theme.textMuted
                 font: field.font
             }
@@ -119,7 +119,7 @@ ColumnLayout {
             options: PackagesService.views.map(entry => ({
                 id: entry.id,
                 label: entry.id === "updates" && UpdatesService.count > 0
-                    ? `${entry.label} · ${UpdatesService.count}` : entry.label
+                    ? `${Tr.t(entry.label)} · ${UpdatesService.count}` : Tr.t(entry.label)
             }))
             onSelected: id => {
                 PackagesService.view = id
@@ -150,16 +150,16 @@ ColumnLayout {
             text: {
                 const term = PackagesService.term
                 if (root.view === "updates")
-                    return term === "" ? "Everything is up to date." : "No pending update is called that."
+                    return Tr.t(term === "" ? "Everything is up to date." : "No pending update is called that.")
                 if (root.view === "installed")
-                    return !PackagesService.loaded ? "Reading the database…" : "Nothing installed is called that."
+                    return Tr.t(!PackagesService.loaded ? "Reading the database…" : "Nothing installed is called that.")
                 if (term === "")
-                    return "Type a name — the repositories and the AUR both answer."
+                    return Tr.t("Type a name — the repositories and the AUR both answer.")
                 if (term.length < 2)
-                    return "Two letters at least."
+                    return Tr.t("Two letters at least.")
                 if (PackagesService.searching || term !== PackagesService.foundTerm)
-                    return "Searching…"
-                return "Nothing is called that."
+                    return Tr.t("Searching…")
+                return Tr.t("Nothing is called that.")
             }
             font.family: Theme.fontFamily
             font.pixelSize: Theme.fontSizeRegular
@@ -283,7 +283,7 @@ ColumnLayout {
 
                             Text {
                                 visible: row.modelData.outOfDate === true
-                                text: "out of date"
+                                text: Tr.t("out of date")
                                 font.family: Theme.fontFamily
                                 font.pixelSize: Theme.fontSizeLabel
                                 color: Theme.indicatorWarn
@@ -339,7 +339,7 @@ ColumnLayout {
                         // like an error.
                         text: root.view === "installed"
                             ? ((row.modelData.size ?? "").startsWith("0.00") ? "" : (row.modelData.size ?? ""))
-                            : (row.aur ? `${row.modelData.votes ?? 0} votes` : "")
+                            : (row.aur ? Tr.t("%1 votes").arg(row.modelData.votes ?? 0) : "")
                         font.family: Theme.fontFamily
                         font.pixelSize: Theme.fontSizeSmall
                         color: Theme.textMuted
@@ -347,7 +347,7 @@ ColumnLayout {
 
                     Text {
                         visible: root.view === "find" && row.isInstalled && !action.visible
-                        text: "Installed"
+                        text: Tr.t("Installed")
                         font.family: Theme.fontFamily
                         font.pixelSize: Theme.fontSizeSmall
                         color: Theme.accent
@@ -361,7 +361,7 @@ ColumnLayout {
                         visible: !row.update && (row.isInstalled
                             ? row.hovered
                             : row.selected && PackagesService.installable(row.modelData))
-                        text: row.isInstalled ? "Remove" : "Install"
+                        text: Tr.t(row.isInstalled ? "Remove" : "Install")
                         icon: row.isInstalled ? "󰆴" : "󰇚"
                         active: !row.isInstalled
                         enabled: !PackagesService.busy
@@ -395,8 +395,8 @@ ColumnLayout {
             current: PackagesService.installedFilter
             enabled: PackagesService.term === ""
             options: [
-                { id: "mine", label: `By you · ${PackagesService.mineCount}` },
-                { id: "all",  label: `All · ${PackagesService.installed.length}` },
+                { id: "mine", label: `${Tr.t("By you")} · ${PackagesService.mineCount}` },
+                { id: "all",  label: `${Tr.t("All")} · ${PackagesService.installed.length}` },
                 { id: "aur",  label: `AUR · ${PackagesService.aurCount}` }
             ]
             onSelected: id => {
@@ -413,29 +413,29 @@ ColumnLayout {
                     const aur = UpdatesService.updates.filter(row => row.source === "aur").length
                     // The fallback reads the last-synced database, so zero
                     // from it does not mean up to date.
-                    const parts = [`${UpdatesService.count - aur} from the repositories`
-                        + (UpdatesService.tool === "pacman" ? " as of the last sync" : "")]
-                    parts.push(UpdatesService.aur ? `${aur} from the AUR` : "the AUR did not answer")
+                    const parts = [Tr.t(UpdatesService.tool === "pacman" ? "%1 from the repositories as of the last sync"
+                        : "%1 from the repositories").arg(UpdatesService.count - aur)]
+                    parts.push(UpdatesService.aur ? Tr.t("%1 from the AUR").arg(aur) : Tr.t("the AUR did not answer"))
                     if (UpdatesService.checking)
-                        parts.push("checking…")
+                        parts.push(Tr.t("checking…"))
                     else if (UpdatesService.age !== "")
-                        parts.push(`checked ${UpdatesService.age}`)
+                        parts.push(Tr.t("checked %1").arg(UpdatesService.age))
                     return parts.join(" · ")
                 }
                 if (root.view === "installed")
                     return PackagesService.term !== ""
-                        ? `${root.rows.length} of ${PackagesService.installed.length}` : ""
+                        ? Tr.t("%1 of %2").arg(root.rows.length).arg(PackagesService.installed.length) : ""
                 if (PackagesService.foundTerm === "" || PackagesService.foundNote === "short")
                     return PackagesService.helper !== ""
-                        ? `Installed with ${PackagesService.helper}, in a terminal`
-                        : "No AUR helper — the repositories only"
-                const parts = [`${PackagesService.foundRepos} in the repositories`]
+                        ? Tr.t("Installed with %1, in a terminal").arg(PackagesService.helper)
+                        : Tr.t("No AUR helper — the repositories only")
+                const parts = [Tr.t("%1 in the repositories").arg(PackagesService.foundRepos)]
                 if (PackagesService.foundNote === "offline")
-                    parts.push("the AUR did not answer")
+                    parts.push(Tr.t("the AUR did not answer"))
                 else if (PackagesService.foundNote === "prefix")
-                    parts.push(`the first ${PackagesService.foundAur} in the AUR that start with it`)
+                    parts.push(Tr.t("the first %1 in the AUR that start with it").arg(PackagesService.foundAur))
                 else
-                    parts.push(`${PackagesService.foundAur} in the AUR`)
+                    parts.push(Tr.t("%1 in the AUR").arg(PackagesService.foundAur))
                 return parts.join(" · ")
             }
             horizontalAlignment: root.view === "installed" ? Text.AlignRight : Text.AlignLeft
@@ -446,7 +446,7 @@ ColumnLayout {
 
         PillButton {
             visible: root.view === "updates"
-            text: UpdatesService.checking ? "Checking…" : "Check"
+            text: Tr.t(UpdatesService.checking ? "Checking…" : "Check")
             icon: "󰑐"
             enabled: !UpdatesService.checking
             implicitHeight: 26
@@ -455,7 +455,7 @@ ColumnLayout {
 
         PillButton {
             visible: root.view === "updates"
-            text: "Update everything"
+            text: Tr.t("Update everything")
             icon: "󰚰"
             active: true
             enabled: UpdatesService.count > 0 && !PackagesService.busy

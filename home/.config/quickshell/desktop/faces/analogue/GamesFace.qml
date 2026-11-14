@@ -19,9 +19,9 @@ Instrument {
 
     readonly property var last: GamesService.entry(GamesService.lastPlayed)
 
-    line: face.last ? `${face.last.name} · best ${GamesService.bestOf(face.last.id)}` : "Nothing played yet"
+    line: face.last ? `${face.last.name} · ${Tr.t("best")} ${GamesService.bestOf(face.last.id)}` : Tr.t("Nothing played yet")
     reading: face.last ? `${GamesService.bestOf(face.last.id)}` : "—"
-    note: face.last ? `${face.last.name} · best` : "nothing played yet"
+    note: face.last ? `${face.last.name} · ${Tr.t("best")}` : Tr.t("nothing played yet")
     filled: true
 
     Joystick {
@@ -34,7 +34,7 @@ Instrument {
         PillButton {
             anchors.left: parent.left
             anchors.top: parent.top
-            text: "Play"
+            text: Tr.t("Play")
             implicitHeight: 28
             onClicked: ModuleService.requestPanel("games")
         }

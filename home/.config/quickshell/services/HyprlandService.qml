@@ -60,95 +60,15 @@ QtObject {
     // screen's ten, and past them any that outlived its screen.
     readonly property int span: root.perScreen
         ? Math.max(10 * Math.max(1, root.screenOrder.length),
-                   ...root.named.map(workspace => workspace.id))
+                   ...root.namedIds)
         : root.maximum
-
-    // ── OVERVIEW ────────────────────────────────────────────────────────────
-    //
-    // The workspaces the overview draws: every screen's ten, one screen after
-    // another, so a screen's overview shows the whole desk and a window can be
-    // dropped on a workspace of another screen. Shared, the one set.
-    readonly property bool manyScreens: root.perScreen && root.screenOrder.length > 1
-
-    // The overview's rows, each a ten: every screen's own, then a further ten
-    // for each other block of ten the screen holds a workspace in, occupied or
-    // active (a screen on 23, or with windows on 31). Shared, one block of
-    // everything.
-    //   { screen, base, label }
-    readonly property var overviewBlocks: {
-        if (!root.perScreen)
-            return [{ screen: "", base: 0, label: "" }]
-        const screens = root.screenOrder.length > 0 ? root.screenOrder : [""]
-        const owned = screens.map((name, at) => at * 10)
-        const blocks = []
-        for (let at = 0; at < screens.length; at++) {
-            const name = screens[at]
-            blocks.push({ screen: name, base: owned[at], label: name })
-            const extra = []
-            const note = id => {
-                if (!(id > 0))
-                    return
-                const base = Math.floor((id - 1) / 10) * 10
-                if (owned.indexOf(base) < 0 && extra.indexOf(base) < 0)
-                    extra.push(base)
-            }
-            for (const id of root.occupiedIds) {
-                if (root.monitorOf(id) === name)
-                    note(id)
-            }
-            note(root.activeOn(name))
-            extra.sort((left, right) => left - right)
-            for (const base of extra)
-                blocks.push({ screen: name, base: base, label: `${name} · ${base + 1}–${base + 10}` })
-        }
-        return blocks
-    }
-
-    readonly property var overviewIds: {
-        const ids = []
-        if (!root.perScreen) {
-            for (let own = 1; own <= root.maximum; own++)
-                ids.push(own)
-            return ids
-        }
-        for (const block of root.overviewBlocks) {
-            for (let own = 1; own <= 10; own++)
-                ids.push(block.base + own)
-        }
-        return ids
-    }
-
-    // A row to each block, ten wide, once there is more than one block: five
-    // wide and two tall for each would not fit a screen.
-    readonly property bool manyBlocks: root.perScreen && root.overviewBlocks.length > 1
-    readonly property int overviewColumns: root.manyBlocks ? 10 : Math.min(5, root.maximum)
-    readonly property int overviewRows: Math.ceil(root.overviewIds.length / Math.max(1, root.overviewColumns))
-    readonly property int overviewRowHeight: root.manyBlocks ? 94 : 190
-    // Past this many rows the overview scrolls.
-    readonly property int overviewRowsShown: root.manyBlocks ? 5 : root.overviewRows
-    // The scratchpad tiles: those of Settings → Scratchpads, then any other
-    // special workspace that has a window in it.
-    readonly property var overviewPads: {
-        const configured = Array.from(SettingsService.overviewScratchpads ?? [])
-        const known = configured.map(pad => pad.name)
-        const extra = []
-        for (const client of root.specialClients) {
-            const name = String(client.workspace?.name ?? "").replace(/^special:/, "")
-            if (name !== "" && known.indexOf(name) < 0 && extra.indexOf(name) < 0)
-                extra.push(name)
-        }
-        return configured.concat(extra.map(name => ({ name: name, label: name, glyph: "", keys: "", command: "" })))
-    }
-    // Scratchpad tiles to a row under the workspaces; more go on a new row.
-    readonly property int overviewPadsPerRow: 5
-    readonly property int overviewPadHeight: 84
 
     // ── SUPER ───────────────────────────────────────────────────────────────
     //
     // Whether Super is down, and when it went down (0 when nothing is bound to
     // report it). Fed by the `workspaceNumber` shortcut; the workspace strip
-    // shows every number while it is true, and a quick `superTap` after it
-    // opens the launcher.
+    // can show its numbers while it is true, and a quick `superTap` after it
+    // can open the launcher.
     property bool superHeld: false
     property real superAt: 0
 
@@ -157,6 +77,12 @@ QtObject {
 
     // Every workspace as hyprctl lists it, for the name an event carries.
     property var named: []
+    // The ids of the numbered ones. Hyprland 0.57 lists a special workspace
+    // with `"id": null` (older ones gave it a negative id), and one such id
+    // turns a `Math.max` over them into NaN: the strips drew no slots at all.
+    readonly property var namedIds: root.named
+        .map(workspace => workspace.id)
+        .filter(id => typeof id === "number" && id > 0)
 
     // The screen with the keyboard, by connector name. Quickshell's own
     // `Hyprland.focusedMonitor` is empty here for the reason its monitor list
@@ -225,11 +151,17 @@ QtObject {
             `hl.dsp.focus({ workspace = ${workspaceId}, on_current_monitor = true })`)
     }
 
-    // The special workspace open on a screen (`special:name`), or "" when none
-    // is, or the screen is unknown. From the monitor list the events keep.
+    // The special workspace open over a screen (`special:name`), or "" when
+    // none is; the dock's minimized windows are not one.
     function specialOn(monitorName: string): string {
         const monitor = root.monitors.find(candidate => candidate.name === monitorName)
-        return monitor?.specialWorkspace?.name ?? ""
+        const name = monitor?.specialWorkspace?.name ?? ""
+        return name === root.minimizedWorkspace ? "" : name
+    }
+
+    // The windows in a special workspace, by its name.
+    function specialClientsOf(name: string): var {
+        return root.specialClients.filter(client => client.workspace?.name === name)
     }
 
     // Whether the overview has anything to show for the special workspaces:
@@ -342,6 +274,15 @@ QtObject {
 
     property var clients: []
 
+    // Windows minimized from the dock wait here, off every strip and
+    // overview, and the dock brings them back.
+    readonly property string minimizedWorkspace: "special:minimized"
+    property var minimizedClients: []
+
+    // The windows on the other special workspaces — the scratchpad and any
+    // a user adds — which `clients` leaves out.
+    property var specialClients: []
+
     // Keep the client list refreshed on every window event, even when it is
     // empty. Without it, refreshes only happen while the list is non-empty,
     // which is fine for the overview but freezes the dock once the last
@@ -393,8 +334,13 @@ QtObject {
                     return
                 root.clients = list.filter(client => client.mapped && client.workspace
                     && client.workspace.id > 0)
-                root.specialClients = list.filter(client => client.mapped
-                    && String(client.workspace?.name ?? "").startsWith("special:"))
+                root.minimizedClients = list.filter(client => client.mapped
+                    && client.workspace?.name === root.minimizedWorkspace)
+                root.specialClients = list.filter(client => {
+                    const name = String(client.workspace?.name ?? "")
+                    return client.mapped && name.startsWith("special:")
+                        && name !== root.minimizedWorkspace
+                })
             }
         }
     }
@@ -431,6 +377,11 @@ QtObject {
 
     function clientsOn(workspaceId: int): var {
         return root.clients.filter(client => client.workspace.id === workspaceId)
+    }
+
+    // Shows or hides a special workspace by its name without `special:`.
+    function toggleSpecial(name: string): void {
+        Hyprland.dispatch(`hl.dsp.workspace.toggle_special("${name}")`)
     }
 
     function focusWindow(address: string): void {
@@ -475,6 +426,24 @@ QtObject {
     // `silent = true` but ignores it and switches workspace anyway.
     function moveClient(address: string, workspaceId: int): void {
         Hyprland.dispatch(`hl.dsp.window.move({ workspace = ${workspaceId}, window = "address:${address}", follow = false })`)
+        root.refresh()
+        root.loadClients()
+    }
+
+    // Away to the hidden workspace. Hyprland hands the focus to the next
+    // window where it was; focusing that workspace by hand would be the
+    // workspace already shown, which goes back to the previous one.
+    function minimizeWindow(address: string): void {
+        Hyprland.dispatch(`hl.dsp.window.move({ workspace = "${root.minimizedWorkspace}", window = "address:${address}", follow = false })`)
+        root.refresh()
+        root.loadClients()
+    }
+
+    // Back onto the workspace the focused screen is showing, focused.
+    function restoreWindow(address: string): void {
+        const workspace = root.activeOn(root.focusedMonitor) || root.activeId
+        Hyprland.dispatch(`hl.dsp.window.move({ workspace = ${workspace}, window = "address:${address}", follow = false })`)
+        root.focusWindow(address)
         root.refresh()
         root.loadClients()
     }
@@ -538,6 +507,7 @@ QtObject {
                 root.occupiedIds = workspaces
                     .filter(workspace => workspace.windows > 0)
                     .map(workspace => workspace.id)
+                    .filter(id => typeof id === "number" && id > 0)
                 root.named = workspaces
             }
         }
@@ -587,6 +557,13 @@ QtObject {
                 root.focusedMonitor = moved[0]
                 root.noteActive(moved[0], root.idNamed(moved[1] ?? ""))
                 break
+            // `NAME,MONITOR`, the name empty when it closes: a special
+            // workspace opened over a screen or went away, with its windows.
+            case "activespecial":
+            case "activespecialv2":
+                root.loadMonitors()
+                root.loadClients()
+                break
             // `WORKSPACEID,WORKSPACENAME,MONITORNAME`: a whole workspace has
             // gone to another screen, so both screens are showing something
             // else now. A screen plugged in is showing one from the start.
@@ -599,6 +576,12 @@ QtObject {
             case "monitoraddedv2":
                 root.loadMonitors()
                 root.refresh()
+                break
+            // `1` or `0`: a window went full-screen or came back. The bar
+            // and the dock step aside for one, and only the client list
+            // says which screen it is on.
+            case "fullscreen":
+                root.clientsSoon.restart()
                 break
             // Focus changes only affect the client list, and only watchers
             // need it; skipping it otherwise saves a process per alt-tab.

@@ -258,12 +258,12 @@ Item {
 
                 anchors.left: picture.right
                 anchors.leftMargin: 18
-                anchors.right: send.left
-                anchors.rightMargin: 12
+                anchors.right: reveal.left
+                anchors.rightMargin: 8
                 anchors.verticalCenter: parent.verticalCenter
                 opacity: root.typing ? 1 : 0
 
-                echoMode: TextInput.Password
+                echoMode: reveal.shown ? TextInput.Normal : TextInput.Password
                 passwordCharacter: "●"
                 passwordMaskDelay: 0
                 enabled: !root.authenticating
@@ -287,6 +287,8 @@ Item {
 
                 // Typing again clears the failure state.
                 onTextChanged: {
+                    if (field.text === "")
+                        reveal.shown = false
                     if (root.failed && field.text !== "")
                         root.dismissed()
                 }
@@ -303,6 +305,48 @@ Item {
                         return
                     event.accepted = !root.awake
                     root.woke()
+                }
+            }
+
+            // Shows what is typed, or hides it again; hidden again whenever
+            // the field empties.
+            Rectangle {
+                id: reveal
+
+                property bool shown: false
+
+                anchors.right: send.left
+                anchors.rightMargin: 4
+                anchors.verticalCenter: parent.verticalCenter
+                width: 36
+                height: 36
+                radius: width / 2
+                opacity: root.typing ? 1 : 0
+                visible: opacity > 0
+                color: revealMouse.containsMouse ? Theme.islandSurfaceHover : "transparent"
+
+                Behavior on opacity {
+                    NumberAnimation { duration: Theme.durationFast; easing.type: Theme.easing }
+                }
+
+                Text {
+                    anchors.centerIn: parent
+                    text: reveal.shown ? "󰈉" : "󰈈"
+                    font.family: Theme.fontMono
+                    font.pixelSize: Theme.fontSizeLarge
+                    color: Theme.textMuted
+                }
+
+                MouseArea {
+                    id: revealMouse
+
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: {
+                        reveal.shown = !reveal.shown
+                        field.forceActiveFocus()
+                    }
                 }
             }
 

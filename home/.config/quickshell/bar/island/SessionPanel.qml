@@ -130,7 +130,7 @@ FocusScope {
 
                         Text {
                             anchors.horizontalCenter: parent.horizontalCenter
-                            text: tile.isArmed ? "Confirm" : tile.modelData.label
+                            text: Tr.t(tile.isArmed ? "Confirm" : tile.modelData.label)
                             font.family: Theme.fontFamily
                             font.pixelSize: Theme.fontSizeSmall
                             font.weight: tile.isSelected ? Font.DemiBold : Font.Normal
