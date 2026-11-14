@@ -184,7 +184,7 @@ Singleton {
     // state is read when the panel opens, and only from a running instance,
     // because asking one that is not running would start it.
     property bool easyEffectsInstalled: false
-    readonly property bool easyEffectsAvailable: SettingsService.soundEffects && root.easyEffectsInstalled
+    readonly property bool easyEffectsAvailable: root.easyEffectsInstalled
     property bool easyEffectsRunning: false
     property bool easyEffectsBypassed: false
 

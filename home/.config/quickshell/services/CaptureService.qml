@@ -57,12 +57,8 @@ Singleton {
     // from the photo. It is the island's close animation, 0 with motion off.
     readonly property int settle: Theme.durationIslandGone
 
-    // Every screen is photographed (`captureScreens` is "all") or only the one
-    // with the keyboard when the key was pressed. With every screen, the
-    // surface opens on all of them and the first selection made on any one
-    // wins.
-    readonly property bool everyScreen: SettingsService.captureScreens === "all"
-
+    // Every screen is photographed, the surface opens on all of them, and
+    // the first selection made on any one wins.
     // The screen picked, held for as long as the capture lasts.
     property string screenName: ""
 
@@ -80,12 +76,7 @@ Singleton {
 
     // Screens to photograph now.
     function screensToGrab(): var {
-        if (root.everyScreen)
-            return Quickshell.screens.map(screen => screen.name)
-        const name = HyprlandService.focusedMonitor
-            || Quickshell.screens[0]?.name
-            || ""
-        return name === "" ? [] : [name]
+        return Quickshell.screens.map(screen => screen.name)
     }
 
     // Drops the photos, except the one at `keep`.

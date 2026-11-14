@@ -127,9 +127,8 @@ Singleton {
     readonly property var topButtons: root.topIds.map(id => root.topEntry(id))
     readonly property bool hasTop: root.topButtons.length > 0
     // The time and the battery on the row's left.
-    readonly property bool topClock: SettingsService.controlsClock === true
-    readonly property bool topBattery: SettingsService.controlsBattery === true
-        && BatteryService.available
+    readonly property bool topClock: true
+    readonly property bool topBattery: BatteryService.available
     // While arranging the row is there even empty, as something to click and
     // fill (`TopRowInspector`); `selected` is "top" while it is chosen.
     readonly property bool topShown: root.hasTop || root.topClock || root.topBattery

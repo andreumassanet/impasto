@@ -98,17 +98,6 @@ SettingsSection {
         }
 
         SettingRow {
-            label: Tr.t("Grid in zen")
-            reading: SettingsService.zenGrid
-                ? Tr.t("Grows over the bar's band") : Tr.t("Stays below the bar")
-
-            ToggleSwitch {
-                checked: SettingsService.zenGrid
-                onToggled: checked => SettingsService.set("zenGrid", checked)
-            }
-        }
-
-        SettingRow {
             label: Tr.t("Shadow")
             reading: SettingsService.widgetShadow
                 ? Tr.t("Lifted off the wallpaper") : Tr.t("Flat")

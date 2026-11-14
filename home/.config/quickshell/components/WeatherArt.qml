@@ -13,8 +13,8 @@ import "../services"
 
 // Breeze's full-colour weather icon, by the name `WeatherService` gives
 // ("few-clouds", "showers-night"…), drawn over the glyph Text it is a child
-// of, while Settings → Modules → Weather → Icons says colour. The glyph hides
-// itself while `shown`; without Breeze, or without a name, it stays.
+// of. The glyph hides itself while `shown`; without Breeze, or without a
+// name, it stays.
 Image {
     id: root
 
@@ -22,7 +22,7 @@ Image {
     // How much larger than the glyph's type the picture is drawn.
     property real grow: 1.2
 
-    readonly property bool wanted: root.name !== "" && SettingsService.weatherIcons === "colour"
+    readonly property bool wanted: root.name !== ""
     readonly property bool shown: root.wanted && root.status === Image.Ready
 
     anchors.centerIn: parent

@@ -89,20 +89,6 @@ SettingsSection {
                 }
             }
 
-            SettingRow {
-                // Offered only where there is an EasyEffects to show.
-                visible: AudioService.easyEffectsInstalled
-                label: Tr.t("Sound effects row")
-                reading: SettingsService.soundEffects
-                    ? Tr.t("The sound panel shows whether EasyEffects is on, when it is installed")
-                    : Tr.t("The sound panel stays to outputs, inputs and applications")
-
-                ToggleSwitch {
-                    checked: SettingsService.soundEffects
-                    onToggled: checked => SettingsService.set("soundEffects", checked)
-                }
-            }
-
         }
 
         // ── CLOCK ───────────────────────────────────────────────────────────

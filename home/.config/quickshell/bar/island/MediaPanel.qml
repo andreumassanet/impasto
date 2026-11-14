@@ -16,8 +16,7 @@ import "../../theme"
 import "../../services"
 import "../../components"
 
-// The other design of the media piece (`SettingsService.mediaDesign`): a wide
-// panel in place of the piece's card. The cover, in the shape the shell uses
+// What the media piece opens: a wide panel. The cover, in the shape the shell uses
 // (`mediaCover`) and turning with the music when round, then the track, a
 // seek bar, the controls, a switcher when more than one player is around, and
 // the lyrics beside them, the line being sung large.

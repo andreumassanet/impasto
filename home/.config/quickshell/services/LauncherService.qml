@@ -264,18 +264,17 @@ QtObject {
         // A sum typed without the calculator's prefix, first. It needs a
         // digit and an operator, so a bare number or a name is not taken for
         // one.
-        const sum = SettingsService.launcherBareMath === true && /\d/.test(raw) && /[+\-*/%]/.test(raw)
+        const sum = /\d/.test(raw) && /[+\-*/%]/.test(raw)
             ? root.calculate(raw) : []
         // Every match: the panel caps its visible height at `maxResults`
         // rows and the rest scrolls, as the doors' list does.
         const applications = sum.concat(root.rank(term))
-        return SettingsService.launcherFallbacks
-            ? applications.concat(root.fallbacks(raw)) : applications
+        return applications.concat(root.fallbacks(raw))
     }
 
     // ── FALLBACK ROWS ───────────────────────────────────────────────────────
     //
-    // Under the applications, when `launcherFallbacks` is on: open what looks
+    // Under the applications: open what looks
     // like an address, search the web, or run the text as a command, in the
     // background or in a terminal that stays open. Each row carries its
     // `argv`, not a function, which a model would drop on the way to a click.
