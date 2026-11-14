@@ -11,7 +11,6 @@ pragma Singleton
 
 import QtQuick
 import Quickshell
-import Quickshell.Io
 
 import "../theme"
 
@@ -44,16 +43,8 @@ Singleton {
                 "--expire-time=2500", "--hint=boolean:transient:true", "--", label])
     }
 
-    // The new kinds of change, by group, each with its own switch.
-    readonly property var groups: ({
-        audio: SettingsService.osdAudio,
-        radios: SettingsService.osdRadios,
-        locks: SettingsService.osdLocks,
-        session: SettingsService.osdSession
-    })
-
-    function announce(group: string, icon: string, label: string): void {
-        if (root.armed && root.style !== "off" && root.groups[group])
+    function announce(icon: string, label: string): void {
+        if (root.armed && root.style !== "off")
             root.requested(icon, label, -1)
     }
 
@@ -161,7 +152,7 @@ Singleton {
                 root.micSource = AudioService.source
                 return
             }
-            root.announce("audio", AudioService.sourceIcon,
+            root.announce(AudioService.sourceIcon,
                           AudioService.sourceMuted ? Tr.t("Microphone muted") : Tr.t("Microphone live"))
         }
     }
@@ -174,7 +165,7 @@ Singleton {
 
     readonly property Timer deviceTimer: Timer {
         interval: 300
-        onTriggered: root.announce("audio", root.deviceIcon, root.deviceLabel)
+        onTriggered: root.announce(root.deviceIcon, root.deviceLabel)
     }
 
     readonly property Connections devices: Connections {
@@ -212,13 +203,13 @@ Singleton {
             const wifiMoved = wifi !== root.wasWifi
             const bluetoothMoved = bluetooth !== root.wasBluetooth
             if (wifiMoved && bluetoothMoved && wifi === bluetooth)
-                root.announce("radios", wifi ? "󰀞" : "󰀝",
+                root.announce(wifi ? "󰀞" : "󰀝",
                               wifi ? Tr.t("Airplane mode off") : Tr.t("Airplane mode on"))
             else if (wifiMoved)
-                root.announce("radios", wifi ? "󰖩" : "󰖪",
+                root.announce(wifi ? "󰖩" : "󰖪",
                               wifi ? Tr.t("Wi-Fi on") : Tr.t("Wi-Fi off"))
             else if (bluetoothMoved)
-                root.announce("radios", bluetooth ? "󰂯" : "󰂲",
+                root.announce(bluetooth ? "󰂯" : "󰂲",
                               bluetooth ? Tr.t("Bluetooth on") : Tr.t("Bluetooth off"))
             root.wasWifi = wifi
             root.wasBluetooth = bluetooth
@@ -238,7 +229,7 @@ Singleton {
     readonly property Connections idle: Connections {
         target: IdleService
         function onKeepAwakeChanged(): void {
-            root.announce("session", IdleService.keepAwake ? "󰅶" : "󰾪",
+            root.announce(IdleService.keepAwake ? "󰅶" : "󰾪",
                           IdleService.keepAwake ? Tr.t("Keep awake on") : Tr.t("Keep awake off"))
         }
     }
@@ -246,7 +237,7 @@ Singleton {
     readonly property Connections focus: Connections {
         target: NotificationService
         function onDoNotDisturbChanged(): void {
-            root.announce("session", NotificationService.doNotDisturb ? "󰂛" : "󰂚",
+            root.announce(NotificationService.doNotDisturb ? "󰂛" : "󰂚",
                           NotificationService.doNotDisturb ? Tr.t("Do not disturb on") : Tr.t("Do not disturb off"))
         }
     }
@@ -254,72 +245,8 @@ Singleton {
     readonly property Connections nightLight: Connections {
         target: SettingsService
         function onNightLightChanged(): void {
-            root.announce("session", SunsetService.icon,
+            root.announce(SunsetService.icon,
                           SettingsService.nightLight ? Tr.t("Night light on") : Tr.t("Night light off"))
-        }
-    }
-
-    // ── LOCK KEYS ───────────────────────────────────────────────────────────
-    //
-    // Nothing pushes these: the compositor sends no event for a lock key. The
-    // keyboard's LEDs are the state, so they are read in place (no process)
-    // twice a second, and only while the group is on.
-    //
-    // shortcut: the first keyboard found at startup stands for all, since the
-    // kernel keeps their LEDs in step; one plugged in later is not looked for
-    // until the shell restarts.
-    property string ledDirectory: ""
-
-    readonly property Process ledProbe: Process {
-        command: ["sh", "-c", "ls -d /sys/class/leds/*::capslock 2>/dev/null | head -1"]
-        running: true
-        stdout: StdioCollector {
-            // "/sys/class/leds/input3::capslock" becomes "/sys/class/leds/input3::".
-            onStreamFinished: root.ledDirectory = text.trim().replace(/capslock$/, "")
-        }
-    }
-
-    component LockKey: FileView {
-        id: key
-
-        required property string led
-        required property string icon
-        required property string name
-
-        property bool known: false
-        property bool on: false
-
-        path: root.ledDirectory === "" ? "" : `${root.ledDirectory}${key.led}/brightness`
-        watchChanges: false
-        printErrors: false
-
-        onLoaded: {
-            const now = text().trim() !== "0"
-            // The first reading is the starting state, not a change.
-            if (key.known && now !== key.on)
-                root.announce("locks", key.icon, `${key.name} ${now ? Tr.t("on") : Tr.t("off")}`)
-            key.on = now
-            key.known = true
-        }
-    }
-
-    readonly property LockKey capsLock: LockKey { led: "capslock"; icon: "󰪛"; name: Tr.t("Caps Lock") }
-    readonly property LockKey numLock: LockKey { led: "numlock"; icon: "󰎠"; name: Tr.t("Num Lock") }
-
-    readonly property Timer lockTimer: Timer {
-        interval: 500
-        repeat: true
-        running: root.ledDirectory !== "" && root.groups.locks && root.style !== "off"
-        // The next reading after being off is a starting state, not a change.
-        onRunningChanged: {
-            if (running)
-                return
-            root.capsLock.known = false
-            root.numLock.known = false
-        }
-        onTriggered: {
-            root.capsLock.reload()
-            root.numLock.reload()
         }
     }
 

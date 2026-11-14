@@ -304,4 +304,27 @@ SettingsSection {
             }
         }
     }
+
+    // ── CHANGES OF STATE ────────────────────────────────────────────────────
+
+    SettingGroup {
+        visible: root.tab === "notifications"
+        title: Tr.t("Changes of state")
+        note: Tr.t("Say what changed when the microphone, a radio, a lock key or the like is switched.")
+        hint: Tr.t("On the island is the readout that also shows the volume and brightness. As a notification, the changes without a level come as notifications and the volume and brightness stay on the island; Do not disturb silences them. Off also hides the volume, brightness and charging readouts.")
+
+        SettingRow {
+            label: Tr.t("Shown")
+
+            SegmentedControl {
+                options: [
+                    { id: "island", label: Tr.t("On the island") },
+                    { id: "notification", label: Tr.t("As a notification") },
+                    { id: "off", label: Tr.t("Off") }
+                ]
+                current: SettingsService.osdStyle
+                onSelected: id => SettingsService.set("osdStyle", id)
+            }
+        }
+    }
 }
