@@ -22,6 +22,7 @@ singleton LyricsService      1.0 services/LyricsService.qml
 singleton NotificationService 1.0 services/NotificationService.qml
 singleton FaceService        1.0 services/FaceService.qml
 singleton LockService        1.0 services/LockService.qml
+singleton OskService         1.0 services/OskService.qml
 singleton WeatherService     1.0 services/WeatherService.qml
 singleton MarketsService     1.0 services/MarketsService.qml
 singleton SessionService     1.0 services/SessionService.qml

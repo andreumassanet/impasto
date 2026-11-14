@@ -158,6 +158,85 @@ def layouts():
     return []
 
 
+# ── THE KEYMAP ──────────────────────────────────────────────────────────────
+#
+# What each key types in a layout, for the on-screen keyboard: it sends evdev
+# keycodes, which the compositor reads through the user's own layout, so its
+# labels have to come from that same layout. xkbcli compiles the keymap;
+# libxkbcommon's keysym header names the character behind each keysym.
+
+KEYSYM_HEADER = "/usr/include/xkbcommon/xkbcommon-keysyms.h"
+
+# Dead keys type nothing on their own; the accent they wait to put on a letter.
+DEAD = {
+    "grave": "`", "acute": "´", "circumflex": "^", "tilde": "~",
+    "diaeresis": "¨", "abovering": "°", "cedilla": "¸", "caron": "ˇ",
+    "macron": "¯", "breve": "˘", "abovedot": "˙", "doubleacute": "˝",
+    "ogonek": "˛", "belowdot": ".", "greek": "µ",
+}
+
+# Layouts whose keyboards have no key between left Shift and Z.
+ANSI = {"us", "ca", "br", "kr", "th"}
+
+
+def keysym_names():
+    """Keysym name -> character, from the comments in libxkbcommon's header."""
+    names = {}
+    try:
+        with open(KEYSYM_HEADER, encoding="utf-8", errors="replace") as handle:
+            for line in handle:
+                found = re.match(r"#define XKB_KEY_(\w+)\s+0x([0-9a-fA-F]+)(?:\s*/\*\s*U\+([0-9A-F]{4,6}))?", line)
+                if not found:
+                    continue
+                value = int(found.group(2), 16)
+                # Latin-1 keysyms are their own code point; 0x01xxxxxx is
+                # Unicode plus an offset; the rest say theirs in a comment.
+                if found.group(3):
+                    names.setdefault(found.group(1), chr(int(found.group(3), 16)))
+                elif 0x20 <= value <= 0xff:
+                    names.setdefault(found.group(1), chr(value))
+                elif 0x01000100 <= value <= 0x0110ffff:
+                    names.setdefault(found.group(1), chr(value - 0x01000000))
+    except OSError:
+        pass
+    return names
+
+
+def keysym_char(name, names):
+    if name in ("NoSymbol", "VoidSymbol"):
+        return ""
+    if name.startswith("dead_"):
+        return DEAD.get(name[5:], "")
+    if len(name) == 1:
+        return name
+    if re.fullmatch(r"U[0-9A-Fa-f]{4,6}", name):
+        return chr(int(name[1:], 16))
+    return names.get(name, "")
+
+
+def keymap(layout, variant=""):
+    """{iso, keys: {evdev keycode: [plain, shift, altgr]}} for one layout."""
+    try:
+        compiled = subprocess.run(
+            ["xkbcli", "compile-keymap", "--layout", layout, "--variant", variant],
+            capture_output=True, text=True, timeout=5, check=True).stdout
+    except (OSError, subprocess.SubprocessError):
+        return None
+
+    codes = {name: int(code) for name, code in re.findall(r"^\s*<(\w+)>\s*=\s*(\d+);", compiled, re.M)}
+    names = keysym_names()
+    keys = {}
+    for name, body in re.findall(r"^\s*key <(\w+)>\s*\{(.*?)\};", compiled, re.M | re.S):
+        levels = re.search(r"(?:^|[{=,])\s*\[([^\]]*)\]", body)
+        if name not in codes or not levels:
+            continue
+        symbols = [entry.strip() for entry in levels.group(1).split(",")]
+        chars = [keysym_char(symbol, names) for symbol in symbols[:3]]
+        if any(chars):
+            keys[str(codes[name] - 8)] = chars + [""] * (3 - len(chars))
+    return {"iso": layout not in ANSI, "keys": keys}
+
+
 # ── THE CURSOR ──────────────────────────────────────────────────────────────
 #
 # One vector cursor, recoloured. `./setup cursors` fetches Bibata's SVGs into
@@ -359,6 +438,10 @@ def main():
 
     if action == "layouts":
         print(json.dumps(layouts()))
+    elif action == "keymap":
+        layout = sys.argv[2] if len(sys.argv) > 2 else "us"
+        variant = sys.argv[3] if len(sys.argv) > 3 else ""
+        print(json.dumps(keymap(layout, variant)))
     elif action == "available":
         if len(sys.argv) < 3:
             sys.stderr.write("Usage: compositor.py available plugin:<name>:<option>\n")

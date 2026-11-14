@@ -1,0 +1,13 @@
+# ╭──────────────────────────────────────────────────────────────────────────╮
+# │                                                                          │
+# │   7 0 - I M P A S T O - U I N P U T                                      │
+# │   uinput · for the person at the seat, so ydotoold runs as them          │
+# │                                                                          │
+# │   github.com/andreumassanet/impasto                                      │
+# │                                                                          │
+# ╰──────────────────────────────────────────────────────────────────────────╯
+
+# The on-screen keyboard types through ydotoold, which needs /dev/uinput.
+# uaccess hands it to the session in front, as logind does for the sound card,
+# rather than to everyone in the input group, which could read every keyboard.
+KERNEL=="uinput", SUBSYSTEM=="misc", TAG+="uaccess", OPTIONS+="static_node=uinput"

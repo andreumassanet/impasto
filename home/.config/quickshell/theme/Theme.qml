@@ -419,6 +419,16 @@ QtObject {
     // neighbours never move.
     readonly property real dockLift: 1.125
 
+
+    // ── ON-SCREEN KEYBOARD ──────────────────────────────────────────────────
+
+    // One key is a square of this side; wider keys are multiples of it.
+    readonly property int oskKey: 46
+    readonly property int oskFnKey: 32
+    readonly property int oskGap: 5
+    readonly property int oskPadding: 12
+    readonly property int oskButton: 40
+
     // Magnifying, the icon under the pointer grows to this, and the swell
     // falls off over this many icons either side.
     readonly property real dockMagnify: 1.7

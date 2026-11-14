@@ -428,6 +428,7 @@ bind(mainMod .. " + SHIFT + H", hl.dsp.global("quickshell:cheatsheetWindow"), { 
 -- · zen: the bar away and its band to the windows; and the widgets away
 bind(mainMod .. " + CTRL + B",  hl.dsp.global("quickshell:zen"),        { description = "Shell · Hide or show the bar" })
 bind(mainMod .. " + CTRL + W",  hl.dsp.global("quickshell:widgets"),    { description = "Shell · Hide or show the desktop widgets" })
+bind("", hl.dsp.global("quickshell:osk"), { description = "Shell · Show or hide the on-screen keyboard" })
 bind(mainMod .. " + SHIFT + G", hl.dsp.global("quickshell:game"),       { description = "Shell · Turn game mode on or off" })
 
 -- · packages panel (pacman + AUR); installs run in a terminal

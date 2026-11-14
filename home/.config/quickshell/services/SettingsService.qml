@@ -75,6 +75,7 @@ Singleton {
     readonly property alias calendarLinks: config.calendarLinks
     readonly property alias islandSpectrum: config.islandSpectrum
     readonly property alias weatherUnits: config.weatherUnits
+    readonly property alias osk: config.osk
     readonly property alias dockRunning: config.dockRunning
     readonly property alias dockEverywhere: config.dockEverywhere
     readonly property alias dockAutohide: config.dockAutohide
@@ -932,6 +933,10 @@ Singleton {
 
         // "m" for °C or "u" for °F. A change is read at once.
         property string weatherUnits: "m"
+
+        // An on-screen keyboard along the bottom edge, shown by its key or
+        // `qs ipc call osk toggle`. It types through ydotool.
+        property bool osk: false
 
         // Also show running applications that aren't pinned.
         property bool dockRunning: true

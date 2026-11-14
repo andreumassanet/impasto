@@ -88,6 +88,22 @@ SettingsSection {
                 onMoved: value => CompositorService.remember("input:repeat_rate", Math.round(value))
             }
         }
+
+        SettingGroup {
+            title: Tr.t("On-screen keyboard")
+            note: Tr.t("A keyboard along the bottom edge, for a touch screen or no keyboard at hand.")
+            hint: Tr.t("Shown and hidden by its key in Settings → Keys. Its keys follow the first layout above.")
+
+            SettingRow {
+                label: Tr.t("On-screen keyboard")
+                reading: SettingsService.osk ? Tr.t("Available") : Tr.t("Off")
+
+                ToggleSwitch {
+                    checked: SettingsService.osk
+                    onToggled: checked => SettingsService.set("osk", checked)
+                }
+            }
+        }
     }
 
 
