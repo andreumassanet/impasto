@@ -44,6 +44,7 @@ import signal
 import struct
 import subprocess
 import sys
+import threading
 import time
 import zipfile
 from pathlib import Path
@@ -426,7 +427,13 @@ def run(out_fd):
     import mediapipe as mp
     from mediapipe.tasks.python import BaseOptions, vision
 
-    signal.signal(signal.SIGTERM, lambda *_: sys.exit(0))
+    stopping = threading.Event()
+
+    def stop(*_):
+        stopping.set()
+        sys.exit(0)
+
+    signal.signal(signal.SIGTERM, stop)
 
     source = webcam()
     capture = cv2.VideoCapture(source or 0, cv2.CAP_V4L2)
@@ -447,14 +454,25 @@ def run(out_fd):
         base_options=options("face_landmarker.task"), running_mode=video))
     # Gestures are recognised beside the loop rather than in it: they cost
     # three frames' time each, and a reaction can wait a frame for its answer.
-    recognised = {"result": None}
-
-    def heard(result, _image, _stamp):
-        recognised["result"] = result
-
+    # A thread of its own in VIDEO mode, not LIVE_STREAM, which keeps every
+    # frame it is handed in MediaPipe 1.1: seven megabytes a second.
     hands = vision.GestureRecognizer.create_from_options(vision.GestureRecognizerOptions(
-        base_options=options("gesture_recognizer.task"),
-        running_mode=vision.RunningMode.LIVE_STREAM, num_hands=2, result_callback=heard))
+        base_options=options("gesture_recognizer.task"), running_mode=video, num_hands=2))
+    recognised = {"result": None, "frame": None}
+    asked = threading.Event()
+
+    def recognise():
+        while True:
+            asked.wait()
+            image, at = recognised["frame"]
+            try:
+                recognised["result"] = hands.recognize_for_video(image, at)
+            except Exception as error:  # the thread must outlive one bad frame
+                if not stopping.is_set():
+                    print(f"Cannot read the hands: {error}", file=sys.stderr)
+            asked.clear()
+
+    threading.Thread(target=recognise, daemon=True).start()
     segmenter = vision.ImageSegmenter.create_from_options(vision.ImageSegmenterOptions(
         base_options=options("selfie_segmenter.tflite"), running_mode=video,
         output_confidence_masks=True, output_category_mask=False))
@@ -969,9 +987,12 @@ def run(out_fd):
 
         if any(reactions.get(kind) for kind in REACTIONS):
             seen, where = None, None
-            # Ten a second is plenty for a hand held still.
-            if frame_count % 3 == 0:
-                hands.recognize_async(image, stamp)
+            # Ten a second is plenty for a hand held still, and a frame that
+            # comes while the last is still being read is skipped. The thread
+            # gets an image of its own, since the face landmarker reads this one.
+            if frame_count % 3 == 0 and not asked.is_set():
+                recognised["frame"] = (mp.Image(image_format=mp.ImageFormat.SRGB, data=half), stamp)
+                asked.set()
             result = recognised["result"]
             recognised["result"] = None
             if result is not None:
