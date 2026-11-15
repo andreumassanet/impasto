@@ -652,8 +652,9 @@ Singleton {
 
         // ── CAMERA ──────────────────────────────────────────────────
         //
-        // Off takes the virtual camera away from every program.
-        property bool cameraEnabled: true
+        // Off takes the virtual camera away from every program. Off until
+        // switched on, since a call with effects costs a core.
+        property bool cameraEnabled: false
 
         // One of `CameraService.effects`.
         property string cameraEffect: "natural"
