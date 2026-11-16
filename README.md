@@ -274,6 +274,10 @@ debounced to one frame.
 - [k4](https://github.com/k4ditano/k4) — a dynamic island bar with a documented
   plugin API
 
+The GPU readings (`scripts/hardware.py` and the service that reads it) are
+adapted from [end_4's illogical-impulse](https://github.com/end-4/dots-hyprland),
+GPL-3.0.
+
 Built on [Quickshell](https://quickshell.org) and [Hyprland](https://hypr.land).
 The pointer is [Bibata](https://github.com/ful1e5/Bibata_Cursor), repainted;
 the folders are [Papirus](https://github.com/PapirusDevelopmentTeam/papirus-icon-theme),
