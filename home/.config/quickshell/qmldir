@@ -29,6 +29,7 @@ singleton SessionService     1.0 services/SessionService.qml
 singleton NetworkService     1.0 services/NetworkService.qml
 singleton FontService        1.0 services/FontService.qml
 singleton StatsService       1.0 services/StatsService.qml
+singleton HardwareService    1.0 services/HardwareService.qml
 singleton KeyboardService    1.0 services/KeyboardService.qml
 singleton TimerService       1.0 services/TimerService.qml
 singleton CavaService        1.0 services/CavaService.qml
@@ -106,6 +107,7 @@ CardFact         1.0 components/CardFact.qml
 CardLevel        1.0 components/CardLevel.qml
 CardChoice       1.0 components/CardChoice.qml
 CardHeading      1.0 components/CardHeading.qml
+DashCard         1.0 components/DashCard.qml
 Stepper          1.0 components/Stepper.qml
 StatCard         1.0 components/StatCard.qml
 SliderRow        1.0 components/SliderRow.qml
@@ -155,6 +157,9 @@ AppearancePanel  1.0 bar/island/AppearancePanel.qml
 ControlsPanel    1.0 bar/island/ControlsPanel.qml
 LauncherPanel    1.0 bar/island/LauncherPanel.qml
 StatsPanel       1.0 bar/island/StatsPanel.qml
+MonitorTab       1.0 bar/island/MonitorTab.qml
+DashboardPanel   1.0 bar/island/DashboardPanel.qml
+DashClaudeCard   1.0 bar/island/DashClaudeCard.qml
 OverviewPanel    1.0 bar/island/OverviewPanel.qml
 
 Module           1.0 bar/modules/Module.qml

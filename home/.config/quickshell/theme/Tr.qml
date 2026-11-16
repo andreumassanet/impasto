@@ -37,6 +37,20 @@ QtObject {
         return (table && table[text]) ? table[text] : text
     }
 
+    // A period given in minutes: "Every hour", "Every 2 h", "Every 1 h 30 min",
+    // "Only when asked" for none.
+    function period(minutes: int): string {
+        if (minutes <= 0)
+            return root.t("Only when asked")
+        if (minutes < 60)
+            return root.t("Every %1 min").arg(minutes)
+        const hours = Math.floor(minutes / 60)
+        const rest = minutes % 60
+        if (rest === 0)
+            return hours === 1 ? root.t("Every hour") : root.t("Every %1 h").arg(hours)
+        return root.t("Every %1 h %2 min").arg(hours).arg(rest)
+    }
+
     // One English word that two rooms say differently: the key is
     // "room|text", and a language without that entry takes `t`'s.
     function tIn(room: string, text: string): string {
@@ -370,6 +384,37 @@ QtObject {
             "Location": "Ubicación",
             "A city, a postcode or an airport code.":
                 "Una ciudad, un código postal o un código de aeropuerto.",
+            "Read the weather": "Leer el tiempo",
+            "Package updates": "Actualizaciones de paquetes",
+            "How often the shell looks for updates to the packages.":
+                "Cada cuánto busca el shell actualizaciones de los paquetes.",
+            "Look for updates": "Buscar actualizaciones",
+            "The count on the bar and the dashboard's lists are as old as the last look; Check now in the dashboard looks at once. Only when asked leaves it to that button. The weather is read on its period only while something shows it, and once when it is first looked at, such as when this page opens; each reading tells wttr.in your connection's address.":
+                "La cuenta de la barra y las listas del panel son tan viejas como la última búsqueda; Comprobar ahora, en el panel, busca al instante. Solo si se pide lo deja a ese botón. El tiempo se lee con su período solo mientras algo lo muestra, y una vez cuando se mira por primera vez, por ejemplo al abrir esta página; cada lectura dice a wttr.in la dirección de tu conexión.",
+            "Only when asked": "Solo si se pide",
+            "Every hour": "Cada hora",
+            "Every %1 min": "Cada %1 min",
+            "Every %1 h": "Cada %1 h",
+            "Every %1 h %2 min": "Cada %1 h %2 min",
+            "Which panel opens from the stats key and the stats button.":
+                "Qué panel abren la tecla y el botón de estadísticas.",
+            "Classic is the processor, memory and network cards. The dashboard adds the calendar, the weather and a monitor with per-core load, GPUs, disks, network totals since boot and the batteries of connected devices. It reads the same sampler; the GPUs are read only while the monitor tab is open.":
+                "Clásico son las tarjetas de procesador, memoria y red. El panel añade el calendario, el tiempo y un monitor con la carga por núcleo, las GPU, los discos, los totales de red desde el arranque y las baterías de los dispositivos conectados. Lee el mismo muestreador; las GPU solo se leen mientras la pestaña del monitor está abierta.",
+            "Design": "Diseño",
+            "Dashboard": "Panel",
+            "Machine logo": "Logotipo de la máquina",
+            "An image path; empty is the distribution's own":
+                "Una ruta de imagen; vacío es el de la distribución",
+            "/path/to/logo.svg": "/ruta/al/logo.svg",
+            "Health card": "Tarjeta de salud",
+            "Failed units and journal errors on the System tab":
+                "Unidades fallidas y errores del diario en la pestaña Sistema",
+            "The System tab shows the updates and this machine":
+                "La pestaña Sistema muestra las actualizaciones y esta máquina",
+            "Overview, monitor, system and weather tabs":
+                "Pestañas de vista general, monitor, sistema y tiempo",
+            "The processor, memory and network cards":
+                "Las tarjetas de procesador, memoria y red",
             "Wherever the request comes from": "De donde venga la petición",
             "No such place — the last reading is still showing":
                 "No existe ese lugar — se sigue mostrando la última lectura",
@@ -1631,6 +1676,38 @@ QtObject {
             "today": "hoy",
             "tomorrow": "mañana",
             "yesterday": "ayer",
+
+            // ── THE DASHBOARD ───────────────────────────────────────────────
+            "Disks": "Discos",
+            "power unreadable": "potencia ilegible",
+            "No connected device reports a battery":
+                "Ningún dispositivo conectado informa de su batería",
+            "Check now": "Comprobar ahora",
+            "Checked": "Comprobado",
+            "Update in a terminal": "Actualizar en una terminal",
+            "Repositories": "Repositorios",
+            "repositories": "repositorios",
+            "Host": "Equipo",
+            "Up": "Activo",
+            "Uptime": "Tiempo activo",
+            "AC": "CA",
+            "Sync now": "Sincronizar ahora",
+            "Syncing…": "Sincronizando…",
+            "Read": "Leído",
+            "%1° low · %2° high": "%1° mín · %2° máx",
+            "Feels like": "Sensación",
+            "Humidity": "Humedad",
+            "Wind": "Viento",
+            "Clouds": "Nubes",
+            "Visibility": "Visibilidad",
+            "Sunrise": "Amanecer",
+            "Sunset": "Atardecer",
+            "Days": "Días",
+            "Next hours": "Próximas horas",
+            "Health": "Salud",
+            "failed units": "unidades fallidas",
+            "errors this boot": "errores en este arranque",
+            "Show the errors": "Mostrar los errores",
 
             // ── THE DESKTOP ─────────────────────────────────────────────────
             "%1 late": "%1 con retraso",
