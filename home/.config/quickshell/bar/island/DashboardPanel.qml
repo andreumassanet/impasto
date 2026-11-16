@@ -268,6 +268,7 @@ FocusScope {
                 DashCard {
                     title: WeatherService.place !== "" ? `${Tr.t("Weather")} · ${WeatherService.place}` : Tr.t("Weather")
                     Layout.fillWidth: true
+                    // The column's height when Claude's card is not under it.
                     Layout.fillHeight: true
                     Layout.preferredHeight: 170
 
@@ -354,6 +355,16 @@ FocusScope {
                             }
                         }
                     }
+                }
+
+                // Only while Claude is on the bar, where its module keeps the
+                // service running; the card never starts it.
+                Loader {
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                    active: SettingsService.onBar("claude")
+                    visible: active
+                    sourceComponent: Component { DashClaudeCard {} }
                 }
             }
 
