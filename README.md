@@ -121,6 +121,29 @@ games, screen time, virtual machines, the servers you have running, your
 packages and effects for the webcam in any call. A pet lives on the bar, and
 <kbd>SUPER</kbd> <kbd>H</kbd> lists the key for each.
 
+### Your own panels
+
+A panel of your own goes in `~/.config/quickshell/user/`, a folder the installer
+never writes to, so an update leaves it alone. If `user/Main.qml` exists it is
+loaded at boot and registers each panel:
+
+```qml
+import QtQuick
+import "../services"
+
+Item {
+    Component {
+        id: minePanel
+        MyPanel {}  // may declare `signal back()` to return to the control centre
+    }
+    Component.onCompleted: UserPanels.register("mine", minePanel, { width: 420, height: 300 })
+}
+```
+
+`qs ipc call panel open mine` opens it, and so does a key bound to that command.
+It can use the island's own components and the live theme (`../components`,
+`../bar/island`, `../theme`). With no `user/` folder nothing changes.
+
 ## Lock and login
 
 <p align="center">

@@ -151,7 +151,9 @@ Rectangle {
     readonly property var moduleSize: ModuleService.openSize(ModuleService.openId)
 
     readonly property var panelSize:
-        root.panelSizes[islandState.openPanel] ?? root.panelSizes.controls
+        root.panelSizes[islandState.openPanel]
+        ?? UserPanels.entries[islandState.openPanel]?.size
+        ?? root.panelSizes.controls
 
     // The bar's limit: the whole bar, or a spread bar's room between its
     // sides, which hide instead for a panel wider than that (`Bar.crowded`).
@@ -514,12 +516,25 @@ Rectangle {
             anchors.rightMargin: root.panelPad
             anchors.bottomMargin: root.panelPad
             active: islandState.expanded
-            sourceComponent: root.panelComponents[islandState.openPanel] ?? controlsPanel
+            sourceComponent: root.panelComponents[islandState.openPanel]
+                ?? UserPanels.entries[islandState.openPanel]?.component
+                ?? controlsPanel
             opacity: islandState.expanded ? 1 : 0
 
             Behavior on opacity {
                 enabled: root.animated
                 NumberAnimation { duration: Theme.durationMedium; easing.type: Theme.easing }
+            }
+        }
+
+        // A user panel with a `back()` signal returns to the control centre,
+        // as the built-in details do.
+        Connections {
+            target: panelLoader.item
+            ignoreUnknownSignals: true
+
+            function onBack(): void {
+                root.open("controls")
             }
         }
     }

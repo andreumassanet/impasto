@@ -251,9 +251,10 @@ Scope {
     IpcHandler {
         target: "panel"
 
+        // The island's own panels, then the ones the user registered.
         readonly property var names: ["launcher", "controls", "overview", "appearance", "palette",
             "stats", "session", "pet", "games", "notes", "board", "keys", "packages",
-            "machines", "servers", "screentime", "camera", "player", "wifi", "bluetooth", "sound", "microphone", "brightness", "nightlight", "power", "record"]
+            "machines", "servers", "screentime", "camera", "player", "wifi", "bluetooth", "sound", "microphone", "brightness", "nightlight", "power", "record"].concat(UserPanels.names)
 
         function open(name: string): string {
             if (names.indexOf(name) < 0)

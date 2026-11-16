@@ -761,6 +761,22 @@ ShellRoot {
         }
     }
 
+    // The user's own panels: user/Main.qml, when it exists, is loaded and
+    // registers them (`UserPanels`). `setup` never writes to user/, so an
+    // update keeps it.
+    FileView {
+        id: userEntry
+
+        path: Quickshell.shellPath("user/Main.qml")
+        // Most installs have no user folder: that is not worth a log line.
+        printErrors: false
+    }
+
+    Loader {
+        active: userEntry.loaded
+        source: Qt.resolvedUrl("user/Main.qml")
+    }
+
     // ── IPC ─────────────────────────────────────────────────────────────────
     //
     // Everything the impasto command and `qs ipc call` can reach. Every
