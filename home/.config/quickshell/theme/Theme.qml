@@ -303,7 +303,8 @@ QtObject {
     // Exclusive zone: exactly what the bar paints. Hyprland adds `gaps_out`
     // below it, so reserving more leaves a larger top gap than on the other
     // edges.
-    readonly property int barReserve: root.barTopMargin + root.capsuleHeight
+    // Below the frame's top line too, when a floating bar hangs under it.
+    readonly property int barReserve: SettingsService.frameTopInset + root.barTopMargin + root.capsuleHeight
 
     // Where the bar's input region ends: 8 px of slack under the capsules.
     readonly property int barBand: root.barReserve + 8

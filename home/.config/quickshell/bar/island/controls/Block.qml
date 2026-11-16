@@ -51,7 +51,11 @@ Item {
 
     width: root.box.width
     height: root.box.height
-    visible: root.block !== null
+    // Moved to the sliders drawer, except while arranging, so they can still
+    // be placed.
+    readonly property bool moved: SettingsService.slidersPlacement === "side" && !root.editing
+        && (root.blockId === "volume" || root.blockId === "brightness")
+    visible: root.block !== null && !root.moved
 
     // Dragging assigns x and y directly, which would break a plain binding, so
     // the grid position is a Binding disabled while held.
