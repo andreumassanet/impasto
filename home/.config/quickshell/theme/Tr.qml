@@ -37,6 +37,20 @@ QtObject {
         return (table && table[text]) ? table[text] : text
     }
 
+    // A period given in minutes: "Every hour", "Every 2 h", "Every 1 h 30 min",
+    // "Only when asked" for none.
+    function period(minutes: int): string {
+        if (minutes <= 0)
+            return root.t("Only when asked")
+        if (minutes < 60)
+            return root.t("Every %1 min").arg(minutes)
+        const hours = Math.floor(minutes / 60)
+        const rest = minutes % 60
+        if (rest === 0)
+            return hours === 1 ? root.t("Every hour") : root.t("Every %1 h").arg(hours)
+        return root.t("Every %1 h %2 min").arg(hours).arg(rest)
+    }
+
     // One English word that two rooms say differently: the key is
     // "room|text", and a language without that entry takes `t`'s.
     function tIn(room: string, text: string): string {
@@ -370,6 +384,18 @@ QtObject {
             "Location": "Ubicación",
             "A city, a postcode or an airport code.":
                 "Una ciudad, un código postal o un código de aeropuerto.",
+            "Read the weather": "Leer el tiempo",
+            "Package updates": "Actualizaciones de paquetes",
+            "How often the shell looks for updates to the packages.":
+                "Cada cuánto busca el shell actualizaciones de los paquetes.",
+            "Look for updates": "Buscar actualizaciones",
+            "The count on the bar and the dashboard's lists are as old as the last look; Check now in the dashboard looks at once. Only when asked leaves it to that button. The weather is read on its period only while something shows it, and once when it is first looked at, such as when this page opens; each reading tells wttr.in your connection's address.":
+                "La cuenta de la barra y las listas del panel son tan viejas como la última búsqueda; Comprobar ahora, en el panel, busca al instante. Solo si se pide lo deja a ese botón. El tiempo se lee con su período solo mientras algo lo muestra, y una vez cuando se mira por primera vez, por ejemplo al abrir esta página; cada lectura dice a wttr.in la dirección de tu conexión.",
+            "Only when asked": "Solo si se pide",
+            "Every hour": "Cada hora",
+            "Every %1 min": "Cada %1 min",
+            "Every %1 h": "Cada %1 h",
+            "Every %1 h %2 min": "Cada %1 h %2 min",
             "Wherever the request comes from": "De donde venga la petición",
             "No such place — the last reading is still showing":
                 "No existe ese lugar — se sigue mostrando la última lectura",

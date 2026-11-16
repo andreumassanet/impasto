@@ -19,12 +19,16 @@ import "../theme"
 // set, wttr.in geolocates the request's address (no key, no account); the
 // place it resolved is shown on the card.
 //
-// Polled every 15 minutes while something is subscribed. The last reading
-// stays in between.
+// Polled on the period the settings give (every 15 minutes at first) while
+// something is subscribed. The last reading stays in between.
 Singleton {
     id: root
 
-    readonly property int pollInterval: 900000
+    // Minutes between two readings (`SettingsService.weatherRefreshMinutes`); 0
+    // is only when asked. Each reading tells wttr.in the connection's address,
+    // so nothing is read while nothing shows the weather.
+    readonly property int refreshMinutes: SettingsService.weatherRefreshMinutes
+    readonly property int pollInterval: root.refreshMinutes * 60000
 
     property int watchers: 0
     property bool available: false
@@ -111,9 +115,10 @@ Singleton {
 
     function subscribe(): void {
         root.watchers += 1
-        // Only if never read, read for another place or older than ten minutes.
+        // Only if never read, read for another place or older than ten minutes
+        // (never, with "only when asked").
         const minutes = (new Date().getTime() - root.readAt.getTime()) / 60000
-        if (!root.available || root.stale || minutes > 10)
+        if (!root.available || root.stale || (root.refreshMinutes > 0 && minutes > 10))
             root.refresh()
     }
 
@@ -144,9 +149,9 @@ Singleton {
     }
 
     readonly property Timer poller: Timer {
-        interval: root.pollInterval
+        interval: Math.max(60000, root.pollInterval)
         repeat: true
-        running: root.watchers > 0
+        running: root.watchers > 0 && root.pollInterval > 0
         onTriggered: root.refresh()
     }
 

@@ -75,6 +75,8 @@ Singleton {
     readonly property alias calendarLinks: config.calendarLinks
     readonly property alias islandSpectrum: config.islandSpectrum
     readonly property alias weatherUnits: config.weatherUnits
+    readonly property alias updatesCheckMinutes: config.updatesCheckMinutes
+    readonly property alias weatherRefreshMinutes: config.weatherRefreshMinutes
     readonly property alias osk: config.osk
     readonly property alias dockRunning: config.dockRunning
     readonly property alias dockEverywhere: config.dockEverywhere
@@ -935,6 +937,12 @@ Singleton {
 
         // "m" for °C or "u" for °F. A change is read at once.
         property string weatherUnits: "m"
+
+        // Minutes between two looks for package updates, and between two
+        // readings of the weather; 0 is only when asked, from a button. The
+        // defaults are the periods the shell kept before these were settings.
+        property int updatesCheckMinutes: 30
+        property int weatherRefreshMinutes: 15
 
         // An on-screen keyboard along the bottom edge, shown by its key or
         // `qs ipc call osk toggle`. It types through ydotool.
