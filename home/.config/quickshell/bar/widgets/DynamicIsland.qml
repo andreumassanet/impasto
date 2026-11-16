@@ -98,6 +98,7 @@ Rectangle {
         appearance: root.appearanceSize,
         palette:    root.appearanceSize,
         stats:      { width: 940,  height: 614 },
+        dashboard:  { width: 1040, height: root.dashboardHeight },
         // Depends on the results when `launcherFits` is on.
         launcher:   { width: LauncherService.panelWidth,
                       height: LauncherService.panelHeight },
@@ -203,6 +204,7 @@ Rectangle {
         brightness: brightnessDetail,
         bluetooth: bluetoothDetail,
         stats: statsPanel,
+        dashboard: dashboardPanel,
         overview: overviewPanel,
         session: sessionPanel,
         auth: authPanel,
@@ -673,6 +675,39 @@ Rectangle {
     Component {
         id: statsPanel
         StatsPanel { onClosed: root.close() }
+    }
+
+    Component {
+        id: dashboardPanel
+        DashboardPanel {
+            id: dashboard
+
+            onClosed: root.close()
+            onHeightWanted: height => root.dashboardHeight = height
+
+            // The tab asked for, when the panel opens and when it is already
+            // open and something asks for another.
+            function takeStart(): void {
+                const start = dashboard.tabs.findIndex(entry => entry.id === root.dashboardStart)
+                if (start >= 0)
+                    dashboard.tab = start
+                root.dashboardStart = ""
+            }
+
+            Component.onCompleted: {
+                dashboard.takeStart()
+                root.dashboardHeight = dashboard.wanted
+            }
+
+            Connections {
+                target: root
+
+                function onDashboardStartChanged(): void {
+                    if (root.dashboardStart !== "")
+                        dashboard.takeStart()
+                }
+            }
+        }
     }
 
     Component {
