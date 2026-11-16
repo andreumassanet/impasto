@@ -402,6 +402,10 @@ QtObject {
                 "Clásico son las tarjetas de procesador, memoria y red. El panel añade el calendario, el tiempo y un monitor con la carga por núcleo, las GPU, los discos, los totales de red desde el arranque y las baterías de los dispositivos conectados. Lee el mismo muestreador; las GPU solo se leen mientras la pestaña del monitor está abierta.",
             "Design": "Diseño",
             "Dashboard": "Panel",
+            "Machine logo": "Logotipo de la máquina",
+            "An image path; empty is the distribution's own":
+                "Una ruta de imagen; vacío es el de la distribución",
+            "/path/to/logo.svg": "/ruta/al/logo.svg",
             "Overview, monitor, system and weather tabs":
                 "Pestañas de vista general, monitor, sistema y tiempo",
             "The processor, memory and network cards":

@@ -76,6 +76,7 @@ Singleton {
     readonly property alias islandSpectrum: config.islandSpectrum
     readonly property alias weatherUnits: config.weatherUnits
     readonly property alias statsDesign: config.statsDesign
+    readonly property alias systemLogo: config.systemLogo
     readonly property alias updatesCheckMinutes: config.updatesCheckMinutes
     readonly property alias weatherRefreshMinutes: config.weatherRefreshMinutes
     readonly property alias osk: config.osk
@@ -376,7 +377,7 @@ Singleton {
     // Reset. The recorder and capture entries are last-used state.
     readonly property var machineKeys: [
         "displays", "lidPolicy", "workspaceMode", "workspaceNumbers",
-        "userName", "userAvatar", "language", "keyboard", "weatherPlace", "githubUser", "markets",
+        "userName", "userAvatar", "systemLogo", "language", "keyboard", "weatherPlace", "githubUser", "markets",
         "emojiTone",
         "doNotDisturb", "nightLight", "nightTemperature", "barHidden", "desktopHidden",
         "gameMode", "powerTileProfile", "brightnessBelowFloor", "themeTargets", "calendarLinks",
@@ -943,6 +944,10 @@ Singleton {
         // is the processor, memory and network cards; `dashboard` adds the
         // calendar, weather and a monitor with the machine's details.
         property string statsDesign: "classic"
+
+        // Path of an image for the dashboard's machine card; empty is the
+        // distribution's logo.
+        property string systemLogo: ""
 
         // Minutes between two looks for package updates, and between two
         // readings of the weather; 0 is only when asked, from a button. The
