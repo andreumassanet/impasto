@@ -1658,6 +1658,11 @@ QtObject {
             "tomorrow": "mañana",
             "yesterday": "ayer",
 
+            // ── THE DASHBOARD ───────────────────────────────────────────────
+            "Disks": "Discos",
+            "power unreadable": "potencia ilegible",
+            "No connected device reports a battery":
+                "Ningún dispositivo conectado informa de su batería",
             // ── THE DESKTOP ─────────────────────────────────────────────────
             "%1 late": "%1 con retraso",
             "%1 LATE": "VENCIDAS: %1",
