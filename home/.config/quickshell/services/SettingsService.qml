@@ -77,6 +77,7 @@ Singleton {
     readonly property alias weatherUnits: config.weatherUnits
     readonly property alias statsDesign: config.statsDesign
     readonly property alias systemLogo: config.systemLogo
+    readonly property alias dashboardHealth: config.dashboardHealth
     readonly property alias updatesCheckMinutes: config.updatesCheckMinutes
     readonly property alias weatherRefreshMinutes: config.weatherRefreshMinutes
     readonly property alias osk: config.osk
@@ -948,6 +949,9 @@ Singleton {
         // Path of an image for the dashboard's machine card; empty is the
         // distribution's logo.
         property string systemLogo: ""
+        // A Health card on the dashboard's System tab: failed units and this
+        // boot's journal errors.
+        property bool dashboardHealth: false
 
         // Minutes between two looks for package updates, and between two
         // readings of the weather; 0 is only when asked, from a button. The

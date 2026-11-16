@@ -406,6 +406,11 @@ QtObject {
             "An image path; empty is the distribution's own":
                 "Una ruta de imagen; vacío es el de la distribución",
             "/path/to/logo.svg": "/ruta/al/logo.svg",
+            "Health card": "Tarjeta de salud",
+            "Failed units and journal errors on the System tab":
+                "Unidades fallidas y errores del diario en la pestaña Sistema",
+            "The System tab shows the updates and this machine":
+                "La pestaña Sistema muestra las actualizaciones y esta máquina",
             "Overview, monitor, system and weather tabs":
                 "Pestañas de vista general, monitor, sistema y tiempo",
             "The processor, memory and network cards":
@@ -1699,6 +1704,10 @@ QtObject {
             "Sunset": "Atardecer",
             "Days": "Días",
             "Next hours": "Próximas horas",
+            "Health": "Salud",
+            "failed units": "unidades fallidas",
+            "errors this boot": "errores en este arranque",
+            "Show the errors": "Mostrar los errores",
 
             // ── THE DESKTOP ─────────────────────────────────────────────────
             "%1 late": "%1 con retraso",
