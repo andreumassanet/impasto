@@ -35,6 +35,16 @@ Rectangle {
     // The segment under the pointer.
     property Item hovered: null
 
+    // Picks the segment `by` places from the current one, wrapping around, as
+    // a click would: for a panel that binds Tab and Shift+Tab to its tabs.
+    function step(by: int): void {
+        const count = root.options.length
+        if (count === 0)
+            return
+        const index = Math.max(0, root.options.findIndex(option => option.id === root.current))
+        root.selected(root.options[(index + by + count) % count].id)
+    }
+
     implicitWidth: layout.implicitWidth + 6
     implicitHeight: Theme.segmentHeight
     radius: Theme.radiusSmall
