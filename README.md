@@ -227,6 +227,30 @@ Settings → Keys instead.
 
 </details>
 
+<details>
+<summary><b>Programs the palette is written to</b></summary>
+<br>
+
+Every palette change writes a theme for kitty, btop, cava, yazi, Neovim, imv,
+GTK, Qt and KDE, Vesktop, Spotify, VSCodium, Zen, Nautilus, the terminal
+greeting and tmux. Settings → Appearance switches each one off; until a choice
+is made, all are written, except after a `--shell-only` install, which writes
+none of them.
+
+tmux is not installed by `setup` and its config is never touched. The colours
+go to `~/.local/state/quickshell/tmux-theme.conf`; add one line to your
+`tmux.conf` to read them, and a running server picks up each change at once:
+
+```tmux
+source-file -q ~/.local/state/quickshell/tmux-theme.conf
+```
+
+The `-q` keeps tmux quiet until the first palette change has written the file.
+Put the line after any colours of your own that it should override. Only the
+default tmux server is reloaded, not one started with `-L` or `-S`.
+
+</details>
+
 ## Keys
 
 Every key belongs to a profile: Settings → Keys changes any of them, the
