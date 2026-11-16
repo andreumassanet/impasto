@@ -125,6 +125,22 @@ def daytime_now(current, today):
     return sunrise <= observed < sunset
 
 
+def day_report(day):
+    """One day of the forecast, or None when wttr.in sent it without its hours."""
+    blocks = day.get("hourly") or []
+    if not blocks:
+        return None
+    middle = int(blocks[len(blocks) // 2].get("weatherCode", 0))
+    return {
+        "date": day.get("date", ""),
+        "low": int(day.get(f"mintemp{DEG}", 0)),
+        "high": int(day.get(f"maxtemp{DEG}", 0)),
+        "glyph": glyph(middle, True),
+        "icon": icon(middle, True),
+        "rain": max(int(block.get("chanceofrain", 0)) for block in blocks),
+    }
+
+
 def report(place):
     data = fetch(place)
     current = data["current_condition"][0]
@@ -146,7 +162,15 @@ def report(place):
         "glyph": glyph(code, daytime),
         "icon": icon(code, daytime),
         "humidity": int(current["humidity"]),
+        # The rest of the dashboard's "Now" grid.
+        "uv": int(current.get("uvIndex", 0)),
+        "cloud": int(current.get("cloudcover", 0)),
+        "visibility": int(current.get("visibilityMiles" if US else "visibility", 0)),
+        "visibilityUnit": "mi" if US else "km",
+        "sunrise": today.get("astronomy", [{}])[0].get("sunrise", ""),
+        "sunset": today.get("astronomy", [{}])[0].get("sunset", ""),
         "wind": int(current["windspeedMiles" if US else "windspeedKmph"]),
+        "windUnit": "mph" if US else "km/h",
         "low": int(today[f"mintemp{DEG}"]),
         "high": int(today[f"maxtemp{DEG}"]),
         # Today and tomorrow, in wttr.in's three-hour steps, so the evening
@@ -163,6 +187,8 @@ def report(place):
             for day, blocks in enumerate(w["hourly"] for w in data["weather"][:2])
             for block in blocks
         ],
+        # Every day wttr.in has (three), for the dashboard.
+        "days": [entry for entry in map(day_report, data["weather"]) if entry is not None],
     }
 
 
