@@ -87,6 +87,28 @@ SettingsSection {
         }
     }
 
+    SettingGroup {
+        title: Tr.t("System statistics")
+        note: Tr.t("Which panel opens from the stats key and the stats button.")
+        hint: Tr.t("Classic is the processor, memory and network cards. The dashboard adds the calendar, the weather and a monitor with per-core load, GPUs, disks, network totals since boot and the batteries of connected devices. It reads the same sampler; the GPUs are read only while the monitor tab is open.")
+
+        SettingRow {
+            label: Tr.t("Design")
+            reading: SettingsService.statsDesign === "dashboard"
+                ? Tr.t("Overview, monitor, system and weather tabs")
+                : Tr.t("The processor, memory and network cards")
+
+            SegmentedControl {
+                options: [
+                    { id: "classic", label: Tr.t("Classic") },
+                    { id: "dashboard", label: Tr.t("Dashboard") }
+                ]
+                current: SettingsService.statsDesign
+                onSelected: id => SettingsService.set("statsDesign", id)
+            }
+        }
+    }
+
     // The calendars the calendar card reads, by their iCalendar link.
     SettingGroup {
         title: Tr.t("Calendar")

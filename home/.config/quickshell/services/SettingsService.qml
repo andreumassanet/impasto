@@ -75,6 +75,7 @@ Singleton {
     readonly property alias calendarLinks: config.calendarLinks
     readonly property alias islandSpectrum: config.islandSpectrum
     readonly property alias weatherUnits: config.weatherUnits
+    readonly property alias statsDesign: config.statsDesign
     readonly property alias updatesCheckMinutes: config.updatesCheckMinutes
     readonly property alias weatherRefreshMinutes: config.weatherRefreshMinutes
     readonly property alias osk: config.osk
@@ -937,6 +938,11 @@ Singleton {
 
         // "m" for °C or "u" for °F. A change is read at once.
         property string weatherUnits: "m"
+
+        // Which panel the stats shortcut and the stats button open: `classic`
+        // is the processor, memory and network cards; `dashboard` adds the
+        // calendar, weather and a monitor with the machine's details.
+        property string statsDesign: "classic"
 
         // Minutes between two looks for package updates, and between two
         // readings of the weather; 0 is only when asked, from a button. The

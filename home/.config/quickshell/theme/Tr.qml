@@ -396,6 +396,16 @@ QtObject {
             "Every %1 min": "Cada %1 min",
             "Every %1 h": "Cada %1 h",
             "Every %1 h %2 min": "Cada %1 h %2 min",
+            "Which panel opens from the stats key and the stats button.":
+                "Qué panel abren la tecla y el botón de estadísticas.",
+            "Classic is the processor, memory and network cards. The dashboard adds the calendar, the weather and a monitor with per-core load, GPUs, disks, network totals since boot and the batteries of connected devices. It reads the same sampler; the GPUs are read only while the monitor tab is open.":
+                "Clásico son las tarjetas de procesador, memoria y red. El panel añade el calendario, el tiempo y un monitor con la carga por núcleo, las GPU, los discos, los totales de red desde el arranque y las baterías de los dispositivos conectados. Lee el mismo muestreador; las GPU solo se leen mientras la pestaña del monitor está abierta.",
+            "Design": "Diseño",
+            "Dashboard": "Panel",
+            "Overview, monitor, system and weather tabs":
+                "Pestañas de vista general, monitor, sistema y tiempo",
+            "The processor, memory and network cards":
+                "Las tarjetas de procesador, memoria y red",
             "Wherever the request comes from": "De donde venga la petición",
             "No such place — the last reading is still showing":
                 "No existe ese lugar — se sigue mostrando la última lectura",
