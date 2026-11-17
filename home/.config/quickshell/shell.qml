@@ -237,7 +237,7 @@ ShellRoot {
         id: settingsWindow
 
         // The palette and wallpaper pickers live on the island.
-        onPanelRequested: panel => root.island?.open(panel)
+        onPanelRequested: panel => root.island?.toggle(panel)
     }
 
     // The control centre's gear. The island has already closed itself.

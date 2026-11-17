@@ -255,10 +255,12 @@ Scope {
             "stats", "session", "pet", "games", "notes", "board", "keys", "packages",
             "machines", "servers", "screentime", "camera", "player", "wifi", "bluetooth", "sound", "microphone", "brightness", "nightlight", "power", "record"]
 
+        // A second call with the panel already open closes it, as the keys do:
+        // one key or command is both the way in and the way out.
         function open(name: string): string {
             if (names.indexOf(name) < 0)
                 return root.fail(`not a panel: "${name}" (${names.join(", ")})`)
-            root.island?.open(name)
+            root.island?.toggle(name)
             return root.ok({ panel: name })
         }
 
