@@ -778,6 +778,11 @@ Item {
                         onClicked: MediaService.next()
                     }
                 }
+
+                PlayerSwitch {
+                    Layout.alignment: Qt.AlignHCenter
+                    color: root.ink.text
+                }
             }
         }
     }

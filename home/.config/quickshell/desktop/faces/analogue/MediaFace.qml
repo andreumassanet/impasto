@@ -55,7 +55,7 @@ Instrument {
             }
 
             Row {
-                spacing: 16
+                spacing: MediaService.count > 1 ? 4 : 16
 
                 IconButton {
                     iconColor: face.ink.text
@@ -76,6 +76,11 @@ Instrument {
                     icon: "󰒭"
                     iconSize: 16
                     onClicked: MediaService.next()
+                }
+
+                PlayerSwitch {
+                    anchors.verticalCenter: parent.verticalCenter
+                    color: face.ink.text
                 }
             }
         }
@@ -107,7 +112,7 @@ Instrument {
 
             Row {
                 anchors.horizontalCenter: parent.horizontalCenter
-                spacing: 28
+                spacing: MediaService.count > 1 ? 10 : 28
 
                 IconButton {
                     iconColor: face.ink.text
@@ -128,6 +133,11 @@ Instrument {
                     icon: "󰒭"
                     iconSize: 22
                     onClicked: MediaService.next()
+                }
+
+                PlayerSwitch {
+                    anchors.verticalCenter: parent.verticalCenter
+                    color: face.ink.text
                 }
             }
         }

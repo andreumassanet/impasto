@@ -103,6 +103,18 @@ Item {
             glyph: "󰒭"
             onClicked: MediaService.next()
         }
+
+        // To the next player, with more than one around.
+        Dot {
+            visible: MediaService.count > 1
+            anchors.verticalCenter: parent.verticalCenter
+            width: transport.size * 0.6
+            height: width
+            seed: root.seed + "player"
+            hue: root.ink.paper
+            glyph: "󰑖"
+            onClicked: MediaService.cycle(1)
+        }
     }
 
     Loader {

@@ -110,6 +110,7 @@ Stepper          1.0 components/Stepper.qml
 StatCard         1.0 components/StatCard.qml
 SliderRow        1.0 components/SliderRow.qml
 IconButton       1.0 components/IconButton.qml
+PlayerSwitch     1.0 components/PlayerSwitch.qml
 PadIcon          1.0 components/PadIcon.qml
 PillButton       1.0 components/PillButton.qml
 SettingSlider    1.0 components/SettingSlider.qml

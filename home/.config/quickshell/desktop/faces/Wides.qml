@@ -684,7 +684,7 @@ Item {
                 Row {
                     anchors.verticalCenter: parent.verticalCenter
                     anchors.right: parent.right
-                    spacing: 16
+                    spacing: MediaService.count > 1 ? 4 : 16
                     enabled: MediaService.available
                     opacity: MediaService.available ? 1 : 0.4
 
@@ -710,6 +710,11 @@ Item {
                         icon: "󰒭"
                         iconSize: 16
                         onClicked: MediaService.next()
+                    }
+
+                    PlayerSwitch {
+                        anchors.verticalCenter: parent.verticalCenter
+                        color: root.ink.text
                     }
                 }
             ]

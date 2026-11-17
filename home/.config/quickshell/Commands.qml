@@ -30,6 +30,14 @@ Scope {
         return JSON.stringify(Object.assign({ ok: true }, extra ?? ({})))
     }
 
+    function cycleMedia(step: int): string {
+        if (MediaService.count < 2)
+            return root.fail("only one player")
+        MediaService.cycle(step)
+        return root.ok({ player: MediaService.identity, index: MediaService.index,
+            count: MediaService.count })
+    }
+
     function fail(message: string): string {
         return JSON.stringify({ error: message })
     }
@@ -300,7 +308,8 @@ Scope {
         function get(): string {
             return root.ok({ media: MediaService.available
                 ? { title: MediaService.title, artist: MediaService.artist,
-                    player: MediaService.identity, playing: MediaService.playing }
+                    player: MediaService.identity, playing: MediaService.playing,
+                    index: MediaService.index, count: MediaService.count }
                 : null })
         }
 
@@ -340,6 +349,21 @@ Scope {
                 return root.fail("no previous track")
             MediaService.previous()
             return root.ok()
+        }
+
+        function cycle(): string { return root.cycleMedia(1) }
+        function cycleBack(): string { return root.cycleMedia(-1) }
+
+        function list(): string {
+            return root.ok({ players: MediaService.players.map(player => ({
+                player: MediaService.nameOf(player), playing: player.isPlaying,
+                title: player.trackTitle ?? "", active: player === MediaService.active })) })
+        }
+
+        function select(identity: string): string {
+            if (!MediaService.select(identity))
+                return root.fail("no such player: " + identity)
+            return root.ok({ player: MediaService.identity })
         }
     }
 
