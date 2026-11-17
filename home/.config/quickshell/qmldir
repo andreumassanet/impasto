@@ -218,6 +218,7 @@ BoardPanel       1.0 bar/island/BoardPanel.qml
 KeysPanel        1.0 bar/island/KeysPanel.qml
 KeysWindow       1.0 bar/island/KeysWindow.qml
 MediaPanel       1.0 bar/island/MediaPanel.qml
+PlayerCard       1.0 bar/island/PlayerCard.qml
 PackagesPanel    1.0 bar/island/PackagesPanel.qml
 GameBoard        1.0 bar/island/games/GameBoard.qml
 NotificationList 1.0 bar/island/controls/NotificationList.qml

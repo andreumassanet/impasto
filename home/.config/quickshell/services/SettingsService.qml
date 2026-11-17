@@ -42,6 +42,7 @@ Singleton {
     readonly property alias islandSummary: config.islandSummary
     readonly property alias lyrics: config.lyrics
     readonly property alias mediaCover: config.mediaCover
+    readonly property alias mediaAllPlayers: config.mediaAllPlayers
     // "card" (the piece's card) or "panel" (the wide media panel).
     readonly property alias islandActivities: config.islandActivities
     readonly property alias chipShape: config.chipShape
@@ -620,6 +621,9 @@ Singleton {
 
         // The cover's shape everywhere: "rectangle" or "circle".
         property string mediaCover: "rectangle"
+        // The media panel lists every player on a card of its own, instead of
+        // the one the shell shows.
+        property bool mediaAllPlayers: false
 
         // Null means `besideDefaults`.
         property var islandActivities: null
