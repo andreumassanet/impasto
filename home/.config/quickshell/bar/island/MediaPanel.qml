@@ -34,8 +34,6 @@ FocusScope {
     Component.onDestruction: {
         MediaService.release()
         LyricsService.release()
-        // A player picked here is picked for as long as the panel is open.
-        MediaService.choose(null)
     }
 
     Keys.onSpacePressed: MediaService.toggle()
@@ -56,9 +54,31 @@ FocusScope {
         color: Theme.textMuted
     }
 
+    // `mediaAllPlayers`, with more than one player around: a card each.
+    readonly property bool everyPlayer: SettingsService.mediaAllPlayers && MediaService.count > 1
+
+    ListView {
+        id: cards
+
+        readonly property real gap: 14
+
+        anchors.fill: parent
+        visible: root.everyPlayer
+        orientation: ListView.Horizontal
+        spacing: cards.gap
+        clip: true
+        interactive: contentWidth > width
+        model: root.everyPlayer ? MediaService.players : []
+
+        delegate: PlayerCard {
+            width: Math.max(280, (cards.width - cards.gap * (cards.count - 1)) / cards.count)
+            height: cards.height
+        }
+    }
+
     RowLayout {
         anchors.fill: parent
-        visible: MediaService.available
+        visible: MediaService.available && !root.everyPlayer
         spacing: 24
 
         // The cover, in the shape the shell uses.
@@ -228,7 +248,7 @@ FocusScope {
                             id: chipLabel
 
                             anchors.centerIn: parent
-                            text: chip.modelData.identity || Tr.t("Player")
+                            text: MediaService.nameOf(chip.modelData) || Tr.t("Player")
                             font.family: Theme.fontFamily
                             font.pixelSize: Theme.fontSizeSmall
                             color: chip.current ? Theme.accentText : Theme.text

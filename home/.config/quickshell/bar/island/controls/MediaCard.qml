@@ -59,11 +59,43 @@ Card {
                 Layout.alignment: Qt.AlignVCenter
                 spacing: 2
 
+                // Which player this is, with arrows to the others.
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: 2
+
+                    IconButton {
+                        visible: MediaService.count > 1
+                        icon: "󰅁"
+                        iconSize: 14
+                        onClicked: MediaService.cycle(-1)
+                    }
+
+                    Text {
+                        Layout.fillWidth: true
+                        horizontalAlignment: MediaService.count > 1 ? Text.AlignHCenter : Text.AlignLeft
+                        text: MediaService.count > 1
+                            ? `${MediaService.identity} · ${MediaService.index}/${MediaService.count}`
+                            : MediaService.identity
+                        elide: Text.ElideRight
+                        font.family: Theme.fontFamily
+                        font.pixelSize: Theme.fontSizeLabel
+                        color: Theme.textMuted
+                    }
+
+                    IconButton {
+                        visible: MediaService.count > 1
+                        icon: "󰅂"
+                        iconSize: 14
+                        onClicked: MediaService.cycle(1)
+                    }
+                }
+
                 Text {
                     Layout.fillWidth: true
                     text: MediaService.title
                     elide: Text.ElideRight
-                    maximumLineCount: 2
+                    maximumLineCount: MediaService.count > 1 ? 1 : 2
                     wrapMode: Text.Wrap
                     font.family: Theme.fontFamily
                     font.pixelSize: Theme.fontSizeRegular

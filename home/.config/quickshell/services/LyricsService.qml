@@ -23,6 +23,8 @@ Singleton {
     property int watchers: 0
     readonly property bool wanted: root.watchers > 0 && SettingsService.lyrics
         && MediaService.available && MediaService.title !== ""
+        // A video in a browser has no album; music from a site sends one.
+        && !(MediaService.browser && MediaService.album === "")
 
     // Lyrics are looked up per track; the length is part of it because
     // lrclib matches on it.
@@ -57,6 +59,7 @@ Singleton {
     readonly property string status: !SettingsService.lyrics ? "Lyrics are off"
         : !MediaService.available ? ""
         : root.loading ? "Looking for lyrics"
+        : MediaService.browser && MediaService.album === "" ? "No lyrics for videos"
         : root.instrumental ? "Instrumental"
         : !root.available ? "No lyrics for this one"
         : !root.synced ? "Lyrics, untimed"
