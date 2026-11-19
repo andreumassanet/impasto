@@ -208,16 +208,20 @@ Singleton {
 
     // Coalesces canvas drags and the settings file loading (one change per
     // key).
-    onStoreChanged: root.pushSoon.restart()
+    onStoreChanged: {
+        root.lastApplied = ""
+        root.pushSoon.restart()
+    }
 
     readonly property Timer pushSoon: Timer {
         interval: 120
         onTriggered: root.applyProfile()
     }
 
-    // Only rules that disagree with the current state are sent. This is also
-    // the loop guard: enabling a screen fires `monitoradded`, which re-reads
-    // and then finds nothing left to change.
+    // Only rules that disagree with the current state are sent: enabling a
+    // screen fires `monitoradded`, which re-reads and then finds nothing left
+    // to change. A value Hyprland refuses keeps differing; `lastApplied` stops
+    // that from being sent again on every read.
     function differs(description: string, rule: var): bool {
         const found = root.monitorFor(description)
         if (!found)
@@ -249,10 +253,22 @@ Singleton {
         }
         if (rules.length === 0)
             return
+        const sent = JSON.stringify(rules)
+        if (sent === root.lastApplied) {
+            console.warn("Hyprland did not take these monitor settings; not sending them again:", sent)
+            return
+        }
+        root.lastApplied = sent
         root.settling.restart()
-        root.applier.command = [root.script, "apply", JSON.stringify(rules)]
+        root.applier.command = [root.script, "apply", sent]
         root.applier.running = true
     }
+
+    // The rules last sent, cleared when the arrangement, the screens or the
+    // config change. Hyprland can refuse a value (VRR on a panel without it):
+    // the read after applying still differs, and sending it again re-applied
+    // every settling round, forever, bouncing empty workspaces each time.
+    property string lastApplied: ""
 
     // ── RECOVERY ────────────────────────────────────────────────────────────
     //
@@ -410,12 +426,13 @@ Singleton {
     }
 
     // Bringing an output up emits a burst of events. Nothing is pushed while
-    // this runs; the read at the end sees the settled state.
+    // this runs; the read at the end sees the settled state. Applying is not a
+    // screen coming or going: one that does fires `monitoradded` or
+    // `monitorremoved`, which sets `screensChanged` itself.
     readonly property Timer settling: Timer {
         interval: 600
         onTriggered: {
             root.disturbed = true
-            root.screensChanged = true
             root.load()
         }
     }
@@ -434,9 +451,12 @@ Singleton {
             case "monitorremoved":
             case "monitorremovedv2":
                 root.screensChanged = true
+                root.lastApplied = ""
                 root.hotplug.restart()
                 break
+            // A reload resets the monitors to the Lua config: send again.
             case "configreloaded":
+                root.lastApplied = ""
                 root.hotplug.restart()
                 break
             }
